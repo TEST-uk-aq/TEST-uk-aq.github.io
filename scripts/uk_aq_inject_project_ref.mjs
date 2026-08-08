@@ -24,11 +24,34 @@ const SCRIPT_DIR = path.dirname(scriptEntryPath);
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
 const DEFAULT_TARGETS = [
-  { path: "hex_map/index.html", required: true },
-  // The root homepage uses the same-origin /api/aq endpoints and no longer
-  // contains direct Supabase or Turnstile placeholders.
-  { path: "sensors/index.html", required: true },
-  { path: "sensor_map/index.html", required: true },
+  {
+    path: "hex_map/index.html",
+    required: true,
+    injectProjectRef: true,
+    injectPublishableKey: true,
+    injectTurnstile: true,
+  },
+  {
+    path: "index.html",
+    required: true,
+    injectProjectRef: false,
+    injectPublishableKey: false,
+    injectTurnstile: true,
+  },
+  {
+    path: "sensors/index.html",
+    required: true,
+    injectProjectRef: true,
+    injectPublishableKey: true,
+    injectTurnstile: true,
+  },
+  {
+    path: "sensor_map/index.html",
+    required: true,
+    injectProjectRef: true,
+    injectPublishableKey: true,
+    injectTurnstile: true,
+  },
 ];
 const refPattern = /const PROJECT_REF_PLACEHOLDER = "([^"]*)";/g;
 const anonPattern = /const ANON_KEY_PLACEHOLDER = "([^"]*)";/g;
@@ -68,7 +91,13 @@ async function main() {
   const cliTargets = nodeProcess.argv.slice(2).filter(Boolean);
   const targets = (cliTargets.length ? cliTargets : DEFAULT_TARGETS)
     .map((target) => (typeof target === "string"
-      ? { path: target, required: true }
+      ? {
+          path: target,
+          required: true,
+          injectProjectRef: true,
+          injectPublishableKey: true,
+          injectTurnstile: true,
+        }
       : target));
 
   for (const target of targets) {
@@ -85,27 +114,37 @@ async function main() {
       throw new Error(`Required file missing: ${target.path}`);
     }
     let updated = html;
-    updated = replacePlaceholder(
-      updated,
-      refPattern,
-      `const PROJECT_REF_PLACEHOLDER = "${projectRef}";`,
-      "PROJECT_REF_PLACEHOLDER",
-      targetPath,
-    );
-    updated = replacePlaceholder(
-      updated,
-      anonPattern,
-      `const ANON_KEY_PLACEHOLDER = "${publishableKey}";`,
-      "ANON_KEY_PLACEHOLDER",
-      targetPath,
-    );
-    updated = replacePlaceholder(
-      updated,
-      turnstilePattern,
-      `const TURNSTILE_SITE_KEY_PLACEHOLDER = "${turnstileSiteKey}";`,
-      "TURNSTILE_SITE_KEY_PLACEHOLDER",
-      targetPath,
-    );
+
+    if (target.injectProjectRef !== false) {
+      updated = replacePlaceholder(
+        updated,
+        refPattern,
+        `const PROJECT_REF_PLACEHOLDER = "${projectRef}";`,
+        "PROJECT_REF_PLACEHOLDER",
+        targetPath,
+      );
+    }
+
+    if (target.injectPublishableKey !== false) {
+      updated = replacePlaceholder(
+        updated,
+        anonPattern,
+        `const ANON_KEY_PLACEHOLDER = "${publishableKey}";`,
+        "ANON_KEY_PLACEHOLDER",
+        targetPath,
+      );
+    }
+
+    if (target.injectTurnstile !== false) {
+      updated = replacePlaceholder(
+        updated,
+        turnstilePattern,
+        `const TURNSTILE_SITE_KEY_PLACEHOLDER = "${turnstileSiteKey}";`,
+        "TURNSTILE_SITE_KEY_PLACEHOLDER",
+        targetPath,
+      );
+    }
+
     updated = replacePlaceholder(
       updated,
       aqiHistoryPattern,
@@ -133,9 +172,9 @@ async function main() {
 
     if (updated !== html) {
       await fs.writeFile(targetPath, updated);
-      console.log(`Injected SUPABASE_PROJECT_REF, publishable key, Turnstile site key, AQI history base, website debug flag, and AQI mutable hours into ${path.relative(REPO_ROOT, targetPath)}`);
+      console.log(`Injected configured runtime values into ${path.relative(REPO_ROOT, targetPath)}`);
     } else {
-      console.log(`${path.relative(REPO_ROOT, targetPath)} already uses the configured SUPABASE project ref, publishable key, Turnstile site key, AQI history base, website debug flag, and AQI mutable hours.`);
+      console.log(`${path.relative(REPO_ROOT, targetPath)} already uses the configured runtime values.`);
     }
   }
 }
