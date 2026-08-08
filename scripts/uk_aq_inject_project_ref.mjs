@@ -25,7 +25,8 @@ const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
 const DEFAULT_TARGETS = [
   { path: "hex_map/index.html", required: true },
-  { path: "index.html", required: true },
+  // The root homepage uses the same-origin /api/aq endpoints and no longer
+  // contains direct Supabase or Turnstile placeholders.
   { path: "sensors/index.html", required: true },
   { path: "sensor_map/index.html", required: true },
 ];
