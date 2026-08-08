@@ -36,6 +36,7 @@
     }
 
     .home-header {
+      width: 100%;
       margin: 0 auto;
       padding: 32px 28px 0;
       background: #fbfaf7;
@@ -360,674 +361,205 @@
     .readings-actions {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-    }
-
-    .readings-controls {
-      display: flex;
+      gap: 0.6rem;
       justify-content: flex-end;
     }
 
     .readings-updated {
       margin: 0;
-      color: #65717d;
-      font-size: 0.88rem;
-      white-space: nowrap;
-    }
-
-    .btn-refresh {
-      padding: 5px 12px;
-      border: 1px solid #3C78AC;
-      border-radius: 6px;
-      background: #3C78AC;
-      color: #fff;
-      box-shadow: 0 1px 4px rgba(16, 24, 34, 0.12);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s, border-color 0.15s;
-    }
-
-    .btn-refresh:hover:not(:disabled) {
-      transform: translateY(-1px);
-      border-color: #285A84;
-      background: #285A84;
-      box-shadow: 0 4px 10px rgba(16, 24, 34, 0.16);
-    }
-
-    .btn-refresh:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: none;
-    }
-
-    .btn-refresh:focus-visible {
-      outline: 2px solid rgba(60, 120, 172, 0.5);
-      outline-offset: 2px;
-    }
-
-    .btn-refresh:disabled {
-      opacity: 0.65;
-      cursor: wait;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .home-network-picker {
-      position: relative;
-      display: inline-flex;
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-    }
-
-    .home-network-picker-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 7px;
-      min-width: 17ch;
-      padding: 6px 11px;
-      border: 1px solid rgba(20, 34, 37, 0.18);
-      border-radius: 6px;
-      background: #fff;
-      color: #245b82;
-      font: inherit;
-      font-size: 16px;
-      font-weight: 500;
-      line-height: 1.2;
-      cursor: pointer;
-      white-space: nowrap;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    .home-network-picker-button:hover:not([aria-expanded="true"]) {
-      background: #f8fafc;
-      border-color: #d1d5db;
-    }
-
-    .home-network-picker-button[aria-expanded="true"] {
-      background: #eff6ff;
-      border-color: #3C78AC;
-      color: #3C78AC;
-    }
-
-    .home-network-picker-button:focus-visible {
-      outline: 2px solid rgba(60, 120, 172, 0.5);
-      outline-offset: 2px;
-    }
-
-    .home-network-picker-chevron {
-      margin-left: auto;
-      flex-shrink: 0;
-      transition: transform 0.15s ease;
-    }
-
-    .home-network-picker-button[aria-expanded="true"] .home-network-picker-chevron {
-      transform: rotate(180deg);
-    }
-
-    .home-network-picker-panel {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      z-index: 340;
-      display: grid;
-      gap: 8px;
-      width: min(350px, calc(100vw - 28px));
-      min-width: 270px;
-      box-sizing: border-box;
-      padding: 10px;
-      border: 1px solid rgba(20, 34, 37, 0.18);
-      border-radius: 12px;
-      background: #fffdfa;
-      box-shadow: 0 12px 30px rgba(16, 24, 34, 0.18);
-    }
-
-    .home-network-picker-panel[hidden] {
-      display: none;
-    }
-
-    .home-network-picker-header {
-      display: flex;
-      justify-content: space-between;
-      padding: 2px 2px 8px;
-      border-bottom: 1px solid rgba(30, 42, 51, 0.1);
-      color: #65717d;
-      font-size: 0.86rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .home-network-picker-count {
-      color: #245b82;
-      font-size: 1.05rem;
+      color: #647181;
+      font-size: 0.82rem;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
 
-    .home-network-picker-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0 2px 2px;
-    }
-
-    .home-network-picker-action {
-      padding: 0;
-      border: 0;
-      background: transparent;
-      color: #3C78AC;
-      font: inherit;
-      font-size: 0;
-      cursor: pointer;
-    }
-
-    .home-network-picker-action:disabled {
-      color: #9aa2a9;
-      cursor: not-allowed;
-    }
-
-    .home-network-picker-actions-divider {
-      color: #3C78AC;
-      font-size: 1.25rem;
-      font-weight: 700;
-      line-height: 1;
-      user-select: none;
-    }
-
-    .home-network-picker-action-icon {
-      position: relative;
-      display: block;
-      width: 16px;
-      height: 16px;
-      border-radius: 2px;
-    }
-
-    .home-network-picker-action-icon--select-all {
-      border: 1px solid #3C78AC;
-      background: #3C78AC;
-    }
-
-    .home-network-picker-action-icon--select-all::before {
-      content: "✓";
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .home-network-picker-action-icon--clear-all {
-      border: 1px solid #3C78AC;
-      background: transparent;
-    }
-
-    .home-network-picker-action:disabled .home-network-picker-action-icon--select-all {
-      border-color: #9aa2a9;
-      background: #9aa2a9;
-    }
-
-    .home-network-picker-action:disabled .home-network-picker-action-icon--clear-all {
-      border-color: #9aa2a9;
-    }
-
-    .home-network-picker-list {
-      display: grid;
-      gap: 3px;
-      max-height: min(44vh, 360px);
-      overflow-y: auto;
-    }
-
-    .home-network-picker-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 7px 10px;
+    .network-select {
+      min-width: 148px;
+      border: 1px solid #c9d3dc;
       border-radius: 8px;
-      color: #172535;
-      font-size: 1.08rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .home-network-picker-row:hover,
-    .home-network-picker-row:focus-within {
-      background: rgba(40, 117, 168, 0.08);
-    }
-
-    .home-network-picker-row.is-unselected {
-      color: #73808d;
-    }
-
-    .home-network-picker-row-main {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .home-network-picker-row input {
-      width: 15px;
-      height: 15px;
-      accent-color: #2875a8;
-    }
-
-    .home-network-picker-sensor-count {
-      color: #3C78AC;
-      font-size: 1rem;
+      padding: 0.45rem 2rem 0.45rem 0.7rem;
+      background: #fff;
+      color: #2f6a9a;
+      font: inherit;
+      font-size: 0.92rem;
       font-weight: 700;
-      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      box-shadow: 0 2px 7px rgba(16, 24, 34, 0.05);
     }
 
-    .home-network-picker-footer {
-      padding-top: 8px;
-      border-top: 1px solid rgba(30, 42, 51, 0.1);
-      color: #6b7280;
-      font-size: 13px;
+    .refresh-button {
+      border: 0;
+      border-radius: 8px;
+      padding: 0.58rem 0.9rem;
+      background: #3C78AC;
+      color: #fff;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(60, 120, 172, 0.16);
     }
 
-    @media (max-width: 720px) {
-      .home-network-picker-panel {
-        right: auto;
-        left: 0;
-      }
+    .refresh-button:hover {
+      background: #285A84;
+    }
+
+    .refresh-button:focus-visible,
+    .network-select:focus-visible {
+      outline: 3px solid rgba(60, 120, 172, 0.35);
+      outline-offset: 2px;
     }
 
     .pollutant-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      column-gap: clamp(1.5rem, 3vw, 2.5rem);
-      row-gap: 1rem;
-      margin-top: 1.35rem;
+      gap: clamp(1.25rem, 3vw, 2.75rem);
+      align-items: stretch;
+      margin-top: 1.5rem;
     }
 
-    .pollutant-item {
-      display: grid;
-      grid-template-rows: auto auto auto;
-      justify-items: center;
-      align-items: start;
-      gap: 1rem;
+    .pollutant-card {
       min-width: 0;
-    }
-
-    .pollutant-item > .pollutant-circle,
-    .pollutant-item > .pollutant-unavailable {
-      grid-row: 1;
-    }
-
-    .pollutant-item > .scale-legend {
-      grid-row: 2;
-    }
-
-    .pollutant-item > .pollutant-actions {
-      grid-row: 3;
-    }
-
-    @supports (grid-template-rows: subgrid) {
-      @media (min-width: 641px) {
-        .pollutant-grid {
-          grid-auto-rows: auto auto auto;
-        }
-
-        .pollutant-item {
-          grid-row: span 3;
-          grid-template-rows: subgrid;
-          row-gap: 1rem;
-        }
-      }
-    }
-
-    .pollutant-unavailable {
-      width: min(100%, 240px);
-      min-height: 150px;
-      box-sizing: border-box;
-      display: grid;
-      align-content: center;
-      justify-items: center;
-      gap: 0.45rem;
-      padding: 1.25rem;
-      border: 1px dashed rgba(30, 42, 51, 0.22);
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.48);
-      color: #586573;
       text-align: center;
-    }
-
-    .pollutant-unavailable[hidden],
-    .pollutant-item .pollutant-circle[hidden],
-    .pollutant-item .scale-legend[hidden],
-    .pollutant-item .pollutant-actions[hidden] {
-      display: none;
-    }
-
-    .pollutant-unavailable-title {
-      margin: 0;
-      color: #344250;
-      font-size: clamp(1.15rem, 2vw, 1.35rem);
-      font-weight: 850;
-      line-height: 1.1;
-    }
-
-    .pollutant-unavailable-copy {
-      margin: 0;
-      font-size: 0.92rem;
-      font-weight: 650;
-      line-height: 1.35;
     }
 
     .pollutant-circle {
-      width: min(100%, 285px);
+      position: relative;
+      width: min(100%, 300px);
       aspect-ratio: 1;
-      box-sizing: border-box;
-      display: grid;
-      grid-template-rows: auto auto auto minmax(1.25rem, 1fr) auto auto;
-      align-items: center;
-      justify-items: center;
-      padding: 1.2rem 1.85rem 0.78rem;
+      margin: 0 auto;
+      padding: 1.35rem 2rem 0.85rem;
       border-radius: 50%;
-      color: #fff;
-      text-align: center;
-      box-shadow: 0 15px 28px rgba(56, 42, 30, 0.2);
-      -webkit-text-stroke: 0.6px #666;
-      paint-order: stroke fill;
-      overflow: hidden;
-    }
-
-    .pollutant-circle--pm25 {
-      background: #C8CDD1;
-    }
-
-    .pollutant-circle--pm10 {
-      background: #C8CDD1;
-    }
-
-    .pollutant-circle--no2 {
-      background: #C8CDD1;
-    }
-
-    .pollutant-circle--inactive {
-      background: #C8CDD1 !important;
-      color: #344250;
-      -webkit-text-stroke: 0;
-    }
-
-    .pollutant-circle--inactive .pollutant-value-slot {
-      height: clamp(3.69rem, 6.66vw, 5.13rem);
-    }
-
-    .pollutant-circle--inactive .pollutant-value {
-      max-width: 92%;
-      font-size: clamp(1.2rem, 2.2vw, 1.55rem);
-      line-height: 1.18;
-      white-space: normal;
-    }
-
-    .pollutant-circle--inactive .pollutant-name {
-      grid-row: 1;
-    }
-
-    .pollutant-circle--inactive .pollutant-value-slot {
-      grid-row: 2;
-    }
-
-    .pollutant-circle--inactive .pollutant-station {
-      grid-row: 5;
-    }
-
-    .pollutant-circle--inactive .pollutant-network {
-      grid-row: 6;
-    }
-
-    .pollutant-name {
-      min-height: 1.25em;
       display: flex;
-      align-items: baseline;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      margin: 0.2rem 0 0 0;
-      font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+      box-sizing: border-box;
+      overflow: hidden;
+      background: #f8fbfd;
+      border: 1px solid #dbe4ea;
+      box-shadow: 0 9px 22px rgba(16, 24, 34, 0.08);
+    }
+
+    .pollutant-circle::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: var(--pollutant-fill, #dbe4ea);
+      opacity: 0.92;
+      z-index: 0;
+    }
+
+    .pollutant-circle > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .pollutant-label {
+      color: #fff;
+      font-size: clamp(1.15rem, 2.4vw, 1.6rem);
       font-weight: 850;
       line-height: 1;
-    }
-
-    .pollutant-name sub {
-      position: relative;
-      bottom: -0.18em;
-      font-size: 0.58em;
-      line-height: 0;
-    }
-
-    .pollutant-value-slot,
-    .pollutant-unit,
-    .pollutant-observed,
-    .pollutant-station,
-    .pollutant-network {
-      position: relative;
-      top: -8px;
-    }
-
-    .pollutant-value-slot {
-      width: 100%;
-      height: clamp(3.69rem, 6.66vw, 5.13rem);
-      margin-top: 1.1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     .pollutant-value {
-      display: block;
-      max-width: 100%;
-      font-size: clamp(4.1rem, 7.4vw, 5.7rem);
+      margin-top: 0.5rem;
+      color: #fff;
+      font-size: clamp(2.7rem, 6.8vw, 4.7rem);
       font-weight: 900;
-      line-height: 0.9;
-      overflow: visible;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .pollutant-value--fitted {
-      letter-spacing: -0.02em;
+      line-height: 0.94;
+      letter-spacing: -0.04em;
+      font-variant-numeric: tabular-nums;
     }
 
     .pollutant-unit {
-      margin-top: 0.4rem;
-      font-size: 1rem;
-      font-weight: 750;
-    }
-
-    .pollutant-unit sup {
-      font-size: 0.65em;
-    }
-
-    .pollutant-observed {
-      width: 100%;
-      align-self: end;
-      margin: 0;
-      padding-top: 0.4rem;
-      font-size: clamp(0.66rem, 1.15vw, 0.78rem);
+      margin-top: 0.25rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.86rem;
       font-weight: 700;
-      line-height: 1.15;
-      opacity: 0.95;
-      white-space: nowrap;
-    }
-
-    .pollutant-observed[hidden] {
-      display: none;
-    }
-
-    .pollutant-observed-zone {
-      font-size: 0.82em;
-      font-weight: 850;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
     }
 
     .pollutant-station {
-      width: 82%;
-      align-self: end;
-      min-height: 2.25em;
-      max-height: 2.25em;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      margin-top: 0.25rem;
-      font-size: clamp(0.92rem, 1.7vw, 1.08rem);
+      margin-top: 0.72rem;
+      color: #fff;
+      font-size: 0.92rem;
       font-weight: 800;
-      line-height: 1.08;
+      line-height: 1.25;
       overflow-wrap: anywhere;
     }
 
     .pollutant-network {
-      width: 100%;
-      margin-top: 0.02rem;
-      transform: translateY(-5px);
-      font-size: 0.82rem;
-      font-weight: 650;
-      line-height: 1.12;
-      overflow-wrap: anywhere;
-    }
-
-    .scale-legend {
-      width: min(100%, 380px);
-    }
-
-    .scale-stripe-row {
-      display: grid;
-      grid-template-columns: 2rem minmax(0, 285px) 2.75rem;
-      align-items: start;
-      justify-content: center;
-      column-gap: 0.45rem;
-    }
-
-    .scale-stripe-track {
-      min-width: 0;
-      width: 100%;
-    }
-
-    .scale-stripe-endpoint {
-      padding-top: 0.05rem;
-      color: #465462;
-      font-size: 0.82rem;
+      margin-top: 0.18rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.78rem;
       font-weight: 700;
-      line-height: 12px;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      line-height: 1.2;
     }
 
-    .scale-stripe-endpoint--start {
-      text-align: right;
+    .pollutant-placeholder {
+      color: #2c3947;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.3;
     }
 
-    .scale-stripe-endpoint--end {
-      text-align: left;
+    .home-section-title {
+      margin: 0;
+      color: #172535;
+      font-size: clamp(1.55rem, 3.2vw, 2.2rem);
+      line-height: 1.15;
     }
 
-    .scale-stripe {
-      position: relative;
-      height: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(30, 42, 51, 0.2);
-      border-radius: 999px;
-      /* Keep in sync with the Hex Map HEAT_STOPS legend palette. */
-      background: linear-gradient(
-        90deg,
-        #00a85a,
-        #ffd54a,
-        #ff9b3a,
-        #e03c3c,
-        #5b2a86
-      );
-    }
-
-    .scale-stripe-tick {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: rgba(20, 34, 37, 0.4);
-      pointer-events: none;
-    }
-
-    .scale-stripe-labels {
-      position: relative;
-      height: 1rem;
-      margin-top: 0.25rem;
+    .home-section-description {
+      margin: 0.45rem 0 0;
       color: #586573;
-      font-size: 0.68rem;
-      font-weight: 700;
-      line-height: 1;
-      font-variant-numeric: tabular-nums;
+      font-size: 1rem;
+      line-height: 1.5;
+      max-width: 900px;
     }
 
-    .scale-stripe-number {
-      position: absolute;
-      top: 0;
-      transform: translateX(-50%);
-      white-space: nowrap;
-    }
-
-    .pollutant-actions {
+    .home-section-header {
       display: flex;
-      width: 100%;
-      min-height: 54px;
-      justify-content: center;
       align-items: center;
-      gap: 0.75rem;
-      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
-    .pollutant-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 54px;
-      width: auto;
-      padding: 0;
-      border: 0;
-      border-radius: 8px;
-      background: transparent;
-      line-height: 0;
-      text-decoration: none;
-      transition: transform 0.16s ease, filter 0.16s ease;
+    .home-section-header-copy {
+      min-width: 0;
     }
 
-    .pollutant-action:hover {
-      transform: translateY(-2px);
-      filter: drop-shadow(0 6px 10px rgba(16, 24, 34, 0.18));
-    }
-
-    .pollutant-action:focus-visible {
-      outline: 3px solid rgba(23, 82, 131, 0.35);
-      outline-offset: 3px;
-    }
-
-    .pollutant-action img {
+    .network-table-logo {
       display: block;
-      height: 54px;
+      max-height: 40px;
+      max-width: 158px;
       width: auto;
-      max-width: 72px;
+      height: auto;
       object-fit: contain;
-      background: transparent;
     }
 
-    @media (max-width: 640px) {
-      .pollutant-actions {
-        min-height: 46px;
-      }
+    .network-table-logo--wide {
+      max-width: 190px;
+    }
 
-      .pollutant-action {
-        height: 46px;
-        border-radius: 7px;
-      }
+    .network-table-logo--gov {
+      max-width: 118px;
+    }
 
-      .pollutant-action img {
-        height: 46px;
-        max-width: 64px;
-      }
+    .network-table-logo--openaq {
+      max-height: 45px;
+      max-width: 128px;
+    }
+
+    .network-table-logo--sensor-community {
+      max-height: 38px;
+      max-width: 205px;
+    }
+
+    .network-table-logo--breathe {
+      max-height: 38px;
+      max-width: 205px;
     }
 
     .section-logo {
@@ -1078,674 +610,92 @@
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .tool-card--ukaq {
-      background:
-        linear-gradient(#fff, #fff) padding-box,
-        linear-gradient(135deg, #67B0ED, #175283) border-box;
-    }
-
     .tool-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 26px rgba(16, 24, 34, 0.12);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(16, 24, 34, 0.12);
     }
 
     .tool-card:focus-visible {
-      outline: 3px solid rgba(60, 120, 172, 0.45);
+      outline: 3px solid rgba(60, 120, 172, 0.4);
       outline-offset: 4px;
     }
 
     .tool-card-header {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      min-height: 76px;
-      margin-bottom: 0;
-      min-width: 0;
-      overflow: hidden;
-    }
-
-    .tool-card-icon-box {
-      width: 72px;
-      height: 72px;
-      flex: 0 0 72px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      gap: 0.65rem;
+      min-height: 62px;
+      margin-bottom: 0.7rem;
+      justify-content: flex-start;
     }
 
     .tool-card-icon {
-      width: 72px;
-      height: 72px;
+      width: 58px;
+      height: 58px;
       object-fit: contain;
-      display: block;
-      flex: 0 0 72px;
-    }
-
-    .tool-card-icon--line {
-      width: 66px;
-      height: 66px;
-    }
-
-    .tool-card-icon--eco {
-      width: 62px;
-      height: 62px;
-    }
-
-    .tool-card-title {
-      display: block;
-      max-width: 100%;
-      font-size: clamp(1.9rem, 2.6vw, 2.75rem);
-      font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: 0.01em;
-      text-transform: uppercase;
-      text-shadow: none;
-    }
-
-    .tool-card-title--ukaq {
-      background: linear-gradient(180deg, #72bbff 0%, #3c78ac 68%, #2b608d 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .tool-card-title--de {
-      background: linear-gradient(180deg, #ffae00 0%, #ff7400 45%, #ff0000 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .tool-card-title-graphic {
-      display: block;
-      flex: 1 1 auto;
-      width: 100%;
-      max-width: 100%;
-      min-width: 0;
-      max-height: 40px;
-      height: auto;
-      object-fit: contain;
-      object-position: left center;
-    }
-
-    .tool-card-title-graphic-switch {
-      --title-two-line-max-h: 58px;
-      --title-one-line-max-h: 40px;
-      display: flex;
-      flex: 1 1 auto;
-      align-items: center;
-      min-width: 0;
-      width: 100%;
-    }
-
-    .tool-card-title-graphic-switch .tool-card-title-graphic--two-line {
-      display: block;
-      max-height: var(--title-two-line-max-h);
-    }
-
-    .tool-card-title-graphic-switch .tool-card-title-graphic--one-line {
-      display: none;
-      max-height: var(--title-one-line-max-h);
-    }
-
-    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--two-line {
-      display: none;
-    }
-
-    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--one-line {
-      display: block;
-    }
-
-    .tool-card-title-graphic--sensor-map {
-      max-height: 58px;
-    }
-
-    .tool-card-title-graphic--de {
-      max-height: 58px;
-    }
-
-    .tool-card-description {
-      margin: 0.35rem 0 0;
-      padding-top: 0;
-      font-size: 1rem;
-      line-height: 1.35;
-      color: #111;
-      text-align: center;
-    }
-
-    .home-footer {
-      text-align: center;
-      padding: 1rem 0 1.4rem;
-      background: #fff7ed;
-      color: #666;
-      position: static;
-      width: auto;
-      border-top: 1px solid #e4e6ea;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    .who-dashboard-card {
-      --who-surface: #ffffff;
-      --who-wrap: #fefaf4;
-      --who-accent: #3c78ac;
-      --who-accent-deep: #285a84;
-      --who-label: #72808d;
-      --who-line: #e4e6ea;
-      --who-line-soft: #eef0f3;
-      --who-bar-grey: #d0d4da;
-      display: grid;
-      gap: 0.9rem;
-      min-width: 0;
-      padding: clamp(0.95rem, 2.2vw, 1.4rem);
-      border: 1px solid #e6ddcf;
-      border-radius: 18px;
-      background: var(--who-wrap);
-      box-shadow: 0 12px 30px rgba(40, 90, 132, 0.09);
-      color: #162434;
-    }
-
-    .who-dashboard-card + .readings-dashboard {
-      margin-top: 0;
-    }
-
-    .who-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      min-width: 0;
-    }
-
-    .who-title-group {
-      min-width: 0;
-    }
-
-    .who-title {
-      margin: 0;
-      color: #17212c;
-      font-size: clamp(1.55rem, 3vw, 2.1rem);
-      font-weight: 900;
-      line-height: 1.05;
-    }
-
-    .who-header-actions {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 0.7rem;
       flex: 0 0 auto;
     }
 
-    .who-status {
-      display: none;
-      max-width: 12rem;
-      color: #5e6f7f;
-      font-size: 0.78rem;
-      font-weight: 750;
-      line-height: 1.2;
-      text-align: right;
-    }
-
-    .who-status.is-visible {
-      display: inline-block;
-    }
-
-    .who-source-pill,
-    .who-date-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      width: fit-content;
-      max-width: 100%;
-      padding: 0.42rem 0.62rem;
-      border: 1px solid rgba(60, 120, 172, 0.22);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--who-accent-deep);
-      font-size: 0.82rem;
-      font-weight: 800;
-      line-height: 1.1;
-      white-space: nowrap;
-    }
-
-    .who-date-pill {
-      background: #edf6fd;
-      border-color: rgba(60, 120, 172, 0.28);
-      color: #34495d;
-      font-size: 0.78rem;
-      font-weight: 750;
-    }
-
-    .who-date-pill-label {
-      color: var(--who-accent-deep);
-      font-weight: 900;
-      text-transform: uppercase;
-    }
-
-    .who-page-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 52px;
-      width: 52px;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: transform 0.16s ease, filter 0.16s ease;
-    }
-
-    .who-page-button:hover {
-      transform: translateY(-2px);
-      filter: drop-shadow(0 7px 11px rgba(40, 90, 132, 0.2));
-    }
-
-    .who-page-button:focus-visible,
-    .who-toggle button:focus-visible {
-      outline: 3px solid rgba(60, 120, 172, 0.42);
-      outline-offset: 3px;
-    }
-
-    .who-page-button img {
+    .tool-card-title-image {
       display: block;
-      width: 52px;
-      height: 52px;
+      width: auto;
+      max-width: min(230px, 60cqw);
+      height: auto;
+      max-height: 54px;
       object-fit: contain;
     }
 
-    .who-toggle {
-      display: none;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.35rem;
-      padding: 0.28rem;
-      border: 1px solid var(--who-line);
-      border-radius: 10px;
-      background: #fff;
+    .tool-card-description {
+      margin: 0;
+      color: #263847;
+      font-size: 1rem;
+      line-height: 1.45;
     }
 
-    .who-toggle button {
-      min-width: 0;
-      min-height: 42px;
-      border: 0;
-      border-radius: 8px;
-      background: transparent;
-      color: #4c5c6c;
-      font: inherit;
-      font-size: 0.92rem;
-      font-weight: 850;
-      cursor: pointer;
-    }
-
-    .who-toggle button[aria-selected="true"] {
-      background: var(--who-accent);
-      color: #fff;
-    }
-
-    .who-summary-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.85fr);
-      gap: 0.85rem;
-      align-items: stretch;
-      min-width: 0;
-    }
-
-    .who-rolling-card,
-    .who-summary-card {
-      min-width: 0;
-      padding: clamp(0.86rem, 1.7vw, 1rem) clamp(0.86rem, 1.7vw, 1rem) 0.72rem;
-      border: 1px solid var(--who-line);
-      border-radius: 10px;
-      background: var(--who-surface);
-      box-shadow: 0 8px 20px rgba(40, 90, 132, 0.06);
-    }
-
-    .who-rolling-card {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 0.78rem;
-    }
-
-    .who-summary-card {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 0.58rem;
-    }
-
-    .who-rolling-card-header,
-    .who-summary-card-header {
-      display: grid;
-      gap: 0.36rem;
-      min-width: 0;
-    }
-
-    .who-rolling-card-header {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: start;
-      column-gap: 1rem;
-    }
-
-    .who-rolling-title {
-      min-width: 0;
-    }
-
-    .who-summary-label {
-      color: var(--who-label);
-      font-size: 0.82rem;
-      font-weight: 900;
-      line-height: 1.1;
-      text-transform: uppercase;
-    }
-
-    .who-summary-value {
-      margin-top: 0.15rem;
-      color: var(--who-accent);
-      font-size: clamp(1.22rem, 2.2vw, 1.55rem);
-      font-weight: 900;
-      line-height: 1.08;
-    }
-
-    .who-summary-subtext {
-      color: #6f7d8b;
-      font-size: 0.88rem;
-      font-weight: 650;
-      line-height: 1.35;
-    }
-
-    .who-rolling-sections {
-      position: relative;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: 1fr;
-      align-items: stretch;
-      gap: 1rem;
-      min-width: 0;
-    }
-
-    .who-rolling-sections::before {
-      content: "";
-      position: absolute;
-      top: 0.35rem;
-      bottom: 0.35rem;
-      left: 50%;
-      width: 1px;
-      background: var(--who-line-soft);
-      transform: translateX(-50%);
-      pointer-events: none;
-    }
-
-    .who-rolling-section {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      align-self: stretch;
-      height: 100%;
-      gap: 0.68rem;
-      min-width: 0;
-    }
-
-    .who-pollutant-list {
-      display: grid;
-      align-self: start;
-      gap: 0.48rem;
-      min-width: 0;
-      transform: translateY(0.5rem);
-    }
-
-    .who-pollutant-row {
-      display: grid;
-      gap: 0.26rem;
-      min-width: 0;
-    }
-
-    .who-pollutant-topline {
-      display: grid;
-      grid-template-columns: minmax(70px, 0.72fr) minmax(0, 1fr) auto;
-      gap: 0.6rem;
-      align-items: baseline;
-      min-width: 0;
-      color: #1a2b3b;
-    }
-
-    .who-pollutant-name {
-      font-size: clamp(1.2rem, 1.55vw, 1.48rem);
-      font-weight: 900;
-      line-height: 1.1;
-      white-space: nowrap;
-    }
-
-    .who-pollutant-name sub,
-    .who-guideline-values-line sub {
-      font-size: 0.7em;
-      line-height: 0;
-    }
-
-    .who-pollutant-count {
-      min-width: 0;
-      color: #4f6070;
+    .tool-card-note {
+      margin: auto 0 0;
+      padding-top: 0.8rem;
+      color: #667383;
       font-size: 0.86rem;
-      font-weight: 720;
-      line-height: 1.2;
-      overflow-wrap: anywhere;
+      line-height: 1.4;
     }
 
-    .who-pollutant-percent {
-      color: var(--who-accent-deep);
-      font-size: clamp(1.2rem, 1.55vw, 1.48rem);
-      font-weight: 900;
-      line-height: 1.1;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+    .home-footer {
+      border-top: 1px solid #dedede;
+      padding: 1rem 28px 1.2rem;
+      background: #fbfaf7;
+      color: #666;
+      text-align: center;
+      font-size: 0.9rem;
     }
 
-    .who-bar {
-      height: 10px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: var(--who-bar-grey);
-    }
-
-    .who-bar-fill {
-      display: block;
-      width: var(--pct);
-      max-width: 100%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--who-accent), var(--who-accent-deep));
-    }
-
-    .who-card-footer {
-      display: grid;
-      gap: 0.34rem;
-      padding: 0.72rem 0.86rem;
-      border: 1px solid rgba(60, 120, 172, 0.14);
-      border-radius: 10px;
-      background: #edf6fd;
-      color: #38495a;
-      font-size: 0.88rem;
-      font-weight: 650;
-      line-height: 1.35;
-    }
-
-    .who-guideline-values-line {
-      display: flex;
-      align-items: baseline;
-      gap: 0.35rem;
-      flex-wrap: wrap;
-    }
-
-    .who-guideline-values-line strong,
-    .who-guideline-values-line span {
-      line-height: 1.35;
-    }
-
-    @media (max-width: 980px) {
-      .pollutant-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .tool-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .who-summary-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .who-rolling-sections {
-        grid-template-columns: 1fr;
-      }
-
-      .who-rolling-sections::before {
-        display: none;
-      }
-    }
-
-    @media (min-width: 1300px) {
-      .home-main {
-        max-width: 1280px;
-      }
-
-      .tool-card {
-        min-height: 174px;
-      }
-    }
-
-    @media (max-width: 640px) {
+    @media (max-width: 860px) {
       .home-header {
-        padding: 26px 18px 0;
+        padding: 24px 18px 0;
       }
 
       .home-main {
-        padding: 6px 16px 84px;
-        gap: 16px;
-      }
-
-      .readings-dashboard {
-        padding: 1.1rem;
-        border-radius: 22px;
-      }
-
-      .who-dashboard-card {
-        padding: 0.9rem;
-        border-radius: 16px;
-      }
-
-      .who-card-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .who-header-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .who-source-pill {
-        white-space: normal;
-      }
-
-      .who-page-button,
-      .who-page-button img {
-        width: 48px;
-        height: 48px;
-      }
-
-      .who-toggle {
-        display: grid;
-      }
-
-      .who-summary-grid {
-        display: block;
-      }
-
-      .who-dashboard-card.is-enhanced .who-summary-card,
-      .who-dashboard-card.is-enhanced .who-rolling-card {
-        display: none;
-      }
-
-      .who-dashboard-card.is-enhanced .who-summary-card.is-active,
-      .who-dashboard-card.is-enhanced .who-rolling-card.is-active {
-        display: grid;
-      }
-
-      .who-rolling-card-header {
-        grid-template-columns: 1fr;
-      }
-
-      .who-date-pill {
-        white-space: normal;
-      }
-
-      .who-pollutant-topline {
-        grid-template-columns: minmax(64px, 0.6fr) minmax(0, 1fr) auto;
-        gap: 0.48rem;
-      }
-
-      .who-pollutant-count {
-        font-size: 0.8rem;
-      }
-
-      .who-card-footer {
-        padding: 0.82rem 0.86rem;
+        padding: 8px 18px 64px;
       }
 
       .dashboard-tables {
         gap: 16px;
-        margin-top: 0;
       }
 
-      .dashboard-tables + .home-section {
-        margin-top: 0;
-      }
-
-      .dashboard-table-card {
-        padding: 1rem;
-        border-radius: 20px;
-      }
-
-      .dashboard-table-wrap {
-        border-radius: 13px;
-      }
-
-      .dashboard-table {
-        font-size: 0.9rem;
-      }
-
-      .dashboard-table th,
-      .dashboard-table td {
-        padding: 0.75rem 0.8rem;
+      .readings-dashboard {
+        border-radius: 24px;
       }
 
       .readings-header {
         grid-template-columns: 1fr;
-        gap: 0.75rem;
       }
 
       .readings-header-controls {
-        justify-self: start;
-      }
-
-      .readings-updated {
-        margin: 0;
+        justify-items: start;
       }
 
       .pollutant-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-
-      .pollutant-circle {
-        width: min(100%, 280px);
-        padding: 1.2rem 1.85rem 0.78rem;
+        grid-template-columns: 1fr;
       }
 
       .tool-grid {
@@ -1755,7 +705,6 @@
       .tool-card-header {
         justify-content: flex-start;
       }
-
     }
   </style>
   <link rel="stylesheet" href="/beta-notice.css">
@@ -1818,23 +767,21 @@
                   </div>
                   <div class="who-bar" aria-label="97.2 percent of PM2.5 AURN sensors above WHO daily guideline" data-who-bar><span class="who-bar-fill" style="--pct: 97.2%" data-who-bar-fill></span></div>
                 </div>
-
                 <div class="who-pollutant-row" data-who-row="rolling_daily:pm10">
                   <div class="who-pollutant-topline">
                     <span class="who-pollutant-name">PM10</span>
-                    <span class="who-pollutant-count" data-who-count>10 of 135 sensors</span>
-                    <span class="who-pollutant-percent" data-who-percent>7.4%</span>
+                    <span class="who-pollutant-count" data-who-count>9 of 132 sensors</span>
+                    <span class="who-pollutant-percent" data-who-percent>6.8%</span>
                   </div>
-                  <div class="who-bar" aria-label="7.4 percent of PM10 AURN sensors above WHO daily guideline" data-who-bar><span class="who-bar-fill" style="--pct: 7.4%" data-who-bar-fill></span></div>
+                  <div class="who-bar" aria-label="6.8 percent of PM10 AURN sensors above WHO daily guideline" data-who-bar><span class="who-bar-fill" style="--pct: 6.8%" data-who-bar-fill></span></div>
                 </div>
-
                 <div class="who-pollutant-row" data-who-row="rolling_daily:no2">
                   <div class="who-pollutant-topline">
                     <span class="who-pollutant-name">NO<sub>2</sub></span>
-                    <span class="who-pollutant-count" data-who-count>124 of 153 sensors</span>
-                    <span class="who-pollutant-percent" data-who-percent>81.0%</span>
+                    <span class="who-pollutant-count" data-who-count>123 of 146 sensors</span>
+                    <span class="who-pollutant-percent" data-who-percent>84.2%</span>
                   </div>
-                  <div class="who-bar" aria-label="81.0 percent of NO2 AURN sensors above WHO daily guideline" data-who-bar><span class="who-bar-fill" style="--pct: 81.0%" data-who-bar-fill></span></div>
+                  <div class="who-bar" aria-label="84.2 percent of NO2 AURN sensors above WHO daily guideline" data-who-bar><span class="who-bar-fill" style="--pct: 84.2%" data-who-bar-fill></span></div>
                 </div>
               </div>
             </section>
@@ -1848,28 +795,26 @@
                 <div class="who-pollutant-row" data-who-row="rolling_yearly:pm25">
                   <div class="who-pollutant-topline">
                     <span class="who-pollutant-name">PM2.5</span>
-                    <span class="who-pollutant-count" data-who-count>133 of 145 sensors</span>
-                    <span class="who-pollutant-percent" data-who-percent>91.7%</span>
+                    <span class="who-pollutant-count" data-who-count>132 of 139 sensors</span>
+                    <span class="who-pollutant-percent" data-who-percent>95.0%</span>
                   </div>
-                  <div class="who-bar" aria-label="91.7 percent of PM2.5 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 91.7%" data-who-bar-fill></span></div>
+                  <div class="who-bar" aria-label="95.0 percent of PM2.5 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 95%" data-who-bar-fill></span></div>
                 </div>
-
                 <div class="who-pollutant-row" data-who-row="rolling_yearly:pm10">
                   <div class="who-pollutant-topline">
                     <span class="who-pollutant-name">PM10</span>
-                    <span class="who-pollutant-count" data-who-count>22 of 135 sensors</span>
-                    <span class="who-pollutant-percent" data-who-percent>16.3%</span>
+                    <span class="who-pollutant-count" data-who-count>21 of 132 sensors</span>
+                    <span class="who-pollutant-percent" data-who-percent>15.9%</span>
                   </div>
-                  <div class="who-bar" aria-label="16.3 percent of PM10 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 16.3%" data-who-bar-fill></span></div>
+                  <div class="who-bar" aria-label="15.9 percent of PM10 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 15.9%" data-who-bar-fill></span></div>
                 </div>
-
                 <div class="who-pollutant-row" data-who-row="rolling_yearly:no2">
                   <div class="who-pollutant-topline">
                     <span class="who-pollutant-name">NO<sub>2</sub></span>
-                    <span class="who-pollutant-count" data-who-count>109 of 153 sensors</span>
-                    <span class="who-pollutant-percent" data-who-percent>71.2%</span>
+                    <span class="who-pollutant-count" data-who-count>106 of 146 sensors</span>
+                    <span class="who-pollutant-percent" data-who-percent>72.6%</span>
                   </div>
-                  <div class="who-bar" aria-label="71.2 percent of NO2 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 71.2%" data-who-bar-fill></span></div>
+                  <div class="who-bar" aria-label="72.6 percent of NO2 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 72.6%" data-who-bar-fill></span></div>
                 </div>
               </div>
             </section>
@@ -1879,760 +824,417 @@
         <article class="who-summary-card" id="who-card-last-year" role="tabpanel" aria-labelledby="who-tab-last-year" data-who-card="last-year">
           <div class="who-summary-card-header">
             <div class="who-summary-label">Last full year</div>
-            <div class="who-summary-value" data-who-calendar-year>2025</div>
+            <div class="who-summary-value" data-who-last-year-title>2025</div>
             <div class="who-summary-subtext">Sensors where the full calendar-year average was above the WHO yearly guideline.</div>
           </div>
           <div class="who-pollutant-list">
-            <div class="who-pollutant-row" data-who-row="calendar_yearly:pm25">
+            <div class="who-pollutant-row" data-who-row="last_year:pm25">
               <div class="who-pollutant-topline">
                 <span class="who-pollutant-name">PM2.5</span>
-                <span class="who-pollutant-count" data-who-count>128 of 133 sensors</span>
-                <span class="who-pollutant-percent" data-who-percent>96.2%</span>
+                <span class="who-pollutant-count" data-who-count>136 of 139 sensors</span>
+                <span class="who-pollutant-percent" data-who-percent>97.8%</span>
               </div>
-              <div class="who-bar" aria-label="96.2 percent of PM2.5 AURN sensors above WHO yearly guideline in 2025" data-who-bar><span class="who-bar-fill" style="--pct: 96.2%" data-who-bar-fill></span></div>
+              <div class="who-bar" aria-label="97.8 percent of PM2.5 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 97.8%" data-who-bar-fill></span></div>
             </div>
-
-            <div class="who-pollutant-row" data-who-row="calendar_yearly:pm10">
+            <div class="who-pollutant-row" data-who-row="last_year:pm10">
               <div class="who-pollutant-topline">
                 <span class="who-pollutant-name">PM10</span>
-                <span class="who-pollutant-count" data-who-count>40 of 125 sensors</span>
-                <span class="who-pollutant-percent" data-who-percent>32.0%</span>
+                <span class="who-pollutant-count" data-who-count>36 of 128 sensors</span>
+                <span class="who-pollutant-percent" data-who-percent>28.1%</span>
               </div>
-              <div class="who-bar" aria-label="32.0 percent of PM10 AURN sensors above WHO yearly guideline in 2025" data-who-bar><span class="who-bar-fill" style="--pct: 32.0%" data-who-bar-fill></span></div>
+              <div class="who-bar" aria-label="28.1 percent of PM10 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 28.1%" data-who-bar-fill></span></div>
             </div>
-
-            <div class="who-pollutant-row" data-who-row="calendar_yearly:no2">
+            <div class="who-pollutant-row" data-who-row="last_year:no2">
               <div class="who-pollutant-topline">
                 <span class="who-pollutant-name">NO<sub>2</sub></span>
-                <span class="who-pollutant-count" data-who-count>121 of 152 sensors</span>
-                <span class="who-pollutant-percent" data-who-percent>79.6%</span>
+                <span class="who-pollutant-count" data-who-count>117 of 144 sensors</span>
+                <span class="who-pollutant-percent" data-who-percent>81.3%</span>
               </div>
-              <div class="who-bar" aria-label="79.6 percent of NO2 AURN sensors above WHO yearly guideline in 2025" data-who-bar><span class="who-bar-fill" style="--pct: 79.6%" data-who-bar-fill></span></div>
+              <div class="who-bar" aria-label="81.3 percent of NO2 AURN sensors above WHO yearly guideline" data-who-bar><span class="who-bar-fill" style="--pct: 81.3%" data-who-bar-fill></span></div>
             </div>
           </div>
         </article>
       </div>
 
-      <div class="who-card-footer">
-        <div class="who-guideline-values-line" aria-label="WHO guideline values">
-          <strong>World Health Organization guideline values:</strong>
-          <span>PM2.5 daily 15 &micro;g/m<sup>3</sup>, yearly 5 &micro;g/m<sup>3</sup></span>
-          <span aria-hidden="true">&middot;</span>
-          <span>PM10 daily 45 &micro;g/m<sup>3</sup>, yearly 15 &micro;g/m<sup>3</sup></span>
-          <span aria-hidden="true">&middot;</span>
-          <span>NO<sub>2</sub> daily 25 &micro;g/m<sup>3</sup>, yearly 10 &micro;g/m<sup>3</sup></span>
-        </div>
-        <div><strong>Note:</strong> Daily averages use GMT days from midnight to midnight. &ldquo;Above guideline&rdquo; means above WHO health-based guidelines, not UK legal limits.</div>
+      <div class="who-method-note">
+        <strong>World Health Organization guideline values:</strong>
+        PM2.5 daily 15 &micro;g/m<sup>3</sup>, yearly 5 &micro;g/m<sup>3</sup>
+        &middot; PM10 daily 45 &micro;g/m<sup>3</sup>, yearly 15 &micro;g/m<sup>3</sup>
+        &middot; NO<sub>2</sub> daily 25 &micro;g/m<sup>3</sup>, yearly 10 &micro;g/m<sup>3</sup><br>
+        <strong>Note:</strong> Daily averages use GMT days from midnight to midnight. “Above guideline” means above WHO health-based guidelines, not UK legal limits.
       </div>
     </section>
 
-    <section class="readings-dashboard" aria-labelledby="highest-readings-heading">
+    <section class="readings-dashboard" aria-labelledby="readings-dashboard-title">
       <div class="readings-header">
         <div>
-          <h2 id="highest-readings-heading" class="readings-title">Highest sensor readings</h2>
-          <p class="readings-subtitle" id="dashboard-window-subtitle">Latest readings from active sensors.</p>
+          <h2 class="readings-title" id="readings-dashboard-title">Highest sensor readings</h2>
+          <p class="readings-subtitle">Latest readings from sensors active in the last 6 hours.</p>
         </div>
         <div class="readings-header-controls">
           <div class="readings-actions">
-            <p class="readings-updated">
-              <time id="dashboard-updated">Updated —</time>
-            </p>
-            <button type="button" class="btn-refresh" id="dashboard-refresh">Refresh</button>
+            <span class="readings-updated" data-readings-updated>Updated --</span>
+            <button class="refresh-button" type="button" data-readings-refresh>Refresh</button>
           </div>
-          <div class="readings-controls">
-            <div class="home-network-picker" id="home-network-picker">
-              <button
-                type="button"
-                class="home-network-picker-button"
-                id="network-picker-button"
-                aria-haspopup="dialog"
-                aria-expanded="false"
-                aria-controls="network-picker-panel"
-              >
-                <span id="network-picker-button-text">Networks: 0 / 0</span>
-                <svg class="home-network-picker-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                  <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
-                </svg>
-              </button>
-              <div
-                class="home-network-picker-panel"
-                id="network-picker-panel"
-                role="dialog"
-                aria-label="Choose dashboard networks"
-                hidden
-              >
-                <div class="home-network-picker-header">
-                  <span>NETWORKS</span>
-                  <span class="home-network-picker-count" id="network-picker-count">0 / 0</span>
-                </div>
-                <div class="home-network-picker-actions">
-                  <button type="button" class="home-network-picker-action" id="network-picker-select-all" aria-label="Select all networks" title="Select all networks">
-                    <span class="home-network-picker-action-icon home-network-picker-action-icon--select-all" aria-hidden="true"></span>
-                  </button>
-                  <span class="home-network-picker-actions-divider" aria-hidden="true">/</span>
-                  <button type="button" class="home-network-picker-action" id="network-picker-clear-all" aria-label="Clear all networks" title="Clear all networks">
-                    <span class="home-network-picker-action-icon home-network-picker-action-icon--clear-all" aria-hidden="true"></span>
-                  </button>
-                </div>
-                <div class="home-network-picker-list" id="network-picker-list"></div>
-                <div class="home-network-picker-footer" id="network-picker-footer"></div>
-              </div>
-            </div>
-          </div>
+          <label class="sr-only" for="home-network-select">Filter highest readings by network</label>
+          <select class="network-select" id="home-network-select" data-readings-network-select>
+            <option value="all">Networks: All</option>
+          </select>
         </div>
       </div>
-      <p id="dashboard-status" class="dashboard-status" role="status">Loading latest readings…</p>
 
-      <div class="pollutant-grid" aria-label="Highest pollutant readings">
-        <article class="pollutant-item" data-pollutant="pm25">
-          <div class="pollutant-circle pollutant-circle--pm25">
-            <h3 class="pollutant-name">PM2.5</h3>
-            <span class="pollutant-value-slot"><strong class="pollutant-value"></strong></span>
-            <span class="pollutant-unit">&micro;g/m<sup>3</sup></span>
-            <p class="pollutant-observed" hidden>Observed <time></time></p>
-            <p class="pollutant-station"></p>
-            <p class="pollutant-network"></p>
+      <div class="pollutant-grid" data-readings-grid>
+        <article class="pollutant-card" data-pollutant="pm25">
+          <div class="pollutant-circle">
+            <div class="pollutant-label">PM2.5</div>
+            <div class="pollutant-value">--</div>
+            <div class="pollutant-unit">&micro;g/m&sup3;</div>
+            <div class="pollutant-station">Waiting for data</div>
+            <div class="pollutant-network"></div>
           </div>
-          <div class="pollutant-unavailable" role="note" hidden>
-            <h3 class="pollutant-unavailable-title">PM2.5 not available</h3>
-            <p class="pollutant-unavailable-copy"></p>
-          </div>
-          <div class="scale-legend" aria-label="PM2.5 Hex Map power-eased reading scale: 0 to 50 plus micrograms per cubic metre, with reference ticks at 10, 20, 30 and 40">
-            <div class="scale-stripe-row" aria-hidden="true">
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--start">0</span>
-              <div class="scale-stripe-track">
-                <div class="scale-stripe scale-stripe--pm25">
-                  <span class="scale-stripe-tick" style="left: 28%"></span>
-                  <span class="scale-stripe-tick" style="left: 49.2%"></span>
-                  <span class="scale-stripe-tick" style="left: 68.7%"></span>
-                  <span class="scale-stripe-tick" style="left: 87.1%"></span>
-                </div>
-                <div class="scale-stripe-labels">
-                  <span class="scale-stripe-number" style="left: 28%">10</span>
-                  <span class="scale-stripe-number" style="left: 49.2%">20</span>
-                  <span class="scale-stripe-number" style="left: 68.7%">30</span>
-                  <span class="scale-stripe-number" style="left: 87.1%">40</span>
-                </div>
-              </div>
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--end">50+</span>
-            </div>
-          </div>
-		  <!--
-          <nav class="pollutant-actions" aria-label="PM2.5 sensor actions">
-            <a class="pollutant-action" href="/hex_map/" aria-label="Open PM2.5 sensor on Hex Map" title="Open sensor on Hex Map">
-              <img src="images/UK AQ Buttons.Hex Map.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensor_map/" aria-label="Open PM2.5 sensor on UK Map" title="Open sensor on UK Map">
-              <img src="images/UK AQ Buttons.Location.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensors/" aria-label="Open PM2.5 sensor line chart" title="Open sensor line chart">
-              <img src="images/UK AQ Buttons.Chart.svg" alt="">
-            </a>
-          </nav>
-		  -->
         </article>
 
-        <article class="pollutant-item" data-pollutant="pm10">
-          <div class="pollutant-circle pollutant-circle--pm10">
-            <h3 class="pollutant-name">PM10</h3>
-            <span class="pollutant-value-slot"><strong class="pollutant-value"></strong></span>
-            <span class="pollutant-unit">&micro;g/m<sup>3</sup></span>
-            <p class="pollutant-observed" hidden>Observed <time></time></p>
-            <p class="pollutant-station"></p>
-            <p class="pollutant-network"></p>
+        <article class="pollutant-card" data-pollutant="pm10">
+          <div class="pollutant-circle">
+            <div class="pollutant-label">PM10</div>
+            <div class="pollutant-value">--</div>
+            <div class="pollutant-unit">&micro;g/m&sup3;</div>
+            <div class="pollutant-station">Waiting for data</div>
+            <div class="pollutant-network"></div>
           </div>
-          <div class="pollutant-unavailable" role="note" hidden>
-            <h3 class="pollutant-unavailable-title">PM10 not available</h3>
-            <p class="pollutant-unavailable-copy"></p>
-          </div>
-          <div class="scale-legend" aria-label="PM10 Hex Map power-eased reading scale: 0 to 50 plus micrograms per cubic metre, with reference ticks at 10, 20, 30 and 40">
-            <div class="scale-stripe-row" aria-hidden="true">
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--start">0</span>
-              <div class="scale-stripe-track">
-                <div class="scale-stripe scale-stripe--pm10">
-                  <span class="scale-stripe-tick" style="left: 28%"></span>
-                  <span class="scale-stripe-tick" style="left: 49.2%"></span>
-                  <span class="scale-stripe-tick" style="left: 68.7%"></span>
-                  <span class="scale-stripe-tick" style="left: 87.1%"></span>
-                </div>
-                <div class="scale-stripe-labels">
-                  <span class="scale-stripe-number" style="left: 28%">10</span>
-                  <span class="scale-stripe-number" style="left: 49.2%">20</span>
-                  <span class="scale-stripe-number" style="left: 68.7%">30</span>
-                  <span class="scale-stripe-number" style="left: 87.1%">40</span>
-                </div>
-              </div>
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--end">50+</span>
-            </div>
-          </div>
-		  <!--
-          <nav class="pollutant-actions" aria-label="PM10 sensor actions">
-            <a class="pollutant-action" href="/hex_map/" aria-label="Open PM10 sensor on Hex Map" title="Open sensor on Hex Map">
-              <img src="images/UK AQ Buttons.Hex Map.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensor_map/" aria-label="Open PM10 sensor on UK Map" title="Open sensor on UK Map">
-              <img src="images/UK AQ Buttons.Location.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensors/" aria-label="Open PM10 sensor line chart" title="Open sensor line chart">
-              <img src="images/UK AQ Buttons.Chart.svg" alt="">
-            </a>
-          </nav>
-		  -->
         </article>
 
-        <article class="pollutant-item" data-pollutant="no2">
-          <div class="pollutant-circle pollutant-circle--no2">
-            <h3 class="pollutant-name">NO<sub>2</sub></h3>
-            <span class="pollutant-value-slot"><strong class="pollutant-value"></strong></span>
-            <span class="pollutant-unit">&micro;g/m<sup>3</sup></span>
-            <p class="pollutant-observed" hidden>Observed <time></time></p>
-            <p class="pollutant-station"></p>
-            <p class="pollutant-network"></p>
+        <article class="pollutant-card" data-pollutant="no2">
+          <div class="pollutant-circle">
+            <div class="pollutant-label">NO<sub>2</sub></div>
+            <div class="pollutant-value">--</div>
+            <div class="pollutant-unit">&micro;g/m&sup3;</div>
+            <div class="pollutant-station">Waiting for data</div>
+            <div class="pollutant-network"></div>
           </div>
-          <div class="pollutant-unavailable" role="note" hidden>
-            <h3 class="pollutant-unavailable-title">NO<sub>2</sub> not available</h3>
-            <p class="pollutant-unavailable-copy"></p>
-          </div>
-          <div class="scale-legend" aria-label="NO2 Hex Map power-eased reading scale: 0 to 100 plus micrograms per cubic metre, with reference ticks at 20, 40, 60 and 80">
-            <div class="scale-stripe-row" aria-hidden="true">
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--start">0</span>
-              <div class="scale-stripe-track">
-                <div class="scale-stripe scale-stripe--no2">
-                  <span class="scale-stripe-tick" style="left: 28%"></span>
-                  <span class="scale-stripe-tick" style="left: 49.2%"></span>
-                  <span class="scale-stripe-tick" style="left: 68.7%"></span>
-                  <span class="scale-stripe-tick" style="left: 87.1%"></span>
-                </div>
-                <div class="scale-stripe-labels">
-                  <span class="scale-stripe-number" style="left: 28%">20</span>
-                  <span class="scale-stripe-number" style="left: 49.2%">40</span>
-                  <span class="scale-stripe-number" style="left: 68.7%">60</span>
-                  <span class="scale-stripe-number" style="left: 87.1%">80</span>
-                </div>
-              </div>
-              <span class="scale-stripe-endpoint scale-stripe-endpoint--end">100+</span>
-            </div>
-          </div>
-		  <!--
-          <nav class="pollutant-actions" aria-label="NO2 sensor actions">
-            <a class="pollutant-action" href="/hex_map/" aria-label="Open NO2 sensor on Hex Map" title="Open sensor on Hex Map">
-              <img src="images/UK AQ Buttons.Hex Map.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensor_map/" aria-label="Open NO2 sensor on UK Map" title="Open sensor on UK Map">
-              <img src="images/UK AQ Buttons.Location.svg" alt="">
-            </a>
-            <a class="pollutant-action" href="/sensors/" aria-label="Open NO2 sensor line chart" title="Open sensor line chart">
-              <img src="images/UK AQ Buttons.Chart.svg" alt="">
-            </a>
-          </nav>
-		  -->
         </article>
       </div>
-    </section>
-
-    <section class="dashboard-tables" aria-label="UK air quality dashboard tables">
-      <article class="dashboard-table-card">
-        <div class="dashboard-table-header">
-          <h2 class="dashboard-table-title">Highest area readings by pollutant</h2>
-        </div>
-        <div class="dashboard-table-wrap" tabindex="0" role="region" aria-label="Scrollable highest area readings table">
-          <table class="dashboard-table dashboard-table--areas">
-            <caption class="sr-only">Highest latest pollutant readings by UK area type</caption>
-            <colgroup>
-              <col class="dashboard-table-area-type-col">
-              <col>
-              <col>
-              <col>
-            </colgroup>
-            <thead>
-              <tr>
-                <th scope="col">Area type</th>
-                <th scope="col">PM2.5</th>
-                <th scope="col">PM10</th>
-                <th scope="col">NO<sub>2</sub></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr data-area-type="pcon">
-                <th scope="row">Parliamentary constituencies</th>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-              </tr>
-              <tr data-area-type="la">
-                <th scope="row">Local Authorities</th>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-                <td>
-                  <span class="area-reading">
-                    <span class="area-reading-name"></span>
-                    <span class="area-reading-metric">
-                      <span class="area-marker" aria-hidden="true"></span>
-                      <span class="area-reading-value"></span>
-                    </span>
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
-
-      <article class="dashboard-table-card">
-        <div class="dashboard-table-header">
-          <h2 class="dashboard-table-title">Active sensors by network</h2>
-        </div>
-        <div class="dashboard-table-wrap" tabindex="0" role="region" aria-label="Scrollable active sensors by network table">
-          <table class="dashboard-table dashboard-table--networks">
-            <caption class="sr-only" id="active-sensors-caption">Active sensor counts by network and pollutant</caption>
-            <thead>
-              <tr>
-                <th scope="col">Network</th>
-                <th scope="col">Last updated</th>
-                <th scope="col">PM2.5</th>
-                <th scope="col">PM10</th>
-                <th scope="col">NO<sub>2</sub></th>
-              </tr>
-            </thead>
-            <tbody id="network-summary-body">
-              <tr data-network="gov_uk_aurn">
-                <th scope="row">GOV.UK AURN</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr data-network="breathelondon">
-                <th scope="row">Breathe London</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-              <tr data-network="sensorcommunity">
-                <th scope="row">Sensor.Community</th>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-              </tr>
-              <tr data-network="total">
-                <th scope="row">Total sensors</th>
-                <td></td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </article>
     </section>
 
     <section class="home-section" aria-labelledby="home-ukaq-heading">
-      <h2 id="home-ukaq-heading" class="sr-only">UK AQ tools</h2>
+      <div class="home-section-header">
+        <div class="home-section-header-copy">
+          <img class="section-logo section-logo--ukaq" src="images/UK-AQ-title-Data.svg" alt="UK AQ Data">
+          <p class="section-description">UK-wide maps and sensor tools, combining multiple air-quality networks in one place.</p>
+        </div>
+      </div>
 
       <div class="tool-grid">
-        <a class="tool-card tool-card--ukaq" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+        <a class="tool-card" href="hex_map/">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
-            </span>
-            <img class="tool-card-title-graphic" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
+            <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-icon.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
           </div>
-          <p class="tool-card-description">
-            Compare latest pollutant readings by UK constituencies, countries, and local authorities.
-          </p>
+          <p class="tool-card-description">Explore air quality by UK constituency or local authority. Hex cells summarise sensor readings for quick comparison.</p>
         </a>
-<!--
-        <a class="tool-card tool-card--ukaq" href="sensors.html" aria-label="Sensors: Browse live and historical readings from selected air quality sensor networks.">
+
+<!--    <a class="tool-card" href="sensors/">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon" src="sidebar-images/uk-aq-sensors-icon-blue.svg" alt="">
-            </span>
-            <img class="tool-card-title-graphic" src="images/UK-AQ-sensors.svg" alt="Sensors">
+            <img class="tool-card-icon" src="sidebar-images/uk-aq-sensors-icon.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-sensors.svg" alt="Sensors">
           </div>
-          <p class="tool-card-description">
-            Browse live and historical readings from selected air quality sensor networks.
-          </p>
+          <p class="tool-card-description">Browse individual sensor stations across supported networks.</p>
         </a>
 -->
-        <a class="tool-card tool-card--ukaq" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+        <a class="tool-card" href="sensor_map/">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon" src="sidebar-images/uk-aq-location-pin.svg" alt="">
-            </span>
-            <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
-              <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--sensor-map" src="images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
-              <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
-            </span>
+            <img class="tool-card-icon" src="sidebar-images/uk-aq-map-icon.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-sensor-map.svg" alt="Sensor Map">
           </div>
-          <p class="tool-card-description">
-            View sensor locations and readings on an interactive UK map.
-          </p>
+          <p class="tool-card-description">View sensor locations across the UK on an interactive map.</p>
         </a>
       </div>
     </section>
 
-<!--     <section class="home-section" aria-labelledby="home-data-explorer-heading">
-      <h2 id="home-data-explorer-heading" class="sr-only">Data Explorer</h2>
-      <img class="section-logo section-logo--de" src="images/Data-Explorer-Logov2-1Line.svg" alt="Data Explorer">
-      <p class="section-description">
-        Explore emissions data from the UK&rsquo;s National Atmospheric Emissions Inventory.
-      </p>
+    <section class="home-section" aria-labelledby="home-de-heading">
+      <div class="home-section-header">
+        <div class="home-section-header-copy">
+          <img class="section-logo section-logo--de" src="images/UK-AQ-Data-Explorer-Title.svg" alt="Data Explorer">
+          <p class="section-description">Explore UK air-quality data with interactive charts and comparisons.</p>
+        </div>
+      </div>
 
       <div class="tool-grid">
-        <a class="tool-card" href="/data-explorer/bubblechart/" aria-label="Bubble Chart: Compare pollutant emissions and activity data from source categories.">
+        <a class="tool-card" href="data-explorer/?page=bubblechart">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon" src="sidebar-images/Bubble-Chart-Icon.svg" alt="">
-            </span>
-            <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
-              <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--de" src="images/Data-Explorer-BubbleChartv2-2line.svg" alt="Bubble Chart">
-              <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/Data-Explorer-1Line-Bubble-Chart.svg" alt="Bubble Chart">
-            </span>
+            <img class="tool-card-icon" src="sidebar-images/Bubble-Chart-Icon.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-bubble-chart.svg" alt="Bubble Chart">
           </div>
-          <p class="tool-card-description">
-            Compare pollutant emissions and activity data from source categories.
-          </p>
+          <p class="tool-card-description">Compare emissions and air-quality categories using an interactive bubble chart.</p>
         </a>
 
-        <a class="tool-card" href="/data-explorer/linechart/" aria-label="Line Chart: Track emissions and activity trends over time.">
+        <a class="tool-card" href="data-explorer/?page=linechart">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon tool-card-icon--line" src="sidebar-images/Line-Chart-Icon.svg" alt="">
-            </span>
-            <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
-              <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--de" src="images/Data-Explorer-LineChartv2-2line.svg" alt="Line Chart">
-              <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/Data-Explorer-1Line-Line-Chart.svg" alt="Line Chart">
-            </span>
+            <img class="tool-card-icon" src="sidebar-images/Line-Chart-Icon.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-line-chart.svg" alt="Line Chart">
           </div>
-          <p class="tool-card-description">
-            Track emissions and activity trends over time.
-          </p>
+          <p class="tool-card-description">Compare time-series data across categories with a configurable line chart.</p>
         </a>
 
-        <a class="tool-card" href="#" aria-label="Ecodesign Replaces: Explore how appliance replacement scenarios could impact emissions.">
+        <a class="tool-card" href="data-explorer/?page=eco-replaces-all">
           <div class="tool-card-header">
-            <span class="tool-card-icon-box">
-              <img class="tool-card-icon tool-card-icon--eco" src="sidebar-images/Stove Ecodesign 430x683.svg" alt="">
-            </span>
-            <img class="tool-card-title-graphic tool-card-title-graphic--de" src="images/Data-Explorer-EcoReplacesv2-2line.svg" alt="Ecodesign Replaces">
+            <img class="tool-card-icon" src="sidebar-images/Stove Ecodesign 430x683.svg" alt="">
+            <img class="tool-card-title-image" src="images/UK-AQ-ecodesign-replaces.svg" alt="Ecodesign Replaces">
           </div>
-          <p class="tool-card-description">
-            Explore how appliance replacement scenarios could impact emissions.
-          </p>
+          <p class="tool-card-description">Compare emissions when Ecodesign stoves replace different heating choices.</p>
         </a>
       </div>
     </section>
--->
+
   </main>
 
   <footer class="home-footer">
-    <p>&copy; 2026 UK AQ. All rights reserved.</p>
+    &copy; 2026 UK AQ. All rights reserved.
   </footer>
-  <script>
-    // Populated during GitHub Pages deployment by scripts/uk_aq_inject_project_ref.mjs.
-    // Currently unused by the static dashboard preview.
-    const PROJECT_REF_PLACEHOLDER = "zztjgmdiftqtdcrlfpvc";
-    const ANON_KEY_PLACEHOLDER = "sb_publishable_Cru7ACLoK8kKQdID5jPaDw_3RHvQNxO";
-    const TURNSTILE_SITE_KEY_PLACEHOLDER = "0x4AAAAAADvk69amXC9V2nNx";
-    const AQI_HISTORY_BASE_PLACEHOLDER = "https://cic-test.chronicillnesschannel.co.uk/api/aq/aqi-history";
-    const WEBSITE_DEBUG_LOG_ENABLED_PLACEHOLDER = "true";
-  </script>
-  <script src="/js/uk-aq-cache-auth.js"></script>
-  <script src="/dashboard.js"></script>
-  <script>
-    (() => {
-      const tabs = Array.from(document.querySelectorAll("[data-who-tab]"));
-      const cards = Array.from(document.querySelectorAll("[data-who-card]"));
-      if (!tabs.length || !cards.length) return;
-      document.querySelector(".who-dashboard-card")?.classList.add("is-enhanced");
-
-      tabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-          const target = tab.dataset.whoTab;
-          tabs.forEach((button) => {
-            button.setAttribute("aria-selected", String(button === tab));
-          });
-          cards.forEach((card) => {
-            card.classList.toggle("is-active", card.dataset.whoCard === target);
-          });
-        });
-      });
-    })();
-  </script>
-  <script>
-    (() => {
-      const WHO_SUMMARY_PATH = "/history/v2/who_2021/latest_who_2021.json";
-      const WHO_CACHE_KEY = "uk_aq_who_2021_homepage_summary_v1";
-      const card = document.querySelector(".who-dashboard-card");
-      if (!card) return;
-
-      const statusEl = card.querySelector("[data-who-status]");
-      const rowByKey = new Map(
-        Array.from(card.querySelectorAll("[data-who-row]")).map((row) => [row.dataset.whoRow, row])
-      );
-
-      function setWhoStatus(message) {
-        if (!statusEl) return;
-        const text = String(message || "").trim();
-        statusEl.textContent = text;
-        statusEl.classList.toggle("is-visible", Boolean(text));
-      }
-
-      function isoDay(date) {
-        return date.toISOString().slice(0, 10);
-      }
-
-      function addDays(day, offsetDays) {
-        const parsed = new Date(`${day}T00:00:00.000Z`);
-        parsed.setUTCDate(parsed.getUTCDate() + offsetDays);
-        return isoDay(parsed);
-      }
-
-      function latestExpectedCompleteDay() {
-        return addDays(isoDay(new Date()), -1);
-      }
-
-      function formatDisplayDay(day) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(day || ""))) return "";
-        const [year, month, date] = day.split("-");
-        return `${date}/${month}/${year}`;
-      }
-
-      function formatPercent(value) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) return "—";
-        return `${number.toFixed(1)}%`;
-      }
-
-      function pctForBar(value) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) return "0%";
-        return `${Math.max(0, Math.min(100, number)).toFixed(1)}%`;
-      }
-
-      function pollutantNameForAria(cardRow) {
-        return String(cardRow?.pollutant_label || cardRow?.pollutant_code || "")
-          .replace("PM2.5", "PM2.5")
-          .replace("NO2", "NO2");
-      }
-
-      function normalizeCardKey(cardRow) {
-        const key = String(cardRow?.card_key || "").toLowerCase();
-        const group = String(cardRow?.card_group || "").toLowerCase();
-        const section = String(cardRow?.card_section || "").toLowerCase();
-        const pollutant = String(cardRow?.pollutant_code || "").toLowerCase();
-        if (!pollutant) return "";
-        if (key === "rolling_daily" || (group.includes("rolling") && section.includes("daily"))) {
-          return `rolling_daily:${pollutant}`;
-        }
-        if (key === "rolling_yearly" || (group.includes("rolling") && section.includes("yearly"))) {
-          return `rolling_yearly:${pollutant}`;
-        }
-        if (
-          key === "calendar_yearly" ||
-          key === "last_year" ||
-          group.includes("last") ||
-          group.includes("calendar")
-        ) {
-          return `calendar_yearly:${pollutant}`;
-        }
-        return "";
-      }
-
-      function renderWhoRow(cardRow) {
-        const row = rowByKey.get(normalizeCardKey(cardRow));
-        if (!row) return;
-        const countEl = row.querySelector("[data-who-count]");
-        const percentEl = row.querySelector("[data-who-percent]");
-        const barEl = row.querySelector("[data-who-bar]");
-        const barFill = row.querySelector("[data-who-bar-fill]");
-        const percent = formatPercent(cardRow.percent_above_guideline);
-        const pct = pctForBar(cardRow.percent_above_guideline);
-        const count = String(cardRow.card_count_label || "").trim() || "—";
-        if (countEl) countEl.textContent = count;
-        if (percentEl) percentEl.textContent = percent;
-        if (barFill) barFill.style.setProperty("--pct", pct);
-        if (barEl) {
-          const pollutant = pollutantNameForAria(cardRow);
-          const section = String(cardRow.card_section || "guideline").toLowerCase();
-          const suffix = normalizeCardKey(cardRow).startsWith("calendar_yearly") && cardRow.calendar_year
-            ? ` in ${cardRow.calendar_year}`
-            : "";
-          barEl.setAttribute(
-            "aria-label",
-            `${percent} of ${pollutant} AURN sensors above WHO ${section}${suffix}`
-          );
-        }
-      }
-
-      function renderWhoSummary(payload) {
-        if (!payload || !Array.isArray(payload.cards)) return false;
-        payload.cards.forEach(renderWhoRow);
-        const rollingCard = payload.cards.find((item) =>
-          normalizeCardKey(item).startsWith("rolling_daily:")
-        ) || payload.cards.find((item) => normalizeCardKey(item).startsWith("rolling_yearly:"));
-        const calendarCard = payload.cards.find((item) =>
-          normalizeCardKey(item).startsWith("calendar_yearly:")
-        );
-        const rollingRange = card.querySelector("[data-who-rolling-range]");
-        const rollingTitle = card.querySelector("[data-who-rolling-title]");
-        const calendarYear = card.querySelector("[data-who-calendar-year]");
-        if (rollingRange && rollingCard?.range_label) {
-          rollingRange.textContent = String(rollingCard.range_label);
-        }
-        if (rollingTitle && payload.data_as_of_day_utc) {
-          rollingTitle.textContent = `To ${formatDisplayDay(payload.data_as_of_day_utc)}`;
-        }
-        if (calendarYear) {
-          calendarYear.textContent = String(
-            calendarCard?.calendar_year || payload.last_full_calendar_year || calendarYear.textContent || ""
-          );
-        }
-        card.dataset.whoDataAsOf = String(payload.data_as_of_day_utc || "");
-        return true;
-      }
-
-      function readCachedWhoSummary() {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(WHO_CACHE_KEY) || "null");
-          return parsed && typeof parsed === "object" ? parsed : null;
-        } catch (_) {
-          return null;
-        }
-      }
-
-      function writeCachedWhoSummary(payload) {
-        try {
-          localStorage.setItem(WHO_CACHE_KEY, JSON.stringify({
-            cached_at_utc: new Date().toISOString(),
-            data_as_of_day_utc: payload?.data_as_of_day_utc || null,
-            payload,
-          }));
-        } catch (_) {
-          // Ignore local cache write failures.
-        }
-      }
-
-      async function loadWhoSummary() {
-        const cached = readCachedWhoSummary();
-        const cachedPayload = cached?.payload || null;
-        const renderedCache = cachedPayload ? renderWhoSummary(cachedPayload) : false;
-        setWhoStatus(renderedCache ? "Updating WHO data…" : "Loading WHO data…");
-
-        const asOf = latestExpectedCompleteDay();
-        const url = new URL(WHO_SUMMARY_PATH, window.location.href);
-        url.searchParams.set("as_of", asOf);
-        try {
-          const response = await fetch(url.toString(), {
-            headers: { Accept: "application/json" },
-            cache: "default",
-          });
-          if (!response.ok) {
-            throw new Error(`WHO summary request failed (${response.status})`);
-          }
-          const payload = await response.json();
-          if (!renderWhoSummary(payload)) {
-            throw new Error("WHO summary payload missing cards");
-          }
-          writeCachedWhoSummary(payload);
-          setWhoStatus("");
-        } catch (error) {
-          console.warn("WHO summary JSON failed to load", error);
-          setWhoStatus(renderedCache ? "Using cached WHO data" : "Static WHO fallback");
-        }
-      }
-
-      loadWhoSummary();
-    })();
-  </script>
-  <script>
-    (() => {
-      const switches = Array.from(document.querySelectorAll(".tool-card-title-graphic-switch"));
-      if (!switches.length) return;
-
-      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-      function updateSwitch(switchEl) {
-        const width = switchEl.clientWidth || 0;
-        if (width <= 0) return;
-
-        const card = switchEl.closest(".tool-card");
-        const isUkaqCard = card?.classList.contains("tool-card--ukaq");
-        const minWidth = Number(switchEl.dataset.oneLineMinWidth || (isUkaqCard ? 210 : 220));
-        const showOneLine = width >= minWidth;
-
-        switchEl.classList.toggle("show-one-line", showOneLine);
-
-        const twoLineMax = 58;
-        const oneLineMax = clamp(width * (isUkaqCard ? 0.145 : 0.14), 28, 44);
-        switchEl.style.setProperty("--title-two-line-max-h", `${twoLineMax.toFixed(1)}px`);
-        switchEl.style.setProperty("--title-one-line-max-h", `${oneLineMax.toFixed(1)}px`);
-      }
-
-      function updateAll() {
-        switches.forEach(updateSwitch);
-      }
-
-      if ("ResizeObserver" in window) {
-        const resizeObserver = new ResizeObserver((entries) => {
-          entries.forEach((entry) => updateSwitch(entry.target));
-        });
-        switches.forEach((switchEl) => resizeObserver.observe(switchEl));
-      } else {
-        window.addEventListener("resize", updateAll, { passive: true });
-      }
-
-      if (document.fonts?.ready) {
-        document.fonts.ready.then(updateAll).catch(() => {});
-      }
-      window.addEventListener("load", updateAll, { once: true });
-      updateAll();
-    })();
-  </script>
   <script src="sidebar.js"></script>
   <script src="/beta-notice.js"></script>
+  <script>
+    (() => {
+      "use strict";
+
+      const API_BASE = "/api/aq";
+      const READINGS_POLLUTANTS = ["pm25", "pm10", "no2"];
+      const READINGS_NETWORKS = [
+        { id: "5", label: "Sensor.Community" },
+        { id: "3", label: "OpenAQ" },
+        { id: "4", label: "Breathe London" },
+        { id: "1", label: "GOV.UK AURN" },
+      ];
+      const READINGS_UPDATED_WITHIN_SECONDS = 6 * 60 * 60;
+      const READINGS_LIMIT = 100;
+      const READINGS_FETCH_CONCURRENCY = 4;
+      const READINGS_FETCH_TIMEOUT_MS = 15000;
+      const POLLUTANT_LABELS = {
+        pm25: "PM2.5",
+        pm10: "PM10",
+        no2: "NO2",
+      };
+
+      const readingsDashboard = document.querySelector(".readings-dashboard");
+      const readingsNetworkSelect = document.querySelector("[data-readings-network-select]");
+      const readingsUpdated = document.querySelector("[data-readings-updated]");
+      const readingsRefresh = document.querySelector("[data-readings-refresh]");
+      const readingsStatus = document.querySelector("[data-readings-status]");
+      const readingsCards = Array.from(document.querySelectorAll("[data-pollutant]"));
+
+      let readingsRequestId = 0;
+      let latestRowsByPollutant = new Map();
+      let readingsNetworkLookup = new Map(READINGS_NETWORKS.map((entry) => [entry.id, entry.label]));
+
+      function sanitizeNetworkId(value) {
+        const id = String(value ?? "").trim();
+        return /^\d+$/.test(id) ? id : "";
+      }
+
+      function networkLabelForId(id) {
+        return readingsNetworkLookup.get(String(id)) || `Connector ${id}`;
+      }
+
+      function setReadingsLoading(isLoading) {
+        readingsDashboard?.classList.toggle("is-loading", isLoading);
+        if (readingsRefresh) {
+          readingsRefresh.disabled = isLoading;
+          readingsRefresh.textContent = isLoading ? "Refreshing..." : "Refresh";
+        }
+      }
+
+      function setReadingsStatus(message = "", isError = false) {
+        if (!readingsStatus) return;
+        readingsStatus.textContent = message;
+        readingsStatus.hidden = !message;
+        readingsStatus.classList.toggle("dashboard-status--error", Boolean(isError));
+      }
+
+      function setReadingsUpdated(value) {
+        if (!readingsUpdated) return;
+        readingsUpdated.textContent = value ? `Updated ${value}` : "Updated --";
+      }
+
+      function setReadingsCard(card, row) {
+        const valueEl = card.querySelector(".pollutant-value");
+        const stationEl = card.querySelector(".pollutant-station");
+        const networkEl = card.querySelector(".pollutant-network");
+        const pollutant = card.dataset.pollutant;
+        const label = POLLUTANT_LABELS[pollutant] || pollutant;
+
+        if (!row) {
+          if (valueEl) valueEl.textContent = "--";
+          if (stationEl) stationEl.textContent = "No recent readings";
+          if (networkEl) networkEl.textContent = "";
+          return;
+        }
+
+        const numeric = Number(row.value);
+        const valueText = Number.isFinite(numeric) ? numeric.toFixed(1) : "--";
+        if (valueEl) valueEl.textContent = valueText;
+        if (stationEl) stationEl.textContent = row.station_name || row.station_id || "Unknown station";
+        if (networkEl) networkEl.textContent = networkLabelForId(row.connector_id);
+        card.setAttribute("aria-label", `${label} ${valueText} micrograms per cubic metre at ${stationEl?.textContent || "unknown station"}`);
+      }
+
+      function renderReadings() {
+        const networkId = sanitizeNetworkId(readingsNetworkSelect?.value);
+        const networkFilter = networkId || "all";
+        readingsCards.forEach((card) => {
+          const pollutant = card.dataset.pollutant;
+          const rows = latestRowsByPollutant.get(pollutant) || [];
+          const row = networkFilter === "all"
+            ? rows[0]
+            : rows.find((entry) => String(entry.connector_id) === networkFilter);
+          setReadingsCard(card, row);
+        });
+      }
+
+      async function fetchJson(url, options = {}) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), READINGS_FETCH_TIMEOUT_MS);
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            cache: "no-store",
+            credentials: "same-origin",
+          });
+          const text = await response.text();
+          let payload = null;
+          try {
+            payload = text ? JSON.parse(text) : null;
+          } catch (_) {
+            payload = null;
+          }
+          if (!response.ok) {
+            const message = payload?.error || payload?.message || text || `${response.status} ${response.statusText}`;
+            throw new Error(message);
+          }
+          return payload;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+
+      function buildLatestUrl(connectorId, pollutant) {
+        const params = new URLSearchParams({
+          connector_id: String(connectorId),
+          pollutant,
+          updated_within_seconds: String(READINGS_UPDATED_WITHIN_SECONDS),
+          limit: String(READINGS_LIMIT),
+        });
+        return `${API_BASE}/latest?${params.toString()}`;
+      }
+
+      async function fetchConnectorPollutant(connectorId, pollutant) {
+        const payload = await fetchJson(buildLatestUrl(connectorId, pollutant));
+        const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+        return rows
+          .map((row) => ({ ...row, connector_id: String(row.connector_id ?? connectorId) }))
+          .filter((row) => Number.isFinite(Number(row.value)));
+      }
+
+      async function fetchWithConcurrency(tasks, concurrency = READINGS_FETCH_CONCURRENCY) {
+        const results = new Array(tasks.length);
+        let cursor = 0;
+
+        async function worker() {
+          while (true) {
+            const index = cursor++;
+            if (index >= tasks.length) return;
+            try {
+              results[index] = await tasks[index]();
+            } catch (error) {
+              results[index] = { error };
+            }
+          }
+        }
+
+        const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker());
+        await Promise.all(workers);
+        return results;
+      }
+
+      async function loadReadings() {
+        const requestId = ++readingsRequestId;
+        setReadingsLoading(true);
+        setReadingsStatus("");
+
+        const tasks = [];
+        for (const network of READINGS_NETWORKS) {
+          for (const pollutant of READINGS_POLLUTANTS) {
+            tasks.push(async () => ({
+              connectorId: network.id,
+              pollutant,
+              rows: await fetchConnectorPollutant(network.id, pollutant),
+            }));
+          }
+        }
+
+        try {
+          const results = await fetchWithConcurrency(tasks);
+          if (requestId !== readingsRequestId) return;
+
+          const nextMap = new Map(READINGS_POLLUTANTS.map((pollutant) => [pollutant, []]));
+          let successes = 0;
+          let failures = 0;
+          let freshestTimestamp = null;
+
+          results.forEach((result) => {
+            if (!result || result.error) {
+              failures += 1;
+              return;
+            }
+            successes += 1;
+            const bucket = nextMap.get(result.pollutant);
+            result.rows.forEach((row) => {
+              bucket.push(row);
+              const timestamp = Date.parse(row.observed_at || row.updated_at || "");
+              if (Number.isFinite(timestamp) && (freshestTimestamp === null || timestamp > freshestTimestamp)) {
+                freshestTimestamp = timestamp;
+              }
+            });
+          });
+
+          for (const rows of nextMap.values()) {
+            rows.sort((a, b) => Number(b.value) - Number(a.value));
+          }
+
+          latestRowsByPollutant = nextMap;
+          renderReadings();
+
+          if (freshestTimestamp !== null) {
+            const date = new Date(freshestTimestamp);
+            setReadingsUpdated(date.toLocaleString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }).replace(",", ""));
+          } else {
+            setReadingsUpdated("");
+          }
+
+          if (failures > 0 && successes > 0) {
+            setReadingsStatus(`Some network readings were unavailable (${failures} requests failed).`, true);
+          } else if (successes === 0) {
+            setReadingsStatus("Unable to load recent sensor readings.", true);
+          }
+        } catch (error) {
+          if (requestId !== readingsRequestId) return;
+          setReadingsStatus("Unable to load recent sensor readings.", true);
+        } finally {
+          if (requestId === readingsRequestId) setReadingsLoading(false);
+        }
+      }
+
+      readingsNetworkSelect?.addEventListener("change", renderReadings);
+      readingsRefresh?.addEventListener("click", loadReadings);
+      loadReadings();
+    })();
+  </script>
 </body>
 </html>
