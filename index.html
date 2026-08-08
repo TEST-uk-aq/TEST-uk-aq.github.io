@@ -935,7 +935,7 @@
 
 <!--    <a class="tool-card" href="sensors/">
           <div class="tool-card-header">
-            <img class="tool-card-icon" src="sidebar-images/uk-aq-sensors-icon.svg" alt="">
+            <img class="tool-card-icon" src="sidebar-images/uk-aq-sensors-icon-blue.svg" alt="">
             <img class="tool-card-title-image" src="images/UK-AQ-sensors.svg" alt="Sensors">
           </div>
           <p class="tool-card-description">Browse individual sensor stations across supported networks.</p>
@@ -994,6 +994,11 @@
   <script src="sidebar.js"></script>
   <script src="/beta-notice.js"></script>
   <script>
+    const TURNSTILE_SITE_KEY_PLACEHOLDER = "__UK_AQ_TURNSTILE_SITE_KEY__";
+    window.TURNSTILE_SITE_KEY_PLACEHOLDER = TURNSTILE_SITE_KEY_PLACEHOLDER;
+  </script>
+  <script src="/js/uk-aq-cache-auth.js"></script>
+  <script>
     (() => {
       "use strict";
 
@@ -1021,6 +1026,7 @@
       const readingsRefresh = document.querySelector("[data-readings-refresh]");
       const readingsStatus = document.querySelector("[data-readings-status]");
       const readingsCards = Array.from(document.querySelectorAll("[data-pollutant]"));
+      const fetchCacheApi = window.ukAqFetchCacheApi;
 
       let readingsRequestId = 0;
       let latestRowsByPollutant = new Map();
@@ -1094,7 +1100,10 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), READINGS_FETCH_TIMEOUT_MS);
         try {
-          const response = await fetch(url, {
+          if (typeof fetchCacheApi !== "function") {
+            throw new Error("Shared cache authentication is unavailable.");
+          }
+          const response = await fetchCacheApi(url, {
             ...options,
             signal: controller.signal,
             cache: "no-store",
