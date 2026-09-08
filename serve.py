@@ -32,12 +32,28 @@ _HOP_BY_HOP_HEADERS = frozenset(
         "proxy-authenticate",
         "proxy-authorization",
         "te",
-        "trailers",
+        "trailer",
         "transfer-encoding",
         "upgrade",
         "host",
     }
 )
+
+
+def _hop_by_hop_header_names(headers):
+    names = set(_HOP_BY_HOP_HEADERS)
+    connection_values = headers.get_all("Connection", [])
+    for value in connection_values:
+        names.update(token.strip().lower() for token in value.split(",") if token.strip())
+    return names
+
+
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        return None
+
+
+_NO_REDIRECT_OPENER = urllib.request.build_opener(_NoRedirectHandler())
 
 
 def _load_env_file(path):
@@ -85,14 +101,15 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
 
     def _upstream_path(self, replacement_path=None):
         parsed = urlsplit(self.path)
-        path = replacement_path if replacement_path is not None else unquote(parsed.path)
+        path = replacement_path if replacement_path is not None else parsed.path
         return path + ("?" + parsed.query if parsed.query else "")
 
     def _aq_proxy_headers(self):
+        excluded_headers = _hop_by_hop_header_names(self.headers)
         headers = {
             key: value
             for key, value in self.headers.items()
-            if key.lower() not in _HOP_BY_HOP_HEADERS
+            if key.lower() not in excluded_headers
         }
         if CF_CLIENT_ID and CF_CLIENT_SECRET:
             headers["CF-Access-Client-Id"] = CF_CLIENT_ID
@@ -104,9 +121,10 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
     def _relay_upstream(self, response):
         status = getattr(response, "status", None) or response.code
         self.send_response(status)
+        excluded_headers = _hop_by_hop_header_names(response.headers)
         for key, value in response.headers.items():
             lower_key = key.lower()
-            if lower_key not in _HOP_BY_HOP_HEADERS and lower_key != "cache-control":
+            if lower_key not in excluded_headers and lower_key != "cache-control":
                 self.send_header(key, value)
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -153,7 +171,7 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
             method=self.command,
         )
         try:
-            with urllib.request.urlopen(request, timeout=UPSTREAM_TIMEOUT_SECONDS) as response:
+            with _NO_REDIRECT_OPENER.open(request, timeout=UPSTREAM_TIMEOUT_SECONDS) as response:
                 self._relay_upstream(response)
         except urllib.error.HTTPError as error:
             with error:
@@ -242,7 +260,10 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(204)
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            self.send_header(
+                "Access-Control-Allow-Headers",
+                "Content-Type, Authorization, CF-Turnstile-Token, X-UK-AQ-Session-Init",
+            )
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             return
