@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AQ in the News | UK AQ local preview</title>
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="stylesheet" href="news.css">
+  <script src="news.js" defer></script>
+</head>
+<body>
+  <header class="news-header">
+    <div class="news-header-inner">
+      <a class="news-home-link" href="/" aria-label="UK AQ home">
+        <img src="/images/UK-AQ-Logo-v3-1line.svg" alt="UK AQ">
+      </a>
+      <span class="preview-label">Local development preview</span>
+    </div>
+  </header>
+
+  <main class="news-main">
+    <section class="news-intro" aria-labelledby="news-heading">
+      <p class="news-kicker">Independent links to recent coverage</p>
+      <h1 id="news-heading">AQ in the News</h1>
+      <p class="news-lede">
+        Recent air-quality reporting selected by UK AQ. Article links open the
+        original publisher’s website.
+      </p>
+    </section>
+
+    <section class="news-feed" aria-labelledby="news-feed-heading">
+      <div class="news-feed-heading-row">
+        <h2 id="news-feed-heading">Latest articles</h2>
+        <p id="news-count" class="news-count" hidden></p>
+      </div>
+
+      <div id="news-status" class="news-status" role="status" aria-live="polite">
+        <span class="news-spinner" aria-hidden="true"></span>
+        <span>Loading the latest articles…</span>
+      </div>
+
+      <div id="news-error" class="news-message news-message--error" role="alert" hidden>
+        <h3>News is unavailable</h3>
+        <p>We could not load the Media feed. Please try again.</p>
+        <button id="news-retry" type="button">Try again</button>
+      </div>
+
+      <div id="news-empty" class="news-message" hidden>
+        <h3>No articles yet</h3>
+        <p>Approved stories will appear here when they are available.</p>
+      </div>
+
+      <div id="news-list" class="news-list" aria-live="polite" hidden></div>
+      <noscript>
+        <div class="news-message news-message--error">
+          <p>JavaScript is required to load this local news preview.</p>
+        </div>
+      </noscript>
+    </section>
+  </main>
+</body>
+</html>
