@@ -120,8 +120,16 @@
         margin: 0;
       }
 
-      .page-title-mobile {
-        display: none;
+      .page-title-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .title {
@@ -4923,7 +4931,7 @@
           height: 54px;
           min-height: 54px;
           min-width: 0;
-          justify-content: center;
+          justify-content: flex-start;
           padding: 0 60px 0 52px;
         }
 
@@ -4948,22 +4956,19 @@
 
         .hex-map-page .page-title-heading {
           width: 100%;
+          min-height: 44px;
           min-width: 0;
-          justify-content: center;
+          align-self: flex-start;
+          justify-content: flex-start;
         }
 
-        .hex-map-page .page-title-desktop {
-          display: none;
-        }
-
-        .hex-map-page .page-title-mobile {
+        .hex-map-page .page-title {
           display: block;
-          color: var(--accent-deep);
-          font-size: clamp(1rem, 5.8vw, 1.2rem);
-          font-weight: 700;
-          line-height: 1;
-          letter-spacing: 0.08em;
-          white-space: nowrap;
+          width: clamp(148px, 44vw, 176px);
+          max-width: 100%;
+          height: auto;
+          max-height: none;
+          flex-shrink: 1;
         }
 
         .hex-map-page .tab-panel,
