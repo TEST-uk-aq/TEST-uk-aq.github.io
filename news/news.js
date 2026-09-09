@@ -47,8 +47,8 @@
   }
 
   function buildArticleCard(article) {
-    const card = document.createElement("article");
-    card.className = "news-card";
+    const cardItem = document.createElement("article");
+    cardItem.className = "news-card-item";
 
     const articleUrl = safeHttpUrl(article?.canonical_url);
     const imageUrl = safeHttpUrl(article?.preview_image_url, true);
@@ -56,13 +56,16 @@
     const displayTitle = text(article?.display_title) || title;
     const publisher = text(article?.publisher) || "Publisher not supplied";
 
-    const media = articleUrl
-      ? externalLink(articleUrl, "news-card-media", "")
+    const card = articleUrl
+      ? externalLink(articleUrl, "news-card", "")
       : document.createElement("div");
-    media.classList.add("news-card-media");
+    card.classList.add("news-card");
     if (articleUrl) {
-      media.setAttribute("aria-label", `Open “${title}” on ${publisher}`);
-      media.title = `${title} — ${publisher}`;
+      card.setAttribute(
+        "aria-label",
+        `Read “${title}” on ${publisher}, opens in a new tab`,
+      );
+      card.title = `${title} — ${publisher}`;
     }
     if (imageUrl) {
       const image = document.createElement("img");
@@ -72,16 +75,22 @@
       image.loading = "lazy";
       image.decoding = "async";
       image.addEventListener("error", () => image.remove(), { once: true });
-      media.append(image);
+      card.append(image);
     }
-    const heading = document.createElement("h3");
-    heading.className = "news-card-title";
-    heading.textContent = displayTitle;
-    media.append(heading);
-    card.append(media);
 
-    const body = document.createElement("div");
-    body.className = "news-card-body";
+    const gradient = document.createElement("div");
+    gradient.className = "news-card-gradient";
+    gradient.setAttribute("aria-hidden", "true");
+    card.append(gradient);
+
+    const externalCue = document.createElement("div");
+    externalCue.className = "news-card-external-cue";
+    externalCue.setAttribute("aria-hidden", "true");
+    externalCue.textContent = `Read on ${publisher} ↗`;
+    card.append(externalCue);
+
+    const overlay = document.createElement("div");
+    overlay.className = "news-card-overlay";
 
     const sourceRow = document.createElement("div");
     sourceRow.className = "news-card-source-row";
@@ -91,63 +100,24 @@
 
     const published = articleDate(article?.published_at);
     if (published) {
+      const separator = document.createElement("span");
+      separator.setAttribute("aria-hidden", "true");
+      separator.textContent = "·";
       const dateElement = document.createElement("time");
       dateElement.dateTime = published.machine;
       dateElement.textContent = published.display;
-      sourceRow.append(dateElement);
+      sourceRow.append(separator, dateElement);
     }
-    body.append(sourceRow);
+    overlay.append(sourceRow);
 
-    const author = text(article?.author);
-    if (author) {
-      const authorElement = document.createElement("p");
-      authorElement.className = "news-card-text";
-      authorElement.textContent = `By ${author}`;
-      body.append(authorElement);
-    }
+    const heading = document.createElement("h3");
+    heading.className = "news-card-title";
+    heading.textContent = displayTitle;
+    overlay.append(heading);
 
-    const summary = text(article?.summary);
-    if (summary) {
-      const summaryElement = document.createElement("p");
-      summaryElement.className = "news-card-text";
-      summaryElement.textContent = summary;
-      body.append(summaryElement);
-    }
-
-    const whyItMatters = text(article?.why_it_matters);
-    if (whyItMatters) {
-      const context = document.createElement("p");
-      context.className = "news-card-why";
-      const label = document.createElement("strong");
-      label.textContent = "Why it matters: ";
-      context.append(label, whyItMatters);
-      body.append(context);
-    }
-
-    const topics = Array.isArray(article?.topics)
-      ? article.topics.map(text).filter(Boolean).slice(0, 20)
-      : [];
-    if (topics.length) {
-      const topicList = document.createElement("ul");
-      topicList.className = "news-topics";
-      topicList.setAttribute("aria-label", "Topics");
-      topics.forEach((topic) => {
-        const item = document.createElement("li");
-        item.className = "news-topic";
-        item.textContent = topic;
-        topicList.append(item);
-      });
-      body.append(topicList);
-    }
-
-    if (articleUrl) {
-      body.append(
-        externalLink(articleUrl, "news-original-link", `Read the original article at ${publisher}`),
-      );
-    }
-
-    card.append(body);
-    return card;
+    card.append(overlay);
+    cardItem.append(card);
+    return cardItem;
   }
 
   function showOnly(element) {

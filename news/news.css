@@ -5,7 +5,6 @@
   --news-blue-dark: #285b88;
   --news-page: #fbfaf7;
   --news-card: #fff7ed;
-  --news-card-inner: #fffdfa;
   --news-border: #eadfd2;
   --news-error: #8a2c2c;
 }
@@ -218,72 +217,105 @@ h1 {
   gap: 20px;
 }
 
-.news-card {
+.news-card-item {
   min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--news-border);
-  border-radius: 20px;
-  background: var(--news-card);
-  box-shadow: 0 9px 24px rgba(67, 48, 29, 0.07);
 }
 
-.news-card-media {
+.news-card {
   position: relative;
   display: block;
-  aspect-ratio: 19 / 6;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  border: 1px solid var(--news-border);
   border-radius: 18px;
   color: #fff;
   background:
     linear-gradient(120deg, rgba(40, 91, 136, 0.94), rgba(60, 120, 172, 0.66)),
     #285b88;
+  box-shadow: 0 9px 24px rgba(67, 48, 29, 0.07);
   text-decoration: none;
+  transform-origin: center;
+  transition: transform 240ms ease, box-shadow 240ms ease;
 }
 
-.news-card-media::after {
+.news-card:hover,
+.news-card:focus-visible {
+  z-index: 1;
+  box-shadow: 0 12px 30px rgba(31, 42, 53, 0.16);
+  transform: scale(1.02);
+}
+
+.news-card-gradient {
   position: absolute;
   z-index: 1;
-  inset: 18% 0 0;
-  background: linear-gradient(to bottom, transparent, rgba(7, 18, 29, 0.88));
-  content: "";
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 32%,
+    rgba(7, 18, 29, 0.18) 52%,
+    rgba(7, 18, 29, 0.92) 100%
+  );
   pointer-events: none;
 }
 
 .news-card-image {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.news-card-body {
+.news-card-external-cue {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  max-width: calc(100% - 28px);
+  padding: 7px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(7, 18, 29, 0.68);
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1.2;
+  opacity: 0;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  transition: opacity 240ms ease;
+}
+
+.news-card:hover .news-card-external-cue,
+.news-card:focus-visible .news-card-external-cue {
+  opacity: 1;
+}
+
+.news-card-overlay {
+  position: absolute;
+  z-index: 2;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
   min-width: 0;
-  padding: 18px 20px 20px;
 }
 
 .news-card-source-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
-  margin-bottom: 0;
-  color: var(--news-ink-soft);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.news-card-source-row > * + *::before {
-  content: "•";
-  margin-right: 12px;
-  color: #a1adb7;
+  gap: 0 0.35em;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: clamp(0.7rem, 1vw, 0.8rem);
+  font-weight: 750;
+  line-height: 1.25;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .news-card-title {
-  position: absolute;
-  z-index: 2;
-  right: 18px;
-  bottom: 14px;
-  left: 18px;
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
@@ -296,64 +328,13 @@ h1 {
   -webkit-line-clamp: 2;
 }
 
-.news-card-text,
-.news-card-why {
-  color: #394b5d;
-  font-size: 0.98rem;
-  line-height: 1.6;
-}
-
-.news-card-why {
-  padding: 14px 16px;
-  border-left: 4px solid var(--news-blue);
-  background: var(--news-card-inner);
-}
-
-.news-card-why strong {
-  color: var(--news-ink);
-}
-
-.news-topics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.news-topic {
-  padding: 5px 9px;
-  border-radius: 999px;
-  color: #36516b;
-  background: #e8f1f8;
-  font-size: 0.78rem;
-  font-weight: 750;
-}
-
-.news-original-link {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  margin-top: 20px;
-  color: var(--news-blue-dark);
-  font-weight: 850;
-  text-underline-offset: 4px;
-}
-
-.news-original-link::after {
-  content: "↗";
-  margin-left: 7px;
-  font-size: 0.95em;
-}
-
 a:focus-visible,
 button:focus-visible {
   outline: 3px solid rgba(60, 120, 172, 0.48);
   outline-offset: 4px;
 }
 
-.news-card-media:focus-visible {
+.news-card:focus-visible {
   outline-offset: -5px;
 }
 
@@ -398,5 +379,15 @@ button:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .news-spinner {
     animation: none;
+  }
+
+  .news-card,
+  .news-card-external-cue {
+    transition: none;
+  }
+
+  .news-card:hover,
+  .news-card:focus-visible {
+    transform: none;
   }
 }
