@@ -238,7 +238,6 @@ h1 {
   transition: transform 240ms ease, box-shadow 240ms ease;
 }
 
-.news-card:hover,
 .news-card:focus-visible {
   z-index: 1;
   box-shadow: 0 12px 30px rgba(31, 42, 53, 0.16);
@@ -288,9 +287,20 @@ h1 {
   transition: opacity 240ms ease;
 }
 
-.news-card:hover .news-card-external-cue,
 .news-card:focus-visible .news-card-external-cue {
   opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .news-card:hover {
+    z-index: 1;
+    box-shadow: 0 12px 30px rgba(31, 42, 53, 0.16);
+    transform: scale(1.02);
+  }
+
+  .news-card:hover .news-card-external-cue {
+    opacity: 1;
+  }
 }
 
 .news-card-overlay {

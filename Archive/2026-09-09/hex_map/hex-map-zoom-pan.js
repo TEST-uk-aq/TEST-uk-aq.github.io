@@ -4,17 +4,6 @@ function initHexMapZoomPan(root) {
   const MIN_SCALE = 0.8;
   const MAX_SCALE = 3;
   const STEP = 1.15;
-  // Preserve bounded map movement at the default scale on narrow screens.
-  const MOBILE_INITIAL_PAN_RATIO = 0.25;
-  const TAP_MOVE_THRESHOLD = 8;
-  const CLICK_SUPPRESSION_MS = 220;
-  const mobileLayoutQuery = typeof root.matchMedia === "function"
-    ? root.matchMedia("(max-width: 767px)")
-    : null;
-
-  function isNarrowScreen() {
-    return Boolean(mobileLayoutQuery?.matches);
-  }
 
   function createHexMapZoomPanController() {
     const controls = Array.from(document.querySelectorAll("[data-map-zoom-controls]"));
@@ -49,10 +38,8 @@ function initHexMapZoomPan(root) {
     function clampPan(viewport, state) {
       const width = viewport.clientWidth || 0;
       const height = viewport.clientHeight || 0;
-      const mobileBaseTx = isNarrowScreen() ? width * MOBILE_INITIAL_PAN_RATIO : 0;
-      const mobileBaseTy = isNarrowScreen() ? height * MOBILE_INITIAL_PAN_RATIO : 0;
-      const maxTx = Math.max(mobileBaseTx, ((state.scale - 1) * width) / 2);
-      const maxTy = Math.max(mobileBaseTy, ((state.scale - 1) * height) / 2);
+      const maxTx = Math.max(0, ((state.scale - 1) * width) / 2);
+      const maxTy = Math.max(0, ((state.scale - 1) * height) / 2);
       return {
         scale: state.scale,
         tx: clamp(state.tx, -maxTx, maxTx),
@@ -120,52 +107,6 @@ function initHexMapZoomPan(root) {
 
       let drag = null;
       let suppressClickUntil = 0;
-      let singleTouch = null;
-      let touchGesture = null;
-      let touchSequenceWasGesture = false;
-
-      function getTouchByIdentifier(touches, identifier) {
-        return Array.from(touches).find((touch) => touch.identifier === identifier) || null;
-      }
-
-      function getTouchMetrics(touches) {
-        const first = touches[0];
-        const second = touches[1];
-        if (!first || !second) {
-          return null;
-        }
-        const rect = viewport.getBoundingClientRect();
-        return {
-          distance: Math.max(1, Math.hypot(
-            second.clientX - first.clientX,
-            second.clientY - first.clientY,
-          )),
-          midpointX: ((first.clientX + second.clientX) / 2) - rect.left,
-          midpointY: ((first.clientY + second.clientY) / 2) - rect.top,
-        };
-      }
-
-      function beginTouchGesture(event) {
-        const metrics = getTouchMetrics(event.touches);
-        if (!metrics) {
-          return false;
-        }
-        const current = getState(svg.id);
-        touchGesture = {
-          startDistance: metrics.distance,
-          startMidpointX: metrics.midpointX,
-          startMidpointY: metrics.midpointY,
-          startScale: current.scale,
-          startTx: current.tx,
-          startTy: current.ty,
-        };
-        touchSequenceWasGesture = true;
-        singleTouch = null;
-        viewport.classList.add("is-dragging");
-        suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-        event.preventDefault();
-        return true;
-      }
 
       control.addEventListener("click", (event) => {
         const button = event.target instanceof Element
@@ -191,9 +132,6 @@ function initHexMapZoomPan(root) {
 
       viewport.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) {
-          return;
-        }
-        if (event.pointerType === "touch" && isNarrowScreen()) {
           return;
         }
         const current = getState(svg.id);
@@ -229,17 +167,11 @@ function initHexMapZoomPan(root) {
 
       let gestureStartScale = 1;
       viewport.addEventListener("gesturestart", (event) => {
-        if (isNarrowScreen()) {
-          return;
-        }
         gestureStartScale = getState(svg.id).scale;
         event.preventDefault();
       }, { passive: false });
 
       viewport.addEventListener("gesturechange", (event) => {
-        if (isNarrowScreen()) {
-          return;
-        }
         const rect = viewport.getBoundingClientRect();
         if (!rect.width || !rect.height) {
           return;
@@ -252,104 +184,6 @@ function initHexMapZoomPan(root) {
         zoomAroundPoint(svg, viewport, factor, anchorX, anchorY, false);
         event.preventDefault();
       }, { passive: false });
-
-      viewport.addEventListener("touchstart", (event) => {
-        if (!isNarrowScreen()) {
-          return;
-        }
-        if (event.touches.length >= 2) {
-          beginTouchGesture(event);
-          return;
-        }
-        const touch = event.touches[0];
-        if (!touch) {
-          return;
-        }
-        touchGesture = null;
-        touchSequenceWasGesture = false;
-        singleTouch = {
-          identifier: touch.identifier,
-          startX: touch.clientX,
-          startY: touch.clientY,
-          moved: false,
-        };
-      }, { passive: false });
-
-      viewport.addEventListener("touchmove", (event) => {
-        if (!isNarrowScreen()) {
-          return;
-        }
-        if (event.touches.length >= 2) {
-          if (!touchGesture && !beginTouchGesture(event)) {
-            return;
-          }
-          const metrics = getTouchMetrics(event.touches);
-          if (!metrics || !touchGesture) {
-            return;
-          }
-          const width = viewport.clientWidth || 0;
-          const height = viewport.clientHeight || 0;
-          if (!width || !height) {
-            return;
-          }
-          const targetScale = clamp(
-            touchGesture.startScale * (metrics.distance / touchGesture.startDistance),
-            MIN_SCALE,
-            MAX_SCALE,
-          );
-          const ratio = targetScale / touchGesture.startScale;
-          applyTransform(svg, viewport, {
-            scale: targetScale,
-            tx: (touchGesture.startTx * ratio)
-              + ((touchGesture.startMidpointX - (width / 2)) * (1 - ratio))
-              + (metrics.midpointX - touchGesture.startMidpointX),
-            ty: (touchGesture.startTy * ratio)
-              + ((touchGesture.startMidpointY - (height / 2)) * (1 - ratio))
-              + (metrics.midpointY - touchGesture.startMidpointY),
-          }, false);
-          suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-          event.preventDefault();
-          return;
-        }
-        if (!singleTouch) {
-          return;
-        }
-        const touch = getTouchByIdentifier(event.touches, singleTouch.identifier);
-        if (!touch) {
-          return;
-        }
-        if (Math.hypot(
-          touch.clientX - singleTouch.startX,
-          touch.clientY - singleTouch.startY,
-        ) > TAP_MOVE_THRESHOLD) {
-          singleTouch.moved = true;
-          suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-        }
-      }, { passive: false });
-
-      function endTouch(event) {
-        if (!isNarrowScreen()) {
-          return;
-        }
-        if (touchGesture && event.touches.length < 2) {
-          suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-          touchGesture = null;
-          viewport.classList.remove("is-dragging");
-        }
-        if (singleTouch && !getTouchByIdentifier(event.touches, singleTouch.identifier)) {
-          if (singleTouch.moved) {
-            suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-          }
-          singleTouch = null;
-        }
-        if (touchSequenceWasGesture && event.touches.length === 0) {
-          suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
-          touchSequenceWasGesture = false;
-        }
-      }
-
-      viewport.addEventListener("touchend", endTouch);
-      viewport.addEventListener("touchcancel", endTouch);
 
       window.addEventListener("pointermove", (event) => {
         if (!drag || event.pointerId !== drag.pointerId) {
@@ -376,7 +210,7 @@ function initHexMapZoomPan(root) {
           return;
         }
         if (drag.moved) {
-          suppressClickUntil = performance.now() + CLICK_SUPPRESSION_MS;
+          suppressClickUntil = performance.now() + 220;
         }
         drag = null;
         viewport.classList.remove("is-dragging");

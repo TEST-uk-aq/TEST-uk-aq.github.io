@@ -4988,31 +4988,15 @@
         .hex-map-page .map-dashboard-card {
           width: 100%;
           grid-template-columns: minmax(0, 1fr);
-          grid-template-rows: auto auto auto auto auto;
+          grid-template-rows: auto auto auto;
           padding: 0;
           margin-top: 0;
           border-radius: 14px;
         }
 
-        .hex-map-page .map-title-strip {
-          display: flex;
-          grid-column: 1;
-          grid-row: 2;
-          padding: 18px 14px 8px;
-        }
-
-        .hex-map-page .map-dashboard-title {
-          font-size: clamp(1.05rem, 5vw, 1.25rem) !important;
-        }
-
+        .hex-map-page .map-title-strip,
         .hex-map-page .map-summary-strip {
-          display: grid;
-          grid-column: 1;
-          grid-row: 3;
-          grid-template-columns: minmax(0, 1fr);
-          gap: 10px;
-          margin: 0;
-          padding: 0 10px 12px;
+          display: none;
         }
 
         .hex-map-page .map-dashboard-card .map-canvas-wrap {
@@ -5046,7 +5030,6 @@
 
         .hex-map-page .map-svg-viewport {
           inset: 64px 0 var(--map-footer-safe) 0;
-          touch-action: auto;
         }
 
         .hex-map-page .map-pollutant-unavailable {
@@ -5208,7 +5191,7 @@
         .hex-map-page .map-dashboard-card #cr-toolbar-slot,
         .hex-map-page .map-controls-row {
           grid-column: 1;
-          grid-row: 4;
+          grid-row: 2;
           min-height: 0;
           height: auto;
           margin: 0;
@@ -5278,7 +5261,7 @@
         .hex-map-page .map-dashboard-card .map-networks-dock,
         .hex-map-page .map-dashboard-card.has-docked-networks .map-networks-dock {
           grid-column: 1;
-          grid-row: 5;
+          grid-row: 3;
           margin-top: 12px;
         }
 
@@ -5406,7 +5389,7 @@
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
           right: 10px;
-          width: clamp(134px, calc(100vw - 198px), 168px);
+          width: 134px;
           align-items: flex-end;
         }
 
@@ -5429,12 +5412,12 @@
         }
 
         .hex-map-page .mobile-map-status-row .status-pill {
-          flex: 1 1 0;
+          flex: 0 1 auto;
           min-width: 0;
           min-height: 0;
           align-self: center;
           gap: 4px;
-          padding: 4px 6px;
+          padding: 4px 8px;
           overflow: hidden;
         }
 
@@ -5443,7 +5426,6 @@
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          font-size: 12px;
         }
 
         .hex-map-page .mobile-map-status-row .pulse-dot {
@@ -5454,8 +5436,6 @@
 
         .hex-map-page .mobile-map-status-row .btn-refresh {
           flex: 0 0 68px;
-          position: relative;
-          isolation: isolate;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -5464,29 +5444,9 @@
           min-width: 68px;
           min-height: 44px;
           padding: 0 8px;
-          border: 0;
-          background: transparent;
-          box-shadow: none;
           font-size: 0.8rem;
           line-height: 1;
           white-space: nowrap;
-        }
-
-        .hex-map-page .mobile-map-status-row .btn-refresh::before {
-          content: "";
-          position: absolute;
-          z-index: -1;
-          inset: 5px 0;
-          border: 1px solid var(--ukaq-action-bg);
-          border-radius: 6px;
-          background: var(--ukaq-action-bg);
-          box-shadow: 0 1px 4px rgba(16, 24, 34, 0.12);
-          pointer-events: none;
-        }
-
-        .hex-map-page .mobile-map-status-row .btn-refresh:hover::before {
-          border-color: var(--accent-deep);
-          background: var(--accent-deep);
         }
 
         .hex-map-page .mobile-map-controls--right > .networks-pill-anchor,
@@ -5754,32 +5714,25 @@
           height: 58px;
           min-width: var(--window-stepper-control-width);
           max-width: var(--window-stepper-control-width);
-          grid-template-columns: 44px var(--window-stepper-value-width) 44px;
           grid-template-rows: 14px 44px;
           align-items: end;
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper-label {
-          position: relative;
-          top: 3px;
-          grid-column: 2;
-          grid-row: 1;
-          justify-self: center;
-          width: max-content;
+          position: static;
+          width: auto;
           margin: 0;
-          padding: 0;
+          padding-left: 2px;
           font-size: 0.68rem;
           line-height: 14px;
           letter-spacing: 0;
-          text-align: center;
+          text-align: left;
           text-transform: none;
           pointer-events: none;
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper-control {
           display: grid;
-          grid-column: 1 / -1;
-          grid-row: 2;
           width: var(--window-stepper-control-width);
           height: 44px;
           min-width: var(--window-stepper-control-width);
