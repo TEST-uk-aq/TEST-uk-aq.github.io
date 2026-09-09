@@ -5034,12 +5034,6 @@
           }
         }
 
-        @supports (height: 100dvh) {
-          .hex-map-page .map-dashboard-card .map-canvas-wrap {
-            --map-canvas-min-height: clamp(472px, calc(100dvh - 136px), 752px);
-          }
-        }
-
         .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected {
           min-height: max(560px, var(--map-canvas-min-height));
         }
@@ -5429,7 +5423,8 @@
         }
 
         .hex-map-page .mobile-map-status-row .status-pill {
-          flex: 1 1 0;
+          flex: 0 1 auto;
+          max-width: calc(100% - 72px);
           min-width: 0;
           min-height: 0;
           align-self: center;
