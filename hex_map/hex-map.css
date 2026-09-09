@@ -114,6 +114,16 @@
         margin-top: 0;
       }
 
+      .page-title-heading {
+        display: flex;
+        align-items: center;
+        margin: 0;
+      }
+
+      .page-title-mobile {
+        display: none;
+      }
+
       .title {
         font-family: "Inter", system-ui, -apple-system, sans-serif;
         font-size: clamp(2rem, 2.6vw, 3.25rem);
@@ -4905,14 +4915,26 @@
       @media (max-width: 767px) {
         .hex-map-page main {
           min-width: 0;
-          padding: 24px 12px calc(48px + env(safe-area-inset-bottom, 0px));
+          padding: 16px 12px calc(48px + env(safe-area-inset-bottom, 0px));
         }
 
         .hex-map-page main > header {
           order: 1;
+          height: 54px;
+          min-height: 54px;
           min-width: 0;
-          padding-right: 124px;
-          padding-left: 48px;
+          justify-content: center;
+          padding: 0 60px 0 52px;
+        }
+
+        .hex-map-page #ukaq-home-logo {
+          top: 16px;
+          right: 12px;
+        }
+
+        .hex-map-page #ukaq-home-logo img {
+          width: clamp(44px, 13.333vw, 52px);
+          height: auto;
         }
 
         .hex-map-page main > .tab-panel {
@@ -4924,10 +4946,24 @@
           margin: 0 0 16px;
         }
 
-        .hex-map-page .page-title {
-          max-width: 100%;
-          height: auto;
-          max-height: 42px;
+        .hex-map-page .page-title-heading {
+          width: 100%;
+          min-width: 0;
+          justify-content: center;
+        }
+
+        .hex-map-page .page-title-desktop {
+          display: none;
+        }
+
+        .hex-map-page .page-title-mobile {
+          display: block;
+          color: var(--accent-deep);
+          font-size: clamp(1rem, 5.8vw, 1.2rem);
+          font-weight: 700;
+          line-height: 1;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
         }
 
         .hex-map-page .tab-panel,
@@ -5666,10 +5702,13 @@
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper {
+          --window-stepper-value-width: clamp(50px, calc(100vw - 270px), 64px);
+          --window-stepper-control-width: calc(88px + var(--window-stepper-value-width));
           display: grid;
-          width: 100%;
+          width: var(--window-stepper-control-width);
           height: 58px;
-          min-width: 0;
+          min-width: var(--window-stepper-control-width);
+          max-width: var(--window-stepper-control-width);
           grid-template-rows: 14px 44px;
           align-items: end;
         }
@@ -5689,30 +5728,36 @@
 
         .hex-map-page .mobile-map-controls--left .window-stepper-control {
           display: grid;
-          width: 100%;
+          width: var(--window-stepper-control-width);
           height: 44px;
-          min-width: 0;
-          grid-template-columns: 44px minmax(0, 1fr) 44px;
+          min-width: var(--window-stepper-control-width);
+          max-width: var(--window-stepper-control-width);
+          grid-template-columns: 44px var(--window-stepper-value-width) 44px;
           gap: 0;
           align-items: center;
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper-value-box {
-          width: 100%;
-          min-width: 0;
+          display: flex;
+          width: var(--window-stepper-value-width);
+          min-width: var(--window-stepper-value-width);
+          max-width: var(--window-stepper-value-width);
           height: 34px;
+          align-items: center;
+          justify-content: center;
           border-radius: 7px;
+          white-space: nowrap;
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper-value {
           padding-top: 0;
-          font-size: 0.74rem;
+          font-size: clamp(0.625rem, 3.55vw, 0.74rem);
           font-weight: 700;
-          letter-spacing: -0.01em;
+          letter-spacing: -0.02em;
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper[data-window="all"] .window-stepper-value {
-          font-size: 0.7rem;
+          font-size: clamp(0.625rem, 3.4vw, 0.7rem);
         }
 
         .hex-map-page .mobile-map-controls--left .window-stepper-arrow::before {

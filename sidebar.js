@@ -710,12 +710,15 @@
 
     // Shared top-right UK AQ home logo
     const homeLogo = document.createElement('a');
+    const mobileHomeLogoSrc = document.body.classList.contains('hex-map-page')
+      ? '/sidebar-images/UK-AQ-Logo-v3-2Lines.svg'
+      : '/images/UK-AQ-Logo-v3-1line.svg';
     homeLogo.id = 'ukaq-home-logo';
     homeLogo.href = '/';
     homeLogo.setAttribute('aria-label', 'UK AQ home');
     homeLogo.innerHTML = `
       <picture>
-        <source media="(max-width: 767px)" srcset="${location.origin}/images/UK-AQ-Logo-v3-1line.svg">
+        <source media="(max-width: 767px)" srcset="${location.origin}${mobileHomeLogoSrc}">
         <img src="${location.origin}/sidebar-images/UK-AQ-Logo-v3-2Lines.svg" alt="UK AQ">
       </picture>`;
 
