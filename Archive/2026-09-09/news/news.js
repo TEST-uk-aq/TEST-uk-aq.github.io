@@ -51,34 +51,24 @@
     card.className = "news-card";
 
     const articleUrl = safeHttpUrl(article?.canonical_url);
-    const imageUrl = safeHttpUrl(article?.preview_image_url, true);
+    const imageUrl = safeHttpUrl(article?.og_image_url, true);
     const title = text(article?.title) || "Untitled article";
-    const displayTitle = text(article?.display_title) || title;
     const publisher = text(article?.publisher) || "Publisher not supplied";
 
-    const media = articleUrl
-      ? externalLink(articleUrl, "news-card-media", "")
-      : document.createElement("div");
-    media.classList.add("news-card-media");
-    if (articleUrl) {
-      media.setAttribute("aria-label", `Open “${title}” on ${publisher}`);
-      media.title = `${title} — ${publisher}`;
-    }
-    if (imageUrl) {
+    if (articleUrl && imageUrl) {
+      const imageLink = externalLink(articleUrl, "news-card-image-link", "");
+      imageLink.setAttribute("aria-label", `Open “${title}” on ${publisher}`);
       const image = document.createElement("img");
       image.className = "news-card-image";
       image.src = imageUrl;
       image.alt = "";
       image.loading = "lazy";
       image.decoding = "async";
-      image.addEventListener("error", () => image.remove(), { once: true });
-      media.append(image);
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => imageLink.remove(), { once: true });
+      imageLink.append(image);
+      card.append(imageLink);
     }
-    const heading = document.createElement("h3");
-    heading.className = "news-card-title";
-    heading.textContent = displayTitle;
-    media.append(heading);
-    card.append(media);
 
     const body = document.createElement("div");
     body.className = "news-card-body";
@@ -97,6 +87,15 @@
       sourceRow.append(dateElement);
     }
     body.append(sourceRow);
+
+    const heading = document.createElement("h3");
+    heading.className = "news-card-title";
+    if (articleUrl) {
+      heading.append(externalLink(articleUrl, "", title));
+    } else {
+      heading.textContent = title;
+    }
+    body.append(heading);
 
     const author = text(article?.author);
     if (author) {
