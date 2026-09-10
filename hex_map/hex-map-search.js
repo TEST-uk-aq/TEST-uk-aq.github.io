@@ -45,7 +45,7 @@ function initHexMapSearch(root) {
   const MAX_LIMIT = 10;
   const POSTCODE_DEBOUNCE_MS = 250;
   const LOCAL_SEARCH_MIN_CHARS = 1;
-  const MOBILE_BREAKPOINT_QUERY = "(max-width: 720px)";
+  const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
   const POSTCODE_PREFIX_HINTS_URL = "/api/aq/postcode_prefix_hints";
 
   let prefixHintsCache = null;
@@ -208,6 +208,19 @@ function initHexMapSearch(root) {
       return "SENSOR";
     }
     return "RESULT";
+  }
+
+  function getResultGroup(result) {
+    const group = result?.group || result?.kind;
+    return group === "postcode_hint" ? "postcode" : group;
+  }
+
+  function getResultGroupLabel(group) {
+    if (group === "postcode") return "POSTCODES";
+    if (group === "sensor") return "SENSORS";
+    if (group === "constituency") return "CONSTITUENCIES";
+    if (group === "local_authority") return "LOCAL AUTHORITIES";
+    return "RESULTS";
   }
 
   function isMobileSearch() {
@@ -596,6 +609,8 @@ function initHexMapSearch(root) {
 
   function buildResultMarkup(result, index, isActive, context) {
     const activeClass = isActive ? " is-active" : "";
+    const resultGroup = getResultGroup(result);
+    const groupClass = resultGroup ? ` map-search-result--${resultGroup.replace(/_/g, "-")}` : "";
     const noDataFill = getComputedStyle(document.documentElement).getPropertyValue("--no-data").trim() || "#efe6d8";
     const kind = context?.kind || "uk";
     const getSensorColor = context?.getSensorColor || (() => null);
@@ -706,11 +721,12 @@ function initHexMapSearch(root) {
           : (fallbackLabel ? `<div class="map-search-result-dest-name">${escapeHtml(fallbackLabel)}</div>` : "");
         const regionHtml = (areaName && postTown) ? `<div class="map-search-result-dest-region">${escapeHtml(postTown)}</div>` : "";
         const textHtml = (nameHtml || regionHtml) ? `<span class="map-search-result-dest-text">${nameHtml}${regionHtml}</span>` : "";
-        destHtml = `<span class="map-search-result-dest">${hexSvgStr}${textHtml}<span class="map-search-result-arrow">${makeArrowSvg()}</span></span>`;
+        const noHexClass = hexSvgStr ? "" : " has-no-hex";
+        destHtml = `<span class="map-search-result-dest${noHexClass}">${hexSvgStr}${textHtml}<span class="map-search-result-arrow">${makeArrowSvg()}</span></span>`;
       }
     }
 
-    return `<button type="button" class="map-search-result${activeClass}" role="option" aria-selected="${isActive ? "true" : "false"}" data-result-index="${index}">${typeHtml}${copyHtml}${destHtml}</button>`;
+    return `<button type="button" class="map-search-result${groupClass}${activeClass}" role="option" aria-selected="${isActive ? "true" : "false"}" data-result-index="${index}">${typeHtml}${copyHtml}${destHtml}</button>`;
   }
 
   function getPlaceholder(kind) {
@@ -792,7 +808,15 @@ function initHexMapSearch(root) {
         closeResults();
         return;
       }
-      const rows = state.results.map((result, index) => buildResultMarkup(result, index, index === state.activeIndex, context));
+      let previousGroup = null;
+      const rows = state.results.map((result, index) => {
+        const resultGroup = getResultGroup(result);
+        const groupHeading = resultGroup !== previousGroup
+          ? `<div class="map-search-results-group-heading" aria-hidden="true">${escapeHtml(getResultGroupLabel(resultGroup))}</div>`
+          : "";
+        previousGroup = resultGroup;
+        return `${groupHeading}${buildResultMarkup(result, index, index === state.activeIndex, context)}`;
+      });
       const destinationHeader = hasRows
         ? `<div class="map-search-results-header" aria-hidden="true"><span></span><span></span><span class="map-search-results-dest-header">${escapeHtml(kind === "cr" ? "Local Authority" : "Constituency")}</span></div>`
         : "";

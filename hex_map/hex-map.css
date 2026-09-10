@@ -3686,6 +3686,9 @@
         grid-template-columns: var(--search-result-grid);
         align-items: center;
       }
+      .map-search-results-group-heading {
+        display: none;
+      }
       .map-search-results-dest-header {
         grid-column: 3;
         border-left: 1px solid var(--line-soft);
@@ -5105,6 +5108,178 @@
           max-width: calc(100vw - 44px);
           max-height: min(60dvh, 400px);
           overflow-y: auto;
+        }
+
+        .hex-map-page .map-search-results {
+          top: calc(100% + 4px);
+          max-width: 100%;
+          max-height: min(46vh, 360px);
+          max-height: min(46svh, 360px);
+          padding: 2px 8px 6px;
+          overflow-x: hidden;
+          border-radius: 0 0 10px 10px;
+        }
+
+        .hex-map-page .map-search-results-header {
+          display: none;
+        }
+
+        .hex-map-page .map-search-results-group-heading {
+          display: block;
+          padding: 9px 8px 5px;
+          border-bottom: 1px solid var(--line-soft);
+          color: var(--ink-4);
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1.2;
+          letter-spacing: 0.07em;
+        }
+
+        .hex-map-page .map-search-result {
+          position: relative;
+          grid-template-columns: minmax(0, 1fr) 54px;
+          min-height: 64px;
+          padding: 7px 8px;
+          border-bottom: 1px solid var(--line-soft);
+          border-radius: 0;
+          align-items: center;
+        }
+
+        .hex-map-page .map-search-result:hover,
+        .hex-map-page .map-search-result.is-active {
+          background: color-mix(in oklab, var(--accent) 4%, white);
+          box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 38%, transparent);
+        }
+
+        .hex-map-page .map-search-result-type {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
+        .hex-map-page .map-search-result-copy {
+          grid-column: 1;
+          min-width: 0;
+          padding: 0 8px 0 0;
+          gap: 8px;
+        }
+
+        .hex-map-page .map-search-result-text-block {
+          width: 100%;
+          gap: 3px;
+        }
+
+        .hex-map-page .map-search-result-primary {
+          display: -webkit-box;
+          overflow: hidden;
+          font-size: 15px;
+          line-height: 1.25;
+          white-space: normal;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+        }
+
+        .hex-map-page .map-search-result-secondary {
+          font-size: 13px;
+          line-height: 1.25;
+        }
+
+        .hex-map-page .map-search-result-sub {
+          overflow: hidden;
+        }
+
+        .hex-map-page .map-search-result-dest {
+          grid-column: 2;
+          min-width: 0;
+          padding: 0;
+          border-left: 0;
+          gap: 6px;
+          justify-content: flex-end;
+        }
+
+        .hex-map-page .map-search-result--sensor .map-search-result-dest-text {
+          display: none;
+        }
+
+        .hex-map-page .map-search-result-arrow {
+          width: 26px;
+          height: 26px;
+        }
+
+        .hex-map-page .map-search-result.is-active .map-search-result-arrow,
+        .hex-map-page .map-search-result:hover .map-search-result-arrow {
+          color: var(--accent);
+          background: color-mix(in srgb, var(--accent) 12%, transparent);
+        }
+
+        .hex-map-page .map-search-result.is-active .map-search-result-arrow svg path,
+        .hex-map-page .map-search-result:hover .map-search-result-arrow svg path {
+          stroke: currentColor;
+        }
+
+        .hex-map-page .map-search-result--postcode {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-copy {
+          grid-column: 1;
+          padding-right: 0;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-primary {
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest {
+          grid-column: 1;
+          display: grid;
+          grid-template-columns: 20px minmax(0, 1fr) 26px;
+          gap: 6px;
+          margin-top: 4px;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest.has-no-hex {
+          grid-template-columns: minmax(0, 1fr) 26px;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-text {
+          display: flex;
+          min-width: 0;
+          align-items: baseline;
+          gap: 0;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-name,
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-region {
+          overflow: hidden;
+          font-size: 13px;
+          line-height: 1.25;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-name {
+          color: var(--accent);
+          font-weight: 600;
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-region {
+          flex-shrink: 1;
+          margin-top: 0;
+          color: var(--ink-4);
+        }
+
+        .hex-map-page .map-search-result--postcode .map-search-result-dest-region::before {
+          content: "\00a0\00b7\00a0";
         }
 
         .hex-map-page .map-topbar {
