@@ -246,6 +246,9 @@ function initHexMapCrController() {
       const overallSummaryTitle = byId("summary-overall-title");
       const sensorValueLabel = byId("sensor-value-label");
       const tooltip = byId("tooltip");
+      const mobileTooltipQuery = typeof window.matchMedia === "function"
+        ? window.matchMedia("(max-width: 767px)")
+        : null;
       const sensorDetailsSection = document.getElementById("cr-sensor-details");
       const detailsTitle = byId("details-title");
       const detailsMeta = byId("details-meta");
@@ -572,6 +575,23 @@ function initHexMapCrController() {
 	      let crSearchPreloadPromise = null;
       let colorScale = null;
       let currentDomainMax = null;
+
+      function isMobileTooltipSuppressed() {
+        return Boolean(mobileTooltipQuery?.matches);
+      }
+
+      function suppressMobileTooltip() {
+        if (isMobileTooltipSuppressed()) tooltip?.classList.remove("visible");
+      }
+
+      if (mobileTooltipQuery) {
+        if (typeof mobileTooltipQuery.addEventListener === "function") {
+          mobileTooltipQuery.addEventListener("change", suppressMobileTooltip);
+        } else if (typeof mobileTooltipQuery.addListener === "function") {
+          mobileTooltipQuery.addListener(suppressMobileTooltip);
+        }
+      }
+
       function setStatus(value) {
         if (!statusEl) {
           return;
@@ -3389,6 +3409,10 @@ function initHexMapCrController() {
       }
 
       function positionTooltip(event) {
+        if (!tooltip || isMobileTooltipSuppressed()) {
+          suppressMobileTooltip();
+          return;
+        }
         const left = event.clientX + window.scrollX + 12;
         const pointerY = event.clientY + window.scrollY;
         const viewportTop = window.scrollY;
@@ -3486,6 +3510,10 @@ function initHexMapCrController() {
             setSelectedCell(cell);
           })
           .on("mouseenter", (event, cell) => {
+            if (isMobileTooltipSuppressed()) {
+              suppressMobileTooltip();
+              return;
+            }
             const areaCode = resolveCellAreaCode(cell);
             const row = areaCode ? pconLookup.get(areaCode) : null;
             const metricValue = getMetricValue(row);

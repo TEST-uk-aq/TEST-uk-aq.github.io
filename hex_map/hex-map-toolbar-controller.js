@@ -66,11 +66,13 @@ function initHexMapToolbarController(root) {
   const mobileMounts = {
     uk: {
       left: panelUk?.querySelector("[data-mobile-map-controls-left]") || null,
+      centre: panelUk?.querySelector("[data-mobile-map-controls-centre]") || null,
       right: panelUk?.querySelector("[data-mobile-map-controls-right]") || null,
       status: panelUk?.querySelector("[data-mobile-map-status-row]") || null,
     },
     cr: {
       left: panelCr?.querySelector("[data-mobile-map-controls-left]") || null,
+      centre: panelCr?.querySelector("[data-mobile-map-controls-centre]") || null,
       right: panelCr?.querySelector("[data-mobile-map-controls-right]") || null,
       status: panelCr?.querySelector("[data-mobile-map-status-row]") || null,
     },
@@ -283,7 +285,7 @@ function initHexMapToolbarController(root) {
     const mobileMapMode = isMobileMapMode();
     const mounts = mobileMounts[normalizedMapKey];
 
-    if (!mobileMapMode || !mounts?.left || !mounts?.right || !mounts?.status) {
+    if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.status) {
       restoreDistributedControls();
       relocateStatusRefreshForMap(normalizedMapKey);
       root.document.body.classList.remove("mobile-map-controls-active");
@@ -293,9 +295,12 @@ function initHexMapToolbarController(root) {
 
     const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
     restoreNode(networkAnchors[inactiveMapKey]);
-    [viewControl, regionSection, windowStepper].forEach((node) => {
+    [viewControl, regionSection].forEach((node) => {
       if (node && node.parentElement !== mounts.left) mounts.left.appendChild(node);
     });
+    if (windowStepper && windowStepper.parentElement !== mounts.centre) {
+      mounts.centre.appendChild(windowStepper);
+    }
     relocateStatusRefreshForMap(normalizedMapKey, mounts.status);
     const activeNetworkAnchor = networkAnchors[normalizedMapKey];
     if (activeNetworkAnchor && activeNetworkAnchor.parentElement !== mounts.right) {

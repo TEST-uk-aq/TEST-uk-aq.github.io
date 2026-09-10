@@ -251,6 +251,9 @@ function initHexMapUkController(root) {
         },
       ];
       const tooltip = document.getElementById("tooltip");
+      const mobileTooltipQuery = typeof root.matchMedia === "function"
+        ? root.matchMedia("(max-width: 767px)")
+        : null;
       const sensorDetailsSection = document.getElementById("sensor-details");
       const detailsTitle = document.getElementById("details-title");
       const detailsMeta = document.getElementById("details-meta");
@@ -492,6 +495,25 @@ function initHexMapUkController(root) {
       let ukSearchPreloadPromise = null;
       let colorScale = null;
       let currentDomainMax = null;
+
+      function isMobileTooltipSuppressed() {
+        return Boolean(mobileTooltipQuery?.matches);
+      }
+
+      function suppressMobileTooltip() {
+        if (!isMobileTooltipSuppressed()) return;
+        pinnedTooltipCell = null;
+        tooltip?.classList.remove("visible");
+      }
+
+      if (mobileTooltipQuery) {
+        if (typeof mobileTooltipQuery.addEventListener === "function") {
+          mobileTooltipQuery.addEventListener("change", suppressMobileTooltip);
+        } else if (typeof mobileTooltipQuery.addListener === "function") {
+          mobileTooltipQuery.addListener(suppressMobileTooltip);
+        }
+      }
+
       function setStatus(value) {
         if (!statusEl) {
           return;
@@ -3209,7 +3231,8 @@ function initHexMapUkController(root) {
       }
 
       function showTooltipForCell(cell, event) {
-        if (!tooltip || !cell) {
+        if (!tooltip || !cell || isMobileTooltipSuppressed()) {
+          suppressMobileTooltip();
           return;
         }
         tooltip.innerHTML = buildTooltipHtml(cell);
@@ -3220,6 +3243,10 @@ function initHexMapUkController(root) {
       }
 
       function setPinnedTooltip(cell, event) {
+        if (isMobileTooltipSuppressed()) {
+          suppressMobileTooltip();
+          return;
+        }
         pinnedTooltipCell = cell || null;
         if (pinnedTooltipCell) {
           showTooltipForCell(pinnedTooltipCell, event);
@@ -3227,13 +3254,18 @@ function initHexMapUkController(root) {
       }
 
       function refreshPinnedTooltip() {
-        if (!pinnedTooltipCell) {
+        if (!pinnedTooltipCell || isMobileTooltipSuppressed()) {
+          suppressMobileTooltip();
           return;
         }
         showTooltipForCell(pinnedTooltipCell);
       }
 
       function positionTooltip(event) {
+        if (!tooltip || isMobileTooltipSuppressed()) {
+          suppressMobileTooltip();
+          return;
+        }
         const left = event.clientX + window.scrollX + 12;
         const pointerY = event.clientY + window.scrollY;
         const viewportTop = window.scrollY;

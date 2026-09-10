@@ -4915,12 +4915,17 @@
         border-radius: 0;
       }
 
+      .mobile-map-controls-row,
       .mobile-map-controls {
         display: none;
       }
 
       /* Phase 1 narrow-screen shell: map-first, with provisional controls in flow. */
       @media (max-width: 767px) {
+        .hex-map-page .tooltip {
+          display: none !important;
+        }
+
         .hex-map-page main {
           min-width: 0;
           padding: 16px 12px calc(48px + env(safe-area-inset-bottom, 0px));
@@ -5288,12 +5293,30 @@
         .hex-map-page .networks-panel-floating.is-floating,
         .hex-map-page .networks-panel-floating.is-docked {
           min-width: 0;
-          max-width: calc(100vw - 24px);
-          max-height: min(70dvh, 520px);
+          max-width: min(280px, calc(100vw - 24px));
+          max-height: min(54vh, 360px);
+          z-index: 600;
         }
 
         .hex-map-page .networks-panel-floating.is-floating {
-          width: min(360px, calc(100vw - 24px));
+          width: min(280px, calc(100vw - 24px));
+        }
+
+        .hex-map-page .networks-panel-floating .network-dropdown-list {
+          flex: 1 1 auto;
+          max-height: min(38vh, 240px);
+          overflow-y: auto;
+        }
+
+        @supports (height: 100svh) {
+          .hex-map-page .networks-panel-floating.is-floating,
+          .hex-map-page .networks-panel-floating.is-docked {
+            max-height: min(54svh, 360px);
+          }
+
+          .hex-map-page .networks-panel-floating .network-dropdown-list {
+            max-height: min(38svh, 240px);
+          }
         }
 
         /* Touch targets; existing glyph sizes and accessible names remain unchanged. */
@@ -5383,24 +5406,39 @@
 
         /* Phase 1 distributed map controls: the toolbar controller moves the
            existing authoritative controls into these presentation-only mounts. */
-        body.hex-map-page.mobile-map-controls-active .mobile-map-controls {
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
           position: absolute;
           top: 64px;
+          left: 0;
           z-index: 68;
+          display: grid;
+          width: 100%;
+          max-width: 100%;
+          grid-template-columns: max-content max-content max-content;
+          align-items: start;
+          justify-content: space-between;
+          pointer-events: none;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls {
           display: flex;
           flex-direction: column;
           gap: 0;
+          pointer-events: auto;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left {
-          left: 10px;
-          width: min(152px, calc(100% - 158px));
+          width: clamp(92px, calc(100vw - 268px), 112px);
           align-items: flex-start;
         }
 
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
+          width: 100px;
+          align-items: center;
+        }
+
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
-          right: 10px;
-          width: clamp(134px, calc(100vw - 198px), 168px);
+          width: clamp(130px, calc(100vw - 218px), 142px);
           align-items: flex-end;
         }
 
@@ -5408,6 +5446,7 @@
           display: none;
         }
 
+        body.hex-chart-mode .mobile-map-controls-row,
         body.hex-chart-mode .mobile-map-controls {
           display: none !important;
         }
@@ -5486,20 +5525,21 @@
 
         .hex-map-page .mobile-map-controls--right > .networks-pill-anchor,
         .hex-map-page .mobile-map-controls--right .networks-pill {
-          width: 100%;
+          width: fit-content;
           max-width: 100%;
         }
 
         .hex-map-page .mobile-map-controls--right .networks-pill {
           position: relative;
           isolation: isolate;
-          justify-content: space-between;
+          justify-content: flex-start;
           min-height: 44px;
-          padding: 5px 9px;
+          padding: 5px 8px;
           border: 0;
           border-radius: 0;
           background: transparent;
           box-shadow: none;
+          font-size: 0.76rem;
         }
 
         .hex-map-page .mobile-map-controls--right .networks-pill::before {
@@ -5623,7 +5663,7 @@
         }
 
         .hex-map-page .mobile-map-controls--left #toolbar-tab-cr.active {
-          width: 112px;
+          width: 100%;
         }
 
         .hex-map-page .mobile-map-controls--left .segmented--view button.active::before {
@@ -5681,7 +5721,7 @@
         .hex-map-page .mobile-map-controls--left #toolbar-tab-cr .view-button-main::before {
           content: "Countries\A& Regions";
           display: block;
-          font-size: 0.76rem;
+          font-size: clamp(0.66rem, 3.4vw, 0.76rem);
           line-height: 1.05;
           white-space: pre;
         }
@@ -5741,20 +5781,21 @@
           z-index: 1;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper {
-          --window-stepper-value-width: clamp(50px, calc(100vw - 270px), 64px);
-          --window-stepper-control-width: calc(88px + var(--window-stepper-value-width));
+        .hex-map-page .mobile-map-controls--centre .window-stepper {
+          --window-stepper-value-width: 50px;
+          --window-stepper-control-width: 100px;
           display: grid;
           width: var(--window-stepper-control-width);
           height: 58px;
           min-width: var(--window-stepper-control-width);
           max-width: var(--window-stepper-control-width);
-          grid-template-columns: 44px var(--window-stepper-value-width) 44px;
+          grid-template-columns: 25px var(--window-stepper-value-width) 25px;
           grid-template-rows: 14px 44px;
           align-items: end;
+          gap: 0;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-label {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-label {
           position: relative;
           top: 3px;
           grid-column: 2;
@@ -5771,7 +5812,7 @@
           pointer-events: none;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-control {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-control {
           display: grid;
           grid-column: 1 / -1;
           grid-row: 2;
@@ -5779,12 +5820,12 @@
           height: 44px;
           min-width: var(--window-stepper-control-width);
           max-width: var(--window-stepper-control-width);
-          grid-template-columns: 44px var(--window-stepper-value-width) 44px;
+          grid-template-columns: 25px var(--window-stepper-value-width) 25px;
           gap: 0;
           align-items: center;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-value-box {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
           display: flex;
           width: var(--window-stepper-value-width);
           min-width: var(--window-stepper-value-width);
@@ -5796,33 +5837,46 @@
           white-space: nowrap;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-value {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-value {
           padding-top: 0;
           font-size: clamp(0.625rem, 3.55vw, 0.74rem);
           font-weight: 700;
           letter-spacing: -0.02em;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper[data-window="all"] .window-stepper-value {
+        .hex-map-page .mobile-map-controls--centre .window-stepper[data-window="all"] .window-stepper-value {
           font-size: clamp(0.625rem, 3.4vw, 0.7rem);
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-arrow::before {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow {
+          position: relative;
+          z-index: 2;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--left {
+          justify-self: start;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--right {
+          justify-self: end;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::before {
           border-top-width: 6px;
           border-bottom-width: 6px;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-arrow--left::before {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--left::before {
           border-right-width: 9px;
         }
 
-        .hex-map-page .mobile-map-controls--left .window-stepper-arrow--right::before {
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--right::before {
           border-left-width: 9px;
         }
 
         .hex-map-page .mobile-map-controls--left .segmented--view button.active:focus-visible,
         .hex-map-page .mobile-map-controls--left .popover-trigger:focus-visible,
-        .hex-map-page .mobile-map-controls--left .window-stepper-arrow:focus-visible,
+        .hex-map-page .mobile-map-controls--centre .window-stepper-arrow:focus-visible,
         .hex-map-page .mobile-map-controls--right .networks-pill:focus-visible,
         .hex-map-page .mobile-map-controls--right .pollutant-selector .pill:focus-visible {
           outline: 2px solid rgba(60, 120, 172, 0.55);
@@ -5833,11 +5887,37 @@
         /* With the 280px sensor panel open, compact the right stack so its
            lower edge meets rather than overlaps the panel boundary. */
         .hex-map-page .map-canvas-wrap.hex-selected .mobile-map-controls--right {
-          top: 56px;
+          transform: translateY(-8px);
           gap: 2px;
         }
 
         .hex-map-page .map-canvas-wrap.hex-selected .mobile-map-controls--right .pollutant-selector {
           gap: 0;
+        }
+
+        @media (max-width: 359px) {
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
+            grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left {
+            grid-column: 1;
+            grid-row: 1;
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
+            position: absolute;
+            top: 58px;
+            right: 0;
+          }
+
+          .hex-map-page .map-canvas-wrap.hex-selected .mobile-map-controls--right {
+            transform: none;
+          }
         }
       }
