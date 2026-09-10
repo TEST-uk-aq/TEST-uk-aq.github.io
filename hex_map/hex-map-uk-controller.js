@@ -305,7 +305,10 @@ function initHexMapUkController(root) {
       const sortHeaderButtons = sortHeaders
         .map((header) => header.querySelector("button[data-sort-key]"))
         .filter(Boolean);
-      const mapCanvasWrap = document.getElementById("map-inline-sensor-panel")?.closest(".map-canvas-wrap") || null;
+      const inlinePanel = document.getElementById("map-inline-sensor-panel");
+      const mapCanvasWrap = inlinePanel?.closest(".map-canvas-wrap") || null;
+      const inlinePanelHeader = inlinePanel?.querySelector(".sensor-panel-header") || null;
+      const detailsTableHead = detailsTableWrap?.querySelector("thead") || null;
       const inlinePanelClose = document.getElementById("sensor-panel-close");
       const inlinePanelWindowLabel = document.getElementById("sensor-panel-window-label");
       const inlinePanelTitle = document.getElementById("sensor-panel-title");
@@ -321,10 +324,11 @@ function initHexMapUkController(root) {
       const SENSOR_TABLE_HEADER_HEIGHT = 44;
       const SENSOR_PANEL_ROW_HEIGHT = 46;
       const SENSOR_PANEL_MAX_VISIBLE_ROWS = 4;
+      const SENSOR_PANEL_MOBILE_MAX_HEIGHT = 280;
       const detailScrollAffordances = scrollAffordances?.attachSensorTable?.(detailsTableWrap, {
         contentEl: detailsTableBody,
         isScrollbarHidden: () => !detailsTableWrap?.classList.contains("is-scroll-forced"),
-        trackOffsetTop: SENSOR_TABLE_HEADER_HEIGHT,
+        trackOffsetTop: () => mobileTooltipQuery?.matches ? 0 : SENSOR_TABLE_HEADER_HEIGHT,
       });
       const restoreDetailsScrollPosition = (nextKey, previousScrollTop) => {
         detailScrollAffordances?.restorePosition?.(nextKey, previousScrollTop);
@@ -2438,6 +2442,57 @@ function initHexMapUkController(root) {
         }
         const count = Math.max(0, Number(sensorCount) || 0);
         const totalRows = count + Math.max(0, Number(extraRowCount) || 0);
+
+        if (mobileTooltipQuery?.matches) {
+          detailsTableWrap?.style.removeProperty("max-height");
+          detailsTableWrap?.style.removeProperty("overflow-y");
+
+          const panelBorderHeight = inlinePanel
+            ? Math.max(0, inlinePanel.offsetHeight - inlinePanel.clientHeight)
+            : 0;
+          const headerHeight = inlinePanelHeader?.getBoundingClientRect().height || 0;
+          const emptyHeight = detailsEmpty && !detailsEmpty.hidden
+            ? detailsEmpty.getBoundingClientRect().height
+            : 0;
+          const toolbarHeight = detailsTableHead?.getBoundingClientRect().height || 0;
+          const rowsHeight = Array.from(detailsTableBody?.children || []).reduce(
+            (height, row) => height + row.getBoundingClientRect().height,
+            0
+          );
+          const usefulContentHeight = Math.ceil(
+            panelBorderHeight
+            + headerHeight
+            + (count ? toolbarHeight + rowsHeight : emptyHeight)
+          );
+          const hasMeasurableLayout = Boolean(
+            headerHeight
+            && (!count || rowsHeight)
+            && (count || detailsEmpty?.hidden || emptyHeight)
+          );
+          if (!hasMeasurableLayout) {
+            detailScrollAffordances?.update?.();
+            return;
+          }
+          const panelHeight = count
+            ? Math.min(usefulContentHeight, SENSOR_PANEL_MOBILE_MAX_HEIGHT)
+            : Math.min(
+              Math.max(SENSOR_PANEL_EMPTY_HEIGHT, usefulContentHeight),
+              SENSOR_PANEL_MOBILE_MAX_HEIGHT
+            );
+          mapCanvasWrap.style.setProperty("--sensor-panel-height", `${panelHeight}px`);
+
+          const hasOverflow = Boolean(
+            count
+            && detailsTableWrap
+            && !detailsTableWrap.hidden
+            && detailsTableWrap.scrollHeight > detailsTableWrap.clientHeight + 1
+          );
+          detailsTableWrap?.classList.toggle("is-scroll-forced", hasOverflow);
+          inlinePanelBody?.classList.toggle("is-scroll-forced", hasOverflow);
+          detailScrollAffordances?.update?.();
+          return;
+        }
+
         const hasOverflowByCount = totalRows > SENSOR_PANEL_MAX_VISIBLE_ROWS;
         const visibleRows = Math.min(totalRows, SENSOR_PANEL_MAX_VISIBLE_ROWS);
         const effectiveRowHeight = SENSOR_PANEL_ROW_HEIGHT;
@@ -2460,6 +2515,14 @@ function initHexMapUkController(root) {
           inlinePanelBody?.classList.toggle("is-scroll-forced", hasOverflow);
         }
         detailScrollAffordances?.update?.();
+      }
+
+      function refreshInlinePanelGeometry() {
+        updateInlinePanelHeight(
+          detailsTableBody?.querySelectorAll("tr:not(.sensor-row-divider)").length || 0,
+          detailsTableBody?.querySelectorAll("tr.sensor-row-divider").length || 0
+        );
+        updateSelectedHexViewportShift();
       }
 
       function updateDetailsPanel() {
@@ -3959,6 +4022,7 @@ function initHexMapUkController(root) {
         if (statusEl.textContent === "Live") {
           renderMap();
         }
+        refreshInlinePanelGeometry();
         syncSettingsPanelWidth();
         if (mapSettingsPanel?.classList.contains("open")) {
           positionSettingsPanel();
@@ -4118,13 +4182,17 @@ function initHexMapUkController(root) {
           if (statusEl.textContent === "Live") {
             requestAnimationFrame(() => {
               renderMap();
+              refreshInlinePanelGeometry();
             });
+          } else {
+            requestAnimationFrame(refreshInlinePanelGeometry);
           }
           syncSettingsPanelWidth();
         },
         renderLayout: () => {
           requestAnimationFrame(() => {
             renderMap();
+            refreshInlinePanelGeometry();
           });
           syncSettingsPanelWidth();
         },

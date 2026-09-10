@@ -5609,6 +5609,10 @@
         /* The existing UK/C&R sensor tables remain authoritative. On narrow
            screens their rows are presented as one stacked list, without a
            second renderer or chart-selection state path. */
+        .hex-map-page .map-canvas-wrap.hex-selected:has(.sensor-table-wrap:not([hidden])) {
+          --sensor-panel-height: 280px !important;
+        }
+
         .hex-map-page .sensor-panel-header {
           display: grid;
           grid-template-columns: 44px 18px minmax(0, 1fr) 44px;

@@ -6,12 +6,7 @@ function initHexMapScrollAffordances(root) {
   function attachPersistentScrollbar(scrollEl, options = {}) {
     if (!scrollEl) return null;
     const threshold = Number.isFinite(options.threshold) ? options.threshold : 2;
-    const getTrackOffsetTop = () => {
-      const value = typeof options.trackOffsetTop === "function"
-        ? options.trackOffsetTop()
-        : options.trackOffsetTop;
-      return Number.isFinite(value) ? Math.max(0, value) : 0;
-    };
+    const trackOffsetTop = Number.isFinite(options.trackOffsetTop) ? Math.max(0, options.trackOffsetTop) : 0;
     const host = options.host || scrollEl.parentElement;
     if (!host) return null;
     if (root.getComputedStyle(host).position === "static") {
@@ -29,17 +24,16 @@ function initHexMapScrollAffordances(root) {
       rail.appendChild(thumb);
       host.appendChild(rail);
     }
+    if (trackOffsetTop > 0) {
+      rail.style.setProperty("--sensor-scrollbar-rail-top", `${trackOffsetTop}px`);
+    } else {
+      rail.style.removeProperty("--sensor-scrollbar-rail-top");
+    }
     const thumbEl = rail.querySelector(".sensor-scrollbar-thumb");
     let rafId = 0;
     const isForceHidden = () => options.isHidden ? !!options.isHidden() : false;
 
     const measureGeometry = () => {
-      const trackOffsetTop = getTrackOffsetTop();
-      if (trackOffsetTop > 0) {
-        rail.style.setProperty("--sensor-scrollbar-rail-top", `${trackOffsetTop}px`);
-      } else {
-        rail.style.removeProperty("--sensor-scrollbar-rail-top");
-      }
       const trackHeight = rail.clientHeight || 0;
       const scrollable = scrollEl.scrollHeight - scrollEl.clientHeight;
       const scrollTrackHeight = Math.max(0, scrollEl.scrollHeight - trackOffsetTop);
