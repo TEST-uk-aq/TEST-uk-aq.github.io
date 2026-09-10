@@ -5565,6 +5565,11 @@
           max-width: 100%;
         }
 
+        .hex-map-page .mobile-map-controls--right > .networks-pill-anchor,
+        .hex-map-page .mobile-map-controls--right > .pollutant-selector {
+          margin-right: 8px;
+        }
+
         .hex-map-page .mobile-map-controls--right .networks-pill {
           position: relative;
           isolation: isolate;
