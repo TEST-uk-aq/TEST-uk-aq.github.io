@@ -6,7 +6,7 @@
 .ukaq-beta-notice {
   box-sizing: border-box;
   color: #fff;
-  font-family: inherit;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
 .ukaq-beta-notice--expanded {
@@ -17,9 +17,9 @@
   border-radius: 14px;
   background: rgba(180, 48, 48, 0.82);
   box-shadow: 0 4px 14px rgba(16, 24, 34, 0.13);
-  font-size: 0.88rem;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.38;
+  line-height: 19px;
 }
 
 .ukaq-beta-notice__header {
@@ -57,9 +57,9 @@
   border: 1px solid rgba(16, 24, 34, 0.16);
   border-radius: 999px;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 12px;
   font-weight: 800;
-  line-height: 1;
+  line-height: 12px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
@@ -103,7 +103,8 @@
 @media (max-width: 640px) {
   .ukaq-beta-notice--expanded {
     padding: 0.7rem 0.8rem;
-    font-size: 0.82rem;
+    font-size: 13px;
+    line-height: 18px;
   }
 }
 

@@ -64,6 +64,15 @@
         min-height: 100vh;
       }
 
+      /* Match sidebar.js's initial geometry before its deferred mount completes. */
+      body.hex-map-page[data-sidebar-state="mini"] {
+        padding-left: var(--cic-mini-w, 64px);
+      }
+
+      body.hex-map-page[data-sidebar-state="drawer"] {
+        padding-left: 0;
+      }
+
       /*
        * Turnstile controls its own visibility through appearance:
        * interaction-only. Keep the host usable if interaction is required.
