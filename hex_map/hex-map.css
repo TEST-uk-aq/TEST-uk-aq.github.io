@@ -5831,8 +5831,8 @@
         }
 
         .hex-map-page .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-launch {
-          width: 32px;
-          min-width: 32px;
+          width: 44px;
+          min-width: 44px;
           height: 44px;
           min-height: 44px;
           color: var(--accent-deep);
@@ -5981,7 +5981,7 @@
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
-          width: 142px;
+          width: 134px;
           align-items: flex-end;
         }
 
@@ -6001,14 +6001,14 @@
           min-height: 44px;
           align-items: center;
           justify-content: flex-end;
-          gap: 2px;
+          gap: 1px;
           padding-right: 8px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill {
           flex: 0 1 auto;
           width: max-content;
-          max-width: calc(100% - 64px);
+          max-width: calc(100% - 57px);
           min-width: 0;
           box-sizing: border-box;
           height: 36px;
@@ -6021,6 +6021,10 @@
           font-size: 14px;
           font-weight: 600;
           line-height: 1;
+        }
+
+        .hex-map-page .mobile-map-status-row .status-pill[data-state="loading"] {
+          padding-inline: 1px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="live"] {
@@ -6044,7 +6048,7 @@
         }
 
         .hex-map-page .mobile-map-status-row .btn-refresh {
-          flex: 0 0 62px;
+          flex: 0 0 56px;
           position: relative;
           isolation: isolate;
           display: inline-flex;
@@ -6052,9 +6056,9 @@
           justify-content: center;
           box-sizing: border-box;
           height: 44px;
-          min-width: 62px;
+          min-width: 56px;
           min-height: 44px;
-          padding: 0 6px;
+          padding: 0 2px;
           border: 0;
           background: transparent;
           box-shadow: none;
