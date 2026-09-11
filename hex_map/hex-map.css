@@ -4931,7 +4931,7 @@
 
         .hex-map-page main {
           min-width: 0;
-          padding: 16px 12px calc(48px + env(safe-area-inset-bottom, 0px));
+          padding: 16px 12px 0 !important;
         }
 
         .hex-map-page main > header {
@@ -5007,18 +5007,7 @@
         }
 
         .hex-map-page .map-title-strip {
-          display: flex;
-          grid-column: 1;
-          grid-row: 2;
-          border: 0;
-          padding: 25px 14px 8px;
-          background: linear-gradient(
-            to bottom,
-            var(--line) 0 1px,
-            var(--surface) 1px 6px,
-            var(--line) 6px 7px,
-            var(--map-wrap) 7px 100%
-          );
+          display: none;
         }
 
         .hex-map-page .map-dashboard-title {

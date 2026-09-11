@@ -7,6 +7,12 @@
   padding-bottom: 32px !important;
 }
 
+@media (max-width: 767px) {
+  .hex-map-page main {
+    padding-bottom: 0 !important;
+  }
+}
+
 .home-page .home-main {
   padding-bottom: 48px !important;
 }
