@@ -419,7 +419,7 @@ function initHexMapCrController() {
           return;
         }
         const isChartModeActive = Boolean(window.hexChartMode?.isActive?.("cr"));
-        const isInteractive = chartLaunchAvailable && !isChartModeActive;
+        const isInteractive = chartLaunchAvailable && !isChartModeActive && !mobileTooltipQuery?.matches;
         inlinePanelTitleLaunch?.setAttribute("data-chart-launch-available", isInteractive ? "true" : "false");
         if (inlinePanelLaunchButton) {
           inlinePanelLaunchButton.disabled = !isInteractive;
@@ -433,6 +433,13 @@ function initHexMapCrController() {
         inlinePanelTitle.setAttribute("role", "button");
         inlinePanelTitle.setAttribute("tabindex", "0");
       };
+      if (mobileTooltipQuery) {
+        if (typeof mobileTooltipQuery.addEventListener === "function") {
+          mobileTooltipQuery.addEventListener("change", syncInlinePanelTitleInteractivity);
+        } else if (typeof mobileTooltipQuery.addListener === "function") {
+          mobileTooltipQuery.addListener(syncInlinePanelTitleInteractivity);
+        }
+      }
       if (inlinePanelClose) {
         inlinePanelClose.addEventListener("click", () => {
           if (window.hexChartMode?.isActive?.("cr")) {
@@ -442,7 +449,7 @@ function initHexMapCrController() {
         });
       }
       const openSelectedAreaChartMode = () => {
-        if (!chartLaunchAvailable || !selectedAreaCode || window.hexChartMode?.isActive?.("cr")) {
+        if (!chartLaunchAvailable || mobileTooltipQuery?.matches || !selectedAreaCode || window.hexChartMode?.isActive?.("cr")) {
           return;
         }
         window.hexChartMode?.enter?.({ mapKey: "cr" });
