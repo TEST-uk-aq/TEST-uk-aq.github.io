@@ -6027,7 +6027,7 @@
           flex: 0 0 75px;
           width: 75px;
           max-width: 75px;
-          padding-inline: 5px;
+          padding-inline: 3px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="live"] {
