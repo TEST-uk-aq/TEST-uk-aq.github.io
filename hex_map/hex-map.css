@@ -5611,11 +5611,11 @@
            second renderer or chart-selection state path. */
         .hex-map-page .sensor-panel-header {
           display: grid;
-          grid-template-columns: 44px 18px minmax(0, 1fr) 44px;
+          grid-template-columns: 18px minmax(0, 1fr) 44px;
           grid-template-areas:
-            "launch hex title close"
-            ". reading reading ."
-            ". count count .";
+            "hex title close"
+            "reading reading ."
+            "count count .";
           gap: 2px 7px;
           align-items: center;
           height: auto;
@@ -5636,7 +5636,7 @@
         }
 
         .hex-map-page .sensor-title-icon-button {
-          grid-area: launch;
+          display: none;
         }
 
         .hex-map-page .sensor-panel-header svg {
@@ -5771,11 +5771,11 @@
           min-width: 0;
           min-height: 72px;
           height: auto;
-          grid-template-columns: 44px minmax(0, 1fr) max-content;
+          grid-template-columns: minmax(0, 1fr) max-content 32px;
           grid-template-areas:
-            "action sensor value"
-            "action network network"
-            "action updated updated";
+            "sensor value action"
+            "network network action"
+            "updated updated action";
           gap: 3px 8px;
           align-items: center;
           padding: 8px 18px 8px 8px;
@@ -5821,13 +5821,33 @@
         .hex-map-page .sensor-table td.sensor-chart-symbol-col {
           grid-area: action;
           display: flex;
-          width: 44px;
-          min-width: 44px;
+          width: 32px;
+          min-width: 32px;
           height: 44px;
           align-items: center;
           align-self: center;
           justify-content: center;
           overflow: visible;
+        }
+
+        .hex-map-page .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-launch {
+          width: 44px;
+          min-width: 44px;
+          height: 44px;
+          min-height: 44px;
+          color: var(--accent-deep);
+          font-size: 1.5rem;
+          font-weight: 500;
+          line-height: 1;
+        }
+
+        .hex-map-page .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-launch::before {
+          content: "\203a";
+          transform: translateY(-1px);
+        }
+
+        .hex-map-page .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-launch img {
+          display: none;
         }
 
         .hex-map-page .sensor-table-wrap.is-chart-select-mode td.sensor-chart-symbol-col {
@@ -5981,25 +6001,34 @@
           min-height: 44px;
           align-items: center;
           justify-content: flex-end;
-          gap: 2px;
+          gap: 1px;
           padding-right: 8px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill {
           flex: 0 1 auto;
           width: max-content;
-          max-width: calc(100% - 64px);
+          max-width: calc(100% - 57px);
           min-width: 0;
-          height: 32px;
-          min-height: 32px;
+          box-sizing: border-box;
+          height: 36px;
+          min-height: 36px;
           align-self: center;
-          gap: 4px;
-          padding: 0 2px;
+          gap: 6px;
+          padding: 0 8px;
           overflow: hidden;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1;
+        }
+
+        .hex-map-page .mobile-map-status-row .status-pill[data-state="loading"] {
+          padding-inline: 1px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="live"] {
-          padding: 0 4px;
+          padding: 0 10px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill .hint {
@@ -6007,17 +6036,19 @@
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          font-size: 12px;
+          font-size: inherit;
+          font-weight: inherit;
+          line-height: inherit;
         }
 
         .hex-map-page .mobile-map-status-row .pulse-dot {
-          width: 8px;
-          height: 8px;
-          flex-basis: 8px;
+          width: 10px;
+          height: 10px;
+          flex: 0 0 10px;
         }
 
         .hex-map-page .mobile-map-status-row .btn-refresh {
-          flex: 0 0 62px;
+          flex: 0 0 56px;
           position: relative;
           isolation: isolate;
           display: inline-flex;
@@ -6025,13 +6056,14 @@
           justify-content: center;
           box-sizing: border-box;
           height: 44px;
-          min-width: 62px;
+          min-width: 56px;
           min-height: 44px;
-          padding: 0 6px;
+          padding: 0 2px;
           border: 0;
           background: transparent;
           box-shadow: none;
-          font-size: 0.8rem;
+          font-size: 14px;
+          font-weight: 600;
           line-height: 1;
           white-space: nowrap;
         }
@@ -6040,9 +6072,9 @@
           content: "";
           position: absolute;
           z-index: -1;
-          inset: 5px 0;
+          inset: 4px 0;
           border: 1px solid var(--ukaq-action-bg);
-          border-radius: 9px;
+          border-radius: 6px;
           background: var(--ukaq-action-bg);
           box-shadow: 0 1px 4px rgba(16, 24, 34, 0.12);
           pointer-events: none;
