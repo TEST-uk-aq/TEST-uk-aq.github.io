@@ -6218,7 +6218,7 @@
           position: relative;
           isolation: isolate;
           display: grid;
-          width: 78px;
+          width: 100%;
           min-width: 0;
           height: 44px;
           min-height: 44px;
@@ -6233,10 +6233,6 @@
           background: transparent;
           cursor: pointer;
           text-align: left;
-        }
-
-        .hex-map-page .mobile-map-controls--left #toolbar-tab-cr.active {
-          width: 100%;
         }
 
         .hex-map-page .mobile-map-controls--left .segmented--view button.active::before {
