@@ -37,7 +37,12 @@
   <link rel="stylesheet" href="/site-ui.css">
     <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
 </head>
-  <body class="hex-map-page">
+  <body class="hex-map-page" data-sidebar-state="mini">
+    <script>
+      if (window.innerWidth < 768) {
+        document.body.setAttribute("data-sidebar-state", "drawer");
+      }
+    </script>
     <div id="cic-sidebar-mount"></div>
     <script src="/sidebar.js"></script>
     <main>

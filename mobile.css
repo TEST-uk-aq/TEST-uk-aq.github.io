@@ -209,10 +209,6 @@
   }
 
   /* Sensor Map controls */
-  body[data-page-slug="sensor-map"] {
-    --ukaq-chrome-h: 76px;
-  }
-
   body[data-page-slug="sensor-map"] #uk-aq-page-chrome {
     padding: 16px 12px 6px;
   }
