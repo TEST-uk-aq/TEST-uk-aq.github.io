@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">News</title>
+  <desc id="desc">White NEWS lettering on a rounded blue gradient rectangle.</desc>
+  <defs>
+    <linearGradient id="newsGradient" gradientUnits="userSpaceOnUse" x1="735.2" y1="-57.8" x2="1184.8" y2="1137.8">
+      <stop offset="0" stop-color="#73c0fa"/>
+      <stop offset="1" stop-color="#174272"/>
+    </linearGradient>
+  </defs>
+  <rect x="148" y="163" width="1624" height="754" rx="90" ry="90" fill="url(#newsGradient)"/>
+  <g fill="#fff">
+    <path d="M 237 339 L 237 747 L 364 748 L 364 593 L 366 592 L 478 748 L 585 748 L 585 339 L 458 339 L 457 496 L 344 339 Z"/>
+    <path d="M 629 339 L 629 748 L 873 748 L 873 641 L 759 640 L 760 593 L 867 593 L 867 492 L 760 492 L 759 447 L 761 445 L 869 445 L 869 339 Z"/>
+    <path d="M 878 339 L 1013 748 L 1114 748 L 1155 625 L 1157 626 L 1197 748 L 1298 748 L 1433 339 L 1295 339 L 1248 481 L 1246 480 L 1200 339 L 1111 339 L 1065 479 L 1063 481 L 1053 454 L 1016 339 Z"/>
+    <path d="M 1654 337 L 1595 330 L 1554 330 L 1534 333 L 1507 341 L 1486 352 L 1476 359 L 1460 375 L 1453 385 L 1442 410 L 1439 422 L 1437 441 L 1439 471 L 1446 494 L 1458 516 L 1472 534 L 1490 552 L 1537 589 L 1551 603 L 1554 609 L 1554 620 L 1547 630 L 1542 633 L 1534 635 L 1507 635 L 1488 633 L 1438 622 L 1439 744 L 1481 753 L 1528 758 L 1563 758 L 1600 753 L 1629 743 L 1651 730 L 1671 711 L 1684 691 L 1694 661 L 1697 638 L 1697 620 L 1695 604 L 1692 591 L 1685 573 L 1676 556 L 1655 528 L 1627 502 L 1601 481 L 1589 469 L 1587 465 L 1587 460 L 1589 456 L 1594 452 L 1602 449 L 1631 448 L 1654 451 Z"/>
+  </g>
+</svg>
