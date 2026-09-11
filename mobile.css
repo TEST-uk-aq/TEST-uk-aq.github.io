@@ -269,11 +269,18 @@
     height: 54px;
     min-height: 54px;
     min-width: 0;
-    margin-left: calc(50% - 50vw);
+    margin-left: -18px;
     padding: 0 60px 0 64px;
     box-sizing: border-box;
     align-items: flex-start;
     gap: 0;
+  }
+
+  @media (min-width: 621px) {
+    body[data-page-slug="resources"] .title-row,
+    body[data-page-slug="contact"] .contact-title-row {
+      margin-left: -28px;
+    }
   }
 
   body[data-page-slug="resources"] .resources-title-link-icon,
