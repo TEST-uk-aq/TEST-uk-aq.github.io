@@ -6020,7 +6020,7 @@
           border-radius: 999px;
           font-size: 14px;
           font-weight: 600;
-          line-height: 1;
+          line-height: 1.2;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="loading"] {
