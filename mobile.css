@@ -301,6 +301,8 @@
 
   body[data-page-slug="resources"] .resources-shell,
   body[data-page-slug="contact"] .resources-shell {
+    box-sizing: border-box;
+    min-width: 0;
     padding-top: 16px;
   }
 
