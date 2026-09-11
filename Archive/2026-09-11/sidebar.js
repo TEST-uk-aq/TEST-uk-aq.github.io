@@ -59,7 +59,7 @@
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
   const SIDEBAR_ICON_ON = '/sidebar-images/uk-aq-sidebar-on.svg';
-  let siteVersionReady;
+  const siteVersionReady = loadSiteVersion();
 
   function readCachedSiteVersion() {
     try {
@@ -667,19 +667,30 @@
   }
 
   // ─── Mount ────────────────────────────────────────────────────────────────────
-  function mount() {
-    // Establish responsive page geometry before creating any visible chrome.
-    document.body.style.transition = 'none';
-    pinnedOpenDesktop = false;
-    setState(getBreakpoint() === 'mobile' ? DRAWER : MINI);
+  async function mount() {
+    // Inter font
+    if (!document.getElementById('cic-inter-font')) {
+      const link = document.createElement('link');
+      link.id = 'cic-inter-font';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+      document.head.appendChild(link);
+    }
+
+    const footerStylesReady = ensureSiteFooterStyles();
 
     // Injected sidebar styles
-    if (!document.getElementById('cic-sidebar-styles')) {
-      const style = document.createElement('style');
-      style.id = 'cic-sidebar-styles';
-      style.textContent = CSS;
-      document.head.appendChild(style);
+    const style = document.createElement('style');
+    style.id = 'cic-sidebar-styles';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+
+    // On a first load/reload, wait for the current VERSION before revealing the page.
+    // On normal in-tab navigation, the session-cached version can render immediately.
+    if (window.__UKAQ_INITIAL_LOAD_ACTIVE__ || !SITE_VERSION) {
+      await siteVersionReady;
     }
+    await footerStylesReady;
 
     // Sidebar panel
     const aside = document.createElement('aside');
@@ -727,40 +738,25 @@
       document.body.prepend(aside);
     }
 
+    mountSiteFooter();
+    void filterFooterAttributions();
+
+    // Initial state: suppress the body transition so the padding-left jump
+    // doesn't cause a mid-flight layout shift before the hex map first renders.
+    document.body.style.transition = 'none';
+    const bp = getBreakpoint();
+    pinnedOpenDesktop = false;
+    if (bp === 'mobile') {
+      setState(DRAWER);
+    } else {
+      setState(MINI);
+    }
     document.body.offsetHeight;
     document.body.style.transition = '';
     updateHamburgerIcon(btn);
 
     bindEvents(btn, overlay);
     window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
-
-    // Metadata, web fonts and the page footer are non-critical to shared chrome.
-    void mountNonCritical();
-  }
-
-  async function mountNonCritical() {
-    if (!document.getElementById('cic-inter-font')) {
-      const link = document.createElement('link');
-      link.id = 'cic-inter-font';
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
-      document.head.appendChild(link);
-    }
-
-    siteVersionReady = loadSiteVersion();
-    await ensureSiteFooterStyles();
-
-    const finishFooter = () => {
-      mountSiteFooter();
-      void filterFooterAttributions();
-    };
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', finishFooter, { once: true });
-    } else {
-      finishFooter();
-    }
-
-    await siteVersionReady;
   }
 
   // ─── Events ───────────────────────────────────────────────────────────────────
@@ -832,11 +828,9 @@
     });
   }
 
-  if (document.body && document.getElementById('cic-sidebar-mount')) {
-    mount();
-  } else if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { void mount(); }, { once: true });
   } else {
-    mount();
+    void mount();
   }
 })();

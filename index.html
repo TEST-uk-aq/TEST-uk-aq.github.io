@@ -46,8 +46,7 @@
     }
 
     .home-header-inner {
-      width: min(100%, 1220px);
-      margin: 0 auto;
+      width: 100%;
     }
 
     .home-title {
@@ -69,8 +68,8 @@
 
     .home-main {
       position: relative;
-      max-width: 1220px;
-      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
       padding: 6px 28px 96px;
       background: transparent;
       border-radius: 0;
@@ -1612,10 +1611,6 @@
     }
 
     @media (min-width: 1300px) {
-      .home-main {
-        max-width: 1280px;
-      }
-
       .tool-card {
         min-height: 174px;
       }
@@ -1629,6 +1624,11 @@
       .home-main {
         padding: 6px 16px 84px;
         gap: 16px;
+      }
+
+      .home-main > .ukaq-beta-notice-mount {
+        width: calc(100% + 8px);
+        margin-left: -4px;
       }
 
       .readings-dashboard {
@@ -1765,6 +1765,7 @@
 </head>
 <body class="home-page">
   <div id="cic-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
   <header class="home-header">
     <div class="home-header-inner">
       <h1 class="home-title">
@@ -2750,7 +2751,6 @@
       updateAll();
     })();
   </script>
-  <script src="sidebar.js"></script>
   <script src="/homepage-pollutant-metadata-carousel.js"></script>
   <script src="/homepage-network-table-layout.js"></script>
   <script src="/beta-notice.js"></script>
