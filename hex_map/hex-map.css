@@ -114,6 +114,12 @@
         margin-top: 0;
       }
 
+      @media (min-width: 768px) {
+        .hex-map-page .page-title {
+          height: 50.4px;
+        }
+      }
+
       .page-title-heading {
         display: flex;
         align-items: center;
