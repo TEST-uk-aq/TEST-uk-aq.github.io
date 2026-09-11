@@ -55,11 +55,11 @@
         box-sizing: border-box;
         display: grid;
         gap: 6px;
-        padding: 12px 12px 6px;
+        padding: 12px 28px 6px;
       }
 
       #uk-aq-header {
-        min-height: 104px;
+        min-height: 114px;
         box-sizing: border-box;
         display: flex;
         align-items: center;
@@ -84,8 +84,7 @@
       @media (min-width: 768px) {
         #uk-aq-header .page-title {
           position: relative;
-          top: 16px;
-          left: 16px;
+          top: 11px;
         }
       }
 
@@ -242,6 +241,11 @@
         .sensor-map-controls {
           left: calc(var(--ukaq-sidebar-offset) + 8px);
           right: 8px;
+        }
+
+        #uk-aq-page-chrome {
+          padding-right: 8px;
+          padding-left: 8px;
         }
 
         .control-bar {

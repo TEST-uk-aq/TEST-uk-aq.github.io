@@ -11,9 +11,9 @@
 
 .ukaq-beta-notice--expanded {
   display: grid;
-  gap: 0.45rem;
+  gap: 7px;
   width: 100%;
-  padding: 0.75rem 0.9rem;
+  padding: 12px 14px;
   border-radius: 14px;
   background: rgba(180, 48, 48, 0.82);
   box-shadow: 0 4px 14px rgba(16, 24, 34, 0.13);
@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .ukaq-beta-notice__title {
@@ -66,7 +66,7 @@
 
 .ukaq-beta-notice__dismiss {
   flex: 0 0 auto;
-  padding: 0.42rem 0.7rem;
+  padding: 7px 11px;
   background: #fff;
   color: #1b2a38;
 }
@@ -75,7 +75,7 @@
   display: inline-flex;
   align-items: center;
   width: auto;
-  padding: 0.52rem 0.78rem;
+  padding: 8px 12px;
   background: rgba(180, 48, 48, 0.82);
   color: #fff;
   box-shadow: 0 2px 8px rgba(16, 24, 34, 0.12);
@@ -102,7 +102,7 @@
 
 @media (max-width: 640px) {
   .ukaq-beta-notice--expanded {
-    padding: 0.7rem 0.8rem;
+    padding: 11px 13px;
     font-size: 13px;
     line-height: 18px;
   }
@@ -113,5 +113,5 @@
 }
 
 main > header + .ukaq-beta-notice-mount {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
