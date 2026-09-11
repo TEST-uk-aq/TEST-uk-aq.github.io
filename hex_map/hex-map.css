@@ -5070,7 +5070,7 @@
         }
 
         .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected {
-          min-height: max(560px, var(--map-canvas-min-height));
+          min-height: max(596px, var(--map-canvas-min-height));
         }
 
         .hex-map-page .map-svg-viewport {
@@ -6468,7 +6468,7 @@
         /* With the 280px sensor panel open, compact the right stack so its
            lower edge meets rather than overlaps the panel boundary. */
         .hex-map-page .map-canvas-wrap.hex-selected + .mobile-map-controls-row .mobile-map-controls--right {
-          transform: translateY(-44px);
+          transform: translateY(-8px);
           gap: 2px;
         }
 
@@ -6504,7 +6504,7 @@
           }
 
           .hex-map-page .map-canvas-wrap.hex-selected + .mobile-map-controls-row .mobile-map-controls--right {
-            transform: translateY(-102px);
+            transform: translateY(-66px);
           }
         }
       }
