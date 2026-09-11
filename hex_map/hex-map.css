@@ -5996,24 +5996,25 @@
 
         .hex-map-page .mobile-map-status-row {
           display: flex;
+          flex-direction: column;
           width: 100%;
           min-width: 0;
-          min-height: 44px;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 1px;
+          min-height: 80px;
+          align-items: flex-end;
+          justify-content: flex-start;
+          gap: 0;
           padding-right: 8px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill {
           flex: 0 1 auto;
           width: max-content;
-          max-width: calc(100% - 53px);
+          max-width: 100%;
           min-width: 0;
           box-sizing: border-box;
           height: 36px;
           min-height: 36px;
-          align-self: center;
+          align-self: flex-end;
           gap: 6px;
           padding: 0 8px;
           overflow: hidden;
@@ -6024,10 +6025,10 @@
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="loading"] {
-          flex: 0 0 75px;
-          width: 75px;
-          max-width: 75px;
-          padding-inline: 3px;
+          flex: 0 0 36px;
+          width: max-content;
+          max-width: 100%;
+          padding-inline: 8px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="live"] {
@@ -6051,7 +6052,8 @@
         }
 
         .hex-map-page .mobile-map-status-row .btn-refresh {
-          flex: 0 0 52px;
+          order: -1;
+          flex: 0 0 44px;
           position: relative;
           isolation: isolate;
           display: inline-flex;
@@ -6059,9 +6061,10 @@
           justify-content: center;
           box-sizing: border-box;
           height: 44px;
-          min-width: 52px;
+          width: 62px;
+          min-width: 62px;
           min-height: 44px;
-          padding: 0 2px;
+          padding: 0 6px;
           border: 0;
           background: transparent;
           box-shadow: none;
@@ -6465,7 +6468,7 @@
         /* With the 280px sensor panel open, compact the right stack so its
            lower edge meets rather than overlaps the panel boundary. */
         .hex-map-page .map-canvas-wrap.hex-selected + .mobile-map-controls-row .mobile-map-controls--right {
-          transform: translateY(-8px);
+          transform: translateY(-44px);
           gap: 2px;
         }
 
@@ -6501,7 +6504,7 @@
           }
 
           .hex-map-page .map-canvas-wrap.hex-selected + .mobile-map-controls-row .mobile-map-controls--right {
-            transform: none;
+            transform: translateY(-102px);
           }
         }
       }
