@@ -5981,7 +5981,7 @@
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
-          width: 134px;
+          width: 136px;
           align-items: flex-end;
         }
 
@@ -6008,7 +6008,7 @@
         .hex-map-page .mobile-map-status-row .status-pill {
           flex: 0 1 auto;
           width: max-content;
-          max-width: calc(100% - 57px);
+          max-width: calc(100% - 53px);
           min-width: 0;
           box-sizing: border-box;
           height: 36px;
@@ -6024,7 +6024,10 @@
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="loading"] {
-          padding-inline: 1px;
+          flex: 0 0 75px;
+          width: 75px;
+          max-width: 75px;
+          padding-inline: 5px;
         }
 
         .hex-map-page .mobile-map-status-row .status-pill[data-state="live"] {
@@ -6048,7 +6051,7 @@
         }
 
         .hex-map-page .mobile-map-status-row .btn-refresh {
-          flex: 0 0 56px;
+          flex: 0 0 52px;
           position: relative;
           isolation: isolate;
           display: inline-flex;
@@ -6056,7 +6059,7 @@
           justify-content: center;
           box-sizing: border-box;
           height: 44px;
-          min-width: 56px;
+          min-width: 52px;
           min-height: 44px;
           padding: 0 2px;
           border: 0;
