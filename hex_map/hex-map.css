@@ -6198,7 +6198,7 @@
 
         .hex-map-page .mobile-map-controls--left .segmented--view {
           display: inline-block;
-          width: fit-content;
+          width: 100%;
           max-width: 100%;
           min-width: 0;
           height: 44px;
@@ -6244,10 +6244,6 @@
           border-radius: 9px;
           background: var(--ukaq-control-selected-bg);
           pointer-events: none;
-        }
-
-        .hex-map-page .mobile-map-controls--left #toolbar-tab-cr.active::before {
-          inset-block: 2px;
         }
 
         .hex-map-page .mobile-map-controls--left .segmented--view button.active::after {
