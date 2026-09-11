@@ -710,7 +710,9 @@
 
     // Shared top-right UK AQ home logo
     const homeLogo = document.createElement('a');
+    const twoLineMobileLogoPages = new Set(['sensor-map', 'resources', 'contact']);
     const mobileHomeLogoSrc = document.body.classList.contains('hex-map-page')
+      || twoLineMobileLogoPages.has(document.body.dataset.pageSlug)
       ? '/sidebar-images/UK-AQ-Logo-v3-2Lines.svg'
       : '/images/UK-AQ-Logo-v3-1line.svg';
     homeLogo.id = 'ukaq-home-logo';
