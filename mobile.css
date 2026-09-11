@@ -209,16 +209,27 @@
   }
 
   /* Sensor Map controls */
+  body[data-page-slug="sensor-map"] {
+    --ukaq-chrome-h: 76px;
+  }
+
+  body[data-page-slug="sensor-map"] #uk-aq-page-chrome {
+    padding: 16px 12px 6px;
+  }
+
   #uk-aq-header {
+    min-height: 54px;
     min-width: 0;
-    padding-right: 124px;
-    padding-left: 48px;
+    align-items: flex-start;
+    padding: 0 60px 0 52px;
   }
 
   #uk-aq-header .page-title {
+    margin-top: 6px;
     max-width: 100%;
     height: auto;
-    max-height: 42px;
+    max-height: 31px;
+    flex-shrink: 1;
   }
 
   .sensor-map-controls {
@@ -251,34 +262,52 @@
     line-height: 44px;
   }
 
-  /* Resources and Contact mobile title safe areas. */
+  /* Hex Map-aligned top rows for Resources and Contact. */
   body[data-page-slug="resources"] .title-row,
   body[data-page-slug="contact"] .contact-title-row {
+    width: 100vw;
+    height: 54px;
+    min-height: 54px;
     min-width: 0;
-    margin-right: 108px;
-    margin-left: 32px;
+    margin-left: calc(50% - 50vw);
+    padding: 0 60px 0 64px;
+    box-sizing: border-box;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  body[data-page-slug="resources"] .resources-title-link-icon,
+  body[data-page-slug="contact"] .contact-title-icon {
+    display: none;
   }
 
   body[data-page-slug="resources"] .resources-page-title,
   body[data-page-slug="contact"] .contact-page-title {
+    margin-top: 6px;
     min-width: 0;
     width: auto;
     height: auto;
-    max-height: 42px;
+    max-width: 100%;
+    max-height: 31px;
     flex: 0 1 auto;
   }
 
-  @media (max-width: 620px) {
-    body[data-page-slug="resources"] .title-row,
-    body[data-page-slug="contact"] .contact-title-row {
-      margin-right: 118px;
-      margin-left: 42px;
-    }
+  body[data-page-slug="resources"] .resources-shell,
+  body[data-page-slug="contact"] .resources-shell {
+    padding-top: 16px;
   }
 
-  @media (max-width: 480px) {
-    body[data-page-slug="contact"] .contact-page-title {
-      max-height: 36px;
-    }
+  body[data-page-slug="sensor-map"] #ukaq-home-logo,
+  body[data-page-slug="resources"] #ukaq-home-logo,
+  body[data-page-slug="contact"] #ukaq-home-logo {
+    top: 16px;
+    right: 12px;
+  }
+
+  body[data-page-slug="sensor-map"] #ukaq-home-logo img,
+  body[data-page-slug="resources"] #ukaq-home-logo img,
+  body[data-page-slug="contact"] #ukaq-home-logo img {
+    width: clamp(44px, 13.333vw, 52px);
+    height: auto;
   }
 }
