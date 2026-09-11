@@ -3,12 +3,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Contact | UK AQ</title>
+  <title>Contact &amp; Info | UK AQ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Contact UK AQ. Email us or find us on social media.">
+  <meta name="description" content="Contact UK AQ, follow UK AQ on Bluesky, and learn about the independent UK air quality project.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Contact | UK AQ">
-  <meta property="og:description" content="Contact UK AQ. Email us or find us on social media.">
+  <meta property="og:title" content="Contact &amp; Info | UK AQ">
+  <meta property="og:description" content="Contact UK AQ, follow UK AQ on Bluesky, and learn about the independent UK air quality project.">
   <link rel="icon" href="/images/favicon.ico" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,6 +54,7 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 1.25rem;
+      margin-top: 0;
     }
 
     .contact-title-icon {
@@ -69,91 +70,16 @@
       max-width: 100%;
     }
 
-    /* ── Intro ── */
-    .contact-intro {
-      margin: 0 0 1.75rem 0;
-      color: #374151;
-      line-height: 1.6;
-      font-size: 1rem;
-    }
-
-    /* ── Featured email card ── */
-    .contact-card--featured {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 14px 28px 30px;
-	  border: 2px solid rgba(60, 120, 172, 0.35);
-      border-radius: 22px;
-      background: #fff;
-      text-decoration: none;
-      color: #101822;
-      box-sizing: border-box;
-      max-width: 640px;
-      margin: 0 auto 0;
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    }
-
-    .contact-card--featured:hover {
-      transform: translateY(-2px);
-	  box-shadow: 0 8px 20px rgba(60, 120, 172, 0.12);
-	  border-color: rgba(60, 120, 172, 0.6);
-    }
-
-
-	.contact-card--featured:focus-visible {
-	  outline: 3px solid rgba(60, 120, 172, 0.45);
-	  outline-offset: 4px;
-	}
-
-    .contact-card--featured .contact-card-icon-box {
-      width: 52px;
-      height: 52px;
-      flex: 0 0 52px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .contact-card--featured .contact-card-icon {
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .contact-card--featured .contact-card-body {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .contact-card--featured .contact-card-title {
-      display: block;
-      font-weight: 800;
-      font-size: 1.25rem;
-      color: #3C78AC;
-      margin: 0 0 4px 0;
-      line-height: 1.2;
-    }
-
-    .contact-card--featured .contact-card-desc {
-      display: block;
-      font-size: 0.95rem;
-      color: #374151;
-      line-height: 1.45;
-    }
-
     /* ── Section headings ── */
     .contact-section {
-      margin-top: 2rem;
+      margin-top: 2.25rem;
     }
 
     .contact-section-heading {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 0 0 0.875rem 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #3C78AC;
+      margin: 0 0 0.65rem;
     }
 
     /* ── Card grid ── */
@@ -163,22 +89,13 @@
       gap: 1rem;
     }
 
-    .contact-card-grid--solo {
-      display: flex;
-      justify-content: center;
-    }
-
-    .contact-card-grid--solo .contact-card {
-      flex: 0 0 calc(50% - 0.5rem);
-      max-width: calc(50% - 0.5rem);
-    }
-
     /* ── Standard contact card ── */
     .contact-card {
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
-      padding: 10px 20px 22px;
+      min-height: 190px;
+      padding: 1rem 1.25rem 1.2rem;
       border: 2px solid rgba(60, 120, 172, 0.35);
       border-radius: 22px;
       background: #fff;
@@ -223,16 +140,16 @@
       display: block;
     }
 
-    .contact-card-icon--youtube {
-      width: 60px;
-      height: 30px;
+    .contact-card-icon--bluesky {
+      width: 44px;
+      height: 39px;
     }
 
     .contact-card-title {
       display: block;
       font-weight: 800;
       font-size: 1.15rem;
-      color: #ff8c1a;
+      color: #3C78AC;
       line-height: 1.2;
       min-width: 0;
       word-break: break-word;
@@ -244,6 +161,147 @@
       color: #374151;
       line-height: 1.4;
       margin-top: 0.25rem;
+    }
+
+    .contact-card-address {
+      display: block;
+      margin-top: auto;
+      padding-top: 0.8rem;
+      color: #175283;
+      font-size: 1rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .about-copy {
+      max-width: 860px;
+      margin: 0;
+      color: #374151;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .about-copy + .about-copy {
+      margin-top: 0.75rem;
+    }
+
+    .about-attribution {
+      color: #5b6472;
+      font-size: 0.9rem;
+    }
+
+    /* Homepage UK AQ tool cards, scoped to this page. */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .tool-card {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      min-height: 184px;
+      container-type: inline-size;
+      padding: 1.05rem 1.35rem 0.68rem;
+      border: 8px solid transparent;
+      border-radius: 28px;
+      background:
+        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(135deg, #67B0ED, #175283) border-box;
+      color: #101822;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .tool-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 26px rgba(16, 24, 34, 0.12);
+    }
+
+    .tool-card:focus-visible {
+      outline: 3px solid rgba(60, 120, 172, 0.45);
+      outline-offset: 4px;
+    }
+
+    .tool-card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-height: 76px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .tool-card-icon-box,
+    .tool-card-icon {
+      width: 72px;
+      height: 72px;
+      flex: 0 0 72px;
+    }
+
+    .tool-card-icon-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-card-icon {
+      object-fit: contain;
+      display: block;
+    }
+
+    .tool-card-title-graphic {
+      display: block;
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      max-height: 40px;
+      height: auto;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    .tool-card-title-graphic-switch {
+      --title-two-line-max-h: 58px;
+      --title-one-line-max-h: 40px;
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .tool-card-title-graphic-switch .tool-card-title-graphic--two-line {
+      display: block;
+      max-height: var(--title-two-line-max-h);
+    }
+
+    .tool-card-title-graphic-switch .tool-card-title-graphic--one-line {
+      display: none;
+      max-height: var(--title-one-line-max-h);
+    }
+
+    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--two-line {
+      display: none;
+    }
+
+    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--one-line {
+      display: block;
+    }
+
+    .tool-card-title-graphic--sensor-map {
+      max-height: 58px;
+    }
+
+    .tool-card-description {
+      margin: 0.35rem 0 0;
+      font-size: 1rem;
+      line-height: 1.35;
+      color: #111;
+      text-align: center;
     }
 
     /* ── Responsive ── */
@@ -262,13 +320,8 @@
         grid-template-columns: 1fr;
       }
 
-      .contact-card-grid--solo .contact-card {
-        flex: 1 1 auto;
-        max-width: none;
-      }
-
-      .contact-card--featured {
-        padding: 12px 20px 24px;
+      .tool-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -289,7 +342,7 @@
   <main class="chart-shell resources-shell">
     <div class="resources-frame" id="mainContent">
 
-      <div class="contact-title-row">
+      <h1 class="contact-title-row">
         <img
           class="contact-title-icon"
           src="./sidebar-images/uk-aq-contact-blue-200h.svg"
@@ -299,33 +352,69 @@
         <img
           class="contact-page-title"
           src="./images/UK-AQ-title-contact.svg"
-          alt="Contact"
+          alt="Contact &amp; Info"
         >
-      </div>
-
-      <p class="contact-intro">Questions, feedback, corrections, or ideas? Email us or find UK AQ on social media.</p>
+      </h1>
 
       <div class="contact-content">
+        <div class="contact-card-grid">
+          <a class="contact-card" href="mailto:info@ukaq.co.uk" aria-label="Email UK AQ at info@ukaq.co.uk">
+            <span class="contact-card-header">
+              <span class="contact-card-icon-box">
+                <img class="contact-card-icon" src="./sidebar-images/uk-aq-contact-blue-200h.svg" alt="">
+              </span>
+              <span class="contact-card-title">Email UK AQ</span>
+            </span>
+            <span class="contact-card-desc">Questions, feedback, data issues, corrections, or ideas?</span>
+            <span class="contact-card-address">info@ukaq.co.uk</span>
+          </a>
 
-        <a
-          class="contact-card contact-card--featured"
-          href="mailto:info@ukaq.co.uk"
-          aria-label="Email UK AQ at info@ukaq.co.uk"
-        >
-          <span class="contact-card-icon-box">
-            <img
-              class="contact-card-icon"
-              src="./sidebar-images/uk-aq-contact-blue-200h.svg"
-              alt=""
-            >
-          </span>
-          <span class="contact-card-body">
-            <span class="contact-card-title">Email UK AQ</span>
-            <span class="contact-card-desc">info@ukaq.co.uk</span>
-          </span>
-        </a>
+          <a class="contact-card" href="https://bsky.app/profile/ukaq.co.uk" target="_blank" rel="noopener noreferrer" aria-label="Follow UK AQ on Bluesky at @ukaq.co.uk (opens in a new tab)">
+            <span class="contact-card-header">
+              <span class="contact-card-icon-box">
+                <img class="contact-card-icon contact-card-icon--bluesky" src="./images/Bluesky_Logo.svg" alt="">
+              </span>
+              <span class="contact-card-title">Follow UK AQ on Bluesky</span>
+            </span>
+            <span class="contact-card-desc">Follow UK AQ for air quality data, pollution updates, and articles about air quality and the health effects of air pollution.</span>
+            <span class="contact-card-address">@ukaq.co.uk</span>
+          </a>
+        </div>
 
+        <section class="contact-section" aria-labelledby="about-ukaq-heading">
+          <h2 id="about-ukaq-heading" class="contact-section-heading">About UK AQ</h2>
+          <p class="about-copy">UK AQ brings together air quality data from monitoring networks across the UK, making it easier to explore current and historical air pollution in one place.</p>
+          <p class="about-copy">The site includes live monitoring data, interactive maps and charts, air quality indices, WHO guideline comparisons, and articles about air pollution and its effects on health.</p>
+          <p class="about-copy about-attribution">UK AQ is an independent project created and maintained by Mike Hinford.</p>
+        </section>
 
+        <section class="contact-section" aria-labelledby="ukaq-tools-heading">
+          <h2 id="ukaq-tools-heading" class="contact-section-heading">Explore UK AQ</h2>
+          <div class="tool-grid">
+            <a class="tool-card tool-card--ukaq" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+              <div class="tool-card-header">
+                <span class="tool-card-icon-box">
+                  <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+                </span>
+                <img class="tool-card-title-graphic" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
+              </div>
+              <p class="tool-card-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+            </a>
+
+            <a class="tool-card tool-card--ukaq" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+              <div class="tool-card-header">
+                <span class="tool-card-icon-box">
+                  <img class="tool-card-icon" src="sidebar-images/uk-aq-location-pin.svg" alt="">
+                </span>
+                <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
+                  <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--sensor-map" src="images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+                  <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+                </span>
+              </div>
+              <p class="tool-card-description">View sensor locations and readings on an interactive UK map.</p>
+            </a>
+          </div>
+        </section>
       </div>
 
     </div>
@@ -409,6 +498,34 @@
           scheduleHeightUpdate(20, true);
         }
       });
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const switches = Array.from(document.querySelectorAll('.tool-card-title-graphic-switch'));
+      if (!switches.length) return;
+
+      function updateSwitch(switchEl) {
+        const width = switchEl.clientWidth || 0;
+        if (width <= 0) return;
+        const minWidth = Number(switchEl.dataset.oneLineMinWidth || 210);
+        switchEl.classList.toggle('show-one-line', width >= minWidth);
+        const oneLineMax = Math.min(44, Math.max(28, width * 0.145));
+        switchEl.style.setProperty('--title-two-line-max-h', '58px');
+        switchEl.style.setProperty('--title-one-line-max-h', `${oneLineMax.toFixed(1)}px`);
+      }
+
+      const updateAll = () => switches.forEach(updateSwitch);
+      if ('ResizeObserver' in window) {
+        const resizeObserver = new ResizeObserver(entries => {
+          entries.forEach(entry => updateSwitch(entry.target));
+        });
+        switches.forEach(switchEl => resizeObserver.observe(switchEl));
+      }
+      window.addEventListener('load', updateAll);
+      window.addEventListener('resize', updateAll);
+      updateAll();
     })();
   </script>
 
