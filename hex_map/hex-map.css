@@ -4723,6 +4723,18 @@
         }
       }
 
+      /* Keep the tablet canvas edge and lower-left zoom stack aligned with
+         the >980px desktop treatment without changing the <768px touch UI. */
+      @media (min-width: 768px) and (max-width: 980px) {
+        .map-dashboard-card .map-canvas-wrap {
+          margin-bottom: -16px;
+        }
+
+        .map-zoom-controls {
+          bottom: 56px;
+        }
+      }
+
       @media (max-width: 900px) {
         .map-canvas-wrap.has-networks-panel-safe-area .map-svg-viewport {
           right: 0;
