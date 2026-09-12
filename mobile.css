@@ -44,7 +44,7 @@
   .home-page .homepage-media-mobile {
     display: grid;
     gap: 5px;
-    margin: 0;
+    margin: 0 0 14px;
     padding: 15px 14px 5px;
     border-radius: 22px;
     background: #fff;
@@ -207,6 +207,26 @@
     margin: 0;
     padding: 20px 0;
     border-top: 1px solid #e4e6ea;
+  }
+
+  .home-page .home-main > .who-dashboard-card {
+    gap: 8px;
+    padding-top: 11px;
+  }
+
+  .home-page .who-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 10px;
+    border-left: 4px solid var(--who-accent);
+  }
+
+  .home-page .who-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.4rem;
   }
 
   .home-page .who-dashboard-card,
