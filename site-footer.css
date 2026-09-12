@@ -2,15 +2,10 @@
  * The footer markup is mounted by sidebar.js and must remain independent of beta UI.
  */
 
-/* Keep the footer visually close enough to the final card to be discoverable. */
+/* The Hex Map canvas reaches the end of its section; its own legend inset
+ * supplies the intended space before the footer boundary. */
 .hex-map-page main {
-  padding-bottom: 32px !important;
-}
-
-@media (max-width: 767px) {
-  .hex-map-page main {
-    padding-bottom: 0 !important;
-  }
+  padding-bottom: 0 !important;
 }
 
 /*
