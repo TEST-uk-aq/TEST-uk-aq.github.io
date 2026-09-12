@@ -2,10 +2,16 @@
  * The footer markup is mounted by sidebar.js and must remain independent of beta UI.
  */
 
-/* Keep 16px between the completed Hex Map card and the footer border.
- * This is separate from the legend's inset inside the map card. */
+/* Desktop/tablet keeps a separate gap between the map card and footer.
+ * Cardless mobile uses only the legend's existing inset inside the canvas. */
 .hex-map-page main {
-  padding-bottom: 16px !important;
+  padding-bottom: 0 !important;
+}
+
+@media (min-width: 768px) {
+  .hex-map-page main {
+    padding-bottom: 16px !important;
+  }
 }
 
 /*
