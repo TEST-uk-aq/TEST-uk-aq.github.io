@@ -1305,7 +1305,7 @@
         @container sensor-panel (max-width: 859px) {
           .sensor-panel-header {
             display: grid;
-            grid-template-columns: calc(var(--sensor-chart-icon-button-size) + 8px) 16px minmax(0, 1fr) auto 28px;
+            grid-template-columns: var(--sensor-chart-icon-button-size) 16px minmax(0, 1fr) auto 28px;
             grid-template-areas:
               "title title title count close"
               ". hex reading reading reading";
@@ -1768,9 +1768,21 @@
             display: none;
           }
 
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-chart-select-col,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-chart-select-col {
+            display: none;
+          }
+
           .sensor-table th.sensor-col-updated,
           .sensor-table td.sensor-col-updated {
             width: 168px;
+          }
+
+          .sensor-table th.sensor-col-value,
+          .sensor-table td.sensor-col-value,
+          .sensor-table th.sensor-col-updated,
+          .sensor-table td.sensor-col-updated {
+            text-align: right;
           }
 
           .sensor-table .sort-header--wide {
