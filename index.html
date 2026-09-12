@@ -73,18 +73,22 @@
     @media (min-width: 768px) {
       .home-header-inner {
         display: grid;
-        grid-template-columns: minmax(270px, 0.72fr) minmax(420px, 1.28fr);
-        gap: clamp(20px, 3vw, 46px);
+        grid-template-columns: minmax(260px, 1fr) minmax(420px, 1fr);
+        gap: clamp(18px, 2.5vw, 40px);
         align-items: start;
       }
 
       .home-subtitle {
-        max-width: 25rem;
+        max-width: none;
+      }
+
+      .home-title-logo {
+        height: clamp(56px, 7vw, 96px);
       }
 
       .homepage-media-carousel {
         justify-self: end;
-        width: min(100%, 650px);
+        width: min(100%, 530px);
         padding: 10px;
         border-radius: 22px;
         background: #fff;
@@ -92,8 +96,8 @@
 
       .homepage-media-carousel-inner {
         display: grid;
-        grid-template-columns: minmax(92px, 28%) minmax(0, 1fr);
-        gap: clamp(10px, 1.5vw, 18px);
+        grid-template-columns: minmax(112px, 32%) minmax(0, 1fr);
+        gap: clamp(10px, 1.25vw, 14px);
         align-items: stretch;
       }
 
@@ -102,23 +106,15 @@
         align-content: center;
         justify-items: end;
         margin: 0;
-        color: #285b88;
-        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
-        font-size: clamp(0.88rem, 1.45vw, 1.22rem);
-        font-weight: 900;
-        letter-spacing: 0.025em;
-        line-height: 0.92;
-        text-align: right;
-        text-transform: uppercase;
       }
 
-      @supports (-webkit-background-clip: text) {
-        .homepage-media-carousel-heading {
-          color: transparent;
-          background: linear-gradient(145deg, #235983, #4b96cf 70%, #285b88);
-          -webkit-background-clip: text;
-          background-clip: text;
-        }
+      .homepage-media-carousel-heading img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 108px;
+        object-fit: contain;
+        object-position: right center;
       }
 
       .homepage-media-carousel-content {
@@ -130,7 +126,7 @@
       .homepage-media-carousel-card {
         position: relative;
         display: block;
-        height: clamp(96px, 10vw, 124px);
+        aspect-ratio: 16 / 8;
         overflow: hidden;
         border-radius: 14px;
         color: #fff;
@@ -223,10 +219,11 @@
       }
 
       .homepage-media-carousel-controls {
-        display: grid;
-        grid-template-columns: 24px minmax(0, 1fr) 24px;
+        display: flex;
         align-items: center;
-        min-height: 20px;
+        justify-content: center;
+        gap: 8px;
+        min-height: 26px;
       }
 
       .homepage-media-carousel-button,
@@ -239,10 +236,11 @@
       }
 
       .homepage-media-carousel-button {
-        width: 24px;
-        height: 22px;
+        width: auto;
+        height: 26px;
         padding: 0;
-        font-size: 0.75rem;
+        font-size: 0.84rem;
+        line-height: 1;
       }
 
       .homepage-media-carousel-button:focus-visible,
@@ -254,19 +252,21 @@
       .homepage-media-carousel-dots {
         display: flex;
         justify-content: center;
-        gap: 4px;
+        gap: 8px;
       }
 
       .homepage-media-carousel-dot {
-        width: 12px;
-        height: 18px;
+        width: 20px;
+        height: 26px;
         padding: 0;
-        font-size: 0.7rem;
+        font-size: 0.98rem;
         line-height: 1;
+        opacity: 0.65;
       }
 
       .homepage-media-carousel-dot[aria-current="true"] {
         color: #3c78ac;
+        opacity: 1;
       }
 
       @media (hover: hover) and (pointer: fine) {
@@ -2000,7 +2000,7 @@
       </div>
       <aside class="homepage-media-carousel" aria-label="Latest air quality coverage" hidden data-homepage-media-carousel>
         <div class="homepage-media-carousel-inner">
-          <h2 class="homepage-media-carousel-heading">Latest<br>air quality<br>coverage</h2>
+          <h2 class="homepage-media-carousel-heading"><img src="images/UK-AQ-Latest-Air-Quality-Coverage.png" alt="Latest air quality coverage"></h2>
           <div class="homepage-media-carousel-content" data-homepage-media-content></div>
         </div>
       </aside>
