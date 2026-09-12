@@ -4878,6 +4878,7 @@
 
         .map-legend-region .legend-title-line > span:first-child {
           font-size: 0.78rem;
+          font-weight: 500;
           line-height: 1.2;
           white-space: nowrap;
         }
@@ -4885,6 +4886,7 @@
         .map-legend-region .legend-title-line > #legend-label,
         .map-legend-region .legend-title-line > #cr-legend-label {
           font-size: 0.78rem;
+          font-weight: 500;
           line-height: 1.2;
           white-space: nowrap;
         }
@@ -5611,78 +5613,6 @@
 
         .hex-map-page .map-canvas-wrap.hex-selected .map-topbar {
           bottom: calc(var(--sensor-panel-height, 280px) + 8px);
-        }
-
-        .hex-map-page .legend-pill {
-          width: fit-content;
-          max-width: 100%;
-          box-sizing: border-box;
-          grid-template-columns: minmax(0, 1fr);
-          grid-template-areas:
-            "title"
-            "scale";
-          justify-content: center;
-          justify-items: center;
-          column-gap: 6px;
-          row-gap: 4px;
-          padding: 8px 10px 10px;
-          border: 1px solid rgba(20, 34, 37, 0.12);
-          border-radius: 16px;
-          background: color-mix(in srgb, var(--no-data) 78%, white 22%);
-          box-shadow: 0 1px 6px rgba(16, 24, 34, 0.1);
-          white-space: normal;
-        }
-
-        .hex-map-page .legend-title-line {
-          grid-area: title;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          min-height: 0;
-        }
-
-        .hex-map-page .legend-title-line > span:first-child {
-          font-size: 0.78rem;
-          font-weight: 500;
-          line-height: 1.2;
-          white-space: nowrap;
-        }
-
-        .hex-map-page .legend-title-line > #legend-label,
-        .hex-map-page .legend-title-line > #cr-legend-label {
-          font-size: 0.78rem;
-          font-weight: 500;
-          line-height: 1.2;
-          white-space: nowrap;
-        }
-
-        .hex-map-page .legend-title-line > #legend-label::before,
-        .hex-map-page .legend-title-line > #cr-legend-label::before {
-          content: "·";
-        }
-
-        .hex-map-page .legend-pill .legend-scale {
-          grid-area: scale;
-          display: grid;
-          grid-template-columns: max-content minmax(0, 190px) max-content;
-          column-gap: 8px;
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          justify-content: center;
-        }
-
-        .hex-map-page .legend-pill .legend-bar-wrap {
-          width: 100%;
-          min-width: 0;
-          max-width: 190px;
-        }
-
-        .hex-map-page .legend-pill .legend-value {
-          width: auto;
-          min-width: max-content;
-          flex: none;
         }
 
         .hex-map-page .map-canvas-wrap.hex-selected .map-legend-region {
