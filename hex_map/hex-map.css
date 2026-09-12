@@ -1486,7 +1486,7 @@
       }
 
       /* ── Floating controls move up when panel is open ──────── */
-      .legend-pill {
+      .map-legend-region {
         transition: bottom 0.28s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
@@ -1503,7 +1503,7 @@
         z-index: 260;
       }
 
-      .map-canvas-wrap.hex-selected .legend-pill {
+      .map-canvas-wrap.hex-selected .map-legend-region {
         bottom: calc(var(--sensor-panel-height, 240px) + 8px);
       }
 
@@ -4261,10 +4261,15 @@
       .map-dashboard-card .map-canvas-wrap {
         grid-column: 1 / -1;
         grid-row: 4;
+        container: map-canvas / inline-size;
         --map-canvas-min-height: 700px;
         --map-footer-safe: 64px;
         --sensor-panel-height: 240px;
         --networks-panel-safe-right: 0px;
+        /* The legend is centred in the space clear of the widest left tools:
+           12px map inset + 40px desktop control + 12px visual gap. */
+        --map-legend-left-clearance: 64px;
+        --map-legend-right-inset: 12px;
         border: 1px solid var(--line-soft);
         border-bottom: none;
         border-radius: 0 0 18px 18px;
@@ -4760,11 +4765,19 @@
       }
 
       /* ── Floating legend pill ───────────────────────────────── */
-      .legend-pill {
+      .map-legend-region {
         position: absolute;
         bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
+        left: var(--map-legend-left-clearance);
+        right: var(--map-legend-right-inset);
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 15;
+      }
+
+      .legend-pill {
+        position: relative;
         display: grid !important;
         grid-template-columns: minmax(88px, 148px) auto minmax(108px, 156px);
         align-items: center;
@@ -4778,8 +4791,8 @@
         font-size: 0.85rem;
         line-height: 1.2;
         color: var(--ink-soft);
-        z-index: 15;
         margin: 0;
+        pointer-events: auto;
       }
 
       .legend-pill > span:first-child,
@@ -4824,6 +4837,82 @@
         width: 44px;
         min-width: 44px;
         flex: 0 0 44px;
+      }
+
+      /* When the canvas itself, rather than the viewport, becomes too narrow
+         for the desktop row, retain the same pill and put its scale beneath
+         the pollutant/method line. */
+      @container map-canvas (max-width: 660px) {
+        .map-legend-region .legend-pill {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          grid-template-columns: minmax(0, 1fr) max-content;
+          grid-template-areas:
+            "pollutant aggregation"
+            "scale scale";
+          justify-content: center;
+          justify-items: center;
+          column-gap: 6px;
+          row-gap: 4px;
+          padding: 8px 10px 10px;
+          border-radius: 16px;
+          white-space: normal;
+        }
+
+        .map-legend-region .legend-pill > span:first-child {
+          grid-area: pollutant;
+          width: auto;
+          min-height: 0;
+          justify-self: end;
+          justify-content: flex-end;
+          font-size: 0.78rem;
+          line-height: 1.2;
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .map-legend-region .legend-pill > #legend-label,
+        .map-legend-region .legend-pill > #cr-legend-label {
+          grid-area: aggregation;
+          width: auto;
+          min-height: 0;
+          justify-self: start;
+          justify-content: flex-start;
+          font-size: 0.78rem;
+          line-height: 1.2;
+          text-align: left;
+          white-space: nowrap;
+        }
+
+        .map-legend-region .legend-pill > #legend-label::before,
+        .map-legend-region .legend-pill > #cr-legend-label::before {
+          content: "·";
+          margin-right: 6px;
+        }
+
+        .map-legend-region .legend-pill .legend-scale {
+          grid-area: scale;
+          display: grid;
+          grid-template-columns: max-content minmax(0, 190px) max-content;
+          column-gap: 8px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          justify-content: center;
+        }
+
+        .map-legend-region .legend-pill .legend-bar-wrap {
+          width: 100%;
+          min-width: 0;
+          max-width: 190px;
+        }
+
+        .map-legend-region .legend-pill .legend-value {
+          width: auto;
+          min-width: max-content;
+          flex: none;
+        }
       }
 
       /* Keep map controls/legend close to map frame */
@@ -5254,6 +5343,9 @@
           --map-footer-safe: 64px;
           --sensor-panel-height: 280px;
           --sensor-panel-header-height: 68px;
+          /* Mobile zoom controls are 44px wide; keep the same 12px gap. */
+          --map-legend-left-clearance: 68px;
+          --map-legend-right-inset: 10px;
           min-height: var(--map-canvas-min-height);
           margin: 0;
           border: 0;
@@ -5519,13 +5611,9 @@
         }
 
         .hex-map-page .legend-pill {
-          bottom: 8px;
-          right: auto;
-          left: 50%;
-          width: min(310px, calc(100% - 20px));
-          max-width: calc(100% - 20px);
+          width: 100%;
+          max-width: 100%;
           box-sizing: border-box;
-          transform: translateX(-50%);
           grid-template-columns: minmax(0, 1fr) max-content;
           grid-template-areas:
             "pollutant aggregation"
@@ -5534,11 +5622,11 @@
           justify-items: center;
           column-gap: 6px;
           row-gap: 4px;
-          padding: 0;
-          border: 0;
-          border-radius: 0;
-          background: transparent;
-          box-shadow: none;
+          padding: 8px 10px 10px;
+          border: 1px solid rgba(20, 34, 37, 0.12);
+          border-radius: 16px;
+          background: color-mix(in srgb, var(--no-data) 78%, white 22%);
+          box-shadow: 0 1px 6px rgba(16, 24, 34, 0.1);
           white-space: normal;
         }
 
@@ -5598,10 +5686,8 @@
           flex: none;
         }
 
-        .hex-map-page .map-canvas-wrap.hex-selected .legend-pill {
+        .hex-map-page .map-canvas-wrap.hex-selected .map-legend-region {
           bottom: calc(var(--sensor-panel-height, 280px) + 8px);
-          width: min(208px, calc(100% - 112px));
-          max-width: calc(100% - 112px);
         }
 
         .hex-map-page .map-dashboard-card #uk-toolbar-slot,
