@@ -46,7 +46,9 @@ Functional/visual validation happens after deployment through real TEST pages an
 
 - `Archive/` paths are retired for active execution and asset references. Active HTML/CSS/JavaScript MUST NOT fall back to archived files.
 - Before a substantial or high-risk change to active non-test implementation code, preserve the exact pre-change in-scope code under the repository's existing dated `Archive/YYYY-MM-DD/` convention, preserving relative paths where practical.
-- Archive each code file at most once per calendar day and reuse today's copy.
+- Materially significant GitHub Actions workflow or configuration changes are operational changes and require the exact pre-change workflow to be preserved as `Archive/YYYY-MM-DD/workflows/<workflow-name>.yml`, or in a named feature snapshot beneath the dated directory when several files must be restored together.
+- Workflow archives are not required for trivial dependency/version-only edits. They are required for substantial behavioural changes such as deployment strategy, schedules, target environments or resources, backup or migration orchestration, and retirement or replacement of a workflow capability.
+- Archive each implementation or workflow file at most once per calendar day and reuse today's copy.
 - Do not create code-style archive copies for documentation, tests/fixtures/test data, generated outputs, images/assets or other non-code files.
 - Archive copies are reference/rollback only and MUST NOT be modified or referenced by active pages/tests/assets.
 
