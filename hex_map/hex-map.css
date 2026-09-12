@@ -4809,12 +4809,14 @@
       }
 
       .legend-title-line > span:first-child {
+        grid-column: 1;
         text-align: right;
         justify-content: flex-end;
       }
 
       .legend-title-line > #legend-label,
       .legend-title-line > #cr-legend-label {
+        grid-column: 3;
         text-align: left;
         justify-content: flex-start;
       }
@@ -4825,6 +4827,7 @@
       }
 
       .legend-pill .legend-scale {
+        grid-column: 2;
         display: inline-flex;
         align-items: center;
         gap: 8px;
