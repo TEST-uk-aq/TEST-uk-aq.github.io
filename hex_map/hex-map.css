@@ -5374,7 +5374,9 @@
           grid-column: 1;
           grid-row: 1;
           --map-canvas-min-height: clamp(472px, calc(100vh - 136px), 752px);
-          --map-footer-safe: 64px;
+          /* The narrow legend card occupies this lower reserve.  Keep the
+             drawable SVG clear of it without retaining the former extra band. */
+          --map-footer-safe: 56px;
           --sensor-panel-height: 280px;
           --sensor-panel-header-height: 68px;
           /* Mobile zoom controls are 44px wide; keep the same 12px gap. */
@@ -5632,12 +5634,96 @@
         }
 
         .hex-map-page .map-floating-tools {
-          bottom: 8px;
+          /* The 44px box is the touch target; the 40px inset surface below
+             keeps its painted edge aligned with the desktop control family. */
+          left: 10px;
+          bottom: 6px;
         }
 
         .hex-map-page .map-zoom-controls {
-          bottom: 60px;
+          /* Keep three adjacent 44px hit boxes. The visible stack is inset to
+             the desktop 40px width without creating overlapping tap areas. */
+          left: 10px;
+          bottom: 52px;
           width: 44px;
+          border: 0;
+          border-radius: 0;
+          overflow: visible;
+          background: transparent;
+          box-shadow: none;
+          isolation: isolate;
+        }
+
+        .hex-map-page .map-zoom-controls::before {
+          content: "";
+          position: absolute;
+          inset: 4px 2px;
+          z-index: 0;
+          border: 1px solid rgba(20, 34, 37, 0.18);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.94);
+          pointer-events: none;
+        }
+
+        .hex-map-page .map-zoom-controls:hover {
+          border-color: transparent;
+          box-shadow: none;
+        }
+
+        .hex-map-page .map-zoom-controls button {
+          z-index: 1;
+          border: 0;
+          background: transparent;
+        }
+
+        .hex-map-page .map-zoom-controls button:hover {
+          background: transparent;
+        }
+
+        .hex-map-page .map-zoom-controls button + button {
+          border-top: 0;
+        }
+
+        .hex-map-page .map-zoom-controls button + button::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: 2px;
+          left: 2px;
+          border-top: 1px solid rgba(20, 34, 37, 0.16);
+          pointer-events: none;
+        }
+
+        .hex-map-page .map-settings {
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+          isolation: isolate;
+        }
+
+        .hex-map-page .map-settings::before {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          z-index: 0;
+          border: 1px solid rgba(20, 34, 37, 0.12);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: none;
+          pointer-events: none;
+        }
+
+        .hex-map-page .map-settings img {
+          position: relative;
+          z-index: 1;
+        }
+
+        .hex-map-page .map-canvas-wrap.hex-selected .map-floating-tools {
+          bottom: calc(var(--sensor-panel-height, 280px) + 6px);
+        }
+
+        .hex-map-page .map-canvas-wrap.hex-selected .map-zoom-controls {
+          bottom: calc(var(--sensor-panel-height, 280px) + 52px);
         }
 
         .hex-map-page .map-canvas-wrap.hex-selected .map-topbar {
