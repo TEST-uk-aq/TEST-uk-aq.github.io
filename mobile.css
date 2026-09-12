@@ -43,9 +43,9 @@
 
   .home-page .homepage-media-mobile {
     display: grid;
-    gap: 9px;
+    gap: 5px;
     margin: 0;
-    padding: 15px 14px 11px;
+    padding: 15px 14px 5px;
     border-radius: 22px;
     background: #fff;
     box-shadow: 0 8px 20px rgba(40, 90, 132, 0.05);
@@ -78,7 +78,7 @@
 
   .home-page [data-homepage-media-mobile-content] {
     display: grid;
-    gap: 7px;
+    gap: 3px;
   }
 
   .home-page .homepage-media-mobile-card:focus-visible {
@@ -95,15 +95,22 @@
   }
 
   .home-page .homepage-media-mobile-title {
-    display: -webkit-box;
+    display: flex;
+    align-items: center;
     margin: 0;
-    overflow: hidden;
+    min-width: 0;
     color: #fff;
     font-size: clamp(1rem, 4.8vw, 1.25rem);
     font-weight: 700;
     letter-spacing: -0.01em;
     line-height: 1.2;
     height: 2.4em;
+  }
+
+  .home-page .homepage-media-mobile-title-text {
+    display: -webkit-box;
+    width: 100%;
+    overflow: hidden;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
@@ -167,9 +174,12 @@
 
   @media (min-width: 560px) {
     .home-page .homepage-media-mobile-title {
-      display: block;
       height: 1.2em;
       font-size: clamp(0.95rem, 2.6vw, 1.1rem);
+    }
+
+    .home-page .homepage-media-mobile-title-text {
+      display: block;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

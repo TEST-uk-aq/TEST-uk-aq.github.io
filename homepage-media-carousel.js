@@ -104,7 +104,10 @@
   function showMobileArticle(article, publisher, title) {
     const card = articleLink(article, "homepage-media-mobile-card", publisher, title);
     appendSource(card, "homepage-media-mobile-source", article, publisher);
-    card.append(addTextElement("h3", "homepage-media-mobile-title", title));
+    const headline = document.createElement("h3");
+    headline.className = "homepage-media-mobile-title";
+    headline.append(addTextElement("span", "homepage-media-mobile-title-text", title));
+    card.append(headline);
     const icon = document.createElement("img");
     icon.className = "homepage-media-mobile-link-icon";
     icon.src = "/images/Link-Icon-wider-white.png";
