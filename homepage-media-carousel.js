@@ -1,0 +1,202 @@
+(() => {
+  "use strict";
+
+  const endpoint = "/api/media/articles?limit=6";
+  const desktopQuery = window.matchMedia("(min-width: 768px)");
+  const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const carousel = document.querySelector("[data-homepage-media-carousel]");
+  const content = document.querySelector("[data-homepage-media-content]");
+  const rotationMs = 8000;
+  let articles = [];
+  let currentIndex = 0;
+  let rotationTimer = null;
+  let loaded = false;
+
+  if (!carousel || !content) return;
+
+  function safeHttpUrl(value, httpsOnly = false) {
+    if (typeof value !== "string" || !value.trim()) return null;
+    try {
+      const url = new URL(value);
+      if (httpsOnly ? url.protocol !== "https:" : !["http:", "https:"].includes(url.protocol)) {
+        return null;
+      }
+      return url.href;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function text(value) {
+    return typeof value === "string" ? value.trim() : "";
+  }
+
+  function articleDate(value) {
+    if (typeof value !== "string") return null;
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return null;
+    return {
+      machine: date.toISOString(),
+      display: new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(date),
+    };
+  }
+
+  function usableArticle(article) {
+    const canonicalUrl = safeHttpUrl(article?.canonical_url);
+    const title = text(article?.display_title) || text(article?.title);
+    return canonicalUrl && title;
+  }
+
+  function stopRotation() {
+    if (rotationTimer !== null) window.clearTimeout(rotationTimer);
+    rotationTimer = null;
+  }
+
+  function scheduleRotation() {
+    stopRotation();
+    if (
+      articles.length < 2 ||
+      !desktopQuery.matches ||
+      reducedMotionQuery.matches ||
+      document.hidden
+    ) return;
+    rotationTimer = window.setTimeout(() => {
+      showArticle(currentIndex + 1);
+      scheduleRotation();
+    }, rotationMs);
+  }
+
+  function addTextElement(tagName, className, value) {
+    const element = document.createElement(tagName);
+    element.className = className;
+    element.textContent = value;
+    return element;
+  }
+
+  function showArticle(nextIndex) {
+    if (!articles.length) return;
+    currentIndex = (nextIndex + articles.length) % articles.length;
+    const article = articles[currentIndex];
+    const canonicalUrl = safeHttpUrl(article.canonical_url);
+    const title = text(article.display_title) || text(article.title);
+    const publisher = text(article.publisher) || "Publisher";
+    const card = document.createElement("a");
+    card.className = "homepage-media-carousel-card";
+    card.href = canonicalUrl;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+    card.setAttribute("aria-label", `Read “${text(article.title) || title}” on ${publisher}, opens in a new tab`);
+
+    const imageUrl = safeHttpUrl(article.preview_image_url, true);
+    if (imageUrl) {
+      const image = document.createElement("img");
+      image.className = "homepage-media-carousel-image";
+      image.src = imageUrl;
+      image.alt = "";
+      image.decoding = "async";
+      image.addEventListener("error", () => image.remove(), { once: true });
+      card.append(image);
+    }
+
+    const gradient = document.createElement("div");
+    gradient.className = "homepage-media-carousel-card-gradient";
+    gradient.setAttribute("aria-hidden", "true");
+    card.append(gradient);
+
+    const cue = addTextElement("div", "homepage-media-carousel-cue", `Read on ${publisher} →`);
+    cue.setAttribute("aria-hidden", "true");
+    card.append(cue);
+
+    const overlay = document.createElement("div");
+    overlay.className = "homepage-media-carousel-overlay";
+    const source = document.createElement("div");
+    source.className = "homepage-media-carousel-source";
+    source.append(addTextElement("span", "", publisher));
+    const published = articleDate(article.published_at);
+    if (published) {
+      const separator = addTextElement("span", "", "·");
+      separator.setAttribute("aria-hidden", "true");
+      const date = addTextElement("time", "", published.display);
+      date.dateTime = published.machine;
+      source.append(separator, date);
+    }
+    overlay.append(source, addTextElement("h3", "homepage-media-carousel-title", title));
+    card.append(overlay);
+
+    const controls = document.createElement("div");
+    controls.className = "homepage-media-carousel-controls";
+    const previous = addTextElement("button", "homepage-media-carousel-button", "◀");
+    previous.type = "button";
+    previous.setAttribute("aria-label", "Previous article");
+    previous.addEventListener("click", () => {
+      showArticle(currentIndex - 1);
+      scheduleRotation();
+    });
+    const dots = document.createElement("div");
+    dots.className = "homepage-media-carousel-dots";
+    articles.forEach((_item, index) => {
+      const dot = addTextElement("button", "homepage-media-carousel-dot", index === currentIndex ? "●" : "○");
+      dot.type = "button";
+      dot.setAttribute("aria-label", `Show article ${index + 1}`);
+      if (index === currentIndex) dot.setAttribute("aria-current", "true");
+      dot.addEventListener("click", () => {
+        showArticle(index);
+        scheduleRotation();
+      });
+      dots.append(dot);
+    });
+    const next = addTextElement("button", "homepage-media-carousel-button", "▶");
+    next.type = "button";
+    next.setAttribute("aria-label", "Next article");
+    next.addEventListener("click", () => {
+      showArticle(currentIndex + 1);
+      scheduleRotation();
+    });
+    controls.append(previous, dots, next);
+    content.replaceChildren(card, controls);
+  }
+
+  async function loadArticles() {
+    try {
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("media_unavailable");
+      const payload = await response.json();
+      if (!Array.isArray(payload?.articles)) throw new Error("invalid_media_response");
+      articles = payload.articles.filter(usableArticle);
+      if (!articles.length) throw new Error("no_usable_articles");
+      showArticle(0);
+      if (!desktopQuery.matches) return;
+      carousel.hidden = false;
+      scheduleRotation();
+    } catch (_error) {
+      articles = [];
+      content.replaceChildren();
+      carousel.hidden = true;
+    }
+  }
+
+  function updateDesktopState() {
+    if (!desktopQuery.matches) {
+      stopRotation();
+      carousel.hidden = true;
+      return;
+    }
+    if (!loaded) {
+      loaded = true;
+      loadArticles();
+      return;
+    }
+    if (articles.length) {
+      carousel.hidden = false;
+      scheduleRotation();
+    }
+  }
+
+  desktopQuery.addEventListener("change", updateDesktopState);
+  reducedMotionQuery.addEventListener("change", scheduleRotation);
+  document.addEventListener("visibilitychange", scheduleRotation);
+  updateDesktopState();
+})();
