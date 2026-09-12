@@ -33,6 +33,10 @@
     gap: 0;
   }
 
+  .home-page .home-main > .ukaq-beta-notice-mount {
+    margin-bottom: 12px;
+  }
+
   .home-page .home-main > section {
     box-sizing: border-box;
     margin: 0;
