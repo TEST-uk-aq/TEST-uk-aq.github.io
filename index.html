@@ -73,9 +73,14 @@
     @media (min-width: 768px) {
       .home-header-inner {
         display: grid;
-        grid-template-columns: minmax(260px, 1fr) minmax(420px, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 550px);
         gap: clamp(18px, 2.5vw, 40px);
         align-items: start;
+      }
+
+      .home-header-brand,
+      .homepage-media-carousel {
+        min-width: 0;
       }
 
       .home-subtitle {
