@@ -4264,6 +4264,9 @@
         container: map-canvas / inline-size;
         --map-canvas-min-height: 700px;
         --map-footer-safe: 64px;
+        /* Normal-state distance from the legend card to this canvas/card edge.
+           Selected-panel positioning deliberately overrides this relationship. */
+        --map-legend-bottom-gap: 16px;
         --sensor-panel-height: 240px;
         --networks-panel-safe-right: 0px;
         /* The legend is centred in the space clear of the widest left tools:
@@ -4779,7 +4782,7 @@
       /* ── Floating legend pill ───────────────────────────────── */
       .map-legend-region {
         position: absolute;
-        bottom: 8px;
+        bottom: var(--map-legend-bottom-gap);
         left: var(--map-legend-left-clearance);
         right: var(--map-legend-right-inset);
         display: flex;
@@ -4863,6 +4866,12 @@
          for the desktop row, retain the same pill and put its scale beneath
          the pollutant/method line. */
       @container map-canvas (max-width: 660px) {
+        /* A two-row legend is about 61px tall. Reserve its height plus the
+           normal 16px card-edge gap so map hexes stay clear of the card. */
+        .map-svg-viewport {
+          --map-footer-safe: 80px;
+        }
+
         .map-legend-region .legend-pill {
           width: fit-content;
           max-width: 100%;
@@ -5374,9 +5383,6 @@
           grid-column: 1;
           grid-row: 1;
           --map-canvas-min-height: clamp(472px, calc(100vh - 136px), 752px);
-          /* The narrow legend card occupies this lower reserve.  Keep the
-             drawable SVG clear of it without retaining the former extra band. */
-          --map-footer-safe: 56px;
           --sensor-panel-height: 280px;
           --sensor-panel-header-height: 68px;
           /* Mobile zoom controls are 44px wide; keep the same 12px gap. */
@@ -5735,7 +5741,7 @@
         }
 
         .hex-map-page .map-legend-region {
-          bottom: 4px;
+          bottom: var(--map-legend-bottom-gap);
         }
 
         .hex-map-page .map-dashboard-card #uk-toolbar-slot,
