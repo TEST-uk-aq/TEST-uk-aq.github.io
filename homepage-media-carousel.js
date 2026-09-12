@@ -37,7 +37,9 @@
     if (!Number.isFinite(date.getTime())) return null;
     return {
       machine: date.toISOString(),
-      display: new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(date),
+      display: new Intl.DateTimeFormat("en-GB", {
+        day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London",
+      }).format(date),
     };
   }
 
@@ -114,7 +116,7 @@
     source.append(addTextElement("span", "", publisher));
     const published = articleDate(article.published_at);
     if (published) {
-      const separator = addTextElement("span", "", "·");
+      const separator = addTextElement("span", "", " · ");
       separator.setAttribute("aria-hidden", "true");
       const date = addTextElement("time", "", published.display);
       date.dateTime = published.machine;

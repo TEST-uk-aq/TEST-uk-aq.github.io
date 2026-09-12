@@ -127,13 +127,18 @@
       .homepage-media-carousel-card {
         position: relative;
         display: block;
-        aspect-ratio: 16 / 8;
+        /* Mirrors the Media dashboard Carousel preview card. */
+        aspect-ratio: 16 / 9;
         overflow: hidden;
-        border-radius: 14px;
+        box-sizing: border-box;
+        border: 1px solid #eadfd2;
+        border-radius: 18px;
         color: #fff;
         background:
           linear-gradient(120deg, rgba(40, 91, 136, 0.94), rgba(60, 120, 172, 0.66)),
           #285b88;
+        box-shadow: 0 9px 24px rgba(67, 48, 29, 0.07);
+        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
         text-decoration: none;
         transform-origin: center;
         transition: transform 180ms ease, box-shadow 180ms ease;
@@ -148,7 +153,7 @@
         position: absolute;
         z-index: 1;
         inset: 0;
-        background: linear-gradient(to bottom, transparent 20%, rgba(7, 18, 29, 0.88) 100%);
+        background: linear-gradient(to bottom, transparent 32%, rgba(7, 18, 29, 0.18) 52%, rgba(7, 18, 29, 0.92) 100%);
         pointer-events: none;
       }
 
@@ -187,21 +192,18 @@
       .homepage-media-carousel-overlay {
         position: absolute;
         z-index: 2;
-        right: 10px;
-        bottom: 9px;
-        left: 10px;
+        right: 18px;
+        bottom: 16px;
+        left: 18px;
         min-width: 0;
       }
 
       .homepage-media-carousel-source {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0 0.3em;
-        margin: 0 0 4px;
-        color: rgba(255, 255, 255, 0.9);
+        margin: 0 0 6px;
+        color: rgba(255, 255, 255, 0.88);
         font-size: 0.7rem;
         font-weight: 750;
-        line-height: 1.2;
+        line-height: 1.25;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
       }
 
@@ -214,7 +216,7 @@
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.18;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.62);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.38);
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
       }
