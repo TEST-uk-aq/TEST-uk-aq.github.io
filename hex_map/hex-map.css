@@ -4891,6 +4891,15 @@
           white-space: nowrap;
         }
 
+        /* Desktop grid labels fill their tracks. In the narrow title flex row,
+           keep both labels intrinsic so the pair centres as one group. */
+        .map-legend-region .legend-title-line > span:first-child,
+        .map-legend-region .legend-title-line > #legend-label,
+        .map-legend-region .legend-title-line > #cr-legend-label {
+          width: auto;
+          flex: 0 0 auto;
+        }
+
         .map-legend-region .legend-title-line > #legend-label::before,
         .map-legend-region .legend-title-line > #cr-legend-label::before {
           content: "·";
