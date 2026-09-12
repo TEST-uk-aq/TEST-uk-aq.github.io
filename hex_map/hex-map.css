@@ -1748,6 +1748,12 @@
       }
 
       @media (min-width: 768px) {
+        .sensor-table th.sensor-col-updated,
+        .sensor-table td.sensor-col-updated {
+          padding-left: 8px;
+          padding-right: 18px;
+        }
+
         /* Fixed columns and their cell padding use about 504px. Keeping at
            least 240px for Sensor and 120px for Network leaves a small buffer
            at this 900px wrapper threshold. */
@@ -1771,11 +1777,6 @@
           .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-chart-select-col,
           .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-chart-select-col {
             display: none;
-          }
-
-          .sensor-table th.sensor-col-updated,
-          .sensor-table td.sensor-col-updated {
-            width: 168px;
           }
 
           .sensor-table th.sensor-col-value,
