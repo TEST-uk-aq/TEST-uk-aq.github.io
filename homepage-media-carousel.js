@@ -6,13 +6,15 @@
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const carousel = document.querySelector("[data-homepage-media-carousel]");
   const content = document.querySelector("[data-homepage-media-content]");
+  const mobileTeaser = document.querySelector("[data-homepage-media-mobile]");
+  const mobileContent = document.querySelector("[data-homepage-media-mobile-content]");
   const rotationMs = 8000;
   let articles = [];
   let currentIndex = 0;
   let rotationTimer = null;
   let loaded = false;
 
-  if (!carousel || !content) return;
+  if (!carousel || !content || !mobileTeaser || !mobileContent) return;
 
   function safeHttpUrl(value, httpsOnly = false) {
     if (typeof value !== "string" || !value.trim()) return null;
@@ -75,19 +77,55 @@
     return element;
   }
 
+  function appendSource(container, className, article, publisher) {
+    const source = document.createElement("div");
+    source.className = className;
+    source.append(addTextElement("span", "", publisher));
+    const published = articleDate(article.published_at);
+    if (published) {
+      const separator = addTextElement("span", "", " · ");
+      separator.setAttribute("aria-hidden", "true");
+      const date = addTextElement("time", "", published.display);
+      date.dateTime = published.machine;
+      source.append(separator, date);
+    }
+    container.append(source);
+  }
+
+  function articleLink(article, className, publisher, title) {
+    const link = document.createElement("a");
+    link.className = className;
+    link.href = safeHttpUrl(article.canonical_url);
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", `Read “${text(article.title) || title}” on ${publisher}, opens in a new tab`);
+    return link;
+  }
+
+  function showMobileArticle(article, publisher, title) {
+    const card = articleLink(article, "homepage-media-mobile-card", publisher, title);
+    appendSource(card, "homepage-media-mobile-source", article, publisher);
+    card.append(addTextElement("h3", "homepage-media-mobile-title", title));
+    const icon = document.createElement("img");
+    icon.className = "homepage-media-mobile-link-icon";
+    icon.src = "/images/Link-Icon-wider-white.png";
+    icon.alt = "";
+    icon.setAttribute("aria-hidden", "true");
+    card.append(icon);
+    mobileContent.replaceChildren(card);
+  }
+
   function showArticle(nextIndex) {
     if (!articles.length) return;
     currentIndex = (nextIndex + articles.length) % articles.length;
     const article = articles[currentIndex];
-    const canonicalUrl = safeHttpUrl(article.canonical_url);
     const title = text(article.display_title) || text(article.title);
     const publisher = text(article.publisher) || "Publisher";
-    const card = document.createElement("a");
-    card.className = "homepage-media-carousel-card";
-    card.href = canonicalUrl;
-    card.target = "_blank";
-    card.rel = "noopener noreferrer";
-    card.setAttribute("aria-label", `Read “${text(article.title) || title}” on ${publisher}, opens in a new tab`);
+    showMobileArticle(article, publisher, title);
+
+    if (!desktopQuery.matches) return;
+
+    const card = articleLink(article, "homepage-media-carousel-card", publisher, title);
 
     const imageUrl = safeHttpUrl(article.preview_image_url, true);
     if (imageUrl) {
@@ -105,24 +143,21 @@
     gradient.setAttribute("aria-hidden", "true");
     card.append(gradient);
 
-    const cue = addTextElement("div", "homepage-media-carousel-cue", `Read on ${publisher} →`);
+    const cue = document.createElement("div");
+    cue.className = "homepage-media-carousel-cue";
     cue.setAttribute("aria-hidden", "true");
+    cue.append(addTextElement("span", "homepage-media-carousel-cue-text", `Read on ${publisher}`));
+    const cueIcon = document.createElement("img");
+    cueIcon.className = "homepage-media-carousel-cue-icon";
+    cueIcon.src = "/images/Link-Icon-wider-white.png";
+    cueIcon.alt = "";
+    cue.append(cueIcon);
     card.append(cue);
 
     const overlay = document.createElement("div");
     overlay.className = "homepage-media-carousel-overlay";
-    const source = document.createElement("div");
-    source.className = "homepage-media-carousel-source";
-    source.append(addTextElement("span", "", publisher));
-    const published = articleDate(article.published_at);
-    if (published) {
-      const separator = addTextElement("span", "", " · ");
-      separator.setAttribute("aria-hidden", "true");
-      const date = addTextElement("time", "", published.display);
-      date.dateTime = published.machine;
-      source.append(separator, date);
-    }
-    overlay.append(source, addTextElement("h3", "homepage-media-carousel-title", title));
+    appendSource(overlay, "homepage-media-carousel-source", article, publisher);
+    overlay.append(addTextElement("h3", "homepage-media-carousel-title", title));
     card.append(overlay);
 
     const controls = document.createElement("div");
@@ -170,35 +205,36 @@
       articles = payload.articles.filter(usableArticle);
       if (!articles.length) throw new Error("no_usable_articles");
       showArticle(0);
-      if (!desktopQuery.matches) return;
-      carousel.hidden = false;
-      scheduleRotation();
+      updatePresentation();
     } catch (_error) {
       articles = [];
       content.replaceChildren();
+      mobileContent.replaceChildren();
       carousel.hidden = true;
+      mobileTeaser.hidden = true;
     }
   }
 
-  function updateDesktopState() {
-    if (!desktopQuery.matches) {
-      stopRotation();
-      carousel.hidden = true;
-      return;
-    }
+  function updatePresentation() {
     if (!loaded) {
       loaded = true;
       loadArticles();
       return;
     }
     if (articles.length) {
-      carousel.hidden = false;
+      carousel.hidden = !desktopQuery.matches;
+      mobileTeaser.hidden = desktopQuery.matches;
+      showArticle(currentIndex);
       scheduleRotation();
+      return;
     }
+    stopRotation();
+    carousel.hidden = true;
+    mobileTeaser.hidden = true;
   }
 
-  desktopQuery.addEventListener("change", updateDesktopState);
+  desktopQuery.addEventListener("change", updatePresentation);
   reducedMotionQuery.addEventListener("change", scheduleRotation);
   document.addEventListener("visibilitychange", scheduleRotation);
-  updateDesktopState();
+  updatePresentation();
 })();

@@ -175,19 +175,33 @@
         z-index: 3;
         top: 8px;
         right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
         max-width: calc(100% - 16px);
         padding: 4px 7px;
         overflow: hidden;
         border-radius: 999px;
         background: rgba(7, 18, 29, 0.72);
         color: #fff;
-        font-size: 0.66rem;
+        font-size: 1rem;
         font-weight: 750;
         line-height: 1.2;
         opacity: 0;
+        transition: opacity 180ms ease;
+      }
+
+      .homepage-media-carousel-cue-text {
+        overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        transition: opacity 180ms ease;
+      }
+
+      .homepage-media-carousel-cue-icon {
+        flex: 0 0 auto;
+        width: 1em;
+        height: 1em;
+        object-fit: contain;
       }
 
       .homepage-media-carousel-card:focus-visible .homepage-media-carousel-cue {
@@ -315,6 +329,10 @@
       .homepage-media-carousel-card,
       .homepage-media-carousel-cue {
         transition: none;
+      }
+
+      .homepage-media-carousel-cue {
+        opacity: 1;
       }
     }
 
@@ -2039,6 +2057,10 @@
 
   <main class="home-main">
     <div class="ukaq-beta-notice-mount" data-ukaq-beta-notice-mount></div>
+    <aside class="homepage-media-mobile" aria-label="Latest air quality coverage" hidden data-homepage-media-mobile>
+      <h2 class="homepage-media-mobile-heading"><img src="images/UK-AQ-latest-air-quality-coverage-1-line.png" alt="Latest air quality coverage"></h2>
+      <div data-homepage-media-mobile-content></div>
+    </aside>
     <section class="who-dashboard-card who-bars-pending" aria-labelledby="who-guideline-title">
       <div class="who-card-header">
         <div class="who-title-group">
