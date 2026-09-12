@@ -30,6 +30,14 @@ body:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) > #ukaq-site
   flex: 0 0 auto;
 }
 
+/* The cardless mobile Hex Map footer follows the map content directly instead
+ * of absorbing spare viewport height above the footer. */
+@media (max-width: 767px) {
+  body.hex-map-page:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) {
+    min-height: 0;
+  }
+}
+
 body #ukaq-site-footer {
   position: static !important;
   inset: auto !important;
