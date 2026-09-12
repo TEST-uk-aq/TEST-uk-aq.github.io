@@ -375,7 +375,7 @@
                     <button type="button" class="sensor-title-icon-button" aria-label="Open sensor chart" title="Open sensor chart" disabled>
                       <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
                     </button>
-                    <div class="sensor-panel-title" id="sensor-panel-title" data-hex-truncation></div>
+                    <div class="sensor-panel-title" id="sensor-panel-title"></div>
                   </span>
                   <svg id="sensor-panel-hex-icon" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M26 0L52 15V45L26 60L0 45V15L26 0Z" fill="currentColor"/>
@@ -404,16 +404,16 @@
                       </th>
                       <th scope="col" class="sensor-chart-symbol-col" aria-label="Symbol"></th>
                       <th scope="col" class="sensor-col-sensor" data-sort-key="sensor" aria-sort="none">
-                        <div class="sensor-sort-header-stack">
-                          <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
-                            <span class="sort-label">Sensor</span>
-                            <span class="sort-icon" aria-hidden="true"></span>
-                          </button>
-                          <button type="button" class="sort-header sort-header--network" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
-                            <span class="sort-label">Network</span>
-                            <span class="sort-icon" aria-hidden="true"></span>
-                          </button>
-                        </div>
+                        <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Sensor</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-network" data-sort-key="network" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Network</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
                       </th>
                       <th scope="col" class="sensor-col-value" data-sort-key="pm25" aria-sort="none">
                         <button type="button" class="sort-header" data-sort-key="pm25" data-sort-type="number" title="Sort high→low">
@@ -994,7 +994,7 @@
                     <button type="button" class="sensor-title-icon-button" aria-label="Open sensor chart" title="Open sensor chart" disabled>
                       <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
                     </button>
-                    <div class="sensor-panel-title" id="cr-sensor-panel-title" data-hex-truncation></div>
+                    <div class="sensor-panel-title" id="cr-sensor-panel-title"></div>
                   </span>
                   <svg id="cr-sensor-panel-hex-icon" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M26 0L52 15V45L26 60L0 45V15L26 0Z" fill="currentColor"/>
@@ -1023,16 +1023,16 @@
                       </th>
                       <th scope="col" class="sensor-chart-symbol-col" aria-label="Symbol"></th>
                       <th scope="col" class="sensor-col-sensor" data-sort-key="sensor" aria-sort="none">
-                        <div class="sensor-sort-header-stack">
-                          <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
-                            <span class="sort-label">Sensor</span>
-                            <span class="sort-icon" aria-hidden="true"></span>
-                          </button>
-                          <button type="button" class="sort-header sort-header--network" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
-                            <span class="sort-label">Network</span>
-                            <span class="sort-icon" aria-hidden="true"></span>
-                          </button>
-                        </div>
+                        <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Sensor</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-network" data-sort-key="network" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Network</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
                       </th>
                       <th scope="col" class="sensor-col-value" data-sort-key="pm25" aria-sort="none">
                         <button type="button" class="sort-header" data-sort-key="pm25" data-sort-type="number" title="Sort high→low">

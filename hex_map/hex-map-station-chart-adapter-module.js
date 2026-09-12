@@ -1,5 +1,6 @@
 import stationChartRuntime from "../shared/station-chart/station-chart-runtime.js";
 import pageMode from "./hex-map-page-mode.js";
+import "./hex-map-truncation.js";
 import "./hex-map-station-chart-adapter.js";
 
 const stationChartAdapter = globalThis.UkAqHexMapStationChartAdapter;

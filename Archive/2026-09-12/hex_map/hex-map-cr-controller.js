@@ -5,7 +5,6 @@ import networkController from "./hex-map-network-controller.js";
 import urlState from "./hex-map-url-state.js";
 import summary from "./hex-map-summary.js";
 import scrollAffordances from "./hex-map-scroll-affordances.js";
-import truncation from "./hex-map-truncation.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
 import ukController from "./hex-map-uk-controller.js";
@@ -373,9 +372,12 @@ function initHexMapCrController() {
       const colorScaleToggle = colorScaleGroup ? colorScaleGroup.querySelector(".colour-scale-toggle") : null;
       const networkPanel = query(".network-panel");
       // Shared toolbar dropdown controls (single DOM instance moved between UK/CR tabs).
-      const sortHeaderButtons = detailsTableWrap
-        ? Array.from(detailsTableWrap.querySelectorAll("button.sort-header[data-sort-key]"))
+      const sortHeaders = detailsTableWrap
+        ? Array.from(detailsTableWrap.querySelectorAll("th[data-sort-key]"))
         : [];
+      const sortHeaderButtons = sortHeaders
+        .map((header) => header.querySelector("button[data-sort-key]"))
+        .filter(Boolean);
       const inlinePanel = byId("map-inline-sensor-panel");
       const mapCanvasWrap = inlinePanel?.closest(".map-canvas-wrap") || null;
       const inlinePanelHeader = inlinePanel?.querySelector(".sensor-panel-header") || null;
@@ -393,7 +395,7 @@ function initHexMapCrController() {
       const SENSOR_PANEL_EMPTY_HEIGHT = 116;
       const SENSOR_PANEL_HEADER_HEIGHT = 62;
       const SENSOR_TABLE_HEADER_HEIGHT = 44;
-      const SENSOR_PANEL_ROW_HEIGHT = 58;
+      const SENSOR_PANEL_ROW_HEIGHT = 46;
       const SENSOR_PANEL_MAX_VISIBLE_ROWS = 4;
       const SENSOR_PANEL_MOBILE_MAX_HEIGHT = 280;
       const detailScrollAffordances = scrollAffordances?.attachSensorTable?.(detailsTableWrap, {
@@ -2240,7 +2242,7 @@ function initHexMapCrController() {
           button.classList.toggle("is-active", isActive && !sortingHidden);
           button.disabled = sortingHidden;
           button.tabIndex = sortingHidden ? -1 : 0;
-          if (th?.dataset.sortKey === key) th.setAttribute("aria-sort", !sortingHidden && isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none");
+          if (th) th.setAttribute("aria-sort", !sortingHidden && isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none");
           const icon = button.querySelector(".sort-icon,.sort-arrow");
           if (icon) {
             icon.textContent = sortingHidden ? "" : renderSortIcon(key, sortKey, sortDir);
@@ -2387,7 +2389,6 @@ function initHexMapCrController() {
         const methodDisplayLabel = currentMetric === "median" ? "Typical (median)" : "Average (mean)";
         if (inlinePanelWindowLabel) inlinePanelWindowLabel.textContent = "";
         if (inlinePanelTitle) inlinePanelTitle.textContent = areaName;
-        truncation.refresh(inlinePanel);
         if (inlinePanelReading) {
           inlinePanelReading.innerHTML = `<span class="sensor-panel-value">${valueLabel}</span> <span class="sensor-panel-method">${methodDisplayLabel}</span>`;
         }
@@ -2482,23 +2483,23 @@ function initHexMapCrController() {
                       <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
                     </button>`
               }</td>
-              <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button><span class="sensor-network-text" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></div></td>
-              <td class="sensor-col-value"><span class="sensor-reading-cell"><span class="sensor-reading-dot" style="--sensor-reading-color:${readingColor}"></span><span class="sensor-reading-text" data-hex-truncation data-hex-truncation-focusable="true">${Number.isFinite(entry.value) ? `${formatValue(entry.value)} ${pollutantUnits}` : "-"}</span></span></td>
-              <td class="sensor-col-updated" data-hex-truncation data-hex-truncation-focusable="true">${updatedText}</td>
+              <td class="sensor-col-sensor"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}">${escapeHtmlLocal(stationName)}</button></td>
+              <td class="sensor-col-network">${escapeHtmlLocal(networkLabel)}</td>
+              <td class="sensor-col-value"><span class="sensor-reading-cell"><span class="sensor-reading-dot" style="--sensor-reading-color:${readingColor}"></span><span class="sensor-reading-text">${Number.isFinite(entry.value) ? `${formatValue(entry.value)} ${pollutantUnits}` : "-"}</span></span></td>
+              <td class="sensor-col-updated">${updatedText}</td>
             </tr>
           `;
         };
         const inWindowEntries = entries.filter((entry) => entry.inWindow);
         const outsideWindowEntries = entries.filter((entry) => !entry.inWindow);
         const dividerRow = inWindowEntries.length && outsideWindowEntries.length
-          ? `<tr class="sensor-row-divider" aria-hidden="true"><td colspan="5">↓ OUTSIDE WINDOW ↓</td></tr>`
+          ? `<tr class="sensor-row-divider" aria-hidden="true"><td colspan="6">↓ OUTSIDE WINDOW ↓</td></tr>`
           : "";
         detailsTableBody.innerHTML = [
           inWindowEntries.map(renderSensorRow).join(""),
           dividerRow,
           outsideWindowEntries.map(renderSensorRow).join(""),
         ].join("");
-        truncation.refresh(inlinePanel);
         updateInlinePanelHeight(entries.length, dividerRow ? 1 : 0);
         updateSelectedHexViewportShift();
         restoreDetailsScrollPosition(selectedAreaCode, previousScrollTop);
