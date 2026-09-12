@@ -377,9 +377,11 @@
           symbolCell.innerHTML = id ? `<button type="button" class="sensor-chart-launch" data-station-id="${escapeHtml(id)}" aria-label="Open chart for ${escapeHtml(name.textContent.trim())}" title="Open chart"><img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" /></button>` : "";
           return;
         }
-        const index = Math.max(0, selected.indexOf(id));
+        const index = selected.indexOf(id);
         selectCell.innerHTML = `<button type="button" class="hex-chart-selector" data-station-id="${escapeHtml(id)}" aria-label="${isSelected ? "Remove" : "Add"} ${escapeHtml(name.textContent.trim())} from chart" aria-pressed="${isSelected ? "true" : "false"}"></button>`;
-        symbolCell.innerHTML = root.ChartCore.getSymbolSvgMarkup(index, { className: "hex-chart-symbol-svg chart-mode-sensor-symbol-svg", sizePx: 28, area: 160 });
+        symbolCell.innerHTML = isSelected
+          ? root.ChartCore.getSymbolSvgMarkup(index, { className: "hex-chart-symbol-svg chart-mode-sensor-symbol-svg", sizePx: 28, area: 160 })
+          : "";
       });
       const ordered = active ? orderedVisibleIds(mapKey) : [];
       const selectFill = refs.wrap.querySelector(".hex-chart-selector[data-chart-header-action='select-fill']");
