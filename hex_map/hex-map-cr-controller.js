@@ -2482,8 +2482,8 @@ function initHexMapCrController() {
                       <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
                     </button>`
               }</td>
-              <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button></div></td>
-              <td class="sensor-col-network"><span class="sensor-network-text" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></td>
+              <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button><span class="sensor-network-text sensor-network-text--compact" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></div></td>
+              <td class="sensor-col-network"><span class="sensor-network-text sensor-network-text--wide" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></td>
               <td class="sensor-col-value"><span class="sensor-reading-cell"><span class="sensor-reading-dot" style="--sensor-reading-color:${readingColor}"></span><span class="sensor-reading-text" data-hex-truncation data-hex-truncation-focusable="true">${Number.isFinite(entry.value) ? `${formatValue(entry.value)} ${pollutantUnits}` : "-"}</span></span></td>
               <td class="sensor-col-updated"><span class="sensor-observed-text" data-hex-truncation data-hex-truncation-focusable="true">${updatedText}</span></td>
             </tr>

@@ -26,6 +26,7 @@ function createHexMapTruncation(root = globalThis) {
   }
 
   function isTruncated(target) {
+    if (!target.isConnected || target.getClientRects().length === 0) return false;
     return target.scrollWidth > target.clientWidth + 1
       || target.scrollHeight > target.clientHeight + 1;
   }
@@ -102,6 +103,11 @@ function createHexMapTruncation(root = globalThis) {
     return Array.from(target.querySelectorAll(`${TARGET_SELECTOR}[data-hex-truncated="true"]`));
   }
 
+  function descendantTargets(target) {
+    if (!(target instanceof Element)) return [];
+    return Array.from(target.querySelectorAll(TARGET_SELECTOR));
+  }
+
   function showFocusOwnerTooltip(target) {
     const descendants = truncatedDescendants(target);
     if (!descendants.length) {
@@ -126,7 +132,7 @@ function createHexMapTruncation(root = globalThis) {
   }
 
   function refreshFocusOwnerTooltip(target) {
-    truncatedDescendants(target).forEach((descendant) => syncTarget(descendant));
+    descendantTargets(target).forEach((descendant) => syncTarget(descendant));
     return showFocusOwnerTooltip(target);
   }
 
@@ -155,7 +161,7 @@ function createHexMapTruncation(root = globalThis) {
     documentRef.addEventListener("focusin", (event) => {
       const target = targetFor(event.target);
       if (target) show(target);
-      else if (event.target instanceof Element && event.target.matches("[data-hex-truncation-focus-owner]")) showFocusOwnerTooltip(event.target);
+      else if (event.target instanceof Element && event.target.matches("[data-hex-truncation-focus-owner]")) refreshFocusOwnerTooltip(event.target);
     });
     documentRef.addEventListener("focusout", (event) => {
       const target = targetFor(event.target);

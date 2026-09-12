@@ -1617,6 +1617,10 @@
         white-space: nowrap;
       }
 
+      .sensor-network-text--compact {
+        display: none;
+      }
+
       .sensor-observed-text {
         display: block;
         width: 100%;
@@ -1705,7 +1709,8 @@
             width: auto;
           }
 
-          .sensor-table th.sensor-col-network {
+          .sensor-table th.sensor-col-network,
+          .sensor-table td.sensor-col-network {
             display: none;
           }
 
@@ -1717,66 +1722,24 @@
             display: inline-flex;
           }
 
-          .sensor-table tbody tr:not(.sensor-row-divider) {
-            display: grid;
-            grid-template-columns: 68px 32px minmax(0, 1fr) 136px 184px;
-            grid-template-areas:
-              "select symbol sensor value updated"
-              "select symbol network value updated";
-            min-height: 58px;
-            height: auto;
-            padding: 8px 0;
-            align-items: center;
-          }
-
+          .sensor-table tbody tr:not(.sensor-row-divider),
           .sensor-table tbody tr:not(.sensor-row-divider) > td {
+            height: 58px;
+          }
+
+          .sensor-table .sensor-network-text--wide {
+            display: none;
+          }
+
+          .sensor-table .sensor-network-text--compact {
             display: block;
-            width: auto;
-            min-width: 0;
-            height: auto;
-            padding: 0 12px;
-          }
-
-          .sensor-table td.sensor-chart-select-col {
-            grid-area: select;
-            padding-left: 0;
-            padding-right: 0;
-          }
-
-          .sensor-table td.sensor-chart-symbol-col {
-            grid-area: symbol;
-            padding-left: 0;
-            padding-right: 0;
-          }
-
-          .sensor-table td.sensor-col-sensor {
-            grid-area: sensor;
-            align-self: end;
-            padding-left: 0;
-          }
-
-          .sensor-table td.sensor-col-network {
-            grid-area: network;
-            align-self: start;
-          }
-
-          .sensor-table .sensor-network-text {
             color: var(--ink-soft);
             font-size: 0.76rem;
           }
 
-          .sensor-table td.sensor-col-value {
-            grid-area: value;
-            align-self: center;
-          }
-
-          .sensor-table td.sensor-col-updated {
-            grid-area: updated;
-            align-self: center;
-          }
-
           .sensor-table .sensor-identity-cell {
-            display: block;
+            display: grid;
+            gap: 2px;
           }
         }
       }
@@ -6022,6 +5985,15 @@
         .hex-map-page .sensor-table td.sensor-col-sensor {
           grid-area: sensor;
           align-self: end;
+        }
+
+        .hex-map-page .sensor-table td.sensor-col-network,
+        .hex-map-page .sensor-table .sensor-network-text--wide {
+          display: none;
+        }
+
+        .hex-map-page .sensor-table .sensor-network-text--compact {
+          display: block;
         }
 
         .hex-map-page .sensor-table td.sensor-col-value {
