@@ -97,6 +97,23 @@ function createHexMapTruncation(root = globalThis) {
     return eventTarget instanceof Element ? eventTarget.closest(TARGET_SELECTOR) : null;
   }
 
+  function truncatedDescendants(target) {
+    if (!(target instanceof Element)) return [];
+    return Array.from(target.querySelectorAll(`${TARGET_SELECTOR}[data-hex-truncated="true"]`));
+  }
+
+  function showFocusOwnerTooltip(target) {
+    const descendants = truncatedDescendants(target);
+    if (!descendants.length) return;
+    const tooltipElement = getTooltip();
+    tooltipElement.textContent = descendants.map((item) => item.textContent.trim()).filter(Boolean).join(" · ");
+    if (!tooltipElement.textContent) return;
+    tooltipElement.hidden = false;
+    target.setAttribute("aria-describedby", TOOLTIP_ID);
+    shownTarget = target;
+    positionTooltip(target, tooltipElement);
+  }
+
   function mount() {
     if (mounted) return;
     mounted = true;
@@ -105,10 +122,18 @@ function createHexMapTruncation(root = globalThis) {
       const target = targetFor(event.target);
       if (target && !target.contains(event.relatedTarget)) hide(target);
     });
-    documentRef.addEventListener("focusin", (event) => show(targetFor(event.target)));
+    documentRef.addEventListener("focusin", (event) => {
+      const target = targetFor(event.target);
+      if (target) show(target);
+      else if (event.target instanceof Element && event.target.matches("[data-hex-truncation-focus-owner]")) showFocusOwnerTooltip(event.target);
+    });
     documentRef.addEventListener("focusout", (event) => {
       const target = targetFor(event.target);
+      const owner = event.target instanceof Element && event.target.matches("[data-hex-truncation-focus-owner]")
+        ? event.target
+        : null;
       if (target && !target.contains(event.relatedTarget)) hide(target);
+      else if (owner && !owner.contains(event.relatedTarget)) hide(owner);
     });
     root.addEventListener("resize", () => {
       if (shownTarget) {

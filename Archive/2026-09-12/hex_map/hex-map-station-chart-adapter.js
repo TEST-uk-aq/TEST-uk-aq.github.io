@@ -383,6 +383,7 @@
           ? root.ChartCore.getSymbolSvgMarkup(index, { className: "hex-chart-symbol-svg chart-mode-sensor-symbol-svg", sizePx: 28, area: 160 })
           : "";
       });
+      root.UkAqHexMapTruncation?.refresh?.(refs.body);
       const ordered = active ? orderedVisibleIds(mapKey) : [];
       const selectFill = refs.wrap.querySelector(".hex-chart-selector[data-chart-header-action='select-fill']");
       const keepTop = refs.wrap.querySelector(".hex-chart-selector[data-chart-header-action='keep-top']");

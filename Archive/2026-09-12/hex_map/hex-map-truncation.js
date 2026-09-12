@@ -9,7 +9,7 @@ function createHexMapTruncation(root = globalThis) {
   let tooltip = null;
   let shownTarget = null;
   let resizeObserver = null;
-  const observed = new WeakSet();
+  const observed = new Set();
 
   function getTooltip() {
     if (tooltip?.isConnected) return tooltip;
@@ -32,6 +32,11 @@ function createHexMapTruncation(root = globalThis) {
 
   function restoreTabIndex(target) {
     if (target.dataset.hexTruncationAddedTabindex !== "true") return;
+    if (target.getAttribute("role") === "button" && target.getAttribute("tabindex") === "0") {
+      delete target.dataset.hexTruncationAddedTabindex;
+      delete target.dataset.hexTruncationOriginalTabindex;
+      return;
+    }
     const original = target.dataset.hexTruncationOriginalTabindex;
     if (original) target.setAttribute("tabindex", original);
     else target.removeAttribute("tabindex");
@@ -113,13 +118,31 @@ function createHexMapTruncation(root = globalThis) {
     }, { passive: true });
     if (typeof root.ResizeObserver === "function") {
       resizeObserver = new root.ResizeObserver((entries) => {
-        entries.forEach((entry) => syncTarget(entry.target));
+        entries.forEach((entry) => {
+          if (!entry.target.isConnected) {
+            resizeObserver.unobserve(entry.target);
+            observed.delete(entry.target);
+            return;
+          }
+          syncTarget(entry.target);
+        });
       });
     }
   }
 
+  function pruneDisconnectedTargets() {
+    if (!resizeObserver) return;
+    observed.forEach((target) => {
+      if (!target.isConnected) {
+        resizeObserver.unobserve(target);
+        observed.delete(target);
+      }
+    });
+  }
+
   function refresh(scope = documentRef) {
     mount();
+    pruneDisconnectedTargets();
     const targets = [];
     if (scope instanceof Element && scope.matches(TARGET_SELECTOR)) targets.push(scope);
     if (scope?.querySelectorAll) targets.push(...scope.querySelectorAll(TARGET_SELECTOR));

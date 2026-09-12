@@ -1207,6 +1207,12 @@
         border-radius: 4px;
       }
 
+      .sensor-panel-title[data-hex-truncated="true"]:focus-visible {
+        outline: 2px solid rgba(60, 120, 172, 0.45);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
       .sensor-panel-reading {
         font-size: 1.12rem;
         line-height: 1.25;
@@ -4783,7 +4789,7 @@
 
       .hex-chart-selected-sensor-chip {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-columns: 22px minmax(0, 1fr) auto auto;
         align-items: center;
         gap: 6px;
         min-width: 0;
@@ -4791,7 +4797,7 @@
         border: 0;
         border-radius: 8px;
         padding: 7px 10px;
-        min-height: 34px;
+        min-height: 42px;
         box-shadow: none;
       }
 
@@ -4817,9 +4823,9 @@
       }
 
       .hex-chart-chip-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 2px;
         min-width: 0;
       }
 
@@ -4834,6 +4840,7 @@
       }
 
       .hex-chart-chip-network {
+        display: block;
         font-size: 0.82rem;
         color: var(--ink-soft);
         min-width: 0;

@@ -906,7 +906,7 @@
 
       .sensor-table {
         width: 100%;
-        min-width: 760px;
+        min-width: 640px;
         table-layout: fixed;
         border-collapse: collapse;
         font-size: 0.9rem;
@@ -936,7 +936,7 @@
 
       .sensor-table th.sensor-chart-select-col,
       .sensor-table td.sensor-chart-select-col {
-        width: 21px;
+        width: 68px;
         text-align: center;
         padding-top: 10px;
         padding-bottom: 10px;
@@ -968,7 +968,7 @@
 
       .sensor-table th.sensor-chart-symbol-col,
       .sensor-table td.sensor-chart-symbol-col {
-        width: 13px;
+        width: 32px;
         text-align: left;
         padding-top: 0;
         padding-bottom: 0;
@@ -979,23 +979,29 @@
 
       .sensor-table th.sensor-col-sensor,
       .sensor-table td.sensor-col-sensor {
-        width: 36%;
         padding-left: 0;
-      }
-
-      .sensor-table th.sensor-col-network,
-      .sensor-table td.sensor-col-network {
-        width: 18%;
       }
 
       .sensor-table th.sensor-col-value,
       .sensor-table td.sensor-col-value {
-        width: 15%;
+        width: 136px;
       }
 
       .sensor-table th.sensor-col-updated,
       .sensor-table td.sensor-col-updated {
-        width: 20%;
+        width: 184px;
+      }
+
+      .sensor-sort-header-stack {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .sort-header--network .sort-label {
+        color: var(--ink-soft);
+        font-size: 0.74rem;
+        font-weight: 600;
       }
 
       /* ── [hidden] override ──────────────────────────────── */
@@ -1129,7 +1135,7 @@
         align-items: center;
         gap: 8px;
         min-width: 0;
-        flex: 0 1 auto;
+        flex: 1 1 auto;
       }
 
       .sensor-title-icon-button {
@@ -1176,6 +1182,8 @@
       }
 
       .sensor-panel-title {
+        min-width: 0;
+        flex: 1 1 auto;
         font-weight: 700;
         font-size: 1.12rem;
         white-space: nowrap;
@@ -1515,11 +1523,11 @@
 
       .sensor-table tbody tr {
         border-top: 1px solid rgba(20, 34, 37, 0.08);
-        height: 46px;
+        height: 58px;
       }
 
       .sensor-table tbody tr:not(.sensor-row-divider) > td {
-        height: 46px;
+        height: auto;
       }
 
       .sensor-table tbody tr:first-child {
@@ -1574,6 +1582,46 @@
         padding: 0;
         text-align: left;
         text-decoration: none;
+      }
+
+      .sensor-identity-cell {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .sensor-network-text {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        color: var(--ink-soft);
+        font-size: 0.76rem;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sensor-observed-text {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sensor-network-text:focus-visible {
+        outline: 2px solid rgba(60, 120, 172, 0.45);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      .sensor-reading-text:focus-visible,
+      .sensor-observed-text:focus-visible,
+      .sensor-table td.sensor-col-updated:focus-visible {
+        outline: 2px solid rgba(60, 120, 172, 0.45);
+        outline-offset: 2px;
+        border-radius: 4px;
       }
 
       .sensor-name-button:hover {
@@ -2389,6 +2437,21 @@
         opacity: 0;
         transform: translateY(8px);
         transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+
+      .hex-map-truncation-tooltip {
+        position: fixed;
+        z-index: 10000;
+        max-width: min(360px, calc(100vw - 16px));
+        padding: 7px 10px;
+        border-radius: 6px;
+        background: #142225;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(20, 34, 37, 0.22);
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        font-size: 0.78rem;
+        line-height: 1.3;
+        pointer-events: none;
       }
 
       .tooltip-title {
@@ -5769,7 +5832,6 @@
           grid-template-columns: minmax(0, 1fr) max-content 32px;
           grid-template-areas:
             "sensor value action"
-            "network network action"
             "updated updated action";
           gap: 3px 8px;
           align-items: center;
@@ -5782,8 +5844,7 @@
           grid-template-columns: 44px 28px minmax(0, 1fr) max-content;
           grid-template-areas:
             "select symbol sensor sensor"
-            "select symbol network value"
-            "select symbol updated updated";
+            "select symbol updated value";
         }
 
         .hex-map-page .sensor-table tbody tr:not(.sensor-row-divider) > td {
@@ -5857,14 +5918,6 @@
           align-self: end;
         }
 
-        .hex-map-page .sensor-table td.sensor-col-network {
-          grid-area: network;
-          align-self: start;
-          color: var(--ink-3);
-          font-size: 0.72rem;
-          line-height: 1.25;
-        }
-
         .hex-map-page .sensor-table td.sensor-col-value {
           grid-area: value;
           max-width: 42vw;
@@ -5887,20 +5940,30 @@
           white-space: normal;
         }
 
+        .hex-map-page .sensor-table .sensor-observed-text {
+          white-space: normal;
+          overflow: visible;
+          text-overflow: clip;
+        }
+
         .hex-map-page .sensor-table td.sensor-col-updated::before {
           content: "Observed ";
         }
 
         .hex-map-page .sensor-table .sensor-name-button {
-          display: -webkit-box;
+          display: block;
           min-width: 0;
           overflow: hidden;
           font-weight: 600;
           line-height: 1.2;
           text-overflow: ellipsis;
-          white-space: normal;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
+          white-space: nowrap;
+        }
+
+        .hex-map-page .sensor-table .sensor-network-text {
+          color: var(--ink-3);
+          font-size: 0.72rem;
+          line-height: 1.25;
         }
 
         .hex-map-page .sensor-table .sensor-reading-cell {
