@@ -337,12 +337,13 @@
     }
 
     .home-main {
+      --home-main-footer-gap: 24px;
       position: relative;
       width: 100%;
       max-width: none;
       margin: 0;
       box-sizing: border-box;
-      padding: 6px 28px 96px;
+      padding: 6px 28px var(--home-main-footer-gap);
       background: transparent;
       border-radius: 0;
       box-shadow: none;
@@ -1898,7 +1899,7 @@
       }
 
       .home-main {
-        padding: 6px 16px 84px;
+        padding: 6px 16px var(--home-main-footer-gap);
         gap: 16px;
       }
 

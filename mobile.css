@@ -29,7 +29,7 @@
   /* Mobile homepage sections follow the Hex Map precedent: outer desktop
      shells are replaced with a single restrained boundary line. */
   .home-page .home-main {
-    padding: 0 12px 84px;
+    padding: 0 12px var(--home-main-footer-gap);
     gap: 0;
   }
 

@@ -13,10 +13,6 @@
   }
 }
 
-.home-page .home-main {
-  padding-bottom: 48px !important;
-}
-
 /*
  * On short pages, use the body's spare viewport height to push the footer to
  * the bottom of the screen. Long pages remain normal scrolling documents.
