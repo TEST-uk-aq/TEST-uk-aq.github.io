@@ -124,18 +124,24 @@
   }
 
   .home-page .homepage-media-mobile-controls {
+    --homepage-media-mobile-control-width: min(44px, calc((100vw - 56px) / 8));
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 2px;
-    min-height: 44px;
+    height: 20px;
+    min-height: 0;
+    overflow: visible;
   }
 
   .home-page .homepage-media-mobile-controls .homepage-media-carousel-button,
   .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot {
     display: grid;
     place-items: center;
-    height: 44px;
+    position: relative;
+    box-sizing: border-box;
+    width: var(--homepage-media-mobile-control-width);
+    height: 20px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -145,8 +151,18 @@
     line-height: 1;
   }
 
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-button::before,
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot::before {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--homepage-media-mobile-control-width);
+    height: 44px;
+    content: "";
+    transform: translateX(-50%);
+  }
+
   .home-page .homepage-media-mobile-controls .homepage-media-carousel-button {
-    width: 34px;
     font-size: 0.84rem;
   }
 
@@ -156,7 +172,6 @@
   }
 
   .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot {
-    width: 32px;
     font-size: 0.98rem;
     opacity: 0.65;
   }
