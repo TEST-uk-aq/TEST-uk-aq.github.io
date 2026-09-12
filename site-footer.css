@@ -36,6 +36,11 @@ body:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) > #ukaq-site
   body.hex-map-page:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) {
     min-height: 0;
   }
+
+  body.hex-map-page:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport)
+    > #ukaq-site-footer {
+    margin-top: 0;
+  }
 }
 
 body #ukaq-site-footer {
