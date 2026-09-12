@@ -5021,7 +5021,7 @@
         }
 
         .hex-map-page .map-summary-strip {
-          display: grid;
+          display: none;
           grid-column: 1;
           grid-row: 3;
           grid-template-columns: minmax(0, 1fr);
