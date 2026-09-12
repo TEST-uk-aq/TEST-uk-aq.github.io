@@ -4795,22 +4795,26 @@
         pointer-events: auto;
       }
 
-      .legend-pill > span:first-child,
-      .legend-pill > #legend-label,
-      .legend-pill > #cr-legend-label {
+      .legend-title-line {
+        display: contents;
+      }
+
+      .legend-title-line > span:first-child,
+      .legend-title-line > #legend-label,
+      .legend-title-line > #cr-legend-label {
         display: flex;
         align-items: center;
         width: 100%;
         min-height: 18px;
       }
 
-      .legend-pill > span:first-child {
+      .legend-title-line > span:first-child {
         text-align: right;
         justify-content: flex-end;
       }
 
-      .legend-pill > #legend-label,
-      .legend-pill > #cr-legend-label {
+      .legend-title-line > #legend-label,
+      .legend-title-line > #cr-legend-label {
         text-align: left;
         justify-content: flex-start;
       }
@@ -4844,13 +4848,13 @@
          the pollutant/method line. */
       @container map-canvas (max-width: 660px) {
         .map-legend-region .legend-pill {
-          width: 100%;
+          width: fit-content;
           max-width: 100%;
           box-sizing: border-box;
-          grid-template-columns: minmax(0, 1fr) max-content;
+          grid-template-columns: minmax(0, 1fr);
           grid-template-areas:
-            "pollutant aggregation"
-            "scale scale";
+            "title"
+            "scale";
           justify-content: center;
           justify-items: center;
           column-gap: 6px;
@@ -4860,35 +4864,31 @@
           white-space: normal;
         }
 
-        .map-legend-region .legend-pill > span:first-child {
-          grid-area: pollutant;
-          width: auto;
+        .map-legend-region .legend-title-line {
+          grid-area: title;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
           min-height: 0;
-          justify-self: end;
-          justify-content: flex-end;
+        }
+
+        .map-legend-region .legend-title-line > span:first-child {
           font-size: 0.78rem;
           line-height: 1.2;
-          text-align: right;
           white-space: nowrap;
         }
 
-        .map-legend-region .legend-pill > #legend-label,
-        .map-legend-region .legend-pill > #cr-legend-label {
-          grid-area: aggregation;
-          width: auto;
-          min-height: 0;
-          justify-self: start;
-          justify-content: flex-start;
+        .map-legend-region .legend-title-line > #legend-label,
+        .map-legend-region .legend-title-line > #cr-legend-label {
           font-size: 0.78rem;
           line-height: 1.2;
-          text-align: left;
           white-space: nowrap;
         }
 
-        .map-legend-region .legend-pill > #legend-label::before,
-        .map-legend-region .legend-pill > #cr-legend-label::before {
+        .map-legend-region .legend-title-line > #legend-label::before,
+        .map-legend-region .legend-title-line > #cr-legend-label::before {
           content: "·";
-          margin-right: 6px;
         }
 
         .map-legend-region .legend-pill .legend-scale {
@@ -5611,13 +5611,13 @@
         }
 
         .hex-map-page .legend-pill {
-          width: 100%;
+          width: fit-content;
           max-width: 100%;
           box-sizing: border-box;
-          grid-template-columns: minmax(0, 1fr) max-content;
+          grid-template-columns: minmax(0, 1fr);
           grid-template-areas:
-            "pollutant aggregation"
-            "scale scale";
+            "title"
+            "scale";
           justify-content: center;
           justify-items: center;
           column-gap: 6px;
@@ -5630,37 +5630,33 @@
           white-space: normal;
         }
 
-        .hex-map-page .legend-pill > span:first-child {
-          grid-area: pollutant;
-          width: auto;
+        .hex-map-page .legend-title-line {
+          grid-area: title;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
           min-height: 0;
-          justify-self: end;
-          justify-content: flex-end;
+        }
+
+        .hex-map-page .legend-title-line > span:first-child {
           font-size: 0.78rem;
           font-weight: 500;
           line-height: 1.2;
-          text-align: right;
           white-space: nowrap;
         }
 
-        .hex-map-page .legend-pill > #legend-label,
-        .hex-map-page .legend-pill > #cr-legend-label {
-          grid-area: aggregation;
-          width: auto;
-          min-height: 0;
-          justify-self: start;
-          justify-content: flex-start;
+        .hex-map-page .legend-title-line > #legend-label,
+        .hex-map-page .legend-title-line > #cr-legend-label {
           font-size: 0.78rem;
           font-weight: 500;
           line-height: 1.2;
-          text-align: left;
           white-space: nowrap;
         }
 
-        .hex-map-page .legend-pill > #legend-label::before,
-        .hex-map-page .legend-pill > #cr-legend-label::before {
+        .hex-map-page .legend-title-line > #legend-label::before,
+        .hex-map-page .legend-title-line > #cr-legend-label::before {
           content: "·";
-          margin-right: 6px;
         }
 
         .hex-map-page .legend-pill .legend-scale {
@@ -5687,7 +5683,11 @@
         }
 
         .hex-map-page .map-canvas-wrap.hex-selected .map-legend-region {
-          bottom: calc(var(--sensor-panel-height, 280px) + 8px);
+          bottom: calc(var(--sensor-panel-height, 280px) + 4px);
+        }
+
+        .hex-map-page .map-legend-region {
+          bottom: 4px;
         }
 
         .hex-map-page .map-dashboard-card #uk-toolbar-slot,
