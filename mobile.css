@@ -210,16 +210,26 @@
   }
 
   .home-page .home-main > .who-dashboard-card {
-    gap: 8px;
+    gap: 10px;
     padding-top: 11px;
+  }
+
+  .home-page .who-summary-shell {
+    display: grid;
+    gap: 0;
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--who-line);
+    border-radius: 14px;
+    background: var(--who-surface);
+    box-shadow: none;
   }
 
   .home-page .who-card-header {
     align-items: flex-start;
     flex-direction: column;
     gap: 4px;
-    padding-left: 10px;
-    border-left: 4px solid var(--who-accent);
+    margin-bottom: 9px;
   }
 
   .home-page .who-header-actions {
@@ -227,6 +237,19 @@
     flex-wrap: wrap;
     justify-content: flex-start;
     gap: 0.4rem;
+  }
+
+  .home-page .who-summary-shell > .who-toggle {
+    margin-bottom: 9px;
+  }
+
+  .home-page .who-summary-shell .who-rolling-card,
+  .home-page .who-summary-shell .who-summary-card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .home-page .who-dashboard-card,

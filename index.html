@@ -1533,6 +1533,10 @@
       margin-top: 0;
     }
 
+    .who-summary-shell {
+      display: contents;
+    }
+
     .who-card-header {
       display: flex;
       align-items: center;
@@ -2062,27 +2066,27 @@
       <div data-homepage-media-mobile-content></div>
     </aside>
     <section class="who-dashboard-card who-bars-pending" aria-labelledby="who-guideline-title">
-      <div class="who-card-header">
-        <div class="who-title-group">
-          <h2 class="who-title" id="who-guideline-title">WHO guideline summary</h2>
-        </div>
-        <div class="who-header-actions">
-          <span class="who-status" data-who-status aria-live="polite"></span>
-          <span class="who-source-pill">GOV.UK AURN only</span>
+      <div class="who-summary-shell">
+        <div class="who-card-header">
+          <div class="who-title-group">
+            <h2 class="who-title" id="who-guideline-title">WHO guideline summary</h2>
+          </div>
+          <div class="who-header-actions">
+            <span class="who-status" data-who-status aria-live="polite"></span>
+            <span class="who-source-pill">GOV.UK AURN only</span>
 <!--          <a class="who-page-button"  aria-label="Open the WHO guideline page">
           <a class="who-page-button" href="/who-guidelines/" aria-label="Open the WHO guideline page"> 
             <img src="sidebar-images/UK-AQ-WHO-button-medium.svg" alt="WHO" /> -->
-          </a>
+          </div>
         </div>
-      </div>
 
-      <div class="who-toggle" role="tablist" aria-label="WHO guideline summary range">
-        <button type="button" id="who-tab-rolling-combined" role="tab" aria-selected="true" aria-controls="who-card-rolling-combined" data-who-tab="rolling-combined">Rolling year</button>
-        <button type="button" id="who-tab-last-year" role="tab" aria-selected="false" aria-controls="who-card-last-year" data-who-tab="last-year">Last year</button>
-      </div>
+        <div class="who-toggle" role="tablist" aria-label="WHO guideline summary range">
+          <button type="button" id="who-tab-rolling-combined" role="tab" aria-selected="true" aria-controls="who-card-rolling-combined" data-who-tab="rolling-combined">Rolling year</button>
+          <button type="button" id="who-tab-last-year" role="tab" aria-selected="false" aria-controls="who-card-last-year" data-who-tab="last-year">Last year</button>
+        </div>
 
-      <div class="who-summary-grid">
-        <article class="who-rolling-card is-active" id="who-card-rolling-combined" role="tabpanel" aria-labelledby="who-tab-rolling-combined" data-who-card="rolling-combined">
+        <div class="who-summary-grid">
+          <article class="who-rolling-card is-active" id="who-card-rolling-combined" role="tabpanel" aria-labelledby="who-tab-rolling-combined" data-who-card="rolling-combined">
           <div class="who-rolling-card-header">
             <div class="who-rolling-title">
               <div class="who-summary-label">Rolling year</div>
@@ -2162,9 +2166,9 @@
               </div>
             </section>
           </div>
-        </article>
+          </article>
 
-        <article class="who-summary-card" id="who-card-last-year" role="tabpanel" aria-labelledby="who-tab-last-year" data-who-card="last-year">
+          <article class="who-summary-card" id="who-card-last-year" role="tabpanel" aria-labelledby="who-tab-last-year" data-who-card="last-year">
           <div class="who-summary-card-header">
             <div class="who-summary-label">Last full year</div>
             <div class="who-summary-value" data-who-calendar-year>2025</div>
@@ -2198,7 +2202,8 @@
               <div class="who-bar" aria-label="79.6 percent of NO2 AURN sensors above WHO yearly guideline in 2025" data-who-bar><span class="who-bar-fill" style="--pct: 79.6%" data-who-bar-fill></span></div>
             </div>
           </div>
-        </article>
+          </article>
+        </div>
       </div>
 
       <div class="who-card-footer">
