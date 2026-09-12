@@ -45,7 +45,10 @@
     display: grid;
     gap: 12px;
     margin: 0;
-    padding: 4px 0 16px;
+    padding: 18px 14px 10px;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(40, 90, 132, 0.05);
   }
 
   .home-page .homepage-media-mobile-heading {
@@ -54,8 +57,9 @@
 
   .home-page .homepage-media-mobile-heading img {
     display: block;
-    width: 100%;
+    width: 90%;
     height: auto;
+    margin: 0 auto;
   }
 
   .home-page .homepage-media-mobile-card {
@@ -104,6 +108,55 @@
     right: 14px;
     width: clamp(18px, 5vw, 24px);
     height: auto;
+  }
+
+  .home-page .homepage-media-mobile-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-button,
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot {
+    display: grid;
+    place-items: center;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #526273;
+    cursor: pointer;
+    font: inherit;
+    line-height: 1;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-button {
+    width: 34px;
+    font-size: 0.84rem;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dots {
+    display: flex;
+    gap: 0;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot {
+    width: 32px;
+    font-size: 0.98rem;
+    opacity: 0.65;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot[aria-current="true"] {
+    color: #3c78ac;
+    opacity: 1;
+  }
+
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-button:focus-visible,
+  .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot:focus-visible {
+    outline: 2px solid #3c78ac;
+    outline-offset: -3px;
   }
 
   .home-page .home-main > section {

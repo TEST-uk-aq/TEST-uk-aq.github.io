@@ -60,7 +60,6 @@
     stopRotation();
     if (
       articles.length < 2 ||
-      !desktopQuery.matches ||
       reducedMotionQuery.matches ||
       document.hidden
     ) return;
@@ -112,7 +111,41 @@
     icon.alt = "";
     icon.setAttribute("aria-hidden", "true");
     card.append(icon);
-    mobileContent.replaceChildren(card);
+    mobileContent.replaceChildren(card, createControls("homepage-media-mobile-controls"));
+  }
+
+  function createControls(extraClass = "") {
+    const controls = document.createElement("div");
+    controls.className = ["homepage-media-carousel-controls", extraClass].filter(Boolean).join(" ");
+    const previous = addTextElement("button", "homepage-media-carousel-button", "◀");
+    previous.type = "button";
+    previous.setAttribute("aria-label", "Previous article");
+    previous.addEventListener("click", () => {
+      showArticle(currentIndex - 1);
+      scheduleRotation();
+    });
+    const dots = document.createElement("div");
+    dots.className = "homepage-media-carousel-dots";
+    articles.forEach((_item, index) => {
+      const dot = addTextElement("button", "homepage-media-carousel-dot", index === currentIndex ? "●" : "○");
+      dot.type = "button";
+      dot.setAttribute("aria-label", `Show article ${index + 1}`);
+      if (index === currentIndex) dot.setAttribute("aria-current", "true");
+      dot.addEventListener("click", () => {
+        showArticle(index);
+        scheduleRotation();
+      });
+      dots.append(dot);
+    });
+    const next = addTextElement("button", "homepage-media-carousel-button", "▶");
+    next.type = "button";
+    next.setAttribute("aria-label", "Next article");
+    next.addEventListener("click", () => {
+      showArticle(currentIndex + 1);
+      scheduleRotation();
+    });
+    controls.append(previous, dots, next);
+    return controls;
   }
 
   function showArticle(nextIndex) {
@@ -121,9 +154,11 @@
     const article = articles[currentIndex];
     const title = text(article.display_title) || text(article.title);
     const publisher = text(article.publisher) || "Publisher";
-    showMobileArticle(article, publisher, title);
 
-    if (!desktopQuery.matches) return;
+    if (!desktopQuery.matches) {
+      showMobileArticle(article, publisher, title);
+      return;
+    }
 
     const card = articleLink(article, "homepage-media-carousel-card", publisher, title);
 
@@ -160,37 +195,7 @@
     overlay.append(addTextElement("h3", "homepage-media-carousel-title", title));
     card.append(overlay);
 
-    const controls = document.createElement("div");
-    controls.className = "homepage-media-carousel-controls";
-    const previous = addTextElement("button", "homepage-media-carousel-button", "◀");
-    previous.type = "button";
-    previous.setAttribute("aria-label", "Previous article");
-    previous.addEventListener("click", () => {
-      showArticle(currentIndex - 1);
-      scheduleRotation();
-    });
-    const dots = document.createElement("div");
-    dots.className = "homepage-media-carousel-dots";
-    articles.forEach((_item, index) => {
-      const dot = addTextElement("button", "homepage-media-carousel-dot", index === currentIndex ? "●" : "○");
-      dot.type = "button";
-      dot.setAttribute("aria-label", `Show article ${index + 1}`);
-      if (index === currentIndex) dot.setAttribute("aria-current", "true");
-      dot.addEventListener("click", () => {
-        showArticle(index);
-        scheduleRotation();
-      });
-      dots.append(dot);
-    });
-    const next = addTextElement("button", "homepage-media-carousel-button", "▶");
-    next.type = "button";
-    next.setAttribute("aria-label", "Next article");
-    next.addEventListener("click", () => {
-      showArticle(currentIndex + 1);
-      scheduleRotation();
-    });
-    controls.append(previous, dots, next);
-    content.replaceChildren(card, controls);
+    content.replaceChildren(card, createControls());
   }
 
   async function loadArticles() {
