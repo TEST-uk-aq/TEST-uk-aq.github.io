@@ -1012,10 +1012,6 @@
         font-weight: 600;
       }
 
-      .sort-header--narrow {
-        display: none;
-      }
-
       /* ── [hidden] override ──────────────────────────────── */
       [hidden] { display: none !important; }
 
@@ -1491,6 +1487,10 @@
         letter-spacing: inherit;
       }
 
+      .sensor-table .sort-header--narrow {
+        display: none;
+      }
+
       .sort-header:hover {
         background: rgba(60, 120, 172, 0.08);
       }
@@ -1697,7 +1697,10 @@
       }
 
       @media (min-width: 768px) {
-        @container sensor-table (max-width: 1023px) {
+        /* Fixed columns and their cell padding use about 504px. Keeping at
+           least 240px for Sensor and 120px for Network leaves a small buffer
+           at this 900px wrapper threshold. */
+        @container sensor-table (max-width: 899px) {
           .sensor-table {
             min-width: 0;
           }
