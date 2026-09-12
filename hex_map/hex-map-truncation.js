@@ -104,14 +104,44 @@ function createHexMapTruncation(root = globalThis) {
 
   function showFocusOwnerTooltip(target) {
     const descendants = truncatedDescendants(target);
-    if (!descendants.length) return;
+    if (!descendants.length) {
+      hide();
+      return false;
+    }
     const tooltipElement = getTooltip();
     tooltipElement.textContent = descendants.map((item) => item.textContent.trim()).filter(Boolean).join(" · ");
-    if (!tooltipElement.textContent) return;
+    if (!tooltipElement.textContent) {
+      hide();
+      return false;
+    }
     tooltipElement.hidden = false;
     target.setAttribute("aria-describedby", TOOLTIP_ID);
     shownTarget = target;
     positionTooltip(target, tooltipElement);
+    return true;
+  }
+
+  function isFocusOwner(target) {
+    return target instanceof Element && target.matches("[data-hex-truncation-focus-owner]");
+  }
+
+  function refreshFocusOwnerTooltip(target) {
+    truncatedDescendants(target).forEach((descendant) => syncTarget(descendant));
+    return showFocusOwnerTooltip(target);
+  }
+
+  function refreshShownTooltip() {
+    if (!shownTarget) return;
+    if (!shownTarget.isConnected) {
+      hide(shownTarget);
+      return;
+    }
+    if (isFocusOwner(shownTarget)) {
+      refreshFocusOwnerTooltip(shownTarget);
+      return;
+    }
+    syncTarget(shownTarget);
+    show(shownTarget);
   }
 
   function mount() {
@@ -136,10 +166,7 @@ function createHexMapTruncation(root = globalThis) {
       else if (owner && !owner.contains(event.relatedTarget)) hide(owner);
     });
     root.addEventListener("resize", () => {
-      if (shownTarget) {
-        syncTarget(shownTarget);
-        show(shownTarget);
-      }
+      refreshShownTooltip();
     }, { passive: true });
     if (typeof root.ResizeObserver === "function") {
       resizeObserver = new root.ResizeObserver((entries) => {
@@ -151,6 +178,7 @@ function createHexMapTruncation(root = globalThis) {
           }
           syncTarget(entry.target);
         });
+        refreshShownTooltip();
       });
     }
   }

@@ -897,6 +897,8 @@
       }
 
       .sensor-table-wrap {
+        container-type: inline-size;
+        container-name: sensor-table;
         overflow-x: auto;
         overflow-y: hidden;
         overscroll-behavior-y: contain;
@@ -979,7 +981,13 @@
 
       .sensor-table th.sensor-col-sensor,
       .sensor-table td.sensor-col-sensor {
+        width: 36%;
         padding-left: 0;
+      }
+
+      .sensor-table th.sensor-col-network,
+      .sensor-table td.sensor-col-network {
+        width: 18%;
       }
 
       .sensor-table th.sensor-col-value,
@@ -1002,6 +1010,10 @@
         color: var(--ink-soft);
         font-size: 0.74rem;
         font-weight: 600;
+      }
+
+      .sort-header--narrow {
+        display: none;
       }
 
       /* ── [hidden] override ──────────────────────────────── */
@@ -1529,11 +1541,11 @@
 
       .sensor-table tbody tr {
         border-top: 1px solid rgba(20, 34, 37, 0.08);
-        height: 58px;
+        height: 46px;
       }
 
       .sensor-table tbody tr:not(.sensor-row-divider) > td {
-        height: auto;
+        height: 46px;
       }
 
       .sensor-table tbody tr:first-child {
@@ -1591,8 +1603,6 @@
       }
 
       .sensor-identity-cell {
-        display: grid;
-        gap: 2px;
         min-width: 0;
       }
 
@@ -1600,8 +1610,8 @@
         display: block;
         min-width: 0;
         overflow: hidden;
-        color: var(--ink-soft);
-        font-size: 0.76rem;
+        color: var(--ink);
+        font-size: inherit;
         line-height: 1.2;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -1680,6 +1690,95 @@
       .sensor-chart-launch:focus-visible {
         outline: 2px solid rgba(60, 120, 172, 0.45);
         outline-offset: 2px;
+      }
+
+      @media (min-width: 768px) {
+        @container sensor-table (max-width: 1023px) {
+          .sensor-table {
+            min-width: 0;
+          }
+
+          .sensor-table th.sensor-col-sensor,
+          .sensor-table td.sensor-col-sensor,
+          .sensor-table th.sensor-col-network,
+          .sensor-table td.sensor-col-network {
+            width: auto;
+          }
+
+          .sensor-table th.sensor-col-network {
+            display: none;
+          }
+
+          .sensor-table .sort-header--wide {
+            display: none;
+          }
+
+          .sensor-table .sort-header--narrow {
+            display: inline-flex;
+          }
+
+          .sensor-table tbody tr:not(.sensor-row-divider) {
+            display: grid;
+            grid-template-columns: 68px 32px minmax(0, 1fr) 136px 184px;
+            grid-template-areas:
+              "select symbol sensor value updated"
+              "select symbol network value updated";
+            min-height: 58px;
+            height: auto;
+            padding: 8px 0;
+            align-items: center;
+          }
+
+          .sensor-table tbody tr:not(.sensor-row-divider) > td {
+            display: block;
+            width: auto;
+            min-width: 0;
+            height: auto;
+            padding: 0 12px;
+          }
+
+          .sensor-table td.sensor-chart-select-col {
+            grid-area: select;
+            padding-left: 0;
+            padding-right: 0;
+          }
+
+          .sensor-table td.sensor-chart-symbol-col {
+            grid-area: symbol;
+            padding-left: 0;
+            padding-right: 0;
+          }
+
+          .sensor-table td.sensor-col-sensor {
+            grid-area: sensor;
+            align-self: end;
+            padding-left: 0;
+          }
+
+          .sensor-table td.sensor-col-network {
+            grid-area: network;
+            align-self: start;
+          }
+
+          .sensor-table .sensor-network-text {
+            color: var(--ink-soft);
+            font-size: 0.76rem;
+          }
+
+          .sensor-table td.sensor-col-value {
+            grid-area: value;
+            align-self: center;
+          }
+
+          .sensor-table td.sensor-col-updated {
+            grid-area: updated;
+            align-self: center;
+          }
+
+          .sensor-table .sensor-identity-cell {
+            display: block;
+          }
+        }
       }
 
       .sensor-chart-launch img {
