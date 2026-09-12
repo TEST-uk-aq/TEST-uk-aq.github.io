@@ -10,7 +10,43 @@
   }
 
   .home-page .home-subtitle {
+    display: none;
     margin-top: 0;
+  }
+
+  /* Homepage-specific exception: retain the shared brand link, but align its
+     one-line asset with the existing 44px hamburger. */
+  .home-page #ukaq-home-logo {
+    top: 16px;
+    right: 16px;
+  }
+
+  .home-page #ukaq-home-logo img {
+    width: auto;
+    height: min(44px, calc(28.53vw - 19.97px));
+  }
+
+  /* Mobile homepage sections follow the Hex Map precedent: outer desktop
+     shells are replaced with a single restrained boundary line. */
+  .home-page .home-main {
+    padding: 0 12px 84px;
+    gap: 0;
+  }
+
+  .home-page .home-main > section {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 20px 0;
+    border-top: 1px solid #e4e6ea;
+  }
+
+  .home-page .who-dashboard-card,
+  .home-page .readings-dashboard {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .home-page .readings-header {

@@ -289,6 +289,28 @@
       }
     }
 
+    @media (min-width: 768px) and (max-width: 926px) {
+      .home-header-inner {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 456px);
+        gap: clamp(12px, 2vw, 18px);
+      }
+
+      .homepage-media-carousel {
+        width: min(100%, 440px);
+        padding: 8px;
+        border-radius: 18px;
+      }
+
+      .homepage-media-carousel-inner {
+        grid-template-columns: minmax(96px, 32%) minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .homepage-media-carousel-content {
+        gap: 4px;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .homepage-media-carousel-card,
       .homepage-media-carousel-cue {
