@@ -2570,7 +2570,6 @@ function initHexMapUkController(root) {
         const methodDisplayLabel = currentMetric === "median" ? "Typical (median)" : "Average (mean)";
         if (inlinePanelWindowLabel) inlinePanelWindowLabel.textContent = "";
         if (inlinePanelTitle) inlinePanelTitle.textContent = areaName;
-        truncation.refresh(inlinePanel);
         if (inlinePanelReading) {
           inlinePanelReading.innerHTML = `<span class="sensor-panel-value">${valueLabel}</span> <span class="sensor-panel-method">${methodDisplayLabel}</span>`;
         }
@@ -2584,6 +2583,7 @@ function initHexMapUkController(root) {
         const stationEntries = collectStationEntries(scopedRows, selectedPconCode);
         chartLaunchAvailable = stationEntries.length > 0;
         syncInlinePanelTitleInteractivity();
+        truncation.refresh(inlinePanel);
         if (!stationEntries.length) {
           const zeroCount = formatSelectedAreaSensorCount(0, 0);
           detailsMeta.textContent = zeroCount;
@@ -2665,7 +2665,7 @@ function initHexMapUkController(root) {
               }</td>
               <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button><span class="sensor-network-text" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></div></td>
               <td class="sensor-col-value"><span class="sensor-reading-cell"><span class="sensor-reading-dot" style="--sensor-reading-color:${readingColor}"></span><span class="sensor-reading-text" data-hex-truncation data-hex-truncation-focusable="true">${Number.isFinite(entry.value) ? `${formatValue(entry.value)} ${pollutantUnits}` : "-"}</span></span></td>
-              <td class="sensor-col-updated" data-hex-truncation data-hex-truncation-focusable="true">${updatedText}</td>
+              <td class="sensor-col-updated"><span class="sensor-observed-text" data-hex-truncation data-hex-truncation-focusable="true">${updatedText}</span></td>
             </tr>
           `;
         };
@@ -3945,6 +3945,7 @@ function initHexMapUkController(root) {
           return;
         }
         syncInlinePanelTitleInteractivity();
+        truncation.refresh(inlinePanel);
         if (detail.isChartMode) {
           return;
         }

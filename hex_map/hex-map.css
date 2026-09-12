@@ -989,7 +989,7 @@
 
       .sensor-table th.sensor-col-updated,
       .sensor-table td.sensor-col-updated {
-        width: 156px;
+        width: 184px;
       }
 
       .sensor-sort-header-stack {
@@ -1601,6 +1601,15 @@
         white-space: nowrap;
       }
 
+      .sensor-observed-text {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .sensor-network-text:focus-visible {
         outline: 2px solid rgba(60, 120, 172, 0.45);
         outline-offset: 2px;
@@ -1608,6 +1617,7 @@
       }
 
       .sensor-reading-text:focus-visible,
+      .sensor-observed-text:focus-visible,
       .sensor-table td.sensor-col-updated:focus-visible {
         outline: 2px solid rgba(60, 120, 172, 0.45);
         outline-offset: 2px;
@@ -5928,6 +5938,12 @@
           line-height: 1.25;
           text-align: left;
           white-space: normal;
+        }
+
+        .hex-map-page .sensor-table .sensor-observed-text {
+          white-space: normal;
+          overflow: visible;
+          text-overflow: clip;
         }
 
         .hex-map-page .sensor-table td.sensor-col-updated::before {
