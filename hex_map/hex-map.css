@@ -4780,6 +4780,7 @@
         position: relative;
         display: grid !important;
         grid-template-columns: minmax(88px, 148px) auto minmax(108px, 156px);
+        grid-template-areas: "pollutant scale method";
         align-items: center;
         column-gap: 10px;
         white-space: nowrap;
@@ -4809,14 +4810,14 @@
       }
 
       .legend-title-line > span:first-child {
-        grid-column: 1;
+        grid-area: pollutant;
         text-align: right;
         justify-content: flex-end;
       }
 
       .legend-title-line > #legend-label,
       .legend-title-line > #cr-legend-label {
-        grid-column: 3;
+        grid-area: method;
         text-align: left;
         justify-content: flex-start;
       }
@@ -4827,7 +4828,7 @@
       }
 
       .legend-pill .legend-scale {
-        grid-column: 2;
+        grid-area: scale;
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -4872,8 +4873,12 @@
           display: flex;
           align-items: center;
           justify-content: center;
+          justify-self: center;
+          width: max-content;
+          max-width: 100%;
           gap: 6px;
           min-height: 0;
+          text-align: center;
         }
 
         .map-legend-region .legend-title-line > span:first-child {
@@ -4898,6 +4903,8 @@
         .map-legend-region .legend-title-line > #cr-legend-label {
           width: auto;
           flex: 0 0 auto;
+          justify-content: center;
+          text-align: center;
         }
 
         .map-legend-region .legend-title-line > #legend-label::before,
@@ -4914,6 +4921,7 @@
           max-width: 100%;
           min-width: 0;
           justify-content: center;
+          justify-self: center;
         }
 
         .map-legend-region .legend-pill .legend-bar-wrap {
