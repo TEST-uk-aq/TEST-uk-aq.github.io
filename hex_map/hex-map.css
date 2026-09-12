@@ -5340,6 +5340,8 @@
           max-width: none;
           grid-template-columns: minmax(0, 1fr);
           grid-template-rows: auto auto auto auto auto;
+          /* Hidden/re-parented mobile rows collapse, but grid gutters do not. */
+          row-gap: 0;
           padding: 0;
           margin: 0 -12px;
           border: 0;
