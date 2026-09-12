@@ -1305,10 +1305,10 @@
         @container sensor-panel (max-width: 859px) {
           .sensor-panel-header {
             display: grid;
-            grid-template-columns: 16px minmax(0, 1fr) auto 28px;
+            grid-template-columns: calc(var(--sensor-chart-icon-button-size) + 8px) 16px minmax(0, 1fr) auto 28px;
             grid-template-areas:
-              "title title title close"
-              "hex reading count close";
+              "title title title count close"
+              ". hex reading reading reading";
             align-items: center;
             gap: 4px 8px;
           }
