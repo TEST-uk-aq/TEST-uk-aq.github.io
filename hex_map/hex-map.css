@@ -1287,6 +1287,8 @@
         transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 20;
         box-shadow: none;
+        container-type: inline-size;
+        container-name: sensor-panel;
       }
 
       .map-canvas-wrap.hex-selected .map-inline-sensor-panel {
@@ -1295,6 +1297,64 @@
 
       .map-canvas-wrap.hex-selected .map-svg-viewport {
         transform: translateY(var(--selected-hex-shift-y, calc(var(--sensor-panel-height, 240px) * -0.45)));
+      }
+
+      @media (min-width: 768px) {
+        /* Below this actual panel width the single-row title competes with
+           reading, count, and actions. Give the title its own row instead. */
+        @container sensor-panel (max-width: 859px) {
+          .sensor-panel-header {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas:
+              "details close"
+              "details count";
+            align-items: start;
+            gap: 6px 10px;
+          }
+
+          .sensor-panel-header-text {
+            grid-area: details;
+            display: grid;
+            grid-template-columns: 16px minmax(0, 1fr);
+            grid-template-areas:
+              "title title"
+              "hex reading";
+            gap: 4px 8px;
+            align-items: center;
+          }
+
+          .sensor-panel-title-line {
+            display: contents;
+          }
+
+          .sensor-panel-title-launch {
+            grid-area: title;
+          }
+
+          .sensor-panel-header svg {
+            grid-area: hex;
+          }
+
+          .sensor-panel-reading {
+            grid-area: reading;
+            display: flex;
+            min-width: 0;
+            flex-wrap: wrap;
+            gap: 0 5px;
+            white-space: normal;
+          }
+
+          .sensor-panel-count {
+            grid-area: count;
+            align-self: center;
+          }
+
+          .sensor-panel-close {
+            grid-area: close;
+            align-self: start;
+          }
+        }
       }
 
       .map-inline-sensor-panel-body {
