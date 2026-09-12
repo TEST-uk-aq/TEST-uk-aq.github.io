@@ -2319,8 +2319,12 @@ function initHexMapCrController() {
         const visibleRows = Math.min(totalRows, SENSOR_PANEL_MAX_VISIBLE_ROWS);
         const effectiveRowHeight = SENSOR_PANEL_ROW_HEIGHT;
         const tableWrapMaxHeight = SENSOR_TABLE_HEADER_HEIGHT + (visibleRows * effectiveRowHeight);
+        const headerHeight = Math.max(
+          SENSOR_PANEL_HEADER_HEIGHT,
+          Math.ceil(inlinePanelHeader?.getBoundingClientRect().height || 0)
+        );
         const panelHeight = count
-          ? SENSOR_PANEL_HEADER_HEIGHT
+          ? headerHeight
             + SENSOR_TABLE_HEADER_HEIGHT
             + (visibleRows * effectiveRowHeight)
           : SENSOR_PANEL_EMPTY_HEIGHT;

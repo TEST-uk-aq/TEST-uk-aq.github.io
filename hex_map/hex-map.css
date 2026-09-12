@@ -1098,9 +1098,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        height: var(--sensor-panel-header-height);
         min-height: var(--sensor-panel-header-height);
-        max-height: var(--sensor-panel-header-height);
         box-sizing: border-box;
         padding: 10px 14px 10px 12px;
         border-bottom: 1px solid var(--line-soft);
@@ -1190,14 +1188,17 @@
       }
 
       .sensor-panel-title {
+        display: -webkit-box;
         min-width: 0;
         flex: 1 1 auto;
         font-weight: 700;
         font-size: 1.12rem;
-        white-space: nowrap;
+        white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
         line-height: 1.25;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
       }
 
       .sensor-panel-title[role="button"] {
