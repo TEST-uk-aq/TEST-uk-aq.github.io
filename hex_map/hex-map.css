@@ -1305,25 +1305,15 @@
         @container sensor-panel (max-width: 859px) {
           .sensor-panel-header {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-columns: 16px minmax(0, 1fr) auto 28px;
             grid-template-areas:
-              "details close"
-              "details count";
-            align-items: start;
-            gap: 6px 10px;
-          }
-
-          .sensor-panel-header-text {
-            grid-area: details;
-            display: grid;
-            grid-template-columns: 16px minmax(0, 1fr);
-            grid-template-areas:
-              "title title"
-              "hex reading";
-            gap: 4px 8px;
+              "title title title close"
+              "hex reading count close";
             align-items: center;
+            gap: 4px 8px;
           }
 
+          .sensor-panel-header-text,
           .sensor-panel-title-line {
             display: contents;
           }
@@ -1352,7 +1342,7 @@
 
           .sensor-panel-close {
             grid-area: close;
-            align-self: start;
+            align-self: center;
           }
         }
       }
@@ -1776,6 +1766,11 @@
           .sensor-table th.sensor-col-network,
           .sensor-table td.sensor-col-network {
             display: none;
+          }
+
+          .sensor-table th.sensor-col-updated,
+          .sensor-table td.sensor-col-updated {
+            width: 168px;
           }
 
           .sensor-table .sort-header--wide {
