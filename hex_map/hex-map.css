@@ -5421,8 +5421,6 @@
           grid-row: 2;
           margin: 0;
           padding: 14px 12px 12px;
-          /* The title strip is the first white summary surface after the map. */
-          border-top: 1px solid var(--ink-4);
           background: var(--surface);
         }
 
@@ -5438,6 +5436,9 @@
           gap: 0;
           margin: 0;
           padding: 0;
+          /* This grid remains after the complete map canvas in the active
+             mobile shell, including its selected-area sensor panel. */
+          border-top: 1px solid var(--ink-4);
           background: var(--surface);
         }
 
