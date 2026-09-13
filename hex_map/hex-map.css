@@ -952,8 +952,10 @@
         align-items: center;
         justify-content: center;
         gap: 7px;
-        min-width: 62px;
-        margin-left: calc(50% - 31px);
+        width: max-content;
+        min-width: max-content;
+        margin-inline: auto;
+        overflow: visible;
       }
 
       .sensor-table-wrap.is-chart-select-mode .chart-selector-header-actions {
@@ -6154,11 +6156,32 @@
         }
 
         .hex-map-page .sensor-table-wrap.is-chart-select-mode .chart-selector-header-actions {
-          width: auto;
-          min-width: 0;
+          width: max-content;
+          min-width: max-content;
           min-height: 44px;
-          margin: 0;
-          justify-content: flex-start;
+          margin-inline: auto;
+          justify-content: center;
+          gap: 6px;
+          overflow: visible;
+        }
+
+        .hex-map-page .chart-selector-header-actions
+          .hex-chart-selector[data-chart-header-action="select-fill"] {
+          --chart-header-ring-centre: calc(100% - 11px);
+        }
+
+        .hex-map-page .chart-selector-header-actions
+          .hex-chart-selector[data-chart-header-action="keep-top"] {
+          --chart-header-ring-centre: 11px;
+        }
+
+        .hex-map-page .chart-selector-header-actions .hex-chart-selector::before,
+        .hex-map-page .chart-selector-header-actions .hex-chart-selector::after {
+          position: absolute;
+          top: 50%;
+          right: auto;
+          left: var(--chart-header-ring-centre);
+          transform: translate(-50%, -50%);
         }
 
         .hex-map-page .sensor-table tbody {
@@ -6868,15 +6891,16 @@
 
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--left {
           justify-self: start;
-          justify-content: flex-start;
-          padding-right: 0;
+          justify-content: flex-end;
+          padding-right: 6px;
           padding-left: 0;
         }
 
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--right {
           justify-self: end;
           justify-content: flex-start;
-          padding-left: 3px;
+          padding-right: 0;
+          padding-left: 6px;
         }
 
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::before {
