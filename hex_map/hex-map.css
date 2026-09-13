@@ -5421,7 +5421,8 @@
           grid-row: 2;
           margin: 0;
           padding: 14px 12px 12px;
-          border-top: 1px solid var(--line);
+          /* The title strip is the first white summary surface after the map. */
+          border-top: 1px solid var(--ink-4);
           background: var(--surface);
         }
 
@@ -5459,9 +5460,14 @@
           margin-bottom: 5px;
         }
 
-        .hex-map-page .map-summary-value,
-        .hex-map-page .map-summary-update-line span {
+        .hex-map-page .map-summary-value {
           font-size: clamp(1rem, 3.8vw, 1.35rem);
+        }
+
+        .hex-map-page .map-summary-update-line span {
+          font-size: clamp(0.76rem, 2.3vw, 0.95rem);
+          font-weight: 700;
+          white-space: nowrap;
         }
 
         .hex-map-page .map-summary-subtext,
