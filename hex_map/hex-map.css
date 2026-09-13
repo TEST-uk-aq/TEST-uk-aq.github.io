@@ -5431,10 +5431,10 @@
           }
         }
 
-        .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected {
-          /* Preserve the current useful selected-map space (596px less the
-             former 280px panel) as the measured panel grows for real rows. */
-          min-height: max(calc(var(--sensor-panel-height, 280px) + 316px), var(--map-canvas-min-height));
+        .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected:not(.chart-mode) {
+          /* The absolute selected-panel remains inside the canvas while this
+             normal-flow wrapper grows by its measured three-row height. */
+          min-height: calc(var(--map-canvas-min-height) + var(--sensor-panel-height, 280px));
         }
 
         .hex-map-page .map-svg-viewport {
