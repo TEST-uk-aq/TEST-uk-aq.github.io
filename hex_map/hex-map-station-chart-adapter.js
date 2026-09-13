@@ -190,6 +190,9 @@
 
     const backButton = root.document.getElementById("chart-back-to-map");
     const rangeSelect = root.document.getElementById("hex-chart-window-toolbar");
+    const mobileLayoutQuery = typeof root.matchMedia === "function"
+      ? root.matchMedia("(max-width: 767px)")
+      : null;
     const domByMap = Object.fromEntries(["uk", "cr"].map((key) => {
       const panel = root.document.getElementById(`${key}-hex-chart-mode`);
       return [key, {
@@ -214,6 +217,10 @@
       pollutantContextController: null,
       pollutantAdapter: null,
     };
+    let chipIdentityFrame = null;
+    const chipIdentityResizeObserver = typeof root.ResizeObserver === "function"
+      ? new root.ResizeObserver(() => scheduleChipNetworkIdentity())
+      : null;
 
     function chartMapKey() { return pageMode.getState().chartMapKey; }
     function isLifecycleMounted(mapKey = null) {
@@ -225,6 +232,35 @@
     function selectedEntries() {
       const visible = new Map(state.visibleEntries.map((entry) => [entry.station_id, entry]));
       return Array.from(state.selectedIds).map((id) => visible.get(id) || state.retainedEntries.get(id)).filter(Boolean);
+    }
+
+    function scheduleChipNetworkIdentity() {
+      if (chipIdentityFrame !== null) root.cancelAnimationFrame?.(chipIdentityFrame);
+      const render = () => {
+        chipIdentityFrame = null;
+        syncChipNetworkIdentity();
+      };
+      chipIdentityFrame = typeof root.requestAnimationFrame === "function"
+        ? root.requestAnimationFrame(render)
+        : (render(), null);
+    }
+
+    function syncChipNetworkIdentity() {
+      const reading = dom()?.reading;
+      if (!reading) return;
+      const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
+      networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
+      if (!mobileLayoutQuery?.matches) return;
+      networks.forEach((network) => {
+        const label = network.closest(".hex-chart-chip-label");
+        const name = label?.querySelector(".hex-chart-chip-name");
+        const nameRects = name ? Array.from(name.getClientRects()) : [];
+        const networkRect = network.getClientRects()[0];
+        const finalNameRect = nameRects[nameRects.length - 1];
+        if (networkRect && finalNameRect && networkRect.top > finalNameRect.top + 1) {
+          network.classList.add("hex-chart-chip-network--own-line");
+        }
+      });
     }
     function setMessage(text, options = {}) {
       const element = dom()?.message;
@@ -421,6 +457,8 @@
         return `<div class="hex-chart-selected-sensor-chip${source ? " is-aqi-source" : ""}" role="button" tabindex="0" data-aqi-source-station-id="${escapeHtml(id)}" data-hex-truncation-focus-owner aria-pressed="${source ? "true" : "false"}" aria-label="Use ${escapeHtml(stationName)} for DAQI and EAQI bands"><span class="hex-chart-chip-symbol">${symbol}</span><span class="hex-chart-chip-label"><span class="hex-chart-chip-name" data-hex-truncation>${escapeHtml(stationName)}</span><span class="hex-chart-chip-network" data-hex-truncation>${escapeHtml(network)}</span></span><span class="hex-chart-chip-value"><span class="sensor-reading-dot" style="--sensor-reading-color:${escapeHtml(colour)}"></span>${escapeHtml(readingValue)}</span><span class="hex-chart-chip-time">${escapeHtml(updated)}</span></div>`;
       }).join("");
       root.UkAqHexMapTruncation?.refresh?.(reading);
+      chipIdentityResizeObserver?.observe(reading);
+      scheduleChipNetworkIdentity();
     }
 
     function notifySelection() {
@@ -588,8 +626,19 @@
     });
     backButton?.addEventListener("click", exit);
     root.addEventListener("resize", () => {
-      if (isLifecycleMounted()) state.controller?.resize({});
+      if (isLifecycleMounted()) {
+        state.controller?.resize({});
+        scheduleChipNetworkIdentity();
+      }
     });
+    if (mobileLayoutQuery) {
+      const handleMobileLayoutChange = () => scheduleChipNetworkIdentity();
+      if (typeof mobileLayoutQuery.addEventListener === "function") {
+        mobileLayoutQuery.addEventListener("change", handleMobileLayoutChange);
+      } else if (typeof mobileLayoutQuery.addListener === "function") {
+        mobileLayoutQuery.addListener(handleMobileLayoutChange);
+      }
+    }
     Object.values(domByMap).forEach((refs) => {
       refs.panel?.addEventListener("click", (event) => event.stopPropagation());
       const activateSource = (event) => {

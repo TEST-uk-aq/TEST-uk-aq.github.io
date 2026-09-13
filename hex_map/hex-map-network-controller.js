@@ -96,8 +96,22 @@ function initHexMapNetworkController(root) {
     return String(value || "").trim().toLowerCase();
   }
 
-  function isMobileChartPresentation() {
-    return Boolean(mobileLayoutQuery?.matches && document.body.classList.contains("hex-chart-mode"));
+  function isMobileInlinePresentation() {
+    return Boolean(mobileLayoutQuery?.matches);
+  }
+
+  function getInlinePanelMount() {
+    const mapKind = activeScope === "cr" ? "cr" : "uk";
+    const selector = document.body.classList.contains("hex-chart-mode")
+      ? `[data-mobile-chart-controls][data-map-kind="${mapKind}"] [data-mobile-chart-networks-panel]`
+      : `[data-mobile-map-controls-row][data-map-kind="${mapKind}"] [data-mobile-map-networks-panel]`;
+    return document.querySelector(selector);
+  }
+
+  function syncInlinePanelMountState(isOpen = !dropdownMenu?.hidden) {
+    document.querySelectorAll("[data-mobile-chart-networks-panel], [data-mobile-map-networks-panel]").forEach((mount) => {
+      mount.classList.toggle("is-networks-panel-open", Boolean(isOpen && mount === dropdownMenu?.parentElement));
+    });
   }
 
   function readPersistedSelection() {
@@ -473,15 +487,15 @@ function initHexMapNetworkController(root) {
     const allEffectiveSelected = selectable > 0 && selected === selectable;
     if (dropdownCount) dropdownCount.textContent = `${selected} / ${total}`;
     const pillText = total === 0 ? "Networks: —" : selected === total ? "Networks: All" : `Networks: ${selected} / ${total}`;
-    const mobileChartPillText = total === 0
+    const mobilePillText = total === 0
       ? "Networks · —"
       : allEffectiveSelected
         ? "Networks · All"
         : `Networks · ${selected} selected`;
     pills.forEach((pill) => {
       const text = pill.querySelector(".networks-pill-text");
-      if (text) text.textContent = isMobileChartPresentation() && isPillVisible(pill)
-        ? mobileChartPillText
+      if (text) text.textContent = isMobileInlinePresentation() && isPillVisible(pill)
+        ? mobilePillText
         : pillText;
     });
     ["top-total-sensors-subtext", "cr-top-total-sensors-subtext"].forEach((id) => {
@@ -546,7 +560,7 @@ function initHexMapNetworkController(root) {
   }
 
   function getFloatingHost(pill) {
-    if (isMobileChartPresentation()) return document.body;
+    if (isMobileInlinePresentation()) return getInlinePanelMount() || getMapWrap(pill || getActivePill()) || document.body;
     return getMapWrap(pill || getActivePill()) || document.body;
   }
 
@@ -563,14 +577,18 @@ function initHexMapNetworkController(root) {
     clearDockedHosts();
     const host = getFloatingHost(pill);
     if (dropdownMenu.parentElement !== host) host.appendChild(dropdownMenu);
+    dropdownMenu.setAttribute("role", isMobileInlinePresentation() ? "region" : "dialog");
+    dropdownMenu.setAttribute("aria-modal", "false");
     dropdownMenu.classList.remove("is-docked");
-    dropdownMenu.classList.add("is-floating");
-    if (!panelPinned || isMobileChartPresentation()) {
+    dropdownMenu.classList.toggle("is-inline", isMobileInlinePresentation());
+    dropdownMenu.classList.toggle("is-floating", !isMobileInlinePresentation());
+    if (!panelPinned || isMobileInlinePresentation()) {
       dropdownMenu.style.width = "";
       dropdownMenu.style.top = "";
       dropdownMenu.style.left = "";
       dropdownMenu.style.right = "";
     }
+    syncInlinePanelMountState();
   }
 
   function getPanelWidth() {
@@ -614,6 +632,13 @@ function initHexMapNetworkController(root) {
   }
 
   function updatePanelSafeArea() {
+    if (isMobileInlinePresentation()) {
+      document.querySelectorAll(".map-canvas-wrap").forEach((wrap) => {
+        wrap.classList.remove("has-networks-panel-safe-area");
+        wrap.style.removeProperty("--networks-panel-safe-right");
+      });
+      return;
+    }
     if (!panelPinned || !dropdownMenu || dropdownMenu.hidden) clearDockedHosts();
     else applyPinnedPlacement();
     let targetWrap = null;
@@ -645,7 +670,7 @@ function initHexMapNetworkController(root) {
   function positionPanel(pill) {
     if (!dropdownMenu) return;
     if (!pill) return updatePanelSafeArea();
-    if (isMobileChartPresentation()) {
+    if (isMobileInlinePresentation()) {
       setFloatingHost(pill);
       dropdownMenu.style.width = "";
       dropdownMenu.style.top = "";
@@ -679,20 +704,20 @@ function initHexMapNetworkController(root) {
   function setPanelOpen(isOpen, anchorPill, options = {}) {
     if (!dropdownMenu) return;
     const focusTarget = panelAnchorPill || anchorPill || getActivePill();
-    const mobileChart = isMobileChartPresentation();
     dropdownMenu.hidden = !isOpen;
-    dropdownMenu.setAttribute("aria-modal", String(Boolean(isOpen && mobileChart)));
+    dropdownMenu.setAttribute("aria-modal", "false");
     if (isOpen) {
       panelAnchorPill = anchorPill || getActivePill();
+      setFloatingHost(panelAnchorPill);
       root.requestAnimationFrame(() => {
         positionPanel(panelAnchorPill);
-        if (mobileChart) panelClose?.focus?.({ preventScroll: true });
       });
     } else {
-      if (!panelPinned || mobileChart) panelAnchorPill = null;
+      if (!panelPinned || isMobileInlinePresentation()) panelAnchorPill = null;
       setFloatingHost();
       updatePanelSafeArea();
     }
+    syncInlinePanelMountState(isOpen);
     pills.forEach((pill) => pill.setAttribute("aria-expanded", String(isOpen && pill === panelAnchorPill)));
     if (!isOpen && options.restoreFocus) focusTarget?.focus?.({ preventScroll: true });
   }
@@ -721,9 +746,7 @@ function initHexMapNetworkController(root) {
   }
 
   function syncPanelForActiveScope() {
-    if (isMobileChartPresentation()) {
-      setPanelOpen(false);
-    } else if (panelPinned && dropdownMenu && !dropdownMenu.hidden) {
+    if (panelPinned && !isMobileInlinePresentation() && dropdownMenu && !dropdownMenu.hidden) {
       panelAnchorPill = getActivePill();
       pills.forEach((pill) => pill.setAttribute("aria-expanded", String(pill === panelAnchorPill)));
       root.requestAnimationFrame(() => positionPanel(panelAnchorPill));
@@ -743,32 +766,13 @@ function initHexMapNetworkController(root) {
   panelPin?.addEventListener("click", () => setPanelPinned(!panelPinned));
   panelClose?.addEventListener("click", () => setPanelOpen(false, null, { restoreFocus: true }));
   document.addEventListener("mousedown", (event) => {
-    if ((panelPinned && !isMobileChartPresentation()) || !dropdownMenu || dropdownMenu.hidden) return;
+    if ((panelPinned && !isMobileInlinePresentation()) || !dropdownMenu || dropdownMenu.hidden) return;
     if (pills.some((pill) => pill.contains(event.target)) || dropdownMenu.contains(event.target)) return;
     setPanelOpen(false);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Tab" && isMobileChartPresentation() && dropdownMenu && !dropdownMenu.hidden) {
-      const focusable = Array.from(dropdownMenu.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      )).filter((element) => element.getClientRects().length > 0);
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) {
-        event.preventDefault();
-        return;
-      }
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-      return;
-    }
     if (event.key === "Escape" && dropdownMenu && !dropdownMenu.hidden
-        && (!panelPinned || isMobileChartPresentation())) {
+        && (!panelPinned || isMobileInlinePresentation())) {
       event.preventDefault();
       setPanelOpen(false, null, { restoreFocus: true });
     }

@@ -6696,22 +6696,28 @@
 
         .hex-map-page .mobile-map-controls--left .toolbar-region-section.visible,
         .hex-map-page .mobile-map-controls--left .toolbar-region-section .popover-wrap,
-        .hex-map-page .mobile-map-controls--left .popover-trigger {
+        .hex-map-page .mobile-map-controls--left .popover-trigger,
+        .hex-map-page .mobile-map-controls--region .toolbar-region-section.visible,
+        .hex-map-page .mobile-map-controls--region .toolbar-region-section .popover-wrap,
+        .hex-map-page .mobile-map-controls--region .popover-trigger {
           width: 100%;
           min-width: 0;
           max-width: 100%;
           box-sizing: border-box;
         }
 
-        .hex-map-page .mobile-map-controls--left .toolbar-region-section.visible {
+        .hex-map-page .mobile-map-controls--left .toolbar-region-section.visible,
+        .hex-map-page .mobile-map-controls--region .toolbar-region-section.visible {
           display: flex;
         }
 
-        .hex-map-page .mobile-map-controls--left .toolbar-region-section .toolbar-divider {
+        .hex-map-page .mobile-map-controls--left .toolbar-region-section .toolbar-divider,
+        .hex-map-page .mobile-map-controls--region .toolbar-region-section .toolbar-divider {
           display: none;
         }
 
-        .hex-map-page .mobile-map-controls--left .popover-trigger {
+        .hex-map-page .mobile-map-controls--left .popover-trigger,
+        .hex-map-page .mobile-map-controls--region .popover-trigger {
           position: relative;
           isolation: isolate;
           height: 44px;
@@ -6725,7 +6731,8 @@
           font-size: 0.82rem;
         }
 
-        .hex-map-page .mobile-map-controls--left .popover-trigger::before {
+        .hex-map-page .mobile-map-controls--left .popover-trigger::before,
+        .hex-map-page .mobile-map-controls--region .popover-trigger::before {
           content: "";
           position: absolute;
           z-index: -1;
@@ -6736,11 +6743,13 @@
           pointer-events: none;
         }
 
-        .hex-map-page .mobile-map-controls--left .popover-trigger.open::before {
+        .hex-map-page .mobile-map-controls--left .popover-trigger.open::before,
+        .hex-map-page .mobile-map-controls--region .popover-trigger.open::before {
           border-color: var(--accent);
         }
 
-        .hex-map-page .mobile-map-controls--left .popover-trigger > * {
+        .hex-map-page .mobile-map-controls--left .popover-trigger > *,
+        .hex-map-page .mobile-map-controls--region .popover-trigger > * {
           position: relative;
           z-index: 1;
         }
@@ -6892,6 +6901,211 @@
 
           .hex-map-page .map-canvas-wrap.hex-selected + .mobile-map-controls-row .mobile-map-controls--right {
             transform: translateY(-66px);
+          }
+        }
+
+        /* The mobile map shell is normal flow: it occupies a grid row ahead of
+           the unchanged canvas height rather than floating over the map. */
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
+          position: relative;
+          top: auto;
+          left: auto;
+          z-index: auto;
+          grid-column: 1;
+          grid-row: 1;
+          grid-template-columns: minmax(0, 1fr);
+          width: 100%;
+          padding: 8px 12px 10px;
+          gap: 8px;
+          background: var(--map-wrap);
+          pointer-events: auto;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .map-dashboard-card .map-canvas-wrap {
+          grid-row: 2;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .map-svg-viewport {
+          inset: 0 0 var(--map-footer-safe) 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary,
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary {
+          display: grid;
+          min-width: 0;
+          align-items: center;
+          gap: 8px;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls {
+          width: auto;
+          align-items: stretch;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left {
+          width: 96px;
+          align-items: flex-start;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
+          position: static;
+          top: auto;
+          right: auto;
+          width: auto;
+          align-items: flex-end;
+          transform: none;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant {
+          min-width: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pollutant-selector {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(48px, 1fr));
+          width: 100%;
+          min-width: 0;
+          gap: 5px;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill {
+          min-width: 0;
+          min-height: 44px;
+          padding: 6px 8px;
+          border-radius: 9px;
+          font-size: clamp(0.72rem, 3.5vw, 0.82rem);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
+          width: auto;
+          align-items: flex-end;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region {
+          min-width: 0;
+          align-items: flex-start;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-status-row {
+          flex-direction: row;
+          width: auto;
+          min-height: 44px;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 6px;
+          padding-right: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-status-row .btn-refresh {
+          order: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right > .networks-pill-anchor {
+          margin-right: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-networks-panel-mount,
+        body.hex-map-page.mobile-chart-controls-active .mobile-chart-networks-panel-mount {
+          display: none;
+          min-width: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-networks-panel-mount.is-networks-panel-open,
+        body.hex-map-page.mobile-chart-controls-active .mobile-chart-networks-panel-mount.is-networks-panel-open {
+          display: block;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline {
+          position: static;
+          inset: auto;
+          z-index: auto;
+          display: flex;
+          width: 100%;
+          min-width: 0;
+          max-width: none;
+          max-height: min(76vh, 620px);
+          margin: 0;
+          padding: 12px;
+          border-radius: 12px;
+          box-sizing: border-box;
+          box-shadow: 0 6px 16px rgba(16, 24, 34, 0.12);
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .network-dropdown-list {
+          flex: 1 1 auto;
+          max-height: min(54vh, 440px);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .networks-panel-pin,
+        .hex-map-page .networks-panel-floating.is-inline .network-option-logo-link,
+        .hex-map-page .networks-panel-floating.is-inline .network-share-bar,
+        .hex-map-page .networks-panel-floating.is-inline .network-option-coverage,
+        .hex-map-page .networks-panel-floating.is-inline .networks-panel-footer {
+          display: none;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .networks-panel-close {
+          display: inline-flex;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .network-option {
+          min-height: 48px;
+          padding: 8px 6px;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .network-option.is-pollutant-unavailable .network-option-coverage {
+          display: block;
+          margin: 3px 0 0 28px;
+          font-size: 0.68rem;
+        }
+
+        .hex-map-page .networks-panel-floating.is-inline .network-option:not(.is-pollutant-unavailable) .network-count::after {
+          content: " sensors";
+          font-size: 0.68rem;
+          font-weight: 500;
+        }
+
+        @supports (height: 100svh) {
+          .hex-map-page .networks-panel-floating.is-inline {
+            max-height: min(76svh, 620px);
+          }
+
+          .hex-map-page .networks-panel-floating.is-inline .network-dropdown-list {
+            max-height: min(54svh, 440px);
+          }
+        }
+
+        @media (max-width: 359px) {
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
+            grid-template-columns: minmax(0, 1fr);
+            padding-inline: 8px;
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
+            align-items: flex-start;
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left,
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre,
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right {
+            grid-column: auto;
+            grid-row: auto;
           }
         }
 
@@ -7096,13 +7310,22 @@
           min-width: 0;
           overflow: visible;
           text-overflow: clip;
-          white-space: normal;
+          white-space: nowrap;
           font-size: 0.7rem;
           line-height: 1.18;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network::before {
           content: " · ";
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-network.hex-chart-chip-network--own-line {
+          display: block;
+          white-space: nowrap;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-network.hex-chart-chip-network--own-line::before {
+          content: none;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {

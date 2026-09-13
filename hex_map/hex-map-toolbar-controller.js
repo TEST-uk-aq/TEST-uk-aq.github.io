@@ -70,12 +70,16 @@ function initHexMapToolbarController(root) {
       left: panelUk?.querySelector("[data-mobile-map-controls-left]") || null,
       centre: panelUk?.querySelector("[data-mobile-map-controls-centre]") || null,
       right: panelUk?.querySelector("[data-mobile-map-controls-right]") || null,
+      pollutant: panelUk?.querySelector("[data-mobile-map-controls-pollutant]") || null,
+      region: panelUk?.querySelector("[data-mobile-map-controls-region]") || null,
       status: panelUk?.querySelector("[data-mobile-map-status-row]") || null,
     },
     cr: {
       left: panelCr?.querySelector("[data-mobile-map-controls-left]") || null,
       centre: panelCr?.querySelector("[data-mobile-map-controls-centre]") || null,
       right: panelCr?.querySelector("[data-mobile-map-controls-right]") || null,
+      pollutant: panelCr?.querySelector("[data-mobile-map-controls-pollutant]") || null,
+      region: panelCr?.querySelector("[data-mobile-map-controls-region]") || null,
       status: panelCr?.querySelector("[data-mobile-map-status-row]") || null,
     },
   };
@@ -85,12 +89,14 @@ function initHexMapToolbarController(root) {
       network: panelUk?.querySelector("[data-mobile-chart-network]") || null,
       pollutant: panelUk?.querySelector("[data-mobile-chart-pollutant]") || null,
       range: panelUk?.querySelector("[data-mobile-chart-range]") || null,
+      panel: panelUk?.querySelector("[data-mobile-chart-networks-panel]") || null,
     },
     cr: {
       back: panelCr?.querySelector("[data-mobile-chart-back]") || null,
       network: panelCr?.querySelector("[data-mobile-chart-network]") || null,
       pollutant: panelCr?.querySelector("[data-mobile-chart-pollutant]") || null,
       range: panelCr?.querySelector("[data-mobile-chart-range]") || null,
+      panel: panelCr?.querySelector("[data-mobile-chart-networks-panel]") || null,
     },
   };
   const networkAnchors = {
@@ -308,7 +314,7 @@ function initHexMapToolbarController(root) {
     const mounts = mobileMounts[normalizedMapKey];
     const chartMounts = mobileChartMounts[normalizedMapKey];
 
-    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range) {
+    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel) {
       const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
       restoreDistributedControls();
       relocateStatusRefreshForMap(normalizedMapKey);
@@ -335,7 +341,7 @@ function initHexMapToolbarController(root) {
 
     root.document.body.classList.remove("mobile-chart-controls-active");
 
-    if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.status) {
+    if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.status) {
       restoreDistributedControls();
       relocateStatusRefreshForMap(normalizedMapKey);
       root.document.body.classList.remove("mobile-map-controls-active");
@@ -346,9 +352,8 @@ function initHexMapToolbarController(root) {
 
     const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
     restoreNode(networkAnchors[inactiveMapKey]);
-    [viewControl, regionSection].forEach((node) => {
-      if (node && node.parentElement !== mounts.left) mounts.left.appendChild(node);
-    });
+    if (viewControl && viewControl.parentElement !== mounts.left) mounts.left.appendChild(viewControl);
+    if (regionSection && regionSection.parentElement !== mounts.region) mounts.region.appendChild(regionSection);
     if (windowStepper && windowStepper.parentElement !== mounts.centre) {
       mounts.centre.appendChild(windowStepper);
     }
@@ -357,8 +362,8 @@ function initHexMapToolbarController(root) {
     if (activeNetworkAnchor && activeNetworkAnchor.parentElement !== mounts.right) {
       mounts.right.appendChild(activeNetworkAnchor);
     }
-    if (pollutantSelector && pollutantSelector.parentElement !== mounts.right) {
-      mounts.right.appendChild(pollutantSelector);
+    if (pollutantSelector && pollutantSelector.parentElement !== mounts.pollutant) {
+      mounts.pollutant.appendChild(pollutantSelector);
     }
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
