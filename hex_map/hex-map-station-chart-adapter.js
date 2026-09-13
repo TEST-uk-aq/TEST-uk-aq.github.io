@@ -337,6 +337,18 @@
       syncTable("cr");
     }
 
+    let scheduledSensorPanelGeometryMapKey = null;
+    function scheduleSensorPanelGeometryRefresh(mapKey) {
+      if (mapKey !== "uk" && mapKey !== "cr") return;
+      if (scheduledSensorPanelGeometryMapKey === mapKey) return;
+      scheduledSensorPanelGeometryMapKey = mapKey;
+      root.requestAnimationFrame(() => {
+        if (scheduledSensorPanelGeometryMapKey !== mapKey) return;
+        scheduledSensorPanelGeometryMapKey = null;
+        mapAdapter(mapKey)?.refreshSensorPanelGeometry?.();
+      });
+    }
+
     function renderPageModeAndTables() {
       pageMode.render();
       syncChartSelectionTables();
@@ -436,7 +448,7 @@
       const context = currentContext(mapKey);
       const identity = contextIdentity(mapKey, context);
       if (!identity) return false;
-      exit();
+      exit({ refreshSensorPanelGeometry: false });
       state.lifecycleMounted = true;
       state.sessionIdentity = identity;
       state.rangeLabel = "24h";
@@ -449,13 +461,14 @@
       if (rangeSelect) rangeSelect.value = state.rangeLabel;
       pageMode.enterChart(mapKey);
       syncChartSelectionTables();
+      scheduleSensorPanelGeometryRefresh(mapKey);
       createController(mapKey);
       void state.controller.setRange(resolveRange(state.rangeLabel));
       state.pollutantAdapter.sync({ ...context, entries: state.visibleEntries }, context.dataStatus);
       return true;
     }
 
-    function exit() {
+    function exit(options = {}) {
       const previousMapKey = chartMapKey();
       state.pollutantAdapter?.destroy?.();
       state.pollutantContextController?.destroy?.();
@@ -473,6 +486,9 @@
       pageMode.exitChart();
       syncChartSelectionTables();
       if (previousMapKey) syncTable(previousMapKey);
+      if (options.refreshSensorPanelGeometry !== false) {
+        scheduleSensorPanelGeometryRefresh(previousMapKey);
+      }
       notifySelection();
     }
 

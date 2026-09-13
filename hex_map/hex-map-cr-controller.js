@@ -4649,6 +4649,9 @@ function initHexMapCrController() {
           });
           syncSettingsPanelWidth();
         },
+        refreshSensorPanelGeometry: () => {
+          refreshInlinePanelGeometry();
+        },
         restoreNetworks: () => {
           applyNetworkFilters();
         },

@@ -4241,6 +4241,9 @@ function initHexMapUkController(root) {
           });
           syncSettingsPanelWidth();
         },
+        refreshSensorPanelGeometry: () => {
+          refreshInlinePanelGeometry();
+        },
         restoreNetworks: () => {
           applyNetworkFilters();
         },
