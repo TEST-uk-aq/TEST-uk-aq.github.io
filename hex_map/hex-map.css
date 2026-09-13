@@ -5022,19 +5022,26 @@
       }
 
       .hex-chart-mode-panel {
+        --hex-chart-networks-clearance: 52px;
+        --hex-chart-summary-base-row-height: 42px;
         position: absolute;
         inset: 0 0 var(--sensor-panel-height, 240px) 0;
         z-index: 12;
         display: none;
         min-height: 0;
-        padding: 0 18px 14px;
+        padding: var(--hex-chart-networks-clearance) 18px 14px;
         background: var(--map-wrap);
         color: var(--ink);
         overflow: hidden;
+        container: hex-chart-panel / inline-size;
       }
 
       .map-canvas-wrap.chart-mode {
-        min-height: var(--map-canvas-min-height, 700px);
+        min-height: calc(
+          var(--map-canvas-min-height, 700px)
+          + var(--hex-chart-networks-clearance, 52px)
+          + var(--hex-chart-summary-extra-height, 0px)
+        );
       }
 
       .map-canvas-wrap.chart-mode .hex-chart-mode-panel {
@@ -5071,12 +5078,19 @@
 
       .hex-chart-selected-sensors {
         display: grid;
-        width: 100%;
-        max-width: calc(100% - var(--networks-dock-width, 340px) - 18px);
-        align-self: flex-start;
-        justify-content: start;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: min(100%, 688px);
+        max-width: 688px;
+        align-self: center;
+        justify-content: center;
+        grid-template-columns: repeat(2, minmax(0, 340px));
         gap: 6px 8px;
+      }
+
+      .hex-chart-selected-sensor-chip:only-child,
+      .hex-chart-selected-sensor-chip:nth-last-child(1):nth-child(odd) {
+        grid-column: 1 / -1;
+        width: min(100%, 340px);
+        justify-self: center;
       }
 
       .hex-chart-selected-sensor-chip {
@@ -5089,7 +5103,7 @@
         border: 0;
         border-radius: 8px;
         padding: 7px 10px;
-        min-height: 42px;
+        min-height: var(--hex-chart-summary-base-row-height);
         box-shadow: none;
       }
 
@@ -5115,30 +5129,41 @@
       }
 
       .hex-chart-chip-label {
-        display: grid;
-        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 2px;
+        display: block;
         min-width: 0;
       }
 
       .hex-chart-chip-name {
+        display: inline;
         font-size: 0.88rem;
         font-weight: 700;
         color: var(--ink);
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow: visible;
+        text-overflow: clip;
+        white-space: normal;
       }
 
       .hex-chart-chip-network {
-        display: block;
+        display: inline;
         font-size: 0.82rem;
         color: var(--ink-soft);
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
         white-space: nowrap;
+      }
+
+      .hex-chart-chip-network::before {
+        content: " · ";
+      }
+
+      .hex-chart-chip-network.hex-chart-chip-network--own-line {
+        display: block;
+      }
+
+      .hex-chart-chip-network.hex-chart-chip-network--own-line::before {
+        content: none;
       }
 
       .hex-chart-chip-value,
@@ -5149,16 +5174,17 @@
         white-space: nowrap;
       }
 
-      @media (max-width: 1200px) {
-        .hex-chart-selected-sensors {
-          max-width: calc(100% - 300px);
-        }
-      }
-
-      @media (max-width: 980px) {
+      @container hex-chart-panel (max-width: 687px) {
         .hex-chart-selected-sensors {
           width: 100%;
-          max-width: 100%;
+          max-width: 340px;
+          grid-template-columns: minmax(0, 340px);
+        }
+
+        .hex-chart-selected-sensor-chip:only-child,
+        .hex-chart-selected-sensor-chip:nth-last-child(1):nth-child(odd) {
+          grid-column: auto;
+          width: 100%;
         }
       }
 
@@ -5174,12 +5200,6 @@
         min-width: 10px;
         min-height: 10px;
         flex: 0 0 10px;
-      }
-
-      @media (max-width: 720px) {
-        .hex-chart-selected-sensors {
-          grid-template-columns: 1fr;
-        }
       }
 
       .hex-chart-symbol-svg {
@@ -7360,14 +7380,7 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors {
-          width: 100%;
-          max-width: 100%;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 6px;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip:only-child {
-          grid-column: 1 / -1;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {

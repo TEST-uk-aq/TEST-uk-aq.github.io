@@ -250,6 +250,7 @@
       if (!reading) return;
       const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
       networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
+      if (!mobileLayoutQuery?.matches) return;
       networks.forEach((network) => {
         const label = network.closest(".hex-chart-chip-label");
         const name = label?.querySelector(".hex-chart-chip-name");
@@ -259,19 +260,6 @@
         if (networkRect && finalNameRect && networkRect.top > finalNameRect.top + 1) {
           network.classList.add("hex-chart-chip-network--own-line");
         }
-      });
-      const canvas = reading.closest(".map-canvas-wrap");
-      const firstChip = reading.querySelector(".hex-chart-selected-sensor-chip");
-      const baseRowHeight = firstChip && typeof root.getComputedStyle === "function"
-        ? Number.parseFloat(root.getComputedStyle(firstChip).minHeight) || 0
-        : 0;
-      const extraHeight = Math.max(0, Math.ceil(reading.getBoundingClientRect().height - baseRowHeight));
-      canvas?.style.setProperty("--hex-chart-summary-extra-height", `${extraHeight}px`);
-    }
-
-    function clearChipPresentationGeometry() {
-      Object.values(domByMap).forEach(({ reading }) => {
-        reading?.closest(".map-canvas-wrap")?.style.removeProperty("--hex-chart-summary-extra-height");
       });
     }
     function setMessage(text, options = {}) {
@@ -466,8 +454,9 @@
         const colour = adapter?.getSensorCurrentColor?.(id) || "var(--no-data)";
         const source = id === state.aqiSourceId;
         const symbol = root.ChartCore.getSymbolSvgMarkup(index, { className: "hex-chart-symbol-svg chart-mode-sensor-symbol-svg", sizePx: 22, area: 120 });
-        return `<div class="hex-chart-selected-sensor-chip${source ? " is-aqi-source" : ""}" role="button" tabindex="0" data-aqi-source-station-id="${escapeHtml(id)}" aria-pressed="${source ? "true" : "false"}" aria-label="Use ${escapeHtml(stationName)} for DAQI and EAQI bands"><span class="hex-chart-chip-symbol">${symbol}</span><span class="hex-chart-chip-label"><span class="hex-chart-chip-name">${escapeHtml(stationName)}</span><span class="hex-chart-chip-network">${escapeHtml(network)}</span></span><span class="hex-chart-chip-value"><span class="sensor-reading-dot" style="--sensor-reading-color:${escapeHtml(colour)}"></span>${escapeHtml(readingValue)}</span><span class="hex-chart-chip-time">${escapeHtml(updated)}</span></div>`;
+        return `<div class="hex-chart-selected-sensor-chip${source ? " is-aqi-source" : ""}" role="button" tabindex="0" data-aqi-source-station-id="${escapeHtml(id)}" data-hex-truncation-focus-owner aria-pressed="${source ? "true" : "false"}" aria-label="Use ${escapeHtml(stationName)} for DAQI and EAQI bands"><span class="hex-chart-chip-symbol">${symbol}</span><span class="hex-chart-chip-label"><span class="hex-chart-chip-name" data-hex-truncation>${escapeHtml(stationName)}</span><span class="hex-chart-chip-network" data-hex-truncation>${escapeHtml(network)}</span></span><span class="hex-chart-chip-value"><span class="sensor-reading-dot" style="--sensor-reading-color:${escapeHtml(colour)}"></span>${escapeHtml(readingValue)}</span><span class="hex-chart-chip-time">${escapeHtml(updated)}</span></div>`;
       }).join("");
+      root.UkAqHexMapTruncation?.refresh?.(reading);
       chipIdentityResizeObserver?.observe(reading);
       scheduleChipNetworkIdentity();
     }
@@ -532,7 +521,6 @@
       state.selectedIds = new Set();
       state.retainedEntries = new Map();
       state.aqiSourceId = null;
-      clearChipPresentationGeometry();
       pageMode.exitChart();
       syncChartSelectionTables();
       if (previousMapKey) syncTable(previousMapKey);
