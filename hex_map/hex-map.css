@@ -1004,8 +1004,8 @@
 
       .sensor-chart-launch img {
         display: block;
-        width: 20px;
-        height: 20px;
+        width: var(--sensor-chart-icon-glyph-size);
+        height: var(--sensor-chart-icon-glyph-size);
       }
 
       .sensor-table tbody tr:hover .sensor-chart-launch,
