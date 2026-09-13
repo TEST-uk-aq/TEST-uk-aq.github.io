@@ -1,10 +1,7 @@
 (() => {
   "use strict";
 
-  // Homepage media is a generation-pinned latest-six snapshot. Desktop and mobile share
-  // this one state, refresh loop and rotation timer; background failures retain the card shown.
-  const versionEndpoint = "/api/media/articles/homepage/version";
-  const feedEndpoint = (generation) => `/api/media/articles/homepage?generation=${encodeURIComponent(generation)}`;
+  const endpoint = "/api/media/articles?limit=6";
   const desktopQuery = window.matchMedia("(min-width: 768px)");
   const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const carousel = document.querySelector("[data-homepage-media-carousel]");
@@ -12,14 +9,10 @@
   const mobileTeaser = document.querySelector("[data-homepage-media-mobile]");
   const mobileContent = document.querySelector("[data-homepage-media-mobile-content]");
   const rotationMs = 8000;
-  const freshnessMs = 15 * 60 * 1000;
   let articles = [];
   let currentIndex = 0;
   let rotationTimer = null;
-  let freshnessTimer = null;
-  let activeGeneration = null;
-  let lastSuccessfulVersionCheckAt = 0;
-  let refreshInFlight = null;
+  let loaded = false;
 
   if (!carousel || !content || !mobileTeaser || !mobileContent) return;
 
@@ -53,10 +46,9 @@
   }
 
   function usableArticle(article) {
-    const id = Number(article?.id);
     const canonicalUrl = safeHttpUrl(article?.canonical_url);
     const title = text(article?.display_title) || text(article?.title);
-    return Number.isSafeInteger(id) && id > 0 && canonicalUrl && title;
+    return canonicalUrl && title;
   }
 
   function stopRotation() {
@@ -75,22 +67,6 @@
       showArticle(currentIndex + 1);
       scheduleRotation();
     }, rotationMs);
-  }
-
-  function stopFreshnessChecks() {
-    if (freshnessTimer !== null) window.clearTimeout(freshnessTimer);
-    freshnessTimer = null;
-  }
-
-  function scheduleFreshnessCheck() {
-    stopFreshnessChecks();
-    if (document.hidden || !articles.length) return;
-    const age = Date.now() - lastSuccessfulVersionCheckAt;
-    const delay = Math.max(0, freshnessMs - age);
-    freshnessTimer = window.setTimeout(async () => {
-      await refreshArticles(false);
-      scheduleFreshnessCheck();
-    }, delay);
   }
 
   function addTextElement(tagName, className, value) {
@@ -225,7 +201,34 @@
     content.replaceChildren(card, createControls());
   }
 
+  async function loadArticles() {
+    try {
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("media_unavailable");
+      const payload = await response.json();
+      if (!Array.isArray(payload?.articles)) throw new Error("invalid_media_response");
+      articles = payload.articles.filter(usableArticle);
+      if (!articles.length) throw new Error("no_usable_articles");
+      showArticle(0);
+      updatePresentation();
+    } catch (_error) {
+      articles = [];
+      content.replaceChildren();
+      mobileContent.replaceChildren();
+      carousel.hidden = true;
+      mobileTeaser.hidden = true;
+    }
+  }
+
   function updatePresentation() {
+    if (!loaded) {
+      loaded = true;
+      loadArticles();
+      return;
+    }
     if (articles.length) {
       carousel.hidden = !desktopQuery.matches;
       mobileTeaser.hidden = desktopQuery.matches;
@@ -238,85 +241,8 @@
     mobileTeaser.hidden = true;
   }
 
-  function hideMedia() {
-    stopRotation();
-    stopFreshnessChecks();
-    content.replaceChildren();
-    mobileContent.replaceChildren();
-    carousel.hidden = true;
-    mobileTeaser.hidden = true;
-  }
-
-  function validGeneration(value) {
-    return Number.isSafeInteger(value) && value > 0;
-  }
-
-  async function fetchJson(url) {
-    const response = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
-    if (!response.ok) {
-      const error = new Error("media_unavailable");
-      error.status = response.status;
-      throw error;
-    }
-    return response.json();
-  }
-
-  async function refreshArticles(initial) {
-    if (refreshInFlight) return refreshInFlight;
-    refreshInFlight = (async () => {
-      try {
-        for (let attempt = 0; attempt < 2; attempt += 1) {
-          const version = await fetchJson(versionEndpoint);
-          const generation = Number(version?.generation);
-          if (!validGeneration(generation)) throw new Error("invalid_media_generation");
-          lastSuccessfulVersionCheckAt = Date.now();
-
-          if (generation === activeGeneration && articles.length) return;
-          let payload;
-          try {
-            payload = await fetchJson(feedEndpoint(generation));
-          } catch (error) {
-            if (error?.status === 409 && attempt === 0) continue;
-            throw error;
-          }
-          if (!Array.isArray(payload?.articles)) throw new Error("invalid_media_response");
-          const nextArticles = payload.articles.filter(usableArticle);
-          if (!nextArticles.length) throw new Error("no_usable_articles");
-          const selectedId = articles[currentIndex]?.id;
-          articles = nextArticles;
-          activeGeneration = generation;
-          const selectedIndex = articles.findIndex(article => article.id === selectedId);
-          currentIndex = selectedIndex >= 0 ? selectedIndex : 0;
-          updatePresentation();
-          scheduleFreshnessCheck();
-          return;
-        }
-        throw new Error("stale_media_generation");
-      } catch (_error) {
-        if (initial) {
-          articles = [];
-          activeGeneration = null;
-          hideMedia();
-        }
-      } finally {
-        refreshInFlight = null;
-      }
-    })();
-    return refreshInFlight;
-  }
-
   desktopQuery.addEventListener("change", updatePresentation);
   reducedMotionQuery.addEventListener("change", scheduleRotation);
-  document.addEventListener("visibilitychange", async () => {
-    scheduleRotation();
-    if (document.hidden) {
-      stopFreshnessChecks();
-      return;
-    }
-    if (Date.now() - lastSuccessfulVersionCheckAt >= freshnessMs) {
-      await refreshArticles(false);
-    }
-    scheduleFreshnessCheck();
-  });
-  refreshArticles(true);
+  document.addEventListener("visibilitychange", scheduleRotation);
+  updatePresentation();
 })();
