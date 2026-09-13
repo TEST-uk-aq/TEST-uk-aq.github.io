@@ -397,7 +397,6 @@ function initHexMapCrController() {
       const SENSOR_TABLE_HEADER_HEIGHT = 44;
       const SENSOR_PANEL_ROW_HEIGHT = 58;
       const SENSOR_PANEL_MAX_VISIBLE_ROWS = 4;
-      const SENSOR_PANEL_MOBILE_MAX_HEIGHT = 280;
       const detailScrollAffordances = scrollAffordances?.attachSensorTable?.(detailsTableWrap, {
         contentEl: detailsTableBody,
         isScrollbarHidden: () => !detailsTableWrap?.classList.contains("is-scroll-forced"),
@@ -2297,18 +2296,24 @@ function initHexMapCrController() {
             ? detailsEmpty.getBoundingClientRect().height
             : 0;
           const toolbarHeight = detailsTableHead?.getBoundingClientRect().height || 0;
-          const rowsHeight = Array.from(detailsTableBody?.children || []).reduce(
-            (height, row) => height + row.getBoundingClientRect().height,
-            0
-          );
+          let visibleSensorRows = 0;
+          let visibleRowsHeight = 0;
+          const targetSensorRows = Math.min(3, count);
+          for (const row of Array.from(detailsTableBody?.children || [])) {
+            visibleRowsHeight += row.getBoundingClientRect().height;
+            if (!row.classList.contains("sensor-row-divider")) {
+              visibleSensorRows += 1;
+              if (visibleSensorRows >= targetSensorRows) break;
+            }
+          }
           const usefulContentHeight = Math.ceil(
             panelBorderHeight
             + headerHeight
-            + (count ? toolbarHeight + rowsHeight : emptyHeight)
+            + (count ? toolbarHeight + visibleRowsHeight : emptyHeight)
           );
           const hasMeasurableLayout = Boolean(
             headerHeight
-            && (!count || rowsHeight)
+            && (!count || visibleRowsHeight)
             && (count || detailsEmpty?.hidden || emptyHeight)
           );
           if (!hasMeasurableLayout) {
@@ -2316,11 +2321,8 @@ function initHexMapCrController() {
             return;
           }
           const panelHeight = count
-            ? Math.min(usefulContentHeight, SENSOR_PANEL_MOBILE_MAX_HEIGHT)
-            : Math.min(
-              Math.max(SENSOR_PANEL_EMPTY_HEIGHT, usefulContentHeight),
-              SENSOR_PANEL_MOBILE_MAX_HEIGHT
-            );
+            ? usefulContentHeight
+            : Math.max(SENSOR_PANEL_EMPTY_HEIGHT, usefulContentHeight);
           mapCanvasWrap.style.setProperty("--sensor-panel-height", `${panelHeight}px`);
 
           const hasOverflow = Boolean(

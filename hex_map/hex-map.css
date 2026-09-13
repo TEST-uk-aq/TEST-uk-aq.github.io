@@ -5432,7 +5432,9 @@
         }
 
         .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected {
-          min-height: max(596px, var(--map-canvas-min-height));
+          /* Preserve the current useful selected-map space (596px less the
+             former 280px panel) as the measured panel grows for real rows. */
+          min-height: max(calc(var(--sensor-panel-height, 280px) + 316px), var(--map-canvas-min-height));
         }
 
         .hex-map-page .map-svg-viewport {
@@ -6271,19 +6273,34 @@
         }
 
         .hex-map-page .sensor-table .sensor-name-button {
-          display: block;
+          display: inline;
+          width: auto;
           min-width: 0;
-          overflow: hidden;
+          overflow: visible;
           font-weight: 600;
           line-height: 1.2;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          text-overflow: clip;
+          white-space: normal;
         }
 
-        .hex-map-page .sensor-table .sensor-network-text {
+        .hex-map-page .sensor-table .sensor-identity-cell {
+          display: block;
+          line-height: 1.25;
+        }
+
+        .hex-map-page .sensor-table .sensor-network-text--compact {
+          display: inline;
+          min-width: 0;
+          overflow: visible;
+          text-overflow: clip;
+          white-space: normal;
           color: var(--ink-3);
           font-size: 0.72rem;
           line-height: 1.25;
+        }
+
+        .hex-map-page .sensor-table .sensor-network-text--compact::before {
+          content: " · ";
         }
 
         .hex-map-page .sensor-table .sensor-reading-cell {
@@ -7046,8 +7063,7 @@
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
           grid-area: label;
-          grid-template-rows: auto auto;
-          align-content: center;
+          display: block;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-value {
@@ -7067,19 +7083,26 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-name {
+          display: inline;
           font-size: 0.76rem;
           line-height: 1.18;
           white-space: normal;
-          text-overflow: ellipsis;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-          line-clamp: 2;
-          overflow: hidden;
+          text-overflow: clip;
+          overflow: visible;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network {
+          display: inline;
+          min-width: 0;
+          overflow: visible;
+          text-overflow: clip;
+          white-space: normal;
           font-size: 0.7rem;
+          line-height: 1.18;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-network::before {
+          content: " · ";
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {
@@ -7089,7 +7112,9 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-svg {
-          flex: 0 0 360px;
+          flex: 1 1 auto;
+          width: 100%;
+          max-width: 100%;
           height: 360px;
           min-height: 360px;
         }
@@ -7201,7 +7226,6 @@
           }
 
           body.hex-map-page.hex-chart-mode .hex-chart-svg {
-            flex-basis: 340px;
             height: 340px;
             min-height: 340px;
           }
