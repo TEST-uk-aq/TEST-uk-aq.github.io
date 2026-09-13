@@ -19,6 +19,7 @@
   let freshnessTimer = null;
   let activeGeneration = null;
   let lastSuccessfulVersionCheckAt = 0;
+  let nextFreshnessCheckNotBefore = 0;
   let refreshInFlight = null;
 
   if (!carousel || !content || !mobileTeaser || !mobileContent) return;
@@ -82,11 +83,14 @@
     freshnessTimer = null;
   }
 
+  function nextFreshnessCheckAt() {
+    return Math.max(lastSuccessfulVersionCheckAt + freshnessMs, nextFreshnessCheckNotBefore);
+  }
+
   function scheduleFreshnessCheck() {
     stopFreshnessChecks();
     if (document.hidden || !articles.length) return;
-    const age = Date.now() - lastSuccessfulVersionCheckAt;
-    const delay = Math.max(0, freshnessMs - age);
+    const delay = Math.max(0, nextFreshnessCheckAt() - Date.now());
     freshnessTimer = window.setTimeout(async () => {
       await refreshArticles(false);
       scheduleFreshnessCheck();
@@ -270,6 +274,7 @@
           const generation = Number(version?.generation);
           if (!validGeneration(generation)) throw new Error("invalid_media_generation");
           lastSuccessfulVersionCheckAt = Date.now();
+          nextFreshnessCheckNotBefore = 0;
 
           if (generation === activeGeneration && articles.length) return;
           let payload;
@@ -297,6 +302,8 @@
           articles = [];
           activeGeneration = null;
           hideMedia();
+        } else {
+          nextFreshnessCheckNotBefore = Date.now() + freshnessMs;
         }
       } finally {
         refreshInFlight = null;
@@ -313,7 +320,7 @@
       stopFreshnessChecks();
       return;
     }
-    if (Date.now() - lastSuccessfulVersionCheckAt >= freshnessMs) {
+    if (Date.now() >= nextFreshnessCheckAt()) {
       await refreshArticles(false);
     }
     scheduleFreshnessCheck();
