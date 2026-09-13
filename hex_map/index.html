@@ -399,6 +399,19 @@
                 <div class="sensor-network-label" id="sensor-panel-network-label"></div>
               </div>
               <div class="sensor-panel-count" id="sensor-panel-count"></div>
+              <div class="mobile-sensor-sort" hidden>
+                <label for="sensor-mobile-sort">Sort</label>
+                <select id="sensor-mobile-sort" aria-label="Sort sensors">
+                  <option value="pm25:desc">PM2.5 highest</option>
+                  <option value="pm25:asc">PM2.5 lowest</option>
+                  <option value="updated:desc">Newest observed</option>
+                  <option value="updated:asc">Oldest observed</option>
+                  <option value="sensor:asc">Sensor A–Z</option>
+                  <option value="sensor:desc">Sensor Z–A</option>
+                  <option value="network:asc">Network A–Z</option>
+                  <option value="network:desc">Network Z–A</option>
+                </select>
+              </div>
               <button type="button" class="sensor-panel-close" id="sensor-panel-close" aria-label="Close sensor panel">
                 <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
               </button>
@@ -1038,6 +1051,19 @@
                 <div class="sensor-network-label" id="cr-sensor-panel-network-label"></div>
               </div>
               <div class="sensor-panel-count" id="cr-sensor-panel-count"></div>
+              <div class="mobile-sensor-sort" hidden>
+                <label for="cr-sensor-mobile-sort">Sort</label>
+                <select id="cr-sensor-mobile-sort" aria-label="Sort sensors">
+                  <option value="pm25:desc">PM2.5 highest</option>
+                  <option value="pm25:asc">PM2.5 lowest</option>
+                  <option value="updated:desc">Newest observed</option>
+                  <option value="updated:asc">Oldest observed</option>
+                  <option value="sensor:asc">Sensor A–Z</option>
+                  <option value="sensor:desc">Sensor Z–A</option>
+                  <option value="network:asc">Network A–Z</option>
+                  <option value="network:desc">Network Z–A</option>
+                </select>
+              </div>
               <button type="button" class="sensor-panel-close" id="cr-sensor-panel-close" aria-label="Close sensor panel">
                 <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
               </button>

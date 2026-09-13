@@ -1094,6 +1094,10 @@
         flex-shrink: 0;
       }
 
+      .mobile-sensor-sort {
+        display: none;
+      }
+
       .sensor-panel-header {
         display: flex;
         align-items: center;
@@ -7065,7 +7069,43 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {
-          min-height: 320px;
+          min-height: 360px;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-sort {
+          grid-column: 1 / -1;
+          display: flex;
+          width: 100%;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          padding-top: 4px;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-sort[hidden] {
+          display: none;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-sort label {
+          flex: 0 0 auto;
+          color: var(--ink-1);
+          font-size: 0.82rem;
+          font-weight: 700;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-sort select {
+          width: min(220px, calc(100% - 44px));
+          max-width: 100%;
+          min-width: 0;
+          min-height: 44px;
+          padding: 0 30px 0 10px;
+          border: 1px solid var(--line);
+          border-radius: 9px;
+          background: var(--surface);
+          color: var(--ink-1);
+          font: inherit;
+          font-size: 0.82rem;
         }
 
         body.hex-map-page.hex-chart-mode .networks-panel-floating.is-floating,
@@ -7132,6 +7172,10 @@
         }
 
         @media (max-width: 359px) {
+          body.hex-map-page.hex-chart-mode .hex-chart-wrap {
+            min-height: 340px;
+          }
+
           body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--primary,
           body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--secondary {
             grid-template-columns: minmax(0, 1fr);

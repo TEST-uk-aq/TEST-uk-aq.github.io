@@ -376,8 +376,6 @@ function initHexMapCrController() {
       const sortHeaderButtons = detailsTableWrap
         ? Array.from(detailsTableWrap.querySelectorAll("button.sort-header[data-sort-key]"))
         : [];
-      const mobileSensorSortSelect = byId("sensor-mobile-sort");
-      const mobileSensorSortControl = mobileSensorSortSelect?.closest(".mobile-sensor-sort") || null;
       const inlinePanel = byId("map-inline-sensor-panel");
       const mapCanvasWrap = inlinePanel?.closest(".map-canvas-wrap") || null;
       const inlinePanelHeader = inlinePanel?.querySelector(".sensor-panel-header") || null;
@@ -973,11 +971,6 @@ function initHexMapCrController() {
         return pollutantDomain.get(key)?.label || "PM2.5";
       }
 
-      function getPollutantSortLabel(key) {
-        const definition = pollutantDomain.get(key);
-        return definition?.typographicLabel || definition?.label || "PM2.5";
-      }
-
       function getPollutantUnits(key) {
         return pollutantDomain.get(key)?.unit || "µg/m³";
       }
@@ -1010,7 +1003,6 @@ function initHexMapCrController() {
         if (mapSvg) {
           mapSvg.setAttribute("aria-label", `Hex cartogram of ${pollutantLabel} by local authority`);
         }
-        syncSortHeaders();
       }
 
       let crInitialLoad = true;
@@ -2233,11 +2225,10 @@ function initHexMapCrController() {
       }
 
       function syncSortHeaders() {
-        const pollutantSortLabel = getPollutantSortLabel(activePollutant);
         const ACTIVE_ARIA = {
           sensor: { asc: "Sensor, sorted A to Z. Click to sort Z to A.", desc: "Sensor, sorted Z to A. Click to sort A to Z." },
           network: { asc: "Network, sorted A to Z. Click to sort Z to A.", desc: "Network, sorted Z to A. Click to sort A to Z." },
-          pm25: { asc: `${pollutantSortLabel}, sorted low to high. Click to sort high to low.`, desc: `${pollutantSortLabel}, sorted high to low. Click to sort low to high.` },
+          pm25: { asc: "PM2.5, sorted low to high. Click to sort high to low.", desc: "PM2.5, sorted high to low. Click to sort low to high." },
           updated: { asc: "Updated, sorted oldest first. Click to sort newest first.", desc: "Updated, sorted newest first. Click to sort oldest first." },
         };
         const sortingHidden = detailsTableWrap?.classList.contains("sensor-list-sort-hidden") === true;
@@ -2265,17 +2256,6 @@ function initHexMapCrController() {
             button.title = getSortTooltip(key, sortKey, sortDir);
           }
         });
-        if (mobileSensorSortSelect) {
-          const highestOption = mobileSensorSortSelect.querySelector('option[value="pm25:desc"]');
-          const lowestOption = mobileSensorSortSelect.querySelector('option[value="pm25:asc"]');
-          if (highestOption) highestOption.textContent = `${pollutantSortLabel} highest`;
-          if (lowestOption) lowestOption.textContent = `${pollutantSortLabel} lowest`;
-          mobileSensorSortSelect.value = `${sortKey}:${sortDir}`;
-          mobileSensorSortSelect.disabled = sortingHidden;
-        }
-        if (mobileSensorSortControl) {
-          mobileSensorSortControl.hidden = sortingHidden;
-        }
       }
 
       function updateInlinePanelHeight(sensorCount, extraRowCount = 0) {
@@ -4394,17 +4374,6 @@ function initHexMapCrController() {
           syncSortHeaders();
           updateDetailsPanel();
         });
-      });
-      mobileSensorSortSelect?.addEventListener("change", () => {
-        const [nextKey, nextDir] = String(mobileSensorSortSelect.value || "").split(":");
-        if (!(nextKey in SORT_DEFAULTS) || (nextDir !== "asc" && nextDir !== "desc")) {
-          syncSortHeaders();
-          return;
-        }
-        sortKey = nextKey;
-        sortDir = nextDir;
-        syncSortHeaders();
-        updateDetailsPanel();
       });
       syncSortHeaders();
 
