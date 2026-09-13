@@ -1820,6 +1820,104 @@
             gap: 2px;
           }
         }
+
+        /* Chart selection retains the complete desktop table at every desktop
+           width. The shared grid keeps header and row columns aligned without
+           reserving the old fixed Value and Observed tracks. */
+        .sensor-table-wrap.is-chart-select-mode {
+          --sensor-chart-select-columns:
+            68px 32px minmax(180px, 1.5fr) minmax(110px, 0.8fr) max-content max-content;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table thead,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table tbody {
+          display: block;
+          width: 100%;
+          min-width: 0;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table thead {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          background: var(--surface);
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table thead tr,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) {
+          display: grid;
+          width: 100%;
+          min-width: 0;
+          grid-template-columns: var(--sensor-chart-select-columns);
+          align-items: center;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table thead th,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) > td {
+          box-sizing: border-box;
+          width: auto;
+          min-width: 0;
+          padding: 10px 6px;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-chart-select-col,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-chart-select-col {
+          width: 68px;
+          padding-inline: 0;
+          text-align: center;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-chart-symbol-col,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-chart-symbol-col {
+          width: 32px;
+          padding-inline: 0;
+          text-align: center;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-sensor,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-sensor,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-network,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-network {
+          display: block;
+          width: auto;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-value,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-value,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-updated,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-updated {
+          width: auto;
+          padding-inline: 6px;
+          justify-self: end;
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-value .sort-header,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-updated .sort-header {
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table .sort-header--wide {
+          display: inline-flex;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table .sensor-network-text--wide {
+          display: block;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table .sort-header--narrow,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table .sensor-network-text--compact {
+          display: none;
+        }
+
+        .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr.sensor-row-divider,
+        .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr.sensor-row-divider > td {
+          display: block;
+          width: 100%;
+        }
       }
 
       .sensor-chart-launch img {
@@ -6289,29 +6387,6 @@
           display: none;
         }
 
-        .hex-map-page .sensor-table-wrap.is-chart-select-mode thead,
-        .hex-map-page .sensor-table-wrap.is-chart-select-mode thead tr {
-          display: block;
-          width: 100%;
-        }
-
-        .hex-map-page .sensor-table-wrap.is-chart-select-mode thead th {
-          display: none;
-        }
-
-        .hex-map-page .sensor-table-wrap.is-chart-select-mode thead th.sensor-chart-select-col {
-          position: static;
-          display: block;
-          width: 100%;
-          height: auto;
-          min-height: 44px;
-          padding: 0 10px;
-          border-bottom: 1px solid var(--line-soft);
-          background: var(--surface);
-          box-shadow: none;
-          text-align: left;
-        }
-
         .hex-map-page .sensor-table-wrap.is-chart-select-mode .chart-selector-header-actions {
           width: max-content;
           min-width: max-content;
@@ -6524,40 +6599,6 @@
         }
 
         @container sensor-panel (min-width: 600px) {
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead,
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead tr {
-            display: grid;
-            width: 100%;
-            grid-template-columns: 44px 28px minmax(0, 1fr) minmax(100px, max-content) max-content max-content;
-          }
-
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead {
-            position: sticky;
-            top: 0;
-            z-index: 3;
-            background: var(--surface);
-            box-shadow: 0 1px 0 var(--line-soft);
-          }
-
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th {
-            position: static;
-            display: block;
-            width: auto;
-            min-width: 0;
-            min-height: 44px;
-            padding: 10px 4px;
-            overflow: hidden;
-            background: transparent;
-            box-shadow: none;
-          }
-
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th.sensor-chart-select-col,
-          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th.sensor-chart-symbol-col {
-            display: block;
-            visibility: hidden;
-            padding: 0;
-          }
-
           body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode tbody tr:not(.sensor-row-divider) {
             min-height: 58px;
             grid-template-columns: 44px 28px minmax(0, 1fr) minmax(100px, max-content) max-content max-content;
