@@ -5411,7 +5411,7 @@
         .hex-map-page .map-dashboard-card .map-canvas-wrap {
           grid-column: 1;
           grid-row: 1;
-          --map-canvas-min-height: clamp(472px, calc(100vh - 136px), 752px);
+          --map-canvas-min-height: clamp(440px, 125vw, 620px);
           --sensor-panel-height: 280px;
           --sensor-panel-header-height: 68px;
           /* Mobile zoom controls are 44px wide; keep the same 12px gap. */
@@ -5423,12 +5423,6 @@
           border-radius: 0;
           background: var(--map-wrap);
           box-shadow: none;
-        }
-
-        @supports (height: 100svh) {
-          .hex-map-page .map-dashboard-card .map-canvas-wrap {
-            --map-canvas-min-height: clamp(472px, calc(100svh - 136px), 752px);
-          }
         }
 
         .hex-map-page .map-dashboard-card .map-canvas-wrap.hex-selected:not(.chart-mode) {
@@ -6931,7 +6925,8 @@
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary,
-        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary {
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary,
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility {
           display: grid;
           min-width: 0;
           align-items: center;
@@ -6939,12 +6934,21 @@
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
-        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility {
           grid-template-columns: minmax(0, 1fr) auto;
         }
 
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary {
-          grid-template-columns: minmax(0, 1fr) auto;
+          display: none;
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary.has-region-control {
+          display: grid;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls {
@@ -6988,7 +6992,7 @@
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
           width: auto;
-          align-items: flex-end;
+          align-items: flex-start;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region {
@@ -7012,6 +7016,83 @@
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right > .networks-pill-anchor {
           margin-right: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-search-mount {
+          display: block;
+          position: relative;
+          width: 100%;
+          min-width: 0;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-search-mount .map-floating-search {
+          position: relative;
+          top: auto;
+          right: auto;
+          left: auto;
+          z-index: 70;
+          width: 100%;
+          max-width: 100%;
+          min-height: 44px;
+          box-sizing: border-box;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-search-mount .map-search-results {
+          width: 100%;
+          max-width: 100%;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view button.active {
+          padding: 6px 26px 6px 9px;
+          border: 1px solid var(--ukaq-control-selected-border);
+          border-radius: 9px;
+          background: var(--ukaq-control-selected-bg);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view button.active::before {
+          content: none;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right .networks-pill {
+          min-height: 44px;
+          padding: 6px 10px;
+          border: 1px solid var(--line, #e5e7eb);
+          border-radius: 9px;
+          background: rgba(255, 255, 255, 0.72);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+          font-size: clamp(0.72rem, 3.5vw, 0.82rem);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right .networks-pill::before {
+          content: none;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right .networks-pill[aria-expanded="true"] {
+          border-color: var(--accent, #2563eb);
+          background: var(--accent-soft, #eff6ff);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill {
+          border: 1px solid rgba(60, 120, 172, 0.2);
+          background: rgba(255, 255, 255, 0.38);
+          box-shadow: none;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill[aria-checked="true"],
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill.active {
+          border-color: var(--ukaq-control-selected-border);
+          background: var(--ukaq-control-selected-bg);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger {
+          padding: 6px 9px;
+          border: 1px solid var(--line);
+          border-radius: 9px;
+          background: rgba(255, 255, 255, 0.72);
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger::before {
+          content: none;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-networks-panel-mount,
@@ -7094,6 +7175,10 @@
           }
 
           body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility {
             grid-template-columns: minmax(0, 1fr);
           }
 

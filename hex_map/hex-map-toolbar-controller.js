@@ -103,7 +103,22 @@ function initHexMapToolbarController(root) {
     uk: root.document.getElementById("uk-networks-pill-anchor"),
     cr: root.document.getElementById("cr-networks-pill-anchor"),
   };
-  const relocationNodes = [chartBackButton, viewControl, regionSection, pollutantSelector, windowStepper, chartRangeToolbar]
+  const mapSearches = {
+    uk: panelUk?.querySelector(".map-search[data-map-kind='uk']") || null,
+    cr: panelCr?.querySelector(".map-search[data-map-kind='cr']") || null,
+  };
+  Object.entries(mobileMounts).forEach(([mapKey, mounts]) => {
+    mounts.search = (mapKey === "uk" ? panelUk : panelCr)?.querySelector("[data-mobile-map-search]") || null;
+  });
+  const relocationNodes = [
+    chartBackButton,
+    viewControl,
+    regionSection,
+    pollutantSelector,
+    windowStepper,
+    chartRangeToolbar,
+    ...Object.values(mapSearches),
+  ]
     .filter(Boolean);
   const originalMarkers = new Map();
 
@@ -341,8 +356,11 @@ function initHexMapToolbarController(root) {
 
     root.document.body.classList.remove("mobile-chart-controls-active");
 
-    if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.status) {
+    if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.search || !mounts?.status) {
       restoreDistributedControls();
+      Object.values(mobileMounts).forEach((candidate) => {
+        candidate.region?.closest(".mobile-map-controls-row--tertiary")?.classList.remove("has-region-control");
+      });
       relocateStatusRefreshForMap(normalizedMapKey);
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
@@ -352,11 +370,15 @@ function initHexMapToolbarController(root) {
 
     const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
     restoreNode(networkAnchors[inactiveMapKey]);
+    restoreNode(mapSearches[inactiveMapKey]);
     if (viewControl && viewControl.parentElement !== mounts.left) mounts.left.appendChild(viewControl);
     if (regionSection && regionSection.parentElement !== mounts.region) mounts.region.appendChild(regionSection);
+    mounts.region.closest(".mobile-map-controls-row--tertiary")?.classList.toggle("has-region-control", normalizedMapKey === "cr");
     if (windowStepper && windowStepper.parentElement !== mounts.centre) {
       mounts.centre.appendChild(windowStepper);
     }
+    const activeSearch = mapSearches[normalizedMapKey];
+    if (activeSearch && activeSearch.parentElement !== mounts.search) mounts.search.appendChild(activeSearch);
     relocateStatusRefreshForMap(normalizedMapKey, mounts.status);
     const activeNetworkAnchor = networkAnchors[normalizedMapKey];
     if (activeNetworkAnchor && activeNetworkAnchor.parentElement !== mounts.right) {
