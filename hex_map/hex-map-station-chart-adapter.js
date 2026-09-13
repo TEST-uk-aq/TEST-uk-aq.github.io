@@ -442,7 +442,7 @@
         row.classList.toggle("is-selected", isSelected);
         if (!active) {
           selectCell.innerHTML = "";
-          symbolCell.innerHTML = id ? `<button type="button" class="sensor-chart-launch" data-station-id="${escapeHtml(id)}" aria-label="Open chart for ${escapeHtml(name.textContent.trim())}" title="Open chart"><img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" /></button>` : "";
+          symbolCell.innerHTML = "";
           return;
         }
         const index = selected.indexOf(id);

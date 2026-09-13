@@ -406,21 +406,6 @@ function initHexMapUkController(root) {
       const sensorPanelInteractionRoot = inlinePanel || detailsTableWrap;
       if (sensorPanelInteractionRoot) {
         sensorPanelInteractionRoot.addEventListener("click", (event) => {
-          const launchButton = event.target instanceof Element
-            ? event.target.closest(".sensor-chart-launch[data-station-id]")
-            : null;
-          if (launchButton && detailsTableWrap?.contains(launchButton)) {
-            event.stopPropagation();
-            const stationId = String(launchButton.dataset.stationId || "").trim();
-            if (!stationId || window.hexChartMode?.isActive?.("uk")) {
-              return;
-            }
-            window.hexChartMode?.enter?.({
-              mapKey: "uk",
-              initialSensorId: stationId,
-            });
-            return;
-          }
           const selectorHeaderButton = event.target instanceof Element
             ? event.target.closest(".hex-chart-selector[data-chart-header-action]")
             : null;
@@ -2699,9 +2684,7 @@ function initHexMapUkController(root) {
               <td class="sensor-chart-symbol-col">${
                 chartModeActive
                   ? symbolMarkup
-                  : `<button type="button" class="sensor-chart-launch" data-station-id="${escapeHtmlLocal(stationId)}" aria-label="Open chart for ${escapeHtmlLocal(stationName)}" title="Open chart">
-                      <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
-                    </button>`
+                  : ""
               }</td>
               <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button><span class="sensor-network-text sensor-network-text--compact" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></div></td>
               <td class="sensor-col-network"><span class="sensor-network-text sensor-network-text--wide" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></td>

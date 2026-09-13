@@ -1102,6 +1102,11 @@
           margin: 0;
         }
 
+        .mobile-sensor-list-toolbar[data-sensor-list-presentation^="compact"] .mobile-sensor-list-toolbar-sort {
+          justify-self: end;
+          width: fit-content;
+        }
+
         .mobile-sensor-list-toolbar[data-sensor-list-presentation^="compact"] .mobile-sensor-sort {
           display: flex;
           width: fit-content;
@@ -1115,6 +1120,15 @@
           flex: 0 1 clamp(9.5rem, 20vw, 14rem);
           width: clamp(9.5rem, 20vw, 14rem);
           min-width: 0;
+          min-height: 36px;
+          box-sizing: border-box;
+          padding: 0 30px 0 10px;
+          border: 1px solid var(--line);
+          border-radius: 9px;
+          background: var(--surface);
+          color: var(--ink-1);
+          font: inherit;
+          font-size: 0.82rem;
         }
       }
 
@@ -1785,14 +1799,6 @@
         .sensor-col-value { grid-area: value; }
         .sensor-col-updated { grid-area: updated; }
 
-        .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-select-col {
-          display: none;
-        }
-
-        .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-symbol-col {
-          display: none;
-        }
-
         /* Full map deliberately keeps the accepted LIVE fixed-table geometry. */
         .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table {
           display: table;
@@ -1817,6 +1823,16 @@
         .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table tbody tr:not(.sensor-row-divider) > td {
           display: table-cell;
           padding: 10px 12px;
+        }
+
+        .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-select-col {
+          width: 21px;
+          padding-inline: 0;
+        }
+
+        .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-symbol-col {
+          width: 13px;
+          padding-inline: 0;
         }
 
         .sensor-table-wrap:not(.is-chart-select-mode) .sensor-col-sensor { width: 36%; }
@@ -1858,6 +1874,11 @@
           }
 
           .sensor-table thead { display: none; }
+
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-select-col,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-symbol-col {
+            display: none;
+          }
 
           .sensor-table tbody tr.sensor-row-divider,
           .sensor-table tbody tr.sensor-row-divider > td {
@@ -6312,6 +6333,7 @@
           grid-column: 2;
           min-width: 0;
           justify-self: end;
+          width: fit-content;
         }
 
         .hex-map-page .mobile-sensor-list-toolbar .mobile-sensor-sort {
@@ -7708,6 +7730,7 @@
           max-width: 100%;
           min-width: 0;
           min-height: 44px;
+          box-sizing: border-box;
           padding: 0 30px 0 10px;
           border: 1px solid var(--line);
           border-radius: 9px;
