@@ -1231,6 +1231,8 @@
         gap: 8px;
         min-width: 0;
         flex: 0 1 auto;
+        inline-size: fit-content;
+        max-inline-size: 100%;
       }
 
       .sensor-title-icon-button {
