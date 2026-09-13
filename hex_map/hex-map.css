@@ -6822,8 +6822,9 @@
 
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--left {
           justify-self: start;
-          justify-content: flex-end;
-          padding-right: 3px;
+          justify-content: flex-start;
+          padding-right: 0;
+          padding-left: 0;
         }
 
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow--right {
@@ -7203,15 +7204,6 @@
 
           body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
             grid-template-columns: minmax(0, 1fr);
-          }
-
-          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility {
-            grid-template-columns: minmax(0, 1fr);
-          }
-
-          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility .mobile-map-controls--centre,
-          body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility .mobile-map-status-row {
-            grid-column: auto;
           }
 
           body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre {
