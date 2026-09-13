@@ -158,6 +158,7 @@ function initHexMapToolbarController(root) {
   let prefersReducedMotion = Boolean(reduceMotionQuery?.matches);
   let windowStepperKey = null;
   let windowStepperTimer = null;
+  const sensorListPresentationByMap = { uk: null, cr: null };
 
   function normalizeWindowKey(value) {
     return WINDOW_ORDER.includes(value) ? value : "6h";
@@ -294,6 +295,12 @@ function initHexMapToolbarController(root) {
     }
   }
 
+  function notifySensorListPresentation(mapKey, presentation) {
+    if (sensorListPresentationByMap[mapKey] === presentation) return;
+    sensorListPresentationByMap[mapKey] = presentation;
+    root.dispatchEvent(new CustomEvent("hexsensorlistpresentationchange", { detail: { mapKey, presentation } }));
+  }
+
   function restoreNode(node) {
     const marker = originalMarkers.get(node);
     if (!node || !marker?.parentNode) return false;
@@ -401,6 +408,7 @@ function initHexMapToolbarController(root) {
       }
       setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-chart");
       sensorListMounts.toolbar.hidden = false;
+      notifySensorListPresentation(normalizedMapKey, "narrow-chart");
       root.document.body.classList.remove("mobile-map-controls-active");
       root.document.body.classList.add("mobile-chart-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
@@ -424,7 +432,10 @@ function initHexMapToolbarController(root) {
       }
       setSensorListToolbarPresentation(sensorListMounts.toolbar, pageMode.getMode() === "chart" ? "compact-chart" : "compact-map");
       sensorListMounts.toolbar.hidden = false;
-      root.dispatchEvent(new CustomEvent("hexsensorlistpresentationchange", { detail: { mapKey: normalizedMapKey } }));
+      notifySensorListPresentation(
+        normalizedMapKey,
+        pageMode.getMode() === "chart" ? "compact-chart" : "compact-map",
+      );
       return true;
     }
 
@@ -445,6 +456,9 @@ function initHexMapToolbarController(root) {
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
       networkController?.syncPanelForActiveScope?.();
+      if (!mobileLayoutQuery?.matches) {
+        notifySensorListPresentation(normalizedMapKey, pageMode.getMode() === "chart" ? "full-chart" : "full-map");
+      }
       return false;
     }
 
@@ -473,6 +487,7 @@ function initHexMapToolbarController(root) {
       setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-map");
       sensorListMounts.toolbar.hidden = false;
     }
+    notifySensorListPresentation(normalizedMapKey, "narrow-map");
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
     networkController?.syncPanelForActiveScope?.();

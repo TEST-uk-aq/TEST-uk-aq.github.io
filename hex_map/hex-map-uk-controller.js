@@ -346,10 +346,11 @@ function initHexMapUkController(root) {
           return;
         }
         const isChartModeActive = Boolean(window.hexChartMode?.isActive?.("uk"));
-        const isInteractive = chartLaunchAvailable && !isChartModeActive && !mobileTooltipQuery?.matches;
-        inlinePanelTitleLaunch?.setAttribute("data-chart-launch-available", isInteractive ? "true" : "false");
+        const chartEntryAvailable = chartLaunchAvailable && !isChartModeActive;
+        const isInteractive = chartEntryAvailable && !mobileTooltipQuery?.matches;
+        inlinePanelTitleLaunch?.setAttribute("data-chart-launch-available", chartEntryAvailable ? "true" : "false");
         if (inlinePanelLaunchButton) {
-          inlinePanelLaunchButton.disabled = !isInteractive;
+          inlinePanelLaunchButton.disabled = !chartEntryAvailable;
         }
         inlinePanelTitle.setAttribute("aria-disabled", isInteractive ? "false" : "true");
         if (!isInteractive) {
@@ -376,7 +377,7 @@ function initHexMapUkController(root) {
         });
       }
       const openSelectedAreaChartMode = () => {
-        if (!chartLaunchAvailable || mobileTooltipQuery?.matches || !selectedPconCode || window.hexChartMode?.isActive?.("uk")) {
+        if (!chartLaunchAvailable || !selectedPconCode || window.hexChartMode?.isActive?.("uk")) {
           return;
         }
         window.hexChartMode?.enter?.({ mapKey: "uk" });
@@ -2517,7 +2518,10 @@ function initHexMapUkController(root) {
             count
             && detailsTableWrap
             && !detailsTableWrap.hidden
-            && detailsTableWrap.scrollHeight > detailsTableWrap.clientHeight + 1
+            && (
+              count > SENSOR_PANEL_MAX_VISIBLE_ROWS
+              || detailsTableWrap.scrollHeight > detailsTableWrap.clientHeight + 1
+            )
           );
           detailsTableWrap?.classList.toggle("is-scroll-forced", hasOverflow);
           inlinePanelBody?.classList.toggle("is-scroll-forced", hasOverflow);
