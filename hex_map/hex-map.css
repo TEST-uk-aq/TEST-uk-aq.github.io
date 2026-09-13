@@ -5022,7 +5022,6 @@
       }
 
       .hex-chart-mode-panel {
-        --hex-chart-networks-clearance: 52px;
         --hex-chart-summary-base-row-height: 42px;
         position: absolute;
         inset: 0 0 var(--sensor-panel-height, 240px) 0;
@@ -5037,6 +5036,7 @@
       }
 
       .map-canvas-wrap.chart-mode {
+        --hex-chart-networks-clearance: 52px;
         min-height: calc(
           var(--map-canvas-min-height, 700px)
           + var(--hex-chart-networks-clearance, 52px)
@@ -5095,7 +5095,10 @@
 
       .hex-chart-selected-sensor-chip {
         display: grid;
-        grid-template-columns: 22px minmax(0, 1fr) auto auto;
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        grid-template-areas:
+          "symbol label label"
+          ". value time";
         align-items: center;
         gap: 6px;
         min-width: 0;
@@ -5129,8 +5132,13 @@
       }
 
       .hex-chart-chip-label {
+        grid-area: label;
         display: block;
         min-width: 0;
+      }
+
+      .hex-chart-chip-symbol {
+        grid-area: symbol;
       }
 
       .hex-chart-chip-name {
@@ -5172,6 +5180,14 @@
         font-weight: 400;
         color: var(--ink-1);
         white-space: nowrap;
+      }
+
+      .hex-chart-chip-value {
+        grid-area: value;
+      }
+
+      .hex-chart-chip-time {
+        grid-area: time;
       }
 
       @container hex-chart-panel (max-width: 687px) {
@@ -7386,24 +7402,11 @@
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {
           min-height: 64px;
           grid-template-columns: 18px minmax(0, 1fr) auto;
-          grid-template-areas:
-            "symbol label label"
-            ". value time";
           gap: 3px 6px;
           padding: 6px 8px;
         }
 
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-symbol {
-          grid-area: symbol;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
-          grid-area: label;
-          display: block;
-        }
-
         body.hex-map-page.hex-chart-mode .hex-chart-chip-value {
-          grid-area: value;
           min-width: 0;
           overflow: hidden;
           font-size: 0.7rem;
@@ -7411,7 +7414,6 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
-          grid-area: time;
           min-width: 0;
           overflow: hidden;
           font-size: 0.68rem;
