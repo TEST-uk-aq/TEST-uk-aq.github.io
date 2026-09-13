@@ -392,6 +392,7 @@ function initHexMapCrController() {
       const inlinePanelCount = byId("sensor-panel-count");
       const inlinePanelHexIcon = byId("sensor-panel-hex-icon");
       const inlinePanelBody = byId("sensor-panel-body");
+      const mobileSensorListToolbar = inlinePanelBody?.querySelector("[data-mobile-sensor-list-toolbar]") || null;
       const SENSOR_PANEL_EMPTY_HEIGHT = 116;
       const SENSOR_PANEL_HEADER_HEIGHT = 62;
       const SENSOR_TABLE_HEADER_HEIGHT = 44;
@@ -2296,7 +2297,10 @@ function initHexMapCrController() {
           const emptyHeight = detailsEmpty && !detailsEmpty.hidden
             ? detailsEmpty.getBoundingClientRect().height
             : 0;
-          const toolbarHeight = detailsTableHead?.getBoundingClientRect().height || 0;
+          const tableHeaderHeight = detailsTableHead?.getBoundingClientRect().height || 0;
+          const mobileToolbarHeight = mobileSensorListToolbar && !mobileSensorListToolbar.hidden
+            ? mobileSensorListToolbar.getBoundingClientRect().height
+            : 0;
           let visibleSensorRows = 0;
           let visibleRowsHeight = 0;
           const targetSensorRows = Math.min(3, count);
@@ -2310,7 +2314,7 @@ function initHexMapCrController() {
           const usefulContentHeight = Math.ceil(
             panelBorderHeight
             + headerHeight
-            + (count ? toolbarHeight + visibleRowsHeight : emptyHeight)
+            + (count ? tableHeaderHeight + mobileToolbarHeight + visibleRowsHeight : emptyHeight)
           );
           const hasMeasurableLayout = Boolean(
             headerHeight

@@ -5599,11 +5599,6 @@
           border-radius: 999px;
         }
 
-        body.hex-map-page.hex-chart-mode .map-title-strip,
-        body.hex-map-page.hex-chart-mode .map-summary-strip {
-          display: none;
-        }
-
         @media (max-width: 599px) {
           .hex-map-page .map-summary-strip {
             grid-template-columns: repeat(2, minmax(0, 1fr));
