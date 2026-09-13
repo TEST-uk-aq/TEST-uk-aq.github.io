@@ -7324,7 +7324,8 @@
         }
 
         body.hex-map-page.mobile-chart-controls-active .chart-back-pill {
-          width: 100%;
+          width: fit-content;
+          max-width: 100%;
           min-width: 0;
           min-height: 44px;
           height: auto;
