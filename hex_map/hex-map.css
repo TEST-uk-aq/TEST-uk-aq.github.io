@@ -5416,26 +5416,33 @@
         }
 
         .hex-map-page .map-title-strip {
-          display: none;
+          display: block;
+          grid-column: 1;
+          grid-row: 2;
+          margin: 0;
+          padding: 14px 12px 12px;
+          border-top: 1px solid var(--line);
+          background: var(--surface);
         }
 
         .hex-map-page .map-dashboard-title {
-          font-size: clamp(1.05rem, 5vw, 1.25rem) !important;
+          font-size: clamp(1.05rem, 3.8vw, 1.3rem) !important;
         }
 
         .hex-map-page .map-summary-strip {
-          display: none;
+          display: grid;
           grid-column: 1;
           grid-row: 3;
-          grid-template-columns: minmax(0, 1fr);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 0;
           margin: 0;
-          padding: 0 0 12px;
-          background: var(--map-wrap);
+          padding: 0;
+          background: var(--surface);
         }
 
         .hex-map-page .map-summary-card {
-          padding: 14px;
+          min-width: 0;
+          padding: 12px;
           border: 0;
           border-radius: 0;
           background: var(--surface);
@@ -5443,7 +5450,78 @@
         }
 
         .hex-map-page .map-summary-card + .map-summary-card {
-          border-top: 1px solid var(--line-soft);
+          border-left: 1px solid var(--line);
+          border-top: 0;
+        }
+
+        .hex-map-page .map-summary-label {
+          font-size: clamp(0.62rem, 2.2vw, 0.72rem);
+          margin-bottom: 5px;
+        }
+
+        .hex-map-page .map-summary-value,
+        .hex-map-page .map-summary-update-line span {
+          font-size: clamp(1rem, 3.8vw, 1.35rem);
+        }
+
+        .hex-map-page .map-summary-subtext,
+        .hex-map-page .map-summary-update-line {
+          font-size: clamp(0.7rem, 2.5vw, 0.82rem);
+        }
+
+        .hex-map-page .map-summary-subtext {
+          white-space: normal;
+          overflow: visible;
+          text-overflow: clip;
+          overflow-wrap: anywhere;
+        }
+
+        .hex-map-page .map-summary-value-with-icon {
+          gap: 6px;
+        }
+
+        .hex-map-page .map-summary-dot {
+          width: 12px;
+          height: 12px;
+        }
+
+        .hex-map-page .map-summary-coverage-bar {
+          height: clamp(8px, 1.6vw, 10px);
+          margin-top: 8px;
+        }
+
+        .hex-map-page .map-summary-coverage-fill {
+          border-radius: 999px;
+        }
+
+        body.hex-map-page.hex-chart-mode .map-title-strip,
+        body.hex-map-page.hex-chart-mode .map-summary-strip {
+          display: none;
+        }
+
+        @media (max-width: 599px) {
+          .hex-map-page .map-summary-strip {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .hex-map-page .map-summary-card:nth-child(odd) {
+            border-left: 0;
+          }
+
+          .hex-map-page .map-summary-card:nth-child(n + 3) {
+            border-top: 1px solid var(--line);
+          }
+        }
+
+        @media (max-width: 359px) {
+          .hex-map-page .map-summary-strip {
+            grid-template-columns: minmax(0, 1fr);
+          }
+
+          .hex-map-page .map-summary-card + .map-summary-card {
+            border-left: 0;
+            border-top: 1px solid var(--line);
+          }
         }
 
         .hex-map-page .map-dashboard-card .map-canvas-wrap {
