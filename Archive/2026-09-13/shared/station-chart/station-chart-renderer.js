@@ -30,33 +30,9 @@
       : "";
   }
 
-  function chartMargins(width, height) {
-    const chartWidth = Math.max(0, Number(width) || 0);
-    const marginTop = Math.max(52, Math.round(Math.max(0, Number(height) || 0) * 0.12));
-    if (chartWidth < 768) {
-      return {
-        top: marginTop,
-        right: chartWidth <= 360 ? 12 : chartWidth <= 480 ? 14 : 16,
-        bottom: 44,
-        left: chartWidth <= 360 ? 52 : chartWidth <= 480 ? 54 : 56,
-      };
-    }
-    return { top: marginTop, right: 24, bottom: 44, left: 72 };
-  }
-
-  function xAxisTickCount(rangeMs, plotWidth) {
+  function buildXAxis(d3, scale, rangeMs) {
     const dayMs = 24 * HOUR_MS;
-    const normalCount = rangeMs <= dayMs ? 8 : rangeMs <= 7 * dayMs ? 7 : 6;
-    const availableWidth = Math.max(0, Number(plotWidth) || 0);
-    if (availableWidth < 340) return Math.min(normalCount, 4);
-    if (availableWidth < 480) return Math.min(normalCount, 5);
-    if (availableWidth < 620) return Math.min(normalCount, 6);
-    return normalCount;
-  }
-
-  function buildXAxis(d3, scale, rangeMs, plotWidth) {
-    const dayMs = 24 * HOUR_MS;
-    const tickCount = xAxisTickCount(rangeMs, plotWidth);
+    const tickCount = rangeMs <= dayMs ? 8 : rangeMs <= 7 * dayMs ? 7 : 6;
     const format = rangeMs <= dayMs
       ? d3.timeFormat("%H:%M")
       : rangeMs <= 7 * dayMs ? d3.timeFormat("%a %H:%M") : d3.timeFormat("%d %b");
@@ -194,7 +170,7 @@
     function dimensions(value = {}) {
       const svgEl = refs?.svgEl;
       return {
-        width: Math.max(280, Number(value.width) || svgEl?.clientWidth || 960),
+        width: Math.max(320, Number(value.width) || svgEl?.clientWidth || 960),
         height: Math.max(300, Number(value.height) || svgEl?.clientHeight || 390),
       };
     }
@@ -202,7 +178,8 @@
     function createFrame(state, requestedDimensions) {
       clearHover({ forgetPointer: true });
       const size = dimensions(requestedDimensions);
-      const margin = chartMargins(size.width, size.height);
+      const marginTop = Math.max(52, Math.round(size.height * 0.12));
+      const margin = { top: marginTop, right: 24, bottom: 44, left: 72 };
       const svg = refs.svg;
       progressBar = null;
       svg.selectAll("*").remove();
@@ -338,8 +315,7 @@
         current.xScale.domain([state.range.startDate, state.range.endDate]);
         current.yScale.domain(observationDomain(state));
       }
-      const plotWidth = Math.max(0, current.width - current.margin.left - current.margin.right);
-      current.xAxis.call(buildXAxis(d3, current.xScale, state.range.endMs - state.range.startMs, plotWidth));
+      current.xAxis.call(buildXAxis(d3, current.xScale, state.range.endMs - state.range.startMs));
       current.yAxis.call(d3.axisLeft(current.yScale).ticks(5).tickSizeOuter(0));
       const guideline = Number(state.guideline?.limit_value);
       if (Number.isFinite(guideline)) {
@@ -454,7 +430,7 @@
       });
       const symbol = sourceIndex >= 0 ? ChartCore.getSymbolPathData(sourceIndex, 130) : null;
       if (symbol) current.aqi.append("path").attr("class", "aqi-band-source-symbol")
-        .attr("d", symbol).attr("transform", `translate(${Math.max(10, current.margin.left - 62)},24)`)
+        .attr("d", symbol).attr("transform", `translate(${current.margin.left - 62},24)`)
         .attr("fill", SERIES_COLOUR).attr("stroke", "#fff").attr("stroke-width", 1.35);
     }
 
@@ -769,8 +745,6 @@
 
   return {
     createStationChartRenderer,
-    chartMargins,
-    xAxisTickCount,
     getSeriesValueAtDate,
     findNearestSeriesAtPointer,
     DAQI_COLORS,

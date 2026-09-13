@@ -257,24 +257,14 @@
 <!--
 				  -->
                   <section class="hex-chart-mode-panel" id="uk-hex-chart-mode" aria-label="Selected constituency sensors chart" hidden>
-                    <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="uk" aria-label="Chart controls">
-                      <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--back" data-mobile-chart-back></div>
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
-                      </div>
-                      <div class="mobile-chart-controls-row mobile-chart-controls-row--secondary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--pollutant" data-mobile-chart-pollutant></div>
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--range" data-mobile-chart-range></div>
-                      </div>
-                    </div>
-                    <div class="hex-chart-selected-sensors" id="uk-hex-chart-reading" aria-label="Selected chart sensors"></div>
-                    <div class="hex-chart-message" id="uk-hex-chart-message" aria-live="polite"></div>
-                    <div class="hex-chart-wrap" id="uk-hex-chart-wrap">
-                      <svg class="hex-chart-svg" id="uk-hex-chart-svg" role="img" aria-label="Selected sensor chart"></svg>
-                      <div class="hex-chart-loading" id="uk-hex-chart-loading">Loading chart data…</div>
-                      <div class="chart-tooltip" id="uk-hex-chart-tooltip"></div>
-                    </div>
-                  </section>
+                  <div class="hex-chart-selected-sensors" id="uk-hex-chart-reading" aria-label="Selected chart sensors"></div>
+                  <div class="hex-chart-message" id="uk-hex-chart-message" aria-live="polite"></div>
+                  <div class="hex-chart-wrap" id="uk-hex-chart-wrap">
+                    <svg class="hex-chart-svg" id="uk-hex-chart-svg" role="img" aria-label="Selected sensor chart"></svg>
+                    <div class="hex-chart-loading" id="uk-hex-chart-loading">Loading chart data…</div>
+                    <div class="chart-tooltip" id="uk-hex-chart-tooltip"></div>
+                  </div>
+                </section>
                 <div class="map-svg-viewport">
                   <svg id="hex-map" role="img" aria-label="Hex cartogram of PM2.5 by constituency"></svg>
                 </div>
@@ -896,16 +886,6 @@
 				  <!--
 					  -->
                   <section class="hex-chart-mode-panel" id="cr-hex-chart-mode" aria-label="Selected local authority sensors chart" hidden>
-                    <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="cr" aria-label="Chart controls">
-                      <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--back" data-mobile-chart-back></div>
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
-                      </div>
-                      <div class="mobile-chart-controls-row mobile-chart-controls-row--secondary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--pollutant" data-mobile-chart-pollutant></div>
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--range" data-mobile-chart-range></div>
-                      </div>
-                    </div>
                     <div class="hex-chart-selected-sensors" id="cr-hex-chart-reading" aria-label="Selected chart sensors"></div>
                     <div class="hex-chart-message" id="cr-hex-chart-message" aria-live="polite"></div>
                     <div class="hex-chart-wrap" id="cr-hex-chart-wrap">
@@ -1449,15 +1429,6 @@
             alt=""
             aria-hidden="true"
           />
-        </button>
-        <button
-          type="button"
-          class="networks-panel-close"
-          id="networks-panel-close"
-          aria-label="Close networks"
-          title="Close networks"
-        >
-          <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
         </button>
       </div>
       <div class="network-dropdown-actions" role="group" aria-label="Network selection actions">

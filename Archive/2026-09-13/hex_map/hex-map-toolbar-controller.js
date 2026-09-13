@@ -31,8 +31,6 @@ function initHexMapToolbarController(root) {
     cr: panelCr?.querySelector("[data-tab-slot]"),
   };
   const toolbar = root.document.getElementById("main-toolbar");
-  const chartBackButton = root.document.getElementById("chart-back-to-map");
-  const chartRangeToolbar = toolbar?.querySelector("label.chart-range-toolbar") || null;
   const toolbarSlots = {
     uk: root.document.getElementById("uk-toolbar-slot"),
     cr: root.document.getElementById("cr-toolbar-slot"),
@@ -79,25 +77,11 @@ function initHexMapToolbarController(root) {
       status: panelCr?.querySelector("[data-mobile-map-status-row]") || null,
     },
   };
-  const mobileChartMounts = {
-    uk: {
-      back: panelUk?.querySelector("[data-mobile-chart-back]") || null,
-      network: panelUk?.querySelector("[data-mobile-chart-network]") || null,
-      pollutant: panelUk?.querySelector("[data-mobile-chart-pollutant]") || null,
-      range: panelUk?.querySelector("[data-mobile-chart-range]") || null,
-    },
-    cr: {
-      back: panelCr?.querySelector("[data-mobile-chart-back]") || null,
-      network: panelCr?.querySelector("[data-mobile-chart-network]") || null,
-      pollutant: panelCr?.querySelector("[data-mobile-chart-pollutant]") || null,
-      range: panelCr?.querySelector("[data-mobile-chart-range]") || null,
-    },
-  };
   const networkAnchors = {
     uk: root.document.getElementById("uk-networks-pill-anchor"),
     cr: root.document.getElementById("cr-networks-pill-anchor"),
   };
-  const relocationNodes = [chartBackButton, viewControl, regionSection, pollutantSelector, windowStepper, chartRangeToolbar]
+  const relocationNodes = [viewControl, regionSection, pollutantSelector, windowStepper]
     .filter(Boolean);
   const originalMarkers = new Map();
 
@@ -229,10 +213,6 @@ function initHexMapToolbarController(root) {
     return Boolean(mobileLayoutQuery?.matches && pageMode.getMode() === "map");
   }
 
-  function isMobileChartMode() {
-    return Boolean(mobileLayoutQuery?.matches && pageMode.getMode() === "chart");
-  }
-
   function restoreNode(node) {
     const marker = originalMarkers.get(node);
     if (!node || !marker?.parentNode) return false;
@@ -301,46 +281,15 @@ function initHexMapToolbarController(root) {
   }
 
   function syncResponsivePresentation(mapKey = coordinator.getActiveMap()) {
-    const chartMapKey = pageMode.getState?.().chartMapKey;
-    const normalizedMapKey = chartMapKey === "cr" || (chartMapKey !== "uk" && mapKey === "cr") ? "cr" : "uk";
+    const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
     const mobileMapMode = isMobileMapMode();
-    const mobileChartMode = isMobileChartMode();
     const mounts = mobileMounts[normalizedMapKey];
-    const chartMounts = mobileChartMounts[normalizedMapKey];
-
-    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range) {
-      const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
-      restoreDistributedControls();
-      relocateStatusRefreshForMap(normalizedMapKey);
-      restoreNode(networkAnchors[inactiveMapKey]);
-      if (chartBackButton && chartBackButton.parentElement !== chartMounts.back) {
-        chartMounts.back.appendChild(chartBackButton);
-      }
-      const activeNetworkAnchor = networkAnchors[normalizedMapKey];
-      if (activeNetworkAnchor && activeNetworkAnchor.parentElement !== chartMounts.network) {
-        chartMounts.network.appendChild(activeNetworkAnchor);
-      }
-      if (pollutantSelector && pollutantSelector.parentElement !== chartMounts.pollutant) {
-        chartMounts.pollutant.appendChild(pollutantSelector);
-      }
-      if (chartRangeToolbar && chartRangeToolbar.parentElement !== chartMounts.range) {
-        chartMounts.range.appendChild(chartRangeToolbar);
-      }
-      root.document.body.classList.remove("mobile-map-controls-active");
-      root.document.body.classList.add("mobile-chart-controls-active");
-      renderMobileViewAccessibility(normalizedMapKey, false);
-      networkController?.syncPanelForActiveScope?.();
-      return true;
-    }
-
-    root.document.body.classList.remove("mobile-chart-controls-active");
 
     if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.status) {
       restoreDistributedControls();
       relocateStatusRefreshForMap(normalizedMapKey);
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
-      networkController?.syncPanelForActiveScope?.();
       return false;
     }
 
@@ -362,7 +311,6 @@ function initHexMapToolbarController(root) {
     }
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
-    networkController?.syncPanelForActiveScope?.();
     return true;
   }
 

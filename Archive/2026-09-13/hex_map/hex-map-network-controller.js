@@ -19,11 +19,7 @@ function initHexMapNetworkController(root) {
   const dropdownCount = document.getElementById("network-dropdown-count");
   const panelPin = document.getElementById("networks-panel-pin");
   const panelPinIcon = document.getElementById("networks-panel-pin-icon");
-  const panelClose = document.getElementById("networks-panel-close");
   const pills = Array.from(document.querySelectorAll("[data-networks-pill]"));
-  const mobileLayoutQuery = typeof root.matchMedia === "function"
-    ? root.matchMedia("(max-width: 767px)")
-    : null;
   const scopes = new Map();
   const consumers = new Map();
   const STORAGE_KEY = "uk-aq-hex-map-network-selection-v1";
@@ -94,10 +90,6 @@ function initHexMapNetworkController(root) {
 
   function normalizeCode(value) {
     return String(value || "").trim().toLowerCase();
-  }
-
-  function isMobileChartPresentation() {
-    return Boolean(mobileLayoutQuery?.matches && document.body.classList.contains("hex-chart-mode"));
   }
 
   function readPersistedSelection() {
@@ -468,21 +460,12 @@ function initHexMapNetworkController(root) {
 
   function updateDropdownState(inputs = getInputs()) {
     const total = inputs.length;
-    const selectable = getEffectiveSelectableInputs(inputs).length;
     const selected = getEffectiveSelectedInputs(inputs).length;
-    const allEffectiveSelected = selectable > 0 && selected === selectable;
     if (dropdownCount) dropdownCount.textContent = `${selected} / ${total}`;
     const pillText = total === 0 ? "Networks: —" : selected === total ? "Networks: All" : `Networks: ${selected} / ${total}`;
-    const mobileChartPillText = total === 0
-      ? "Networks · —"
-      : allEffectiveSelected
-        ? "Networks · All"
-        : `Networks · ${selected} selected`;
     pills.forEach((pill) => {
       const text = pill.querySelector(".networks-pill-text");
-      if (text) text.textContent = isMobileChartPresentation() && isPillVisible(pill)
-        ? mobileChartPillText
-        : pillText;
+      if (text) text.textContent = pillText;
     });
     ["top-total-sensors-subtext", "cr-top-total-sensors-subtext"].forEach((id) => {
       const element = document.getElementById(id);
@@ -546,7 +529,6 @@ function initHexMapNetworkController(root) {
   }
 
   function getFloatingHost(pill) {
-    if (isMobileChartPresentation()) return document.body;
     return getMapWrap(pill || getActivePill()) || document.body;
   }
 
@@ -565,7 +547,7 @@ function initHexMapNetworkController(root) {
     if (dropdownMenu.parentElement !== host) host.appendChild(dropdownMenu);
     dropdownMenu.classList.remove("is-docked");
     dropdownMenu.classList.add("is-floating");
-    if (!panelPinned || isMobileChartPresentation()) {
+    if (!panelPinned) {
       dropdownMenu.style.width = "";
       dropdownMenu.style.top = "";
       dropdownMenu.style.left = "";
@@ -645,15 +627,6 @@ function initHexMapNetworkController(root) {
   function positionPanel(pill) {
     if (!dropdownMenu) return;
     if (!pill) return updatePanelSafeArea();
-    if (isMobileChartPresentation()) {
-      setFloatingHost(pill);
-      dropdownMenu.style.width = "";
-      dropdownMenu.style.top = "";
-      dropdownMenu.style.left = "";
-      dropdownMenu.style.right = "";
-      updatePanelSafeArea();
-      return;
-    }
     if (panelPinned) return applyPinnedPlacement();
     setFloatingHost(pill);
     const host = getFloatingHost(pill);
@@ -676,25 +649,18 @@ function initHexMapNetworkController(root) {
     updatePanelSafeArea();
   }
 
-  function setPanelOpen(isOpen, anchorPill, options = {}) {
+  function setPanelOpen(isOpen, anchorPill) {
     if (!dropdownMenu) return;
-    const focusTarget = panelAnchorPill || anchorPill || getActivePill();
-    const mobileChart = isMobileChartPresentation();
     dropdownMenu.hidden = !isOpen;
-    dropdownMenu.setAttribute("aria-modal", String(Boolean(isOpen && mobileChart)));
     if (isOpen) {
       panelAnchorPill = anchorPill || getActivePill();
-      root.requestAnimationFrame(() => {
-        positionPanel(panelAnchorPill);
-        if (mobileChart) panelClose?.focus?.({ preventScroll: true });
-      });
+      root.requestAnimationFrame(() => positionPanel(panelAnchorPill));
     } else {
-      if (!panelPinned || mobileChart) panelAnchorPill = null;
+      if (!panelPinned) panelAnchorPill = null;
       setFloatingHost();
       updatePanelSafeArea();
     }
     pills.forEach((pill) => pill.setAttribute("aria-expanded", String(isOpen && pill === panelAnchorPill)));
-    if (!isOpen && options.restoreFocus) focusTarget?.focus?.({ preventScroll: true });
   }
 
   function setPanelPinned(nextPinned) {
@@ -721,9 +687,7 @@ function initHexMapNetworkController(root) {
   }
 
   function syncPanelForActiveScope() {
-    if (isMobileChartPresentation()) {
-      setPanelOpen(false);
-    } else if (panelPinned && dropdownMenu && !dropdownMenu.hidden) {
+    if (panelPinned && dropdownMenu && !dropdownMenu.hidden) {
       panelAnchorPill = getActivePill();
       pills.forEach((pill) => pill.setAttribute("aria-expanded", String(pill === panelAnchorPill)));
       root.requestAnimationFrame(() => positionPanel(panelAnchorPill));
@@ -741,37 +705,13 @@ function initHexMapNetworkController(root) {
     updateDropdownState();
   }));
   panelPin?.addEventListener("click", () => setPanelPinned(!panelPinned));
-  panelClose?.addEventListener("click", () => setPanelOpen(false, null, { restoreFocus: true }));
   document.addEventListener("mousedown", (event) => {
-    if ((panelPinned && !isMobileChartPresentation()) || !dropdownMenu || dropdownMenu.hidden) return;
+    if (panelPinned || !dropdownMenu || dropdownMenu.hidden) return;
     if (pills.some((pill) => pill.contains(event.target)) || dropdownMenu.contains(event.target)) return;
     setPanelOpen(false);
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Tab" && isMobileChartPresentation() && dropdownMenu && !dropdownMenu.hidden) {
-      const focusable = Array.from(dropdownMenu.querySelectorAll(
-        'button:not([disabled]), input:not([disabled]), a[href], select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      )).filter((element) => element.getClientRects().length > 0);
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      if (!first || !last) {
-        event.preventDefault();
-        return;
-      }
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-      return;
-    }
-    if (event.key === "Escape" && dropdownMenu && !dropdownMenu.hidden
-        && (!panelPinned || isMobileChartPresentation())) {
-      event.preventDefault();
-      setPanelOpen(false, null, { restoreFocus: true });
-    }
+    if (event.key === "Escape" && !panelPinned) setPanelOpen(false);
   });
   root.addEventListener("resize", () => {
     cachedPanelWidth = 0;
