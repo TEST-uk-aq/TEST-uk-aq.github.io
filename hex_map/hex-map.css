@@ -7026,6 +7026,10 @@
           gap: 6px;
         }
 
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip:only-child {
+          grid-column: 1 / -1;
+        }
+
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {
           min-height: 64px;
           grid-template-columns: 18px minmax(0, 1fr) auto;
@@ -7042,6 +7046,8 @@
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
           grid-area: label;
+          grid-template-rows: auto auto;
+          align-content: center;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-value {
@@ -7062,6 +7068,14 @@
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-name {
           font-size: 0.76rem;
+          line-height: 1.18;
+          white-space: normal;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+          overflow: hidden;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network {
@@ -7069,6 +7083,14 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {
+          flex: 0 0 360px;
+          height: 360px;
+          min-height: 360px;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-svg {
+          flex: 0 0 360px;
+          height: 360px;
           min-height: 360px;
         }
 
@@ -7173,6 +7195,14 @@
 
         @media (max-width: 359px) {
           body.hex-map-page.hex-chart-mode .hex-chart-wrap {
+            flex-basis: 340px;
+            height: 340px;
+            min-height: 340px;
+          }
+
+          body.hex-map-page.hex-chart-mode .hex-chart-svg {
+            flex-basis: 340px;
+            height: 340px;
             min-height: 340px;
           }
 
