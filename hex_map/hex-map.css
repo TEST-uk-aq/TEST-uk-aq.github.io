@@ -7155,6 +7155,30 @@
           font-size: 0.82rem;
         }
 
+        @container sensor-panel (min-width: 520px) {
+          body.hex-map-page.hex-chart-mode .sensor-panel-header {
+            grid-template-columns: 18px minmax(0, 1fr) auto 44px;
+            grid-template-areas:
+              "hex title title close"
+              "reading reading reading ."
+              "count count sort sort";
+          }
+
+          body.hex-map-page.hex-chart-mode .mobile-sensor-sort {
+            grid-column: auto;
+            grid-area: sort;
+            width: auto;
+            justify-self: end;
+            align-self: center;
+            padding-top: 0;
+          }
+
+          body.hex-map-page.hex-chart-mode .mobile-sensor-sort select {
+            width: 220px;
+            max-width: 100%;
+          }
+        }
+
         body.hex-map-page.hex-chart-mode .networks-panel-floating.is-floating,
         body.hex-map-page.hex-chart-mode .networks-panel-floating.is-docked {
           position: fixed;
