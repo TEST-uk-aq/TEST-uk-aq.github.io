@@ -6901,6 +6901,7 @@
         /* The mobile map shell is normal flow: it occupies a grid row ahead of
            the unchanged canvas height rather than floating over the map. */
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
+          --mobile-map-control-inset: 12px;
           position: relative;
           top: auto;
           left: auto;
@@ -6909,7 +6910,7 @@
           grid-row: 1;
           grid-template-columns: minmax(0, 1fr);
           width: 100%;
-          padding: 8px 12px 10px;
+          padding: 8px var(--mobile-map-control-inset) 0;
           gap: 8px;
           background: var(--map-wrap);
           pointer-events: auto;
@@ -6938,8 +6939,14 @@
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility {
+          position: absolute;
+          top: 100%;
+          right: var(--mobile-map-control-inset);
+          left: var(--mobile-map-control-inset);
+          z-index: 60;
           grid-template-columns: max-content minmax(0, 1fr) auto;
           align-items: start;
+          min-height: 44px;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility .mobile-map-controls--centre {
@@ -6951,6 +6958,10 @@
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility .mobile-map-status-row {
           grid-column: 3;
           align-self: start;
+        }
+
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--utility .status-pill {
+          align-self: center;
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
@@ -7185,8 +7196,9 @@
 
         @media (max-width: 359px) {
           body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row {
+            --mobile-map-control-inset: 8px;
             grid-template-columns: minmax(0, 1fr);
-            padding-inline: 8px;
+            padding-inline: var(--mobile-map-control-inset);
           }
 
           body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--secondary {
