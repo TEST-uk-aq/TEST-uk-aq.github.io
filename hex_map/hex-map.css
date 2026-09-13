@@ -1760,23 +1760,22 @@
           padding-right: 18px;
         }
 
-        /* Fixed columns and their cell padding use about 504px. Keeping at
-           least 240px for Sensor and 120px for Network leaves a small buffer
-           at this 900px wrapper threshold. */
+        /* The ordinary table uses a compact presentation below this component
+           width; chart-select keeps its complete responsive six-column grid. */
         @container sensor-table (max-width: 899px) {
-          .sensor-table {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table {
             min-width: 0;
           }
 
-          .sensor-table th.sensor-col-sensor,
-          .sensor-table td.sensor-col-sensor,
-          .sensor-table th.sensor-col-network,
-          .sensor-table td.sensor-col-network {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-col-sensor,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-col-sensor,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-col-network,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-col-network {
             width: auto;
           }
 
-          .sensor-table th.sensor-col-network,
-          .sensor-table td.sensor-col-network {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-col-network,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-col-network {
             display: none;
           }
 
@@ -1785,37 +1784,37 @@
             display: none;
           }
 
-          .sensor-table th.sensor-col-value,
-          .sensor-table td.sensor-col-value,
-          .sensor-table th.sensor-col-updated,
-          .sensor-table td.sensor-col-updated {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-col-value,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-col-value,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table th.sensor-col-updated,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table td.sensor-col-updated {
             text-align: right;
           }
 
-          .sensor-table .sort-header--wide {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table .sort-header--wide {
             display: none;
           }
 
-          .sensor-table .sort-header--narrow {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table .sort-header--narrow {
             display: inline-flex;
           }
 
-          .sensor-table tbody tr:not(.sensor-row-divider),
-          .sensor-table tbody tr:not(.sensor-row-divider) > td {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table tbody tr:not(.sensor-row-divider),
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table tbody tr:not(.sensor-row-divider) > td {
             height: 58px;
           }
 
-          .sensor-table .sensor-network-text--wide {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table .sensor-network-text--wide {
             display: none;
           }
 
-          .sensor-table .sensor-network-text--compact {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table .sensor-network-text--compact {
             display: block;
             color: var(--ink-soft);
             font-size: 0.76rem;
           }
 
-          .sensor-table .sensor-identity-cell {
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table .sensor-identity-cell {
             display: grid;
             gap: 2px;
           }
@@ -1917,6 +1916,44 @@
         .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr.sensor-row-divider > td {
           display: block;
           width: 100%;
+        }
+
+        @container sensor-table (max-width: 899px) {
+          .sensor-table-wrap.is-chart-select-mode .sensor-table {
+            --sensor-chart-select-columns:
+              68px 32px minmax(150px, 1.5fr) minmax(96px, 0.8fr) max-content max-content;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode .sensor-table thead th,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) > td {
+            padding: 9px 5px;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-value,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-value,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-updated,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-updated {
+            padding-inline: 5px;
+          }
+        }
+
+        @container sensor-table (max-width: 699px) {
+          .sensor-table-wrap.is-chart-select-mode .sensor-table {
+            --sensor-chart-select-columns:
+              68px 32px minmax(140px, 1.5fr) minmax(88px, 0.8fr) max-content max-content;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode .sensor-table thead th,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) > td {
+            padding: 8px 4px;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-value,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-value,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table th.sensor-col-updated,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table td.sensor-col-updated {
+            padding-inline: 4px;
+          }
         }
       }
 
