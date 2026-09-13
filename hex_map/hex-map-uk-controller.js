@@ -323,8 +323,8 @@ function initHexMapUkController(root) {
       const SENSOR_PANEL_EMPTY_HEIGHT = 116;
       const SENSOR_PANEL_HEADER_HEIGHT = 62;
       const SENSOR_TABLE_HEADER_HEIGHT = 44;
-      const SENSOR_PANEL_ROW_HEIGHT = 58;
-      const SENSOR_PANEL_MAX_VISIBLE_ROWS = 4;
+      const NARROW_SENSOR_ROWS = 3;
+      const DESKTOP_SENSOR_ROWS = 4;
       const detailScrollAffordances = scrollAffordances?.attachSensorTable?.(detailsTableWrap, {
         contentEl: detailsTableBody,
         isScrollbarHidden: () => !detailsTableWrap?.classList.contains("is-scroll-forced"),
@@ -432,6 +432,21 @@ function initHexMapUkController(root) {
             if (window.hexChartMode?.isActive?.("uk")) {
               window.hexChartMode?.selectSensor?.(stationId, { mapKey: "uk", mode: "toggle" });
             }
+            return;
+          }
+          const launchButton = event.target instanceof Element
+            ? event.target.closest(".sensor-chart-launch[data-station-id]")
+            : null;
+          if (launchButton && detailsTableWrap?.contains(launchButton)) {
+            event.stopPropagation();
+            const stationId = String(launchButton.dataset.stationId || "").trim();
+            if (!stationId || window.hexChartMode?.isActive?.("uk")) {
+              return;
+            }
+            window.hexChartMode?.enter?.({
+              mapKey: "uk",
+              initialSensorId: stationId,
+            });
             return;
           }
           const button = event.target instanceof Element
@@ -2448,12 +2463,24 @@ function initHexMapUkController(root) {
         }
       }
 
-      function updateInlinePanelHeight(sensorCount, extraRowCount = 0) {
+      function measureVisibleSensorRows(targetSensorRows) {
+        let visibleSensorRows = 0;
+        let visibleRowsHeight = 0;
+        for (const row of Array.from(detailsTableBody?.children || [])) {
+          visibleRowsHeight += row.getBoundingClientRect().height;
+          if (!row.classList.contains("sensor-row-divider")) {
+            visibleSensorRows += 1;
+            if (visibleSensorRows >= targetSensorRows) break;
+          }
+        }
+        return { visibleSensorRows, visibleRowsHeight };
+      }
+
+      function updateInlinePanelHeight(sensorCount) {
         if (!mapCanvasWrap) {
           return;
         }
         const count = Math.max(0, Number(sensorCount) || 0);
-        const totalRows = count + Math.max(0, Number(extraRowCount) || 0);
 
         if (mobileTooltipQuery?.matches) {
           detailsTableWrap?.style.removeProperty("max-height");
@@ -2470,16 +2497,8 @@ function initHexMapUkController(root) {
           const mobileToolbarHeight = mobileSensorListToolbar && !mobileSensorListToolbar.hidden
             ? mobileSensorListToolbar.getBoundingClientRect().height
             : 0;
-          let visibleSensorRows = 0;
-          let visibleRowsHeight = 0;
-          const targetSensorRows = Math.min(3, count);
-          for (const row of Array.from(detailsTableBody?.children || [])) {
-            visibleRowsHeight += row.getBoundingClientRect().height;
-            if (!row.classList.contains("sensor-row-divider")) {
-              visibleSensorRows += 1;
-              if (visibleSensorRows >= targetSensorRows) break;
-            }
-          }
+          const targetSensorRows = Math.min(NARROW_SENSOR_ROWS, count);
+          const { visibleRowsHeight } = measureVisibleSensorRows(targetSensorRows);
           const usefulContentHeight = Math.ceil(
             panelBorderHeight
             + headerHeight
@@ -2504,7 +2523,7 @@ function initHexMapUkController(root) {
             && detailsTableWrap
             && !detailsTableWrap.hidden
             && (
-              count > SENSOR_PANEL_MAX_VISIBLE_ROWS
+              count > NARROW_SENSOR_ROWS
               || detailsTableWrap.scrollHeight > detailsTableWrap.clientHeight + 1
             )
           );
@@ -2514,14 +2533,14 @@ function initHexMapUkController(root) {
           return;
         }
 
-        const hasOverflowByCount = totalRows > SENSOR_PANEL_MAX_VISIBLE_ROWS;
-        const visibleRows = Math.min(totalRows, SENSOR_PANEL_MAX_VISIBLE_ROWS);
-        const effectiveRowHeight = SENSOR_PANEL_ROW_HEIGHT;
+        const targetSensorRows = Math.min(DESKTOP_SENSOR_ROWS, count);
+        const { visibleRowsHeight } = measureVisibleSensorRows(targetSensorRows);
+        const hasOverflowByCount = count > DESKTOP_SENSOR_ROWS;
         const tableHeaderHeight = detailsTableHead?.getBoundingClientRect().height || 0;
         const sensorListToolbarHeight = mobileSensorListToolbar && !mobileSensorListToolbar.hidden
           ? mobileSensorListToolbar.getBoundingClientRect().height
           : 0;
-        const tableWrapMaxHeight = tableHeaderHeight + (visibleRows * effectiveRowHeight);
+        const tableWrapMaxHeight = tableHeaderHeight + visibleRowsHeight;
         const headerHeight = Math.max(
           SENSOR_PANEL_HEADER_HEIGHT,
           Math.ceil(inlinePanelHeader?.getBoundingClientRect().height || 0)
@@ -2530,7 +2549,7 @@ function initHexMapUkController(root) {
           ? headerHeight
             + sensorListToolbarHeight
             + tableHeaderHeight
-            + (visibleRows * effectiveRowHeight)
+            + visibleRowsHeight
           : SENSOR_PANEL_EMPTY_HEIGHT;
         mapCanvasWrap.style.setProperty("--sensor-panel-height", `${panelHeight}px`);
         if (inlinePanelBody) {
@@ -2548,10 +2567,7 @@ function initHexMapUkController(root) {
       }
 
       function refreshInlinePanelGeometry() {
-        updateInlinePanelHeight(
-          detailsTableBody?.querySelectorAll("tr:not(.sensor-row-divider)").length || 0,
-          detailsTableBody?.querySelectorAll("tr.sensor-row-divider").length || 0
-        );
+        updateInlinePanelHeight(detailsTableBody?.querySelectorAll("tr:not(.sensor-row-divider)").length || 0);
         updateSelectedHexViewportShift();
       }
 
@@ -2684,7 +2700,7 @@ function initHexMapUkController(root) {
               <td class="sensor-chart-symbol-col">${
                 chartModeActive
                   ? symbolMarkup
-                  : ""
+                  : `<button type="button" class="sensor-chart-launch" data-station-id="${escapeHtmlLocal(stationId)}" aria-label="Open chart for ${escapeHtmlLocal(stationName)}" title="Open chart"><img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true"></button>`
               }</td>
               <td class="sensor-col-sensor"><div class="sensor-identity-cell"><button type="button" class="sensor-name-button" data-station-id="${escapeHtmlLocal(stationId)}" data-hex-truncation>${escapeHtmlLocal(stationName)}</button><span class="sensor-network-text sensor-network-text--compact" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></div></td>
               <td class="sensor-col-network"><span class="sensor-network-text sensor-network-text--wide" data-hex-truncation data-hex-truncation-focusable="true">${escapeHtmlLocal(networkLabel)}</span></td>
@@ -2704,7 +2720,7 @@ function initHexMapUkController(root) {
           outsideWindowEntries.map(renderSensorRow).join(""),
         ].join("");
         truncation.refresh(inlinePanel);
-        updateInlinePanelHeight(entries.length, dividerRow ? 1 : 0);
+        updateInlinePanelHeight(entries.length);
         updateSelectedHexViewportShift();
       }
 
