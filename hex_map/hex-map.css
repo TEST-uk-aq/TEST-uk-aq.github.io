@@ -5609,6 +5609,10 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
+          .hex-map-page .map-summary-update-line span {
+            font-size: clamp(0.92rem, 3.6vw, 1.02rem);
+          }
+
           .hex-map-page .map-summary-card:nth-child(odd) {
             border-left: 0;
           }
