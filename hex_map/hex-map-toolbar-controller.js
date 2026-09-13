@@ -65,6 +65,7 @@ function initHexMapToolbarController(root) {
   const mobileLayoutQuery = typeof root.matchMedia === "function"
     ? root.matchMedia("(max-width: 767px)")
     : null;
+  const SENSOR_TABLE_COMPACT_WIDTH = 860;
   const mobileMounts = {
     uk: {
       left: panelUk?.querySelector("[data-mobile-map-controls-left]") || null,
@@ -277,6 +278,22 @@ function initHexMapToolbarController(root) {
     return Boolean(mobileLayoutQuery?.matches && pageMode.getMode() === "chart");
   }
 
+  function isCompactSensorList(mapKey) {
+    if (mobileLayoutQuery?.matches) return false;
+    const panel = mapKey === "cr" ? panelCr : panelUk;
+    const tableWrap = panel?.querySelector(".sensor-table-wrap");
+    return Boolean(tableWrap && tableWrap.clientWidth > 0 && tableWrap.clientWidth < SENSOR_TABLE_COMPACT_WIDTH);
+  }
+
+  function setSensorListToolbarPresentation(toolbar, presentation) {
+    if (!toolbar) return;
+    if (presentation) {
+      toolbar.dataset.sensorListPresentation = presentation;
+    } else {
+      delete toolbar.dataset.sensorListPresentation;
+    }
+  }
+
   function restoreNode(node) {
     const marker = originalMarkers.get(node);
     if (!node || !marker?.parentNode) return false;
@@ -349,6 +366,7 @@ function initHexMapToolbarController(root) {
     const normalizedMapKey = chartMapKey === "cr" || (chartMapKey !== "uk" && mapKey === "cr") ? "cr" : "uk";
     const mobileMapMode = isMobileMapMode();
     const mobileChartMode = isMobileChartMode();
+    const compactSensorList = isCompactSensorList(normalizedMapKey);
     const mounts = mobileMounts[normalizedMapKey];
     const chartMounts = mobileChartMounts[normalizedMapKey];
     const sensorListMounts = mobileSensorListMounts[normalizedMapKey];
@@ -381,6 +399,7 @@ function initHexMapToolbarController(root) {
       if (sensorListControls?.sort && sensorListControls.sort.parentElement !== sensorListMounts.sort) {
         sensorListMounts.sort.appendChild(sensorListControls.sort);
       }
+      setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-chart");
       sensorListMounts.toolbar.hidden = false;
       root.document.body.classList.remove("mobile-map-controls-active");
       root.document.body.classList.add("mobile-chart-controls-active");
@@ -389,9 +408,32 @@ function initHexMapToolbarController(root) {
       return true;
     }
 
+    if (compactSensorList && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
+      restoreDistributedControls();
+      Object.values(mobileSensorListMounts).forEach((candidate) => {
+        if (candidate?.toolbar) {
+          candidate.toolbar.hidden = true;
+          setSensorListToolbarPresentation(candidate.toolbar, null);
+        }
+      });
+      if (pageMode.getMode() === "chart" && sensorListControls?.select) {
+        sensorListMounts.select.appendChild(sensorListControls.select);
+      }
+      if (sensorListControls?.sort) {
+        sensorListMounts.sort.appendChild(sensorListControls.sort);
+      }
+      setSensorListToolbarPresentation(sensorListMounts.toolbar, pageMode.getMode() === "chart" ? "compact-chart" : "compact-map");
+      sensorListMounts.toolbar.hidden = false;
+      root.dispatchEvent(new CustomEvent("hexsensorlistpresentationchange", { detail: { mapKey: normalizedMapKey } }));
+      return true;
+    }
+
     root.document.body.classList.remove("mobile-chart-controls-active");
     Object.values(mobileSensorListMounts).forEach((candidate) => {
-      if (candidate?.toolbar) candidate.toolbar.hidden = true;
+      if (candidate?.toolbar) {
+        candidate.toolbar.hidden = true;
+        setSensorListToolbarPresentation(candidate.toolbar, null);
+      }
     });
 
     if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.search || !mounts?.status) {
@@ -424,6 +466,12 @@ function initHexMapToolbarController(root) {
     }
     if (pollutantSelector && pollutantSelector.parentElement !== mounts.pollutant) {
       mounts.pollutant.appendChild(pollutantSelector);
+    }
+    restoreNode(sensorListControls?.sort);
+    if (sensorListControls?.sort && sensorListMounts?.sort) {
+      sensorListMounts.sort.appendChild(sensorListControls.sort);
+      setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-map");
+      sensorListMounts.toolbar.hidden = false;
     }
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
@@ -529,6 +577,22 @@ function initHexMapToolbarController(root) {
       } else if (typeof mobileLayoutQuery.addListener === "function") {
         mobileLayoutQuery.addListener(handleMobileLayoutChange);
       }
+    }
+
+    if (typeof root.ResizeObserver === "function") {
+      let sensorListResizeQueued = false;
+      const sensorListResizeObserver = new root.ResizeObserver(() => {
+        if (sensorListResizeQueued) return;
+        sensorListResizeQueued = true;
+        root.requestAnimationFrame(() => {
+          sensorListResizeQueued = false;
+          syncResponsivePresentation(coordinator.getActiveMap());
+        });
+      });
+      [panelUk, panelCr].forEach((panel) => {
+        const tableWrap = panel?.querySelector(".sensor-table-wrap");
+        if (tableWrap) sensorListResizeObserver.observe(tableWrap);
+      });
     }
 
     if (reduceMotionQuery) {

@@ -2345,14 +2345,19 @@ function initHexMapCrController() {
         const hasOverflowByCount = totalRows > SENSOR_PANEL_MAX_VISIBLE_ROWS;
         const visibleRows = Math.min(totalRows, SENSOR_PANEL_MAX_VISIBLE_ROWS);
         const effectiveRowHeight = SENSOR_PANEL_ROW_HEIGHT;
-        const tableWrapMaxHeight = SENSOR_TABLE_HEADER_HEIGHT + (visibleRows * effectiveRowHeight);
+        const tableHeaderHeight = detailsTableHead?.getBoundingClientRect().height || 0;
+        const sensorListToolbarHeight = mobileSensorListToolbar && !mobileSensorListToolbar.hidden
+          ? mobileSensorListToolbar.getBoundingClientRect().height
+          : 0;
+        const tableWrapMaxHeight = tableHeaderHeight + (visibleRows * effectiveRowHeight);
         const headerHeight = Math.max(
           SENSOR_PANEL_HEADER_HEIGHT,
           Math.ceil(inlinePanelHeader?.getBoundingClientRect().height || 0)
         );
         const panelHeight = count
           ? headerHeight
-            + SENSOR_TABLE_HEADER_HEIGHT
+            + sensorListToolbarHeight
+            + tableHeaderHeight
             + (visibleRows * effectiveRowHeight)
           : SENSOR_PANEL_EMPTY_HEIGHT;
         mapCanvasWrap.style.setProperty("--sensor-panel-height", `${panelHeight}px`);
@@ -4437,6 +4442,7 @@ function initHexMapCrController() {
           positionSettingsPanel();
         }
       });
+      window.addEventListener("hexsensorlistpresentationchange", refreshInlinePanelGeometry);
       applyMetricState();
       updatePollutantLabels();
       currentWindow = normalizeWindowKey(coordinator.getMapSettings().window || currentWindow);

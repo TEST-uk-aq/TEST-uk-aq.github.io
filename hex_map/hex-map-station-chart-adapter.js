@@ -404,8 +404,16 @@
 
     function tableRefs(mapKey) {
       return mapKey === "cr"
-        ? { wrap: root.document.getElementById("cr-sensor-table-wrap"), body: root.document.getElementById("cr-sensor-table-body") }
-        : { wrap: root.document.getElementById("sensor-table-wrap"), body: root.document.getElementById("sensor-table-body") };
+        ? {
+          wrap: root.document.getElementById("cr-sensor-table-wrap"),
+          body: root.document.getElementById("cr-sensor-table-body"),
+          panelBody: root.document.getElementById("cr-sensor-panel-body"),
+        }
+        : {
+          wrap: root.document.getElementById("sensor-table-wrap"),
+          body: root.document.getElementById("sensor-table-body"),
+          panelBody: root.document.getElementById("sensor-panel-body"),
+        };
     }
 
     function orderedVisibleIds(mapKey = chartMapKey()) {
@@ -445,8 +453,9 @@
       });
       root.UkAqHexMapTruncation?.refresh?.(refs.body);
       const ordered = active ? orderedVisibleIds(mapKey) : [];
-      const selectFill = refs.wrap.querySelector(".hex-chart-selector[data-chart-header-action='select-fill']");
-      const keepTop = refs.wrap.querySelector(".hex-chart-selector[data-chart-header-action='keep-top']");
+      const controlsRoot = refs.panelBody || refs.wrap;
+      const selectFill = controlsRoot?.querySelector(".hex-chart-selector[data-chart-header-action='select-fill']");
+      const keepTop = controlsRoot?.querySelector(".hex-chart-selector[data-chart-header-action='keep-top']");
       if (selectFill) selectFill.disabled = !active || state.selectedIds.size >= MAX_SELECTED_SENSORS || !ordered.some((id) => !state.selectedIds.has(id));
       if (keepTop) keepTop.disabled = !active || state.selectedIds.size <= 1 || !ordered.length;
     }
