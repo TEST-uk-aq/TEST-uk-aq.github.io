@@ -6187,6 +6187,78 @@
           min-height: 0;
         }
 
+        .hex-map-page .mobile-sensor-list-toolbar {
+          display: none;
+        }
+
+        body.hex-map-page.hex-chart-mode .map-inline-sensor-panel-body {
+          display: flex;
+          flex-direction: column;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar {
+          flex: 0 0 auto;
+          display: grid;
+          width: 100%;
+          min-width: 0;
+          grid-template-columns: max-content minmax(0, 1fr) minmax(0, 220px);
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          border-bottom: 1px solid var(--line-soft);
+          background: var(--surface);
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar-select {
+          grid-column: 1;
+          min-width: 0;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar-select .chart-selector-header-actions {
+          display: inline-flex;
+          width: max-content;
+          min-width: max-content;
+          min-height: 44px;
+          margin: 0;
+          gap: 6px;
+          overflow: visible;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar-sort {
+          grid-column: 3;
+          min-width: 0;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar .mobile-sensor-sort {
+          display: flex;
+          width: 100%;
+          min-width: 0;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 8px;
+          padding: 0;
+        }
+
+        body.hex-map-page.hex-chart-mode .mobile-sensor-list-toolbar .mobile-sensor-sort select {
+          flex: 1 1 auto;
+          width: auto;
+          min-width: 0;
+          max-width: 100%;
+        }
+
+        body.hex-map-page.hex-chart-mode .map-inline-sensor-panel-body > .sensor-scroll-indicator-shell {
+          flex: 1 1 auto;
+          height: auto;
+          min-height: 0;
+        }
+
+        body.hex-map-page.hex-chart-mode .sensor-scroll-indicator-shell .sensor-table-wrap,
+        body.hex-map-page.hex-chart-mode .sensor-scroll-indicator-shell .sensor-table-wrap.is-scroll-forced {
+          flex: 1 1 auto;
+          height: auto;
+          min-height: 0;
+        }
+
         .hex-map-page .map-inline-sensor-panel-body > .sensor-scroll-indicator-shell {
           height: 100%;
           min-height: 0;
@@ -6448,6 +6520,89 @@
 
         .hex-map-page .sensor-table .sensor-network-text--compact::before {
           content: " · ";
+        }
+
+        @container sensor-panel (min-width: 600px) {
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead tr {
+            display: grid;
+            width: 100%;
+            grid-template-columns: 44px 28px minmax(0, 1fr) minmax(100px, max-content) max-content max-content;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            background: var(--surface);
+            box-shadow: 0 1px 0 var(--line-soft);
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th {
+            position: static;
+            display: block;
+            width: auto;
+            min-width: 0;
+            min-height: 44px;
+            padding: 10px 4px;
+            overflow: hidden;
+            background: transparent;
+            box-shadow: none;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th.sensor-chart-select-col,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode thead th.sensor-chart-symbol-col {
+            display: block;
+            visibility: hidden;
+            padding: 0;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode tbody tr:not(.sensor-row-divider) {
+            min-height: 58px;
+            grid-template-columns: 44px 28px minmax(0, 1fr) minmax(100px, max-content) max-content max-content;
+            grid-template-areas: "select symbol sensor network value updated";
+            gap: 8px;
+            padding-block: 8px;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-chart-select-col,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-chart-symbol-col,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-sensor,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-network,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-value,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-updated {
+            align-self: center;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-network,
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode .sensor-network-text--wide {
+            display: block;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode .sensor-network-text--compact {
+            display: none;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-value {
+            max-width: none;
+            justify-self: end;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-updated {
+            max-width: none;
+            justify-self: end;
+            font-size: 0.72rem;
+            text-align: right;
+            white-space: nowrap;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode td.sensor-col-updated::before {
+            content: none;
+          }
+
+          body.hex-map-page.hex-chart-mode .sensor-table-wrap.is-chart-select-mode .sensor-observed-text {
+            white-space: nowrap;
+          }
         }
 
         .hex-map-page .sensor-table .sensor-reading-cell {

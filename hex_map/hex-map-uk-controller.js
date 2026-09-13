@@ -401,12 +401,13 @@ function initHexMapUkController(root) {
         }
       });
       syncInlinePanelTitleInteractivity();
-      if (detailsTableWrap) {
-        detailsTableWrap.addEventListener("click", (event) => {
+      const sensorPanelInteractionRoot = inlinePanel || detailsTableWrap;
+      if (sensorPanelInteractionRoot) {
+        sensorPanelInteractionRoot.addEventListener("click", (event) => {
           const launchButton = event.target instanceof Element
             ? event.target.closest(".sensor-chart-launch[data-station-id]")
             : null;
-          if (launchButton && detailsTableWrap.contains(launchButton)) {
+          if (launchButton && detailsTableWrap?.contains(launchButton)) {
             event.stopPropagation();
             const stationId = String(launchButton.dataset.stationId || "").trim();
             if (!stationId || window.hexChartMode?.isActive?.("uk")) {
@@ -421,7 +422,7 @@ function initHexMapUkController(root) {
           const selectorHeaderButton = event.target instanceof Element
             ? event.target.closest(".hex-chart-selector[data-chart-header-action]")
             : null;
-          if (selectorHeaderButton && detailsTableWrap.contains(selectorHeaderButton)) {
+          if (selectorHeaderButton && sensorPanelInteractionRoot.contains(selectorHeaderButton)) {
             event.stopPropagation();
             const action = String(selectorHeaderButton.getAttribute("data-chart-header-action") || "").trim();
             if (!action) {
@@ -435,7 +436,7 @@ function initHexMapUkController(root) {
           const selectorButton = event.target instanceof Element
             ? event.target.closest(".hex-chart-selector[data-station-id]")
             : null;
-          if (selectorButton && detailsTableWrap.contains(selectorButton)) {
+          if (selectorButton && detailsTableWrap?.contains(selectorButton)) {
             event.stopPropagation();
             const stationId = String(selectorButton.dataset.stationId || "").trim();
             if (!stationId) {
@@ -449,7 +450,7 @@ function initHexMapUkController(root) {
           const button = event.target instanceof Element
             ? event.target.closest(".sensor-name-button[data-station-id]")
             : null;
-          if (!button || !detailsTableWrap.contains(button)) {
+          if (!button || !detailsTableWrap?.contains(button)) {
             return;
           }
           event.stopPropagation();

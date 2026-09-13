@@ -99,6 +99,28 @@ function initHexMapToolbarController(root) {
       panel: panelCr?.querySelector("[data-mobile-chart-networks-panel]") || null,
     },
   };
+  const mobileSensorListMounts = {
+    uk: {
+      toolbar: panelUk?.querySelector("[data-mobile-sensor-list-toolbar]") || null,
+      select: panelUk?.querySelector("[data-mobile-sensor-select-mount]") || null,
+      sort: panelUk?.querySelector("[data-mobile-sensor-sort-mount]") || null,
+    },
+    cr: {
+      toolbar: panelCr?.querySelector("[data-mobile-sensor-list-toolbar]") || null,
+      select: panelCr?.querySelector("[data-mobile-sensor-select-mount]") || null,
+      sort: panelCr?.querySelector("[data-mobile-sensor-sort-mount]") || null,
+    },
+  };
+  const mobileSensorListControls = {
+    uk: {
+      select: panelUk?.querySelector(".chart-selector-header-actions") || null,
+      sort: panelUk?.querySelector(".mobile-sensor-sort") || null,
+    },
+    cr: {
+      select: panelCr?.querySelector(".chart-selector-header-actions") || null,
+      sort: panelCr?.querySelector(".mobile-sensor-sort") || null,
+    },
+  };
   const networkAnchors = {
     uk: root.document.getElementById("uk-networks-pill-anchor"),
     cr: root.document.getElementById("cr-networks-pill-anchor"),
@@ -118,6 +140,7 @@ function initHexMapToolbarController(root) {
     windowStepper,
     chartRangeToolbar,
     ...Object.values(mapSearches),
+    ...Object.values(mobileSensorListControls).flatMap((controls) => [controls.select, controls.sort]),
   ]
     .filter(Boolean);
   const originalMarkers = new Map();
@@ -328,10 +351,15 @@ function initHexMapToolbarController(root) {
     const mobileChartMode = isMobileChartMode();
     const mounts = mobileMounts[normalizedMapKey];
     const chartMounts = mobileChartMounts[normalizedMapKey];
+    const sensorListMounts = mobileSensorListMounts[normalizedMapKey];
+    const sensorListControls = mobileSensorListControls[normalizedMapKey];
 
-    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel) {
+    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
       const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
       restoreDistributedControls();
+      Object.values(mobileSensorListMounts).forEach((candidate) => {
+        if (candidate?.toolbar) candidate.toolbar.hidden = true;
+      });
       relocateStatusRefreshForMap(normalizedMapKey);
       restoreNode(networkAnchors[inactiveMapKey]);
       if (chartBackButton && chartBackButton.parentElement !== chartMounts.back) {
@@ -347,6 +375,13 @@ function initHexMapToolbarController(root) {
       if (chartRangeToolbar && chartRangeToolbar.parentElement !== chartMounts.range) {
         chartMounts.range.appendChild(chartRangeToolbar);
       }
+      if (sensorListControls?.select && sensorListControls.select.parentElement !== sensorListMounts.select) {
+        sensorListMounts.select.appendChild(sensorListControls.select);
+      }
+      if (sensorListControls?.sort && sensorListControls.sort.parentElement !== sensorListMounts.sort) {
+        sensorListMounts.sort.appendChild(sensorListControls.sort);
+      }
+      sensorListMounts.toolbar.hidden = false;
       root.document.body.classList.remove("mobile-map-controls-active");
       root.document.body.classList.add("mobile-chart-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
@@ -355,6 +390,9 @@ function initHexMapToolbarController(root) {
     }
 
     root.document.body.classList.remove("mobile-chart-controls-active");
+    Object.values(mobileSensorListMounts).forEach((candidate) => {
+      if (candidate?.toolbar) candidate.toolbar.hidden = true;
+    });
 
     if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.search || !mounts?.status) {
       restoreDistributedControls();
