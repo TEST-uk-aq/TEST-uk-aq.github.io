@@ -6891,16 +6891,9 @@
         body.hex-map-page.hex-chart-mode .map-canvas-wrap.chart-mode .hex-chart-mode-panel {
           position: relative;
           inset: auto;
-          min-height: 560px;
           padding: 12px 12px 16px;
           gap: 10px;
           overflow: visible;
-        }
-
-        @supports (height: 100svh) {
-          body.hex-map-page.hex-chart-mode .map-canvas-wrap.chart-mode .hex-chart-mode-panel {
-            min-height: max(560px, calc(100svh - 128px));
-          }
         }
 
         body.hex-map-page.hex-chart-mode .map-canvas-wrap.chart-mode .map-inline-sensor-panel {
