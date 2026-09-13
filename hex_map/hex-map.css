@@ -1882,19 +1882,75 @@
             min-width: 0;
           }
 
-          .sensor-table thead { display: none; }
+          .sensor-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--surface);
+          }
+
+          .sensor-table thead tr,
+          .sensor-table tbody tr:not(.sensor-row-divider) {
+            display: grid;
+            width: 100%;
+            min-width: 0;
+            align-items: center;
+          }
+
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table thead tr,
+          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table tbody tr:not(.sensor-row-divider) {
+            grid-template-columns: var(--sensor-compact-map-columns);
+            grid-template-areas: "symbol sensor value updated";
+          }
+
+          .sensor-table-wrap.is-chart-select-mode .sensor-table thead tr,
+          .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) {
+            grid-template-columns: var(--sensor-compact-chart-columns);
+            grid-template-areas: "select symbol sensor value updated";
+          }
+
+          .sensor-table th,
+          .sensor-table tbody tr:not(.sensor-row-divider) > td {
+            display: block;
+            box-sizing: border-box;
+            width: auto;
+            min-width: 0;
+            padding: 10px 12px;
+          }
+
+          .sensor-table th {
+            position: static;
+          }
+
+          .sensor-table .sensor-chart-select-col { grid-area: select; }
+          .sensor-table .sensor-chart-symbol-col { grid-area: symbol; }
+          .sensor-table .sensor-col-sensor { grid-area: sensor; }
+          .sensor-table .sensor-col-value { grid-area: value; }
+          .sensor-table .sensor-col-updated { grid-area: updated; }
 
           .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-select-col {
             display: none;
           }
 
-          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-symbol-col {
+          .sensor-table-wrap:not(.is-chart-select-mode) td.sensor-chart-symbol-col {
             grid-area: symbol;
             display: flex;
             width: 32px;
             min-width: 32px;
             height: 58px;
             padding: 0;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode td.sensor-chart-select-col,
+          .sensor-table-wrap.is-chart-select-mode td.sensor-chart-symbol-col {
+            display: flex;
+            height: auto;
+            min-height: 58px;
+            padding: 0;
+            align-self: stretch;
             align-items: center;
             justify-content: center;
             overflow: visible;
@@ -1907,31 +1963,6 @@
             width: 100%;
           }
 
-          .sensor-table tbody tr:not(.sensor-row-divider) {
-            display: grid;
-            width: 100%;
-            min-width: 0;
-            align-items: center;
-          }
-
-          .sensor-table tbody tr:not(.sensor-row-divider) > td {
-            display: block;
-            box-sizing: border-box;
-            width: auto;
-            min-width: 0;
-            padding: 10px 12px;
-          }
-
-          .sensor-table-wrap:not(.is-chart-select-mode) .sensor-table tbody tr:not(.sensor-row-divider) {
-            grid-template-columns: var(--sensor-compact-map-columns);
-            grid-template-areas: "symbol sensor value updated";
-          }
-
-          .sensor-table-wrap.is-chart-select-mode .sensor-table tbody tr:not(.sensor-row-divider) {
-            grid-template-columns: var(--sensor-compact-chart-columns);
-            grid-template-areas: "select symbol sensor value updated";
-          }
-
           .sensor-table tbody tr:not(.sensor-row-divider),
           .sensor-table tbody tr:not(.sensor-row-divider) > td {
             height: 58px;
@@ -1939,7 +1970,38 @@
 
           .sensor-table .sensor-col-network,
           .sensor-table .sensor-network-text--wide,
+          .sensor-table .sort-header--wide {
+            display: none;
+          }
+
+          .sensor-table .sensor-sort-header-stack {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+          }
+
           .sensor-table .sort-header--narrow {
+            display: inline-flex;
+          }
+
+          .sensor-table .sort-header--narrow .sort-label::before {
+            content: "/";
+            margin-right: 4px;
+          }
+
+          .sensor-table .sort-header {
+            margin: 0;
+            padding: 0;
+            pointer-events: none;
+          }
+
+          .sensor-table .sort-header:hover,
+          .sensor-table .sort-header.is-active {
+            background: transparent;
+            color: var(--ink-soft);
+          }
+
+          .sensor-table .sort-icon {
             display: none;
           }
 
