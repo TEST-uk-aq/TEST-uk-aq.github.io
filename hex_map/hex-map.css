@@ -5190,7 +5190,7 @@
         grid-area: time;
       }
 
-      @container hex-chart-panel (max-width: 687px) {
+      @container hex-chart-panel (max-width: 559px) {
         .hex-chart-selected-sensors {
           width: 100%;
           max-width: 340px;
@@ -7305,6 +7305,7 @@
 
         body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--primary {
           grid-template-columns: minmax(0, 1fr) auto;
+          align-items: end;
         }
 
         body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--secondary {
@@ -7323,12 +7324,15 @@
         }
 
         body.hex-map-page.mobile-chart-controls-active .chart-back-pill {
+          width: 100%;
           min-width: 0;
           min-height: 44px;
+          height: auto;
           padding: 6px 9px;
           border-radius: 9px;
           font-size: clamp(0.72rem, 3.5vw, 0.82rem);
-          white-space: nowrap;
+          line-height: 1.15;
+          white-space: normal;
         }
 
         body.hex-map-page.mobile-chart-controls-active .chart-back-pill img {
@@ -7601,7 +7605,6 @@
             min-height: 340px;
           }
 
-          body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--primary,
           body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls-row--secondary {
             grid-template-columns: minmax(0, 1fr);
           }
