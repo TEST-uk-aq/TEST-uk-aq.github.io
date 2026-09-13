@@ -5438,7 +5438,7 @@
           padding: 0;
           /* This grid remains after the complete map canvas in the active
              mobile shell, including its selected-area sensor panel. */
-          border-top: 1px solid var(--ink-4);
+          border-top: 1px solid var(--line);
           background: var(--surface);
         }
 
