@@ -6904,7 +6904,13 @@
         }
 
         body.hex-map-page.hex-chart-mode .map-canvas-wrap.chart-mode .map-inline-sensor-panel {
-          display: none;
+          /* Keep the authoritative selection list after the chart in document
+             flow. Its existing content-measured height and scrolling body
+             size the real panel; the chart needs no empty bottom reservation. */
+          display: flex;
+          position: relative;
+          inset: auto;
+          transform: none;
         }
 
         body.hex-map-page.mobile-chart-controls-active .mobile-chart-controls {
