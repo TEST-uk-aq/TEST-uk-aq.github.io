@@ -913,6 +913,10 @@ body {
   -webkit-line-clamp: 2;
 }
 
+.news-table-author-part {
+  white-space: nowrap;
+}
+
 .news-pagination {
   display: flex;
   align-items: center;
