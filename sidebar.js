@@ -19,6 +19,7 @@
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
         { label: 'NEWS',       iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/' },
+        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/' },
       ],
     },
 /*    {

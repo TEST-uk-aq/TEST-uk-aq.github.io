@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Explore one year of daily PM2.5 readings against the WHO 2021 air quality guideline.">
+  <title>WHO guidelines | UK AQ</title>
+
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site-ui.css">
+  <link rel="stylesheet" href="who-guidelines.css">
+  <script type="module" src="who-guidelines.js"></script>
+</head>
+<body class="who-guidelines-page" data-page-slug="who-guidelines">
+  <div id="cic-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+
+  <main class="who-main" id="mainContent">
+    <header class="who-intro">
+      <h1>WHO guidelines</h1>
+      <p>A rolling year of canonical daily PM2.5 results for one randomly selected GOV.UK AURN monitoring timeseries.</p>
+    </header>
+
+    <div id="who-status" class="who-status" role="status" aria-live="polite">
+      <span class="who-spinner" aria-hidden="true"></span>
+      <span>Loading a monitoring timeseries…</span>
+    </div>
+
+    <section id="who-error" class="who-error" role="alert" hidden>
+      <h2>WHO daily results are unavailable</h2>
+      <p>We could not load an eligible GOV.UK AURN PM2.5 timeseries. Please try this page again later.</p>
+    </section>
+
+    <div id="who-content" hidden>
+      <section class="who-context" aria-labelledby="who-context-heading">
+        <h2 id="who-context-heading" class="visually-hidden">Selected monitoring timeseries</h2>
+        <dl class="who-context-grid">
+          <div>
+            <dt>Station</dt>
+            <dd id="who-station-name"></dd>
+          </div>
+          <div>
+            <dt>Network</dt>
+            <dd id="who-network-name"></dd>
+          </div>
+          <div>
+            <dt>Pollutant</dt>
+            <dd>PM2.5</dd>
+          </div>
+          <div>
+            <dt>Timeseries</dt>
+            <dd id="who-timeseries-id"></dd>
+          </div>
+          <div>
+            <dt>Rolling year starts</dt>
+            <dd id="who-window-start"></dd>
+          </div>
+          <div>
+            <dt>Rolling year ends</dt>
+            <dd id="who-window-end"></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="who-legend" aria-labelledby="who-legend-heading">
+        <h2 id="who-legend-heading">Daily marker key</h2>
+        <div class="who-legend-items">
+          <span><i class="who-legend-marker is-within" aria-hidden="true"></i>Within guideline</span>
+          <span><i class="who-legend-marker is-above" aria-hidden="true"></i>Above guideline</span>
+          <span><i class="who-legend-marker is-incomplete" aria-hidden="true"></i>Not enough data</span>
+          <span><i class="who-legend-marker is-missing" aria-hidden="true"></i>Missing derived day</span>
+          <span><i class="who-legend-backing" aria-hidden="true"><i class="who-legend-marker is-within"></i></i>Ratified source (R)</span>
+        </div>
+        <p id="who-provenance-note" class="who-provenance-note"></p>
+      </section>
+
+      <div class="who-prototypes">
+        <section class="who-prototype" aria-labelledby="calendar-months-heading">
+          <header>
+            <p class="who-prototype-kicker">Prototype A</p>
+            <h2 id="calendar-months-heading">Calendar months</h2>
+          </header>
+          <div id="calendar-months-view"></div>
+        </section>
+
+        <section class="who-prototype" aria-labelledby="month-rows-heading">
+          <header>
+            <p class="who-prototype-kicker">Prototype B</p>
+            <h2 id="month-rows-heading">Month rows</h2>
+          </header>
+          <div id="month-rows-view"></div>
+        </section>
+
+        <section class="who-prototype" aria-labelledby="continuous-weeks-heading">
+          <header>
+            <p class="who-prototype-kicker">Prototype C</p>
+            <h2 id="continuous-weeks-heading">Continuous weeks</h2>
+          </header>
+          <div id="continuous-weeks-view"></div>
+        </section>
+
+        <section class="who-prototype" aria-labelledby="quarter-strips-heading">
+          <header>
+            <p class="who-prototype-kicker">Prototype D</p>
+            <h2 id="quarter-strips-heading">Quarter strips</h2>
+          </header>
+          <div id="quarter-strips-view"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
