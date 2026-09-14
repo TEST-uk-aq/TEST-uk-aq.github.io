@@ -122,6 +122,33 @@
       <div id="news-grid" class="news-grid" hidden></div>
 
       <div class="news-table-shell">
+        <div id="news-table-scroll-control" class="news-table-scroll-control" hidden>
+          <button
+            id="news-table-scroll-left"
+            class="news-table-scroll-button"
+            type="button"
+            aria-label="Scroll table left"
+          >
+            <span aria-hidden="true">&#9664;</span>
+          </button>
+          <label class="visually-hidden" for="news-table-scroll-position">Horizontal table scroll position</label>
+          <input
+            id="news-table-scroll-position"
+            class="news-table-scroll-position"
+            type="range"
+            min="0"
+            max="0"
+            value="0"
+          >
+          <button
+            id="news-table-scroll-right"
+            class="news-table-scroll-button"
+            type="button"
+            aria-label="Scroll table right"
+          >
+            <span aria-hidden="true">&#9654;</span>
+          </button>
+        </div>
         <div
           id="news-table-scroll"
           class="news-table-scroll"
