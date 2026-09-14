@@ -1,5 +1,5 @@
-// Shared loader for the public network catalogue. Concurrent callers share one
-// in-flight request; callers retain ownership of later refresh cadence.
+// Shared loader for the public network catalogue. Callers retain refresh and
+// memoisation ownership so moving this boundary does not change request cadence.
 (function (root, factory) {
   const networkDomain = typeof module === "object" && module.exports
     ? require("../domain/networks.js")
@@ -14,18 +14,7 @@
     throw new Error("UK AQ network domain must load before the network catalogue client.");
   }
 
-  let loadInflight = null;
-
   async function load(options = {}) {
-    if (loadInflight) return loadInflight;
-
-    loadInflight = loadOnce(options).finally(() => {
-      loadInflight = null;
-    });
-    return loadInflight;
-  }
-
-  async function loadOnce(options = {}) {
     const url = String(options.url || "").trim();
     if (!url) throw new Error("Network catalog URL is missing.");
     if (typeof options.fetchApi !== "function") {

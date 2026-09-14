@@ -58,6 +58,20 @@
   };
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
+  const SHARED_NETWORK_SCRIPTS = [
+    {
+      src: '/shared/domain/networks.js',
+      ready: () => Boolean(window.UkAqNetworks?.normalizeCatalogRows),
+    },
+    {
+      src: '/shared/data/network-catalog.js',
+      ready: () => Boolean(window.UkAqNetworkCatalog?.load),
+    },
+    {
+      src: '/shared/auth/uk-aq-cache-auth.js',
+      ready: () => typeof window.ukAqFetchCacheApi === 'function',
+    },
+  ];
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
   const SIDEBAR_ICON_ON = '/sidebar-images/uk-aq-sidebar-on.svg';
@@ -150,6 +164,41 @@
     }
   }
 
+  function loadSharedScript({ src, ready }) {
+    if (ready()) return Promise.resolve();
+
+    const absoluteSrc = new URL(src, location.href).href;
+    const existing = Array.from(document.scripts)
+      .find((script) => script.src === absoluteSrc);
+    return new Promise((resolve, reject) => {
+      const script = existing || document.createElement('script');
+      const loaded = () => {
+        if (ready()) resolve();
+        else reject(new Error(`shared script did not initialise: ${src}`));
+      };
+      script.addEventListener('load', loaded, { once: true });
+      script.addEventListener('error', () => {
+        reject(new Error(`shared script failed to load: ${src}`));
+      }, { once: true });
+      if (!existing) {
+        script.src = src;
+        document.head.appendChild(script);
+      }
+    });
+  }
+
+  async function ensureSharedNetworkCatalog() {
+    for (const script of SHARED_NETWORK_SCRIPTS) {
+      await loadSharedScript(script);
+    }
+    return window.UkAqNetworkCatalog.load({
+      url: PUBLIC_NETWORK_CATALOG_URL,
+      fetchApi: window.ukAqFetchCacheApi,
+      init: { headers: { Accept: 'application/json' } },
+      requirePublicDisplayEnabled: true,
+    });
+  }
+
   async function filterFooterAttributions() {
     try {
       const existingSnapshot = window.UkAqPublicNetworkCatalogSnapshot;
@@ -158,27 +207,9 @@
         return;
       }
 
-      if (window.UkAqNetworkCatalog?.load) {
-        window.addEventListener('ukaq:public-network-catalog', (event) => {
-          try {
-            applyFooterAttributions(event.detail?.rows, event.detail?.contractVersion);
-          } catch (error) {
-            console.warn('UK AQ footer received an invalid network catalogue; retaining all attributions', error);
-          }
-        }, { once: true });
-        return;
-      }
-
-      const response = await fetch(PUBLIC_NETWORK_CATALOG_URL, {
-        credentials: 'omit',
-        headers: { Accept: 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error(`network catalogue request failed (${response.status})`);
-      }
-
-      const payload = await response.json();
-      applyFooterAttributions(payload?.data, payload?.contract_version);
+      await ensureSharedNetworkCatalog();
+      const snapshot = window.UkAqPublicNetworkCatalogSnapshot;
+      applyFooterAttributions(snapshot?.rows, snapshot?.contractVersion);
     } catch (error) {
       console.warn('UK AQ footer network catalogue failed to load; retaining all attributions', error);
     }
