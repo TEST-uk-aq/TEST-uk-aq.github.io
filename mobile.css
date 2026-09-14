@@ -556,14 +556,16 @@
 
   body[data-page-slug="sensor-map"] #ukaq-home-logo,
   body[data-page-slug="resources"] #ukaq-home-logo,
-  body[data-page-slug="contact"] #ukaq-home-logo {
+  body[data-page-slug="contact"] #ukaq-home-logo,
+  body[data-page-slug="news"] #ukaq-home-logo {
     top: 16px;
     right: 12px;
   }
 
   body[data-page-slug="sensor-map"] #ukaq-home-logo img,
   body[data-page-slug="resources"] #ukaq-home-logo img,
-  body[data-page-slug="contact"] #ukaq-home-logo img {
+  body[data-page-slug="contact"] #ukaq-home-logo img,
+  body[data-page-slug="news"] #ukaq-home-logo img {
     width: clamp(44px, 13.333vw, 52px);
     height: auto;
   }
