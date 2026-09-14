@@ -122,33 +122,6 @@
       <div id="news-grid" class="news-grid" hidden></div>
 
       <div class="news-table-shell">
-        <div id="news-table-scroll-control" class="news-table-scroll-control" hidden>
-          <button
-            id="news-table-scroll-left"
-            class="news-table-scroll-button"
-            type="button"
-            aria-label="Scroll table left"
-          >
-            <span aria-hidden="true">&#9664;</span>
-          </button>
-          <label class="visually-hidden" for="news-table-scroll-position">Horizontal table scroll position</label>
-          <input
-            id="news-table-scroll-position"
-            class="news-table-scroll-position"
-            type="range"
-            min="0"
-            max="0"
-            value="0"
-          >
-          <button
-            id="news-table-scroll-right"
-            class="news-table-scroll-button"
-            type="button"
-            aria-label="Scroll table right"
-          >
-            <span aria-hidden="true">&#9654;</span>
-          </button>
-        </div>
         <div
           id="news-table-scroll"
           class="news-table-scroll"
@@ -183,6 +156,30 @@
               </th>
             </tr>
           </thead>
+          <tbody id="news-table-scroll-control" class="news-table-scroll-control" hidden>
+            <tr>
+              <td colspan="5">
+                <div id="news-table-scroll-lane" class="news-table-scroll-lane">
+                  <div
+                    id="news-table-scrollbar"
+                    class="news-table-scrollbar"
+                    role="scrollbar"
+                    aria-label="Horizontal table scroll position"
+                    aria-controls="news-table-scroll"
+                    aria-orientation="horizontal"
+                    aria-valuemin="0"
+                    aria-valuemax="0"
+                    aria-valuenow="0"
+                    tabindex="0"
+                  >
+                    <span id="news-table-scroll-thumb" class="news-table-scroll-thumb"></span>
+                  </div>
+                  <button id="news-table-scroll-left" class="news-table-scroll-chevron is-left" type="button" aria-label="Scroll table left"></button>
+                  <button id="news-table-scroll-right" class="news-table-scroll-chevron is-right" type="button" aria-label="Scroll table right"></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
           <tbody id="news-table-body"></tbody>
           </table>
         </div>
