@@ -571,14 +571,14 @@ body {
 
 .news-grid-author {
   position: absolute;
-  top: -4px;
+  top: -12px;
   right: 0;
   left: 0;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: 46px;
-  padding: 14px 13px 10px;
+  padding: 22px 13px 6px;
   overflow: hidden;
   border: 1px solid #b7d1e7;
   border-radius: 11px;
