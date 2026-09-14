@@ -484,8 +484,8 @@
       display: block;
     }
     .uk-aq-nav-item--wordmark {
-      padding-top: 6px;
-      padding-bottom: 6px;
+      padding-top: 12px;
+      padding-bottom: 12px;
     }
     .uk-aq-nav-item--wordmark + .uk-aq-nav-item--wordmark {
       margin-top: 6px;
