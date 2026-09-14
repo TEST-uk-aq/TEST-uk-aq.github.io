@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1910 1670" role="img" aria-labelledby="title desc">
+  <title id="title">Four horizontal blue bars</title>
+  <desc id="desc">Four rounded horizontal bars with a continuous blue diagonal gradient on a transparent background.</desc>
+  <defs>
+    <linearGradient id="barGradient"
+                    gradientUnits="userSpaceOnUse"
+                    x1="0" y1="0"
+                    x2="1790" y2="1790"
+                    color-interpolation="sRGB">
+      <stop offset="0" stop-color="#53BDFA"/>
+      <stop offset="1" stop-color="#033E65"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="25" y="25" width="1860" height="181" rx="72" ry="72" fill="url(#barGradient)"/>
+  <rect x="25" y="505" width="1860" height="181" rx="72" ry="72" fill="url(#barGradient)"/>
+  <rect x="25" y="984" width="1860" height="181" rx="72" ry="72" fill="url(#barGradient)"/>
+  <rect x="25" y="1464" width="1860" height="181" rx="72" ry="72" fill="url(#barGradient)"/>
+</svg>

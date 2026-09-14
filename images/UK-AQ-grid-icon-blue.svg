@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1910 1766" role="img" aria-labelledby="title desc">
+  <title id="title">Six tile grid icon</title>
+  <desc id="desc">A two-column by three-row grid of six rounded blue gradient tiles on a transparent background.</desc>
+  <defs>
+    <linearGradient id="tileGradient" x1="25" y1="25" x2="1884" y2="1740" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#57C2FF"/>
+      <stop offset="1" stop-color="#004375"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="25"  y="25"   width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+  <rect x="1004" y="25"   width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+  <rect x="25"  y="635"  width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+  <rect x="1004" y="635"  width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+  <rect x="25"  y="1245" width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+  <rect x="1004" y="1245" width="881" height="496" rx="56" ry="56" fill="url(#tileGradient)"/>
+</svg>
