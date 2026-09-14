@@ -25,8 +25,6 @@
   const gridSortSelect = document.getElementById("news-grid-sort");
   const gridViewButton = document.getElementById("news-view-grid");
   const listViewButton = document.getElementById("news-view-list");
-  const gridViewIcon = document.getElementById("news-view-grid-icon");
-  const listViewIcon = document.getElementById("news-view-list-icon");
   const sortHeadingButtons = Array.from(document.querySelectorAll(".news-sort-heading"));
   const paginationElement = document.getElementById("news-pagination");
   const pageNumbersElement = document.getElementById("news-page-numbers");
@@ -349,12 +347,6 @@
     const isGrid = state.view === "grid";
     gridViewButton.setAttribute("aria-pressed", String(isGrid));
     listViewButton.setAttribute("aria-pressed", String(!isGrid));
-    gridViewIcon.src = isGrid
-      ? "/images/UK-AQ-grid-icon-blue.png"
-      : "/images/UK-AQ-grid-icon-grey.png";
-    listViewIcon.src = isGrid
-      ? "/images/UK-AQ-list-icon-grey.png"
-      : "/images/UK-AQ-list-icon-blue.png";
     gridSortLabel.hidden = !isGrid;
   }
 
