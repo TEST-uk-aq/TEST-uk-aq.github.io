@@ -18,8 +18,8 @@
         { label: 'Hex Map',     iconImg: 'uk-aq-hex-map-sidebar.svg', href: '/hex_map/' },
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
-        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'cic-nav-item--wordmark' },
-        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'cic-nav-item--wordmark' },
+        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark' },
+        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
       ],
     },
 /*    {
@@ -28,7 +28,7 @@
       children: [
         { label: 'Bubble Chart',       iconImg: 'Bubble-Chart-Icon.svg', href: '/data-explorer/?page=bubblechart' },
         { label: 'Line Chart',         iconImg: 'Line-Chart-Icon.svg', href: '/data-explorer/?page=linechart' },
-        { label: 'Ecodesign Replaces', iconImg: 'Stove Ecodesign 430x683.svg', href: '/data-explorer/?page=eco-replaces-all', className: 'cic-nav-item--eco-replaces' },
+        { label: 'Ecodesign Replaces', iconImg: 'Stove Ecodesign 430x683.svg', href: '/data-explorer/?page=eco-replaces-all', className: 'uk-aq-nav-item--eco-replaces' },
         { label: 'Category Info',      iconImg: 'Category Info - Icon.svg', href: '/data-explorer/category-info/' },
         { label: 'User Guide',         iconImg: 'user-guide.svg', href: '/data-explorer/user-guide/' },
       ],
@@ -54,7 +54,7 @@
     label: 'Home',
     iconImg: 'uk-aq-home-sidebar-blue.svg',
     href: '/',
-    className: 'cic-home-nav-item',
+    className: 'uk-aq-home-nav-item',
   };
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
@@ -85,7 +85,7 @@
     SITE_VERSION = value;
     writeCachedSiteVersion(value);
 
-    const sidebarFooter = document.getElementById('cic-sidebar-footer');
+    const sidebarFooter = document.getElementById('uk-aq-sidebar-footer');
     if (sidebarFooter) sidebarFooter.textContent = `${location.hostname} · ${SITE_VERSION}`;
 
     const siteFooterMeta = document.querySelector('#ukaq-site-footer .ukaq-site-footer-meta');
@@ -249,7 +249,7 @@
   function updateHamburgerIcon(btn) {
     const img = btn?.querySelector('img');
     if (!img) return;
-    const mobileOpen = getBreakpoint() === 'mobile' && document.body.classList.contains('cic-drawer-open');
+    const mobileOpen = getBreakpoint() === 'mobile' && document.body.classList.contains('uk-aq-drawer-open');
     const shouldShowOn = pinnedOpenDesktop || mobileOpen;
     const target = `${location.origin}${shouldShowOn ? SIDEBAR_ICON_ON : SIDEBAR_ICON_OFF}`;
     if (img.src !== target) img.src = target;
@@ -258,67 +258,67 @@
   // ─── CSS ──────────────────────────────────────────────────────────────────────
   const CSS = `
     :root {
-      --cic-accent:        #3C78AC;
-      --cic-accent-deep:   #285A84;
-      --cic-ink:           #101822;
-      --cic-ink-1:         #1b2a38;
-      --cic-ink-2:         #3a4a5a;
-      --cic-ink-3:         #6b7a88;
-      --cic-ink-4:         #9aa7b3;
-      --cic-line:          #e4e6ea;
-      --cic-line-soft:     #eef0f3;
-      --cic-surface:       #ffffff;
-      --cic-surface-2:     #fbfaf6;
-      --cic-w:             232px;
-      --cic-mini-w:        64px;
-      --cic-drawer-w:      280px;
-      --cic-ease:          0.3s ease;
-      --cic-font:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --uk-aq-accent:        #3C78AC;
+      --uk-aq-accent-deep:   #285A84;
+      --uk-aq-ink:           #101822;
+      --uk-aq-ink-1:         #1b2a38;
+      --uk-aq-ink-2:         #3a4a5a;
+      --uk-aq-ink-3:         #6b7a88;
+      --uk-aq-ink-4:         #9aa7b3;
+      --uk-aq-line:          #e4e6ea;
+      --uk-aq-line-soft:     #eef0f3;
+      --uk-aq-surface:       #ffffff;
+      --uk-aq-surface-2:     #fbfaf6;
+      --uk-aq-sidebar-w:             232px;
+      --uk-aq-sidebar-mini-w:        64px;
+      --uk-aq-sidebar-drawer-w:      280px;
+      --uk-aq-ease:          0.3s ease;
+      --uk-aq-font:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     /* ── Body shift ── */
     body {
-      transition: padding-left var(--cic-ease);
+      transition: padding-left var(--uk-aq-ease);
     }
-    body[data-sidebar-state="expanded"]  { padding-left: var(--cic-w); }
+    body[data-sidebar-state="expanded"]  { padding-left: var(--uk-aq-sidebar-w); }
     body[data-sidebar-state="collapsed"] { padding-left: 0; }
-    body[data-sidebar-state="mini"]      { padding-left: var(--cic-mini-w); }
+    body[data-sidebar-state="mini"]      { padding-left: var(--uk-aq-sidebar-mini-w); }
     body[data-sidebar-state="drawer"]    { padding-left: 0; }
 
     /* ── Sidebar panel ── */
-    #cic-sidebar {
+    #uk-aq-sidebar {
       position: fixed;
       top: 0; left: 0;
       height: 100vh;
-      width: var(--cic-w);
-      background: var(--cic-surface);
-      border-right: 1px solid var(--cic-line);
+      width: var(--uk-aq-sidebar-w);
+      background: var(--uk-aq-surface);
+      border-right: 1px solid var(--uk-aq-line);
       display: flex;
       flex-direction: column;
       z-index: 10010;
       overflow-y: auto;
       overflow-x: hidden;
-      transition: transform var(--cic-ease), width var(--cic-ease);
-      font-family: var(--cic-font);
+      transition: transform var(--uk-aq-ease), width var(--uk-aq-ease);
+      font-family: var(--uk-aq-font);
     }
 
-    body[data-sidebar-state="collapsed"] #cic-sidebar {
-      transform: translateX(calc(-1 * var(--cic-w)));
+    body[data-sidebar-state="collapsed"] #uk-aq-sidebar {
+      transform: translateX(calc(-1 * var(--uk-aq-sidebar-w)));
     }
-    body[data-sidebar-state="mini"] #cic-sidebar {
-      width: var(--cic-mini-w);
+    body[data-sidebar-state="mini"] #uk-aq-sidebar {
+      width: var(--uk-aq-sidebar-mini-w);
       transform: none;
     }
-    body[data-sidebar-state="drawer"] #cic-sidebar {
-      width: var(--cic-drawer-w);
-      transform: translateX(calc(-1 * var(--cic-drawer-w)));
+    body[data-sidebar-state="drawer"] #uk-aq-sidebar {
+      width: var(--uk-aq-sidebar-drawer-w);
+      transform: translateX(calc(-1 * var(--uk-aq-sidebar-drawer-w)));
     }
-    body[data-sidebar-state="drawer"].cic-drawer-open #cic-sidebar {
+    body[data-sidebar-state="drawer"].uk-aq-drawer-open #uk-aq-sidebar {
       transform: translateX(0);
     }
 
     /* ── Overlay (mobile drawer backdrop) ── */
-    #cic-sidebar-overlay {
+    #uk-aq-sidebar-overlay {
       display: none;
       position: fixed;
       inset: 0;
@@ -326,16 +326,16 @@
       z-index: 10009;
       opacity: 0;
       pointer-events: none;
-      transition: opacity var(--cic-ease);
+      transition: opacity var(--uk-aq-ease);
     }
-    body[data-sidebar-state="drawer"].cic-drawer-open #cic-sidebar-overlay {
+    body[data-sidebar-state="drawer"].uk-aq-drawer-open #uk-aq-sidebar-overlay {
       display: block;
       opacity: 1;
       pointer-events: auto;
     }
 
     /* ── Hamburger button ── */
-    #cic-hamburger {
+    #uk-aq-hamburger {
       position: fixed;
       top: 16px; left: 10px;
       z-index: 10012;
@@ -349,13 +349,13 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     @media (max-width: 767px) {
-      #cic-hamburger { position: absolute; }
+      #uk-aq-hamburger { position: absolute; }
     }
-    #cic-hamburger:hover {
+    #uk-aq-hamburger:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 14px rgba(20,34,37,0.12);
     }
-    #cic-hamburger img { width: 44px; height: 44px; object-fit: contain; display: block; }
+    #uk-aq-hamburger img { width: 44px; height: 44px; object-fit: contain; display: block; }
 
     /* ── Top-right UK AQ home logo ── */
     #ukaq-home-logo {
@@ -392,7 +392,7 @@
     }
 
     /* ── Nav ── */
-    .cic-nav {
+    .uk-aq-nav {
       flex: 1;
       padding: 68px 8px 12px;
       display: flex;
@@ -400,12 +400,12 @@
       gap: 4px;
     }
 
-    .cic-home-nav-item {
+    .uk-aq-home-nav-item {
       padding-left: 0;
       margin-left: -13px;
       margin-bottom: 0;
     }
-    .cic-home-nav-item .cic-nav-icon-img {
+    .uk-aq-home-nav-item .uk-aq-nav-icon-img {
       width: 44px !important;
       height: 44px !important;
       min-width: 44px !important;
@@ -413,21 +413,21 @@
       max-width: 44px !important;
       max-height: 44px !important;
     }
-    .cic-home-nav-item + .cic-nav-section .cic-section-label {
+    .uk-aq-home-nav-item + .uk-aq-nav-section .uk-aq-section-label {
       padding-top: 6px;
     }
-    body[data-sidebar-state="mini"] .cic-home-nav-item {
+    body[data-sidebar-state="mini"] .uk-aq-home-nav-item {
       margin-left: 0;
     }
 
-    .cic-section-divider {
+    .uk-aq-section-divider {
       height: 0;
-      border-top: 1px solid var(--cic-line);
+      border-top: 1px solid var(--uk-aq-line);
       margin: 10px 12px 8px;
     }
 
-    .cic-section-label {
-      font-family: var(--cic-font);
+    .uk-aq-section-label {
+      font-family: var(--uk-aq-font);
       font-size: 20px;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -438,40 +438,40 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    body[data-sidebar-state="mini"] .cic-section-label { display: none; }
+    body[data-sidebar-state="mini"] .uk-aq-section-label { display: none; }
 
     /* ── Nav items ── */
-    .cic-nav-item {
+    .uk-aq-nav-item {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 9px 10px 9px 14px;
       border-radius: 7px;
-      color: var(--cic-ink-2);
+      color: var(--uk-aq-ink-2);
       font-size: 15px;
       font-weight: 500;
-      font-family: var(--cic-font);
+      font-family: var(--uk-aq-font);
       text-decoration: none;
       border: 1px solid transparent;
       white-space: nowrap;
       overflow: hidden;
     }
-    .cic-nav-item:hover {
-      background: var(--cic-surface-2);
-      color: var(--cic-ink-1);
+    .uk-aq-nav-item:hover {
+      background: var(--uk-aq-surface-2);
+      color: var(--uk-aq-ink-1);
       text-decoration: none;
     }
-    .cic-nav-item.active {
+    .uk-aq-nav-item.active {
       background: #FBFAF7;
-      color: var(--cic-accent-deep);
+      color: var(--uk-aq-accent-deep);
       border-color: #d6d0c8;
     }
-    .cic-nav-icon {
+    .uk-aq-nav-icon {
       width: 20px; flex-shrink: 0;
       display: inline-flex; align-items: center; justify-content: center;
       font-style: normal; font-size: 13px;
     }
-    .cic-nav-icon-img {
+    .uk-aq-nav-icon-img {
       width: 40px !important;
       height: 40px !important;
       min-width: 40px !important;
@@ -483,29 +483,29 @@
       object-fit: contain;
       display: block;
     }
-    .cic-nav-item--wordmark {
+    .uk-aq-nav-item--wordmark {
       padding-top: 4px;
       padding-bottom: 4px;
     }
-    .cic-nav-item--wordmark .cic-nav-icon-img {
-      width: 50px !important;
-      height: 32px !important;
-      min-width: 50px !important;
-      min-height: 32px !important;
-      max-width: 50px !important;
-      max-height: 32px !important;
+    .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
+      width: auto !important;
+      height: 24px !important;
+      min-width: 0 !important;
+      min-height: 24px !important;
+      max-width: none !important;
+      max-height: 24px !important;
       object-fit: contain;
     }
-    .cic-nav-icon-placeholder {
+    .uk-aq-nav-icon-placeholder {
       width: 34px;
       height: 34px;
       flex-shrink: 0;
-      border: 2px dashed var(--cic-ink-4);
+      border: 2px dashed var(--uk-aq-ink-4);
       border-radius: 10px;
       display: inline-block;
       opacity: 0.75;
     }
-    .cic-nav-label-img {
+    .uk-aq-nav-label-img {
       display: block;
       height: 16px !important;
       width: auto !important;
@@ -513,8 +513,8 @@
       max-height: 16px !important;
       object-fit: contain;
     }
-    .cic-nav-label { overflow: hidden; text-overflow: ellipsis; }
-    .cic-nav-item--eco-replaces .cic-nav-label {
+    .uk-aq-nav-label { overflow: hidden; text-overflow: ellipsis; }
+    .uk-aq-nav-item--eco-replaces .uk-aq-nav-label {
       display: block;
       width: 92px;
       white-space: normal;
@@ -524,21 +524,24 @@
       text-overflow: clip;
     }
 
-    body[data-sidebar-state="mini"] .cic-nav-label { display: none; }
-    body[data-sidebar-state="mini"] .cic-nav-item  { padding: 11px; justify-content: center; }
-    body[data-sidebar-state="mini"] .cic-nav-item--wordmark { padding: 4px 5px; }
+    body[data-sidebar-state="mini"] .uk-aq-nav-label { display: none; }
+    body[data-sidebar-state="mini"] .uk-aq-nav-item  { padding: 11px; justify-content: center; }
+    body[data-sidebar-state="mini"] .uk-aq-nav-item--wordmark {
+      margin-inline: -4px;
+      padding: 4px 1px;
+    }
 
     /* ── Sidebar footer ── */
-    #cic-sidebar-footer {
+    #uk-aq-sidebar-footer {
       padding: 10px 14px 14px;
-      border-top: 1px solid var(--cic-line-soft);
+      border-top: 1px solid var(--uk-aq-line-soft);
       font-size: 11px;
-      font-family: var(--cic-font);
-      color: var(--cic-ink-4);
+      font-family: var(--uk-aq-font);
+      color: var(--uk-aq-ink-4);
       white-space: nowrap;
       overflow: hidden;
     }
-    body[data-sidebar-state="mini"] #cic-sidebar-footer { display: none; }
+    body[data-sidebar-state="mini"] #uk-aq-sidebar-footer { display: none; }
   `;
 
   // ─── HTML builders ────────────────────────────────────────────────────────────
@@ -553,18 +556,18 @@
     );
     const className = item.className ? ` ${item.className}` : '';
     const iconHtml = item.iconImg
-      ? `<img class="cic-nav-icon-img" src="${location.origin}/sidebar-images/${item.iconImg}" alt="">`
+      ? `<img class="uk-aq-nav-icon-img" src="${location.origin}/sidebar-images/${item.iconImg}" alt="">`
       : item.iconPlaceholder
-        ? `<span class="cic-nav-icon-placeholder" aria-hidden="true"></span>`
-        : `<i class="cic-nav-icon">${item.icon}</i>`;
+        ? `<span class="uk-aq-nav-icon-placeholder" aria-hidden="true"></span>`
+        : `<i class="uk-aq-nav-icon">${item.icon}</i>`;
     const labelHtml = item.labelImg
-      ? `<img class="cic-nav-label-img" src="${location.origin}/sidebar-images/${item.labelImg}" alt="${item.label}">`
+      ? `<img class="uk-aq-nav-label-img" src="${location.origin}/sidebar-images/${item.labelImg}" alt="${item.label}">`
       : item.label;
     const targetAttrs = item.external ? ' target="_blank" rel="noopener noreferrer"' : '';
     return `
-      <a class="cic-nav-item${className}${isActive ? ' active' : ''}" href="${href}"${targetAttrs}>
+      <a class="uk-aq-nav-item${className}${isActive ? ' active' : ''}" href="${href}"${targetAttrs}>
         ${iconHtml}
-        <span class="cic-nav-label">${labelHtml}</span>
+        <span class="uk-aq-nav-label">${labelHtml}</span>
       </a>`;
   }
 
@@ -572,10 +575,10 @@
     const childrenHtml = section.children.map(buildNavItem).join('');
     const sectionLabel = section.showLabel === false
       ? ''
-      : `<div class="cic-section-label">${section.label}</div>`;
-    const divider = section.dividerBefore ? '<div class="cic-section-divider" aria-hidden="true"></div>' : '';
+      : `<div class="uk-aq-section-label">${section.label}</div>`;
+    const divider = section.dividerBefore ? '<div class="uk-aq-section-divider" aria-hidden="true"></div>' : '';
     return `
-      <div class="cic-nav-section">
+      <div class="uk-aq-nav-section">
         ${divider}
         ${sectionLabel}
         ${childrenHtml}
@@ -588,11 +591,11 @@
 
   function buildSidebar() {
     return `
-      <nav class="cic-nav" aria-label="Site navigation">
+      <nav class="uk-aq-nav" aria-label="Site navigation">
         ${buildNavItem(HOME_ITEM)}
         ${NAV.map(buildSection).join('')}
       </nav>
-      <div id="cic-sidebar-footer">
+      <div id="uk-aq-sidebar-footer">
         ${location.hostname}${versionSuffix()}
       </div>`;
   }
@@ -690,26 +693,26 @@
     setState(getBreakpoint() === 'mobile' ? DRAWER : MINI);
 
     // Injected sidebar styles
-    if (!document.getElementById('cic-sidebar-styles')) {
+    if (!document.getElementById('uk-aq-sidebar-styles')) {
       const style = document.createElement('style');
-      style.id = 'cic-sidebar-styles';
+      style.id = 'uk-aq-sidebar-styles';
       style.textContent = CSS;
       document.head.appendChild(style);
     }
 
     // Sidebar panel
     const aside = document.createElement('aside');
-    aside.id = 'cic-sidebar';
+    aside.id = 'uk-aq-sidebar';
     aside.setAttribute('aria-label', 'Site navigation');
     aside.innerHTML = buildSidebar();
 
     // Overlay
     const overlay = document.createElement('div');
-    overlay.id = 'cic-sidebar-overlay';
+    overlay.id = 'uk-aq-sidebar-overlay';
 
     // Hamburger button
     const btn = document.createElement('button');
-    btn.id = 'cic-hamburger';
+    btn.id = 'uk-aq-hamburger';
     btn.setAttribute('aria-label', 'Toggle navigation');
     btn.innerHTML = `<img src="${location.origin}${SIDEBAR_ICON_OFF}" alt="Menu">`;
 
@@ -730,7 +733,7 @@
       </picture>`;
 
     // Mount into placeholder or body
-    const mountEl = document.getElementById('cic-sidebar-mount');
+    const mountEl = document.getElementById('uk-aq-sidebar-mount');
     if (mountEl) {
       mountEl.appendChild(aside);
       mountEl.appendChild(overlay);
@@ -755,9 +758,9 @@
   }
 
   async function mountNonCritical() {
-    if (!document.getElementById('cic-inter-font')) {
+    if (!document.getElementById('uk-aq-inter-font')) {
       const link = document.createElement('link');
-      link.id = 'cic-inter-font';
+      link.id = 'uk-aq-inter-font';
       link.rel = 'stylesheet';
       link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
       document.head.appendChild(link);
@@ -785,7 +788,7 @@
     btn.addEventListener('click', () => {
       const bp = getBreakpoint();
       if (bp === 'mobile') {
-        document.body.classList.toggle('cic-drawer-open');
+        document.body.classList.toggle('uk-aq-drawer-open');
       } else {
         clearTimeout(autoCollapseTimer);
         if (pinnedOpenDesktop) {
@@ -801,7 +804,7 @@
 
     // Close drawer on overlay click
     overlay.addEventListener('click', () => {
-      document.body.classList.remove('cic-drawer-open');
+      document.body.classList.remove('uk-aq-drawer-open');
       updateHamburgerIcon(btn);
     });
 
@@ -815,12 +818,12 @@
     });
 
     // Cancel auto-collapse while mouse is inside sidebar
-    document.getElementById('cic-sidebar').addEventListener('mouseenter', () => {
+    document.getElementById('uk-aq-sidebar').addEventListener('mouseenter', () => {
       clearTimeout(autoCollapseTimer);
     });
 
     // Resume auto-collapse on mouse leave
-    document.getElementById('cic-sidebar').addEventListener('mouseleave', () => {
+    document.getElementById('uk-aq-sidebar').addEventListener('mouseleave', () => {
       if (!pinnedOpenDesktop && getBreakpoint() === 'desktop' && getState() === EXPANDED) {
         scheduleAutoCollapse();
       }
@@ -833,13 +836,13 @@
       if (bp === 'tablet') {
         setState(MINI);
         pinnedOpenDesktop = false;
-        document.body.classList.remove('cic-drawer-open');
+        document.body.classList.remove('uk-aq-drawer-open');
       } else if (bp === 'mobile') {
         setState(DRAWER);
         pinnedOpenDesktop = false;
-        document.body.classList.remove('cic-drawer-open');
+        document.body.classList.remove('uk-aq-drawer-open');
       } else if (getState() === MINI || getState() === DRAWER || getState() === COLLAPSED) {
-        document.body.classList.remove('cic-drawer-open');
+        document.body.classList.remove('uk-aq-drawer-open');
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
       } else {
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
@@ -848,7 +851,7 @@
     });
   }
 
-  if (document.body && document.getElementById('cic-sidebar-mount')) {
+  if (document.body && document.getElementById('uk-aq-sidebar-mount')) {
     mount();
   } else if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', mount, { once: true });
