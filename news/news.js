@@ -13,8 +13,10 @@
   const gridElement = document.getElementById("news-grid");
   const tableScrollElement = document.getElementById("news-table-scroll");
   const tableScrollControl = document.getElementById("news-table-scroll-control");
+  const tableScrollLane = document.getElementById("news-table-scroll-lane");
+  const tableScrollbar = document.getElementById("news-table-scrollbar");
+  const tableScrollThumb = document.getElementById("news-table-scroll-thumb");
   const tableScrollLeftButton = document.getElementById("news-table-scroll-left");
-  const tableScrollPosition = document.getElementById("news-table-scroll-position");
   const tableScrollRightButton = document.getElementById("news-table-scroll-right");
   const tableBodyElement = document.getElementById("news-table-body");
   const countElement = document.getElementById("news-count");
@@ -49,7 +51,9 @@
   };
 
   let resizeFrame = null;
+  let tableScrollDrag = null;
   const scrollEdgeTolerance = 3;
+  const minimumScrollThumbWidth = 44;
 
   function updateTableScrollState() {
     const isVisibleList = state.view === "list" && !tableScrollElement.hidden;
@@ -59,10 +63,31 @@
     const canScrollRight = isScrollable
       && tableScrollElement.scrollLeft < maxScrollLeft - scrollEdgeTolerance;
     tableScrollControl.hidden = !isScrollable;
-    tableScrollPosition.max = String(maxScrollLeft);
-    tableScrollPosition.value = String(Math.min(maxScrollLeft, Math.max(0, tableScrollElement.scrollLeft)));
+    if (!isScrollable) return;
+    const scrollLeft = Math.min(maxScrollLeft, Math.max(0, tableScrollElement.scrollLeft));
+    tableScrollLane.style.setProperty("--news-table-viewport-width", `${tableScrollElement.clientWidth - 20}px`);
+    const trackWidth = tableScrollbar.clientWidth;
+    const thumbWidth = Math.min(trackWidth, Math.max(
+      minimumScrollThumbWidth,
+      trackWidth * tableScrollElement.clientWidth / tableScrollElement.scrollWidth,
+    ));
+    const thumbTravel = Math.max(0, trackWidth - thumbWidth);
+    const thumbLeft = maxScrollLeft ? thumbTravel * scrollLeft / maxScrollLeft : 0;
+    tableScrollThumb.style.width = `${thumbWidth}px`;
+    tableScrollThumb.style.transform = `translateX(${thumbLeft}px)`;
+    tableScrollbar.setAttribute("aria-valuemax", String(Math.round(maxScrollLeft)));
+    tableScrollbar.setAttribute("aria-valuenow", String(Math.round(scrollLeft)));
     tableScrollLeftButton.disabled = !canScrollLeft;
     tableScrollRightButton.disabled = !canScrollRight;
+  }
+
+  function setTableScrollFromTrackPosition(clientX, dragOffset = 0) {
+    const trackRect = tableScrollbar.getBoundingClientRect();
+    const thumbWidth = tableScrollThumb.getBoundingClientRect().width;
+    const thumbTravel = Math.max(0, trackRect.width - thumbWidth);
+    const thumbLeft = Math.min(thumbTravel, Math.max(0, clientX - trackRect.left - dragOffset));
+    const maxScrollLeft = Math.max(0, tableScrollElement.scrollWidth - tableScrollElement.clientWidth);
+    tableScrollElement.scrollLeft = thumbTravel ? maxScrollLeft * thumbLeft / thumbTravel : 0;
   }
 
   function scrollTableByPage(direction) {
@@ -742,8 +767,42 @@
   tableScrollElement.addEventListener("scroll", updateTableScrollState, { passive: true });
   tableScrollLeftButton.addEventListener("click", () => scrollTableByPage(-1));
   tableScrollRightButton.addEventListener("click", () => scrollTableByPage(1));
-  tableScrollPosition.addEventListener("input", () => {
-    tableScrollElement.scrollLeft = Number(tableScrollPosition.value);
+  tableScrollbar.addEventListener("pointerdown", (event) => {
+    if (event.target === tableScrollThumb) return;
+    const thumbWidth = tableScrollThumb.getBoundingClientRect().width;
+    setTableScrollFromTrackPosition(event.clientX, thumbWidth / 2);
+  });
+  tableScrollThumb.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const thumbRect = tableScrollThumb.getBoundingClientRect();
+    tableScrollDrag = { pointerId: event.pointerId, offset: event.clientX - thumbRect.left };
+    tableScrollThumb.setPointerCapture(event.pointerId);
+  });
+  tableScrollThumb.addEventListener("pointermove", (event) => {
+    if (!tableScrollDrag || event.pointerId !== tableScrollDrag.pointerId) return;
+    setTableScrollFromTrackPosition(event.clientX, tableScrollDrag.offset);
+  });
+  tableScrollThumb.addEventListener("pointerup", (event) => {
+    if (!tableScrollDrag || event.pointerId !== tableScrollDrag.pointerId) return;
+    tableScrollDrag = null;
+    tableScrollThumb.releasePointerCapture(event.pointerId);
+  });
+  tableScrollThumb.addEventListener("pointercancel", () => {
+    tableScrollDrag = null;
+  });
+  tableScrollbar.addEventListener("keydown", (event) => {
+    const keyDirections = { ArrowLeft: -1, ArrowRight: 1, PageUp: -1, PageDown: 1 };
+    if (keyDirections[event.key]) {
+      event.preventDefault();
+      scrollTableByPage(keyDirections[event.key]);
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      tableScrollElement.scrollTo({
+        left: event.key === "Home" ? 0 : tableScrollElement.scrollWidth,
+        behavior: "auto",
+      });
+    }
   });
 
   function handleResize() {
