@@ -12,6 +12,7 @@
   const feedElement = document.querySelector(".news-feed");
   const gridElement = document.getElementById("news-grid");
   const tableScrollElement = document.getElementById("news-table-scroll");
+  const tableShellElement = tableScrollElement.parentElement;
   const tableBodyElement = document.getElementById("news-table-body");
   const countElement = document.getElementById("news-count");
   const retryButton = document.getElementById("news-retry");
@@ -45,6 +46,21 @@
   };
 
   let resizeFrame = null;
+  const scrollEdgeTolerance = 3;
+
+  function updateTableScrollState() {
+    const isVisibleList = state.view === "list" && !tableScrollElement.hidden;
+    const maxScrollLeft = tableScrollElement.scrollWidth - tableScrollElement.clientWidth;
+    const isScrollable = isVisibleList && maxScrollLeft > scrollEdgeTolerance;
+    const canScrollLeft = isScrollable && tableScrollElement.scrollLeft > scrollEdgeTolerance;
+    const canScrollRight = isScrollable
+      && tableScrollElement.scrollLeft < maxScrollLeft - scrollEdgeTolerance;
+    [tableScrollElement, tableShellElement].forEach((element) => {
+      element.classList.toggle("is-scrollable-x", isScrollable);
+      element.classList.toggle("can-scroll-left", canScrollLeft);
+      element.classList.toggle("can-scroll-right", canScrollRight);
+    });
+  }
 
   function readViewPreference() {
     try {
@@ -457,6 +473,7 @@
       tableBodyElement.replaceChildren(...pageArticles.map(buildTableRow));
       tableScrollElement.hidden = false;
     }
+    updateTableScrollState();
     renderPagination(filtered.length);
   }
 
@@ -712,6 +729,7 @@
   previousPageButton.addEventListener("click", () => changePage(state.page - 1));
   nextPageButton.addEventListener("click", () => changePage(state.page + 1));
   retryButton.addEventListener("click", loadArticles);
+  tableScrollElement.addEventListener("scroll", updateTableScrollState, { passive: true });
 
   function handleResize() {
     if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
@@ -723,6 +741,7 @@
       if (nextPageSize !== state.pageSize) {
         renderResults({ logicalStart, preserveLogicalStart: true });
       }
+      updateTableScrollState();
     });
   }
 

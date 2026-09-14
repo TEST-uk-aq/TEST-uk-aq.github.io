@@ -121,15 +121,16 @@
 
       <div id="news-grid" class="news-grid" hidden></div>
 
-      <div
-        id="news-table-scroll"
-        class="news-table-scroll"
-        role="region"
-        aria-label="News article list. Scroll horizontally to see all columns."
-        tabindex="0"
-        hidden
-      >
-        <table class="news-table">
+      <div class="news-table-shell">
+        <div
+          id="news-table-scroll"
+          class="news-table-scroll"
+          role="region"
+          aria-label="News article list. Scroll horizontally to see all columns."
+          tabindex="0"
+          hidden
+        >
+          <table class="news-table">
           <thead>
             <tr>
               <th class="news-table-image-heading" scope="col"><span class="visually-hidden">Article image</span></th>
@@ -156,7 +157,8 @@
             </tr>
           </thead>
           <tbody id="news-table-body"></tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       <nav id="news-pagination" class="news-pagination" aria-label="News pages" hidden>
