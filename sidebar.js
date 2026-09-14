@@ -484,11 +484,11 @@
       display: block;
     }
     .uk-aq-nav-item--wordmark {
-      padding-top: 18px;
-      padding-bottom: 18px;
+      padding-top: 30px;
+      padding-bottom: 30px;
     }
     .uk-aq-nav-item--wordmark + .uk-aq-nav-item--wordmark {
-      margin-top: 6px;
+      margin-top: 30px;
     }
     .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
       width: auto !important;
