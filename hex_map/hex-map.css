@@ -2021,14 +2021,50 @@
           }
 
           .sensor-table .sensor-network-text--compact {
-            display: block;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
             color: var(--ink-soft);
             font-size: 0.76rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
 
           .sensor-table .sensor-identity-cell {
-            display: grid;
-            gap: 2px;
+            display: block;
+            max-height: 2.5em;
+            overflow: hidden;
+            line-height: 1.25;
+          }
+
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] {
+            white-space: nowrap;
+          }
+
+          .sensor-table .sensor-name-button {
+            display: inline;
+            width: auto;
+            max-width: 100%;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+          }
+
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] .sensor-name-button {
+            white-space: nowrap;
+          }
+
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"]
+            .sensor-network-text--compact::before {
+            content: " · ";
+          }
+
+          .sensor-table .sensor-col-value {
+            text-align: left;
+          }
+
+          .sensor-table .sensor-col-value .sort-header {
+            justify-content: flex-start;
           }
         }
       }
@@ -6667,21 +6703,29 @@
 
         .hex-map-page .sensor-table .sensor-identity-cell {
           display: block;
+          max-height: 2.5em;
+          overflow: hidden;
           line-height: 1.25;
         }
 
+        .hex-map-page .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] {
+          white-space: nowrap;
+        }
+
         .hex-map-page .sensor-table .sensor-network-text--compact {
-          display: inline;
+          display: inline-block;
           min-width: 0;
-          overflow: visible;
-          text-overflow: clip;
-          white-space: normal;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
           color: var(--ink-3);
           font-size: 0.72rem;
           line-height: 1.25;
         }
 
-        .hex-map-page .sensor-table .sensor-network-text--compact::before {
+        .hex-map-page .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"]
+          .sensor-network-text--compact::before {
           content: " · ";
         }
 

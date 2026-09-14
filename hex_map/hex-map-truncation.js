@@ -1,5 +1,7 @@
 const TARGET_SELECTOR = "[data-hex-truncation]";
+const SENSOR_IDENTITY_SELECTOR = ".sensor-identity-cell";
 const TOOLTIP_ID = "hex-map-truncation-tooltip";
+const SENSOR_TABLE_COMPACT_WIDTH = 860;
 
 function createHexMapTruncation(root = globalThis) {
   const documentRef = root.document;
@@ -9,7 +11,9 @@ function createHexMapTruncation(root = globalThis) {
   let tooltip = null;
   let shownTarget = null;
   let resizeObserver = null;
+  let identityRefreshFrame = null;
   const observed = new Set();
+  const observedIdentities = new Set();
 
   function getTooltip() {
     if (tooltip?.isConnected) return tooltip;
@@ -27,8 +31,13 @@ function createHexMapTruncation(root = globalThis) {
 
   function isTruncated(target) {
     if (!target.isConnected || target.getClientRects().length === 0) return false;
-    return target.scrollWidth > target.clientWidth + 1
+    return target.dataset.hexTruncationForced === "true"
+      || target.scrollWidth > target.clientWidth + 1
       || target.scrollHeight > target.clientHeight + 1;
+  }
+
+  function tooltipText(target) {
+    return target.dataset.hexTruncationFullText || target.textContent.trim();
   }
 
   function restoreTabIndex(target) {
@@ -77,7 +86,7 @@ function createHexMapTruncation(root = globalThis) {
   function show(target) {
     if (!target?.isConnected || target.dataset.hexTruncated !== "true") return;
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = target.textContent.trim();
+    tooltipElement.textContent = tooltipText(target);
     if (!tooltipElement.textContent) return;
     tooltipElement.hidden = false;
     target.setAttribute("aria-describedby", TOOLTIP_ID);
@@ -115,7 +124,7 @@ function createHexMapTruncation(root = globalThis) {
       return false;
     }
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = descendants.map((item) => item.textContent.trim()).filter(Boolean).join(" · ");
+    tooltipElement.textContent = descendants.map(tooltipText).filter(Boolean).join(" · ");
     if (!tooltipElement.textContent) {
       hide();
       return false;
@@ -150,6 +159,117 @@ function createHexMapTruncation(root = globalThis) {
     show(shownTarget);
   }
 
+  function getSensorIdentityParts(identity) {
+    const sensor = identity.querySelector(".sensor-name-button");
+    const network = identity.querySelector(".sensor-network-text--compact");
+    if (!sensor || !network) return null;
+    if (identity.dataset.hexIdentitySensorText === undefined) {
+      identity.dataset.hexIdentitySensorText = sensor.textContent.trim();
+    }
+    if (identity.dataset.hexIdentityNetworkText === undefined) {
+      identity.dataset.hexIdentityNetworkText = network.textContent.trim();
+    }
+    return {
+      sensor,
+      network,
+      sensorText: identity.dataset.hexIdentitySensorText,
+    };
+  }
+
+  function shouldPresentResponsiveIdentity(identity) {
+    if (root.matchMedia?.("(max-width: 767px)").matches) return true;
+    const tableWrap = identity.closest(".sensor-table-wrap");
+    return Boolean(tableWrap && tableWrap.getBoundingClientRect().width > 0
+      && tableWrap.getBoundingClientRect().width < SENSOR_TABLE_COMPACT_WIDTH);
+  }
+
+  function identityLineHeight(identity) {
+    const styles = root.getComputedStyle(identity);
+    const lineHeight = Number.parseFloat(styles.lineHeight);
+    if (Number.isFinite(lineHeight)) return lineHeight;
+    return Number.parseFloat(styles.fontSize) * 1.25;
+  }
+
+  function restoreSensorIdentityText(identity, parts) {
+    const { sensor, network, sensorText } = parts;
+    if (sensor.textContent !== sensorText) sensor.textContent = sensorText;
+    if (network.textContent !== identity.dataset.hexIdentityNetworkText) {
+      network.textContent = identity.dataset.hexIdentityNetworkText;
+    }
+    delete sensor.dataset.hexTruncationForced;
+    delete sensor.dataset.hexTruncationFullText;
+    if (sensor.dataset.hexIdentityAddedAriaLabel === "true") {
+      sensor.removeAttribute("aria-label");
+      delete sensor.dataset.hexIdentityAddedAriaLabel;
+    }
+  }
+
+  function setSensorIdentityText(parts, text, truncated) {
+    const { sensor, sensorText } = parts;
+    if (sensor.textContent !== text) sensor.textContent = text;
+    if (!truncated) return;
+    sensor.dataset.hexTruncationForced = "true";
+    sensor.dataset.hexTruncationFullText = sensorText;
+    if (!sensor.hasAttribute("aria-label")) {
+      sensor.setAttribute("aria-label", sensorText);
+      sensor.dataset.hexIdentityAddedAriaLabel = "true";
+    }
+  }
+
+  function fitsWithinTwoLines(identity) {
+    const lineHeight = identityLineHeight(identity);
+    return identity.scrollHeight <= (lineHeight * 2) + 1;
+  }
+
+  function truncateSensorIdentity(identity, parts) {
+    const characters = Array.from(parts.sensorText);
+    let low = 0;
+    let high = characters.length;
+    let best = 0;
+    while (low <= high) {
+      const midpoint = Math.floor((low + high) / 2);
+      setSensorIdentityText(parts, `${characters.slice(0, midpoint).join("").trimEnd()}…`, true);
+      if (fitsWithinTwoLines(identity)) {
+        best = midpoint;
+        low = midpoint + 1;
+      } else {
+        high = midpoint - 1;
+      }
+    }
+    const wordBoundary = characters.slice(0, best).join("").trimEnd().lastIndexOf(" ");
+    const preferredLength = wordBoundary > 0 ? wordBoundary : best;
+    setSensorIdentityText(parts, `${characters.slice(0, preferredLength).join("").trimEnd()}…`, true);
+  }
+
+  function syncSensorIdentity(identity) {
+    if (!identity.isConnected || identity.getClientRects().length === 0) return;
+    const parts = getSensorIdentityParts(identity);
+    if (!parts) return;
+    restoreSensorIdentityText(identity, parts);
+    if (!shouldPresentResponsiveIdentity(identity)) {
+      delete identity.dataset.hexIdentityLayout;
+      return;
+    }
+    identity.dataset.hexIdentityLayout = "inline";
+    if (identity.scrollWidth <= identity.clientWidth + 1) return;
+    identity.dataset.hexIdentityLayout = "wrapped";
+    if (!fitsWithinTwoLines(identity)) truncateSensorIdentity(identity, parts);
+    descendantTargets(identity).forEach((target) => syncTarget(target));
+  }
+
+  function refreshSensorIdentities() {
+    observedIdentities.forEach((identity) => syncSensorIdentity(identity));
+  }
+
+  function scheduleSensorIdentityRefresh() {
+    if (identityRefreshFrame !== null) return;
+    identityRefreshFrame = root.requestAnimationFrame(() => {
+      identityRefreshFrame = null;
+      refreshSensorIdentities();
+      refreshShownTooltip();
+    });
+  }
+
   function mount() {
     if (mounted) return;
     mounted = true;
@@ -172,18 +292,23 @@ function createHexMapTruncation(root = globalThis) {
       else if (owner && !owner.contains(event.relatedTarget)) hide(owner);
     });
     root.addEventListener("resize", () => {
+      scheduleSensorIdentityRefresh();
       refreshShownTooltip();
     }, { passive: true });
     if (typeof root.ResizeObserver === "function") {
       resizeObserver = new root.ResizeObserver((entries) => {
+        let refreshIdentities = false;
         entries.forEach((entry) => {
           if (!entry.target.isConnected) {
             resizeObserver.unobserve(entry.target);
             observed.delete(entry.target);
+            observedIdentities.delete(entry.target);
             return;
           }
-          syncTarget(entry.target);
+          if (observed.has(entry.target)) syncTarget(entry.target);
+          if (observedIdentities.has(entry.target)) refreshIdentities = true;
         });
+        if (refreshIdentities) scheduleSensorIdentityRefresh();
         refreshShownTooltip();
       });
     }
@@ -195,6 +320,12 @@ function createHexMapTruncation(root = globalThis) {
       if (!target.isConnected) {
         resizeObserver.unobserve(target);
         observed.delete(target);
+      }
+    });
+    observedIdentities.forEach((identity) => {
+      if (!identity.isConnected) {
+        resizeObserver.unobserve(identity);
+        observedIdentities.delete(identity);
       }
     });
   }
@@ -211,6 +342,16 @@ function createHexMapTruncation(root = globalThis) {
         resizeObserver.observe(target);
         observed.add(target);
       }
+    });
+    const identities = [];
+    if (scope instanceof Element && scope.matches(SENSOR_IDENTITY_SELECTOR)) identities.push(scope);
+    if (scope?.querySelectorAll) identities.push(...scope.querySelectorAll(SENSOR_IDENTITY_SELECTOR));
+    identities.forEach((identity) => {
+      if (resizeObserver && !observedIdentities.has(identity)) {
+        resizeObserver.observe(identity);
+        observedIdentities.add(identity);
+      }
+      syncSensorIdentity(identity);
     });
   }
 
