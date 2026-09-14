@@ -400,11 +400,8 @@
       gap: 4px;
     }
 
-    .uk-aq-home-nav-item {
-	  padding-left: 0;
-	  margin-left: -13px;
+	.uk-aq-home-nav-item {
 	  margin-bottom: 0;
-	  transition: none;
 	}
     .uk-aq-home-nav-item .uk-aq-nav-icon-img {
       width: 44px !important;
@@ -417,10 +414,6 @@
     .uk-aq-home-nav-item + .uk-aq-nav-section .uk-aq-section-label {
       padding-top: 6px;
     }
-    body[data-sidebar-state="mini"] .uk-aq-home-nav-item {
-      margin-left: 0;
-    }
-
     .uk-aq-section-divider {
       height: 0;
       border-top: 1px solid var(--uk-aq-line);
@@ -479,6 +472,15 @@
       display: inline-flex; align-items: center; justify-content: center;
       font-style: normal; font-size: 13px;
     }
+	.uk-aq-nav-icon-slot {
+	  width: 40px;
+	  min-width: 40px;
+	  flex-shrink: 0;
+	  display: inline-flex;
+	  align-items: center;
+	  justify-content: center;
+	  overflow: visible;
+	}
     .uk-aq-nav-icon-img {
       width: 40px !important;
       height: 40px !important;
@@ -491,8 +493,15 @@
       object-fit: contain;
       display: block;
     }
+	.uk-aq-nav-item--wordmark {
+	  overflow: visible;
+	}
+	.uk-aq-nav-item--wordmark .uk-aq-nav-icon-slot {
+	  height: 40px;
+	  overflow: visible;
+	}
     .uk-aq-nav-item--wordmark + .uk-aq-nav-item--wordmark {
-      margin-top: 6px;
+      margin-top: 0px;
     }
     .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
       width: auto !important;
@@ -555,8 +564,8 @@
 	}
 	body[data-sidebar-state="mini"] .uk-aq-nav-item--wordmark {
 	  margin-inline: -4px;
-	  padding: 9px 0;
-	  justify-content: center;
+	  padding-left: 7px;
+	  padding-right: 1px;
 	}
     /* ── Sidebar footer ── */
     #uk-aq-sidebar-footer {
@@ -582,11 +591,21 @@
         : (href.includes('?') ? pathWithSearch.includes(href) : path.includes(href))
     );
     const className = item.className ? ` ${item.className}` : '';
-    const iconHtml = item.iconImg
-      ? `<img class="uk-aq-nav-icon-img" src="${location.origin}/sidebar-images/${item.iconImg}" alt="">`
-      : item.iconPlaceholder
-        ? `<span class="uk-aq-nav-icon-placeholder" aria-hidden="true"></span>`
-        : `<i class="uk-aq-nav-icon">${item.icon}</i>`;
+  const usesCentredIconSlot =
+    item.className?.includes('uk-aq-home-nav-item')
+    || item.className?.includes('uk-aq-nav-item--wordmark');
+
+  const imageHtml = item.iconImg
+    ? `<img class="uk-aq-nav-icon-img" src="${location.origin}/sidebar-images/${item.iconImg}" alt="">`
+    : '';
+
+  const iconHtml = item.iconImg
+    ? (usesCentredIconSlot
+        ? `<span class="uk-aq-nav-icon-slot" aria-hidden="true">${imageHtml}</span>`
+        : imageHtml)
+    : item.iconPlaceholder
+      ? `<span class="uk-aq-nav-icon-placeholder" aria-hidden="true"></span>`
+      : `<i class="uk-aq-nav-icon">${item.icon}</i>`;
     const labelHtml = item.labelImg
       ? `<img class="uk-aq-nav-label-img" src="${location.origin}/sidebar-images/${item.labelImg}" alt="${item.label}">`
       : item.label;
