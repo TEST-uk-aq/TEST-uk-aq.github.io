@@ -25,6 +25,8 @@
   const gridSortSelect = document.getElementById("news-grid-sort");
   const gridViewButton = document.getElementById("news-view-grid");
   const listViewButton = document.getElementById("news-view-list");
+  const gridViewIcon = document.getElementById("news-view-grid-icon");
+  const listViewIcon = document.getElementById("news-view-list-icon");
   const sortHeadingButtons = Array.from(document.querySelectorAll(".news-sort-heading"));
   const paginationElement = document.getElementById("news-pagination");
   const pageNumbersElement = document.getElementById("news-page-numbers");
@@ -245,8 +247,13 @@
     publicationCell.textContent = article.publisher;
 
     const authorCell = document.createElement("td");
+    authorCell.className = "news-table-author";
     if (article.author) {
-      authorCell.textContent = article.author;
+      const author = document.createElement("span");
+      author.className = "news-table-author-text";
+      author.textContent = article.author;
+      author.title = article.author;
+      authorCell.append(author);
     } else {
       const missing = document.createElement("span");
       missing.className = "news-table-missing-author";
@@ -342,6 +349,12 @@
     const isGrid = state.view === "grid";
     gridViewButton.setAttribute("aria-pressed", String(isGrid));
     listViewButton.setAttribute("aria-pressed", String(!isGrid));
+    gridViewIcon.src = isGrid
+      ? "/images/UK-AQ-grid-icon-blue.png"
+      : "/images/UK-AQ-grid-icon-grey.png";
+    listViewIcon.src = isGrid
+      ? "/images/UK-AQ-list-icon-grey.png"
+      : "/images/UK-AQ-list-icon-blue.png";
     gridSortLabel.hidden = !isGrid;
   }
 
