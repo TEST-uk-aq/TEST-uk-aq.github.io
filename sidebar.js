@@ -170,7 +170,7 @@
       }
 
       const response = await fetch(PUBLIC_NETWORK_CATALOG_URL, {
-        credentials: 'omit',
+        credentials: 'same-origin',
         headers: { Accept: 'application/json' },
       });
       if (!response.ok) {

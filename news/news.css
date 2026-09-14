@@ -581,7 +581,8 @@ body {
   padding: 22px 13px 6px;
   overflow: hidden;
   border: 1px solid #b7d1e7;
-  border-radius: 11px;
+  border-top: 0;
+  border-radius: 0 0 11px 11px;
   color: var(--news-blue-dark);
   background: rgba(255, 255, 255, 0.72);
   font-size: 0.82rem;
