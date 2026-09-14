@@ -1832,6 +1832,10 @@
           padding: 10px 12px;
         }
 
+        .sensor-table tbody tr:not(.sensor-row-divider) > td.sensor-col-sensor {
+          padding-left: 0;
+        }
+
         .sensor-table-wrap:not(.is-chart-select-mode) .sensor-chart-select-col {
           width: 21px;
           padding-inline: 0;
