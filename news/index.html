@@ -24,16 +24,12 @@
 
   <main class="news-main" id="mainContent">
     <header class="news-intro">
-      <h1>AQ in the News</h1>
-      <p>Recent air-quality reporting selected by UK AQ. Article links open the original publisher’s website.</p>
+      <h1 class="visually-hidden">UK AQ News</h1>
+      <img class="news-title-image" src="/images/UK-AQ-NEWS-1line.png" alt="" aria-hidden="true">
+      <p>Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
     </header>
 
-    <section class="news-feed" aria-labelledby="news-feed-heading">
-      <div class="news-feed-heading-row">
-        <h2 id="news-feed-heading">Latest articles</h2>
-        <p id="news-count" class="news-count" aria-live="polite" hidden></p>
-      </div>
-
+    <section class="news-feed" aria-label="News articles">
       <div class="news-toolbar" id="news-toolbar" hidden>
         <div class="news-search-shell">
           <label class="visually-hidden" for="news-search-input">Search news</label>
@@ -185,11 +181,14 @@
         </div>
       </div>
 
-      <nav id="news-pagination" class="news-pagination" aria-label="News pages" hidden>
-        <button id="news-page-previous" type="button">Previous</button>
-        <div id="news-page-numbers" class="news-page-numbers"></div>
-        <button id="news-page-next" type="button">Next</button>
-      </nav>
+      <div id="news-results-footer" class="news-results-footer" hidden>
+        <p id="news-results-summary" class="news-results-summary" aria-live="polite"></p>
+        <nav id="news-pagination" class="news-pagination" aria-label="News pages" hidden>
+          <button id="news-page-previous" type="button">Previous</button>
+          <div id="news-page-numbers" class="news-page-numbers"></div>
+          <button id="news-page-next" type="button">Next</button>
+        </nav>
+      </div>
 
       <noscript>
         <div class="news-message news-message--error">

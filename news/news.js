@@ -19,7 +19,8 @@
   const tableScrollLeftButton = document.getElementById("news-table-scroll-left");
   const tableScrollRightButton = document.getElementById("news-table-scroll-right");
   const tableBodyElement = document.getElementById("news-table-body");
-  const countElement = document.getElementById("news-count");
+  const resultsFooterElement = document.getElementById("news-results-footer");
+  const resultsSummaryElement = document.getElementById("news-results-summary");
   const retryButton = document.getElementById("news-retry");
   const searchInput = document.getElementById("news-search-input");
   const searchClearButton = document.getElementById("news-search-clear");
@@ -472,12 +473,26 @@
     pageNumbersElement.replaceChildren(...items);
   }
 
+  function renderResultsSummary(start, displayedCount, matchingCount) {
+    const totalCount = state.articles.length;
+    const range = displayedCount > 1
+      ? `${start + 1}–${start + displayedCount}`
+      : displayedCount === 1 ? String(start + 1) : "0";
+    if (matchingCount === totalCount) {
+      resultsSummaryElement.textContent = `Showing ${range} of ${totalCount} ${totalCount === 1 ? "article" : "articles"}`;
+    } else {
+      resultsSummaryElement.textContent = `Showing ${range} of ${matchingCount} matching ${matchingCount === 1 ? "article" : "articles"} · ${totalCount} total`;
+    }
+    resultsFooterElement.hidden = false;
+  }
+
   function hideResultSurfaces() {
     gridElement.hidden = true;
     tableScrollElement.hidden = true;
     tableScrollControl.hidden = true;
     noResultsElement.hidden = true;
     paginationElement.hidden = true;
+    resultsFooterElement.hidden = true;
   }
 
   function renderResults(options = {}) {
@@ -494,15 +509,11 @@
     const filtered = filteredAndSortedArticles();
     const totalPages = Math.max(1, Math.ceil(filtered.length / state.pageSize));
     state.page = Math.min(Math.max(1, state.page), totalPages);
-    countElement.textContent = filtered.length === state.articles.length
-      ? `${filtered.length} ${filtered.length === 1 ? "article" : "articles"}`
-      : `${filtered.length} of ${state.articles.length} articles`;
-    countElement.hidden = false;
-
     if (!filtered.length) {
       gridElement.replaceChildren();
       tableBodyElement.replaceChildren();
       noResultsElement.hidden = false;
+      renderResultsSummary(0, 0, 0);
       return;
     }
 
@@ -518,13 +529,14 @@
       tableScrollElement.hidden = false;
     }
     updateTableScrollState();
+    renderResultsSummary(start, pageArticles.length, filtered.length);
     renderPagination(filtered.length);
   }
 
   function changePage(page) {
     state.page = page;
     renderResults();
-    document.getElementById("news-feed-heading").scrollIntoView({ block: "start" });
+    toolbarElement.scrollIntoView({ block: "start" });
   }
 
   function setView(view) {
@@ -680,7 +692,6 @@
 
   async function loadArticles() {
     toolbarElement.hidden = true;
-    countElement.hidden = true;
     showOnly(statusElement);
     retryButton.disabled = true;
     closeSuggestions();
