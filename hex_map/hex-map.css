@@ -1919,8 +1919,10 @@
 
         @container sensor-table (width < 860px) {
           .sensor-table {
-            --sensor-compact-map-columns: 40px minmax(0, 1fr) max-content max-content;
-            --sensor-compact-chart-columns: 68px 32px minmax(0, 1fr) max-content max-content;
+            --sensor-compact-value-track: 136px;
+            --sensor-compact-updated-track: 168px;
+            --sensor-compact-map-columns: 40px minmax(0, 1fr) var(--sensor-compact-value-track) var(--sensor-compact-updated-track);
+            --sensor-compact-chart-columns: 68px 32px minmax(0, 1fr) var(--sensor-compact-value-track) var(--sensor-compact-updated-track);
             display: block;
             width: 100%;
             min-width: 0;
