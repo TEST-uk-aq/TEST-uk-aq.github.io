@@ -2,6 +2,7 @@ const TARGET_SELECTOR = "[data-hex-truncation]";
 const SENSOR_IDENTITY_SELECTOR = ".sensor-identity-cell";
 const TOOLTIP_ID = "hex-map-truncation-tooltip";
 const SENSOR_TABLE_COMPACT_WIDTH = 860;
+const IDENTITY_FIT_TOLERANCE_PX = 1;
 
 function createHexMapTruncation(root = globalThis) {
   const documentRef = root.document;
@@ -221,6 +222,16 @@ function createHexMapTruncation(root = globalThis) {
     return identity.scrollHeight <= (lineHeight * 2) + 1;
   }
 
+  function fitsInlineSensorIdentity(identity, parts) {
+    const identityRect = identity.getBoundingClientRect();
+    const networkRect = parts.network.getBoundingClientRect();
+    if (identityRect.width <= 0 || networkRect.width <= 0) return false;
+    return identity.scrollWidth <= identity.clientWidth + IDENTITY_FIT_TOLERANCE_PX
+      && parts.network.scrollWidth <= parts.network.clientWidth + IDENTITY_FIT_TOLERANCE_PX
+      && networkRect.left >= identityRect.left - IDENTITY_FIT_TOLERANCE_PX
+      && networkRect.right <= identityRect.right + IDENTITY_FIT_TOLERANCE_PX;
+  }
+
   function truncateSensorIdentity(identity, parts) {
     const characters = Array.from(parts.sensorText);
     let low = 0;
@@ -251,7 +262,7 @@ function createHexMapTruncation(root = globalThis) {
       return;
     }
     identity.dataset.hexIdentityLayout = "inline";
-    if (identity.scrollWidth <= identity.clientWidth + 1) return;
+    if (fitsInlineSensorIdentity(identity, parts)) return;
     identity.dataset.hexIdentityLayout = "wrapped";
     if (!fitsWithinTwoLines(identity)) truncateSensorIdentity(identity, parts);
     descendantTargets(identity).forEach((target) => syncTarget(target));
