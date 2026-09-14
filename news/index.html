@@ -4,44 +4,94 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>AQ in the News | UK AQ local preview</title>
+  <meta name="description" content="Recent air-quality reporting selected by UK AQ.">
+  <title>AQ in the News | UK AQ</title>
 
-  <link rel="icon" href="/images/favicon.ico">
-
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
     rel="stylesheet"
   >
-
+  <link rel="stylesheet" href="/site-ui.css">
   <link rel="stylesheet" href="news.css">
   <script src="news.js" defer></script>
 </head>
-<body>
-  <header class="news-header">
-    <div class="news-header-inner">
-      <a class="news-home-link" href="/" aria-label="UK AQ home">
-        <img src="/images/UK-AQ-Logo-v3-1line.svg" alt="UK AQ">
-      </a>
-      <span class="preview-label">Local development preview</span>
-    </div>
-  </header>
+<body class="news-page" data-page-slug="news">
+  <div id="cic-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
 
-  <main class="news-main">
-    <section class="news-intro" aria-labelledby="news-heading">
-      <p class="news-kicker">Independent links to recent coverage</p>
-      <h1 id="news-heading">AQ in the News</h1>
-      <p class="news-lede">
-        Recent air-quality reporting selected by UK AQ. Article links open the
-        original publisher’s website.
-      </p>
-    </section>
+  <main class="news-main" id="mainContent">
+    <header class="news-intro">
+      <h1>AQ in the News</h1>
+      <p>Recent air-quality reporting selected by UK AQ. Article links open the original publisher’s website.</p>
+    </header>
 
     <section class="news-feed" aria-labelledby="news-feed-heading">
       <div class="news-feed-heading-row">
         <h2 id="news-feed-heading">Latest articles</h2>
-        <p id="news-count" class="news-count" hidden></p>
+        <p id="news-count" class="news-count" aria-live="polite" hidden></p>
+      </div>
+
+      <div class="news-toolbar" id="news-toolbar" hidden>
+        <div class="news-search-shell">
+          <label class="visually-hidden" for="news-search-input">Search news</label>
+          <div class="news-search">
+            <span class="news-search-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
+                <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"></circle>
+                <path d="M9 9l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+              </svg>
+            </span>
+            <input
+              id="news-search-input"
+              class="news-search-input"
+              type="search"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-controls="news-search-suggestions"
+              placeholder="Search news…"
+            >
+            <button id="news-search-clear" class="news-search-clear" type="button" aria-label="Clear search" hidden>&times;</button>
+            <details class="news-search-fields" id="news-search-fields">
+              <summary aria-label="Choose fields to search">
+                <span id="news-search-fields-summary">All</span>
+                <span aria-hidden="true">▾</span>
+              </summary>
+              <fieldset>
+                <legend>Search fields</legend>
+                <label><input type="checkbox" value="title" checked> Title</label>
+                <label><input type="checkbox" value="publication" checked> Publication</label>
+                <label><input type="checkbox" value="author" checked> Author</label>
+              </fieldset>
+            </details>
+          </div>
+          <div id="news-search-suggestions" class="news-search-suggestions" role="listbox" hidden></div>
+        </div>
+
+        <div class="news-toolbar-actions">
+          <label class="news-grid-sort" id="news-grid-sort-label" for="news-grid-sort">
+            <span>Sort</span>
+            <select id="news-grid-sort" aria-label="Sort news articles">
+              <option value="published:desc">Published — newest</option>
+              <option value="published:asc">Published — oldest</option>
+              <option value="title:asc">Title — A–Z</option>
+              <option value="title:desc">Title — Z–A</option>
+              <option value="publication:asc">Publication — A–Z</option>
+              <option value="publication:desc">Publication — Z–A</option>
+              <option value="author:asc">Author — A–Z</option>
+              <option value="author:desc">Author — Z–A</option>
+            </select>
+          </label>
+
+          <div class="news-view-switch" role="group" aria-label="Article view">
+            <button id="news-view-grid" type="button" aria-pressed="true">Grid</button>
+            <button id="news-view-list" type="button" aria-pressed="false">List</button>
+          </div>
+        </div>
       </div>
 
       <div id="news-status" class="news-status" role="status" aria-live="polite">
@@ -60,10 +110,60 @@
         <p>Approved stories will appear here when they are available.</p>
       </div>
 
-      <div id="news-list" class="news-list" aria-live="polite" hidden></div>
+      <div id="news-no-results" class="news-message" hidden>
+        <h3>No matching articles</h3>
+        <p>Try another search or select more search fields.</p>
+      </div>
+
+      <div id="news-grid" class="news-grid" hidden></div>
+
+      <div
+        id="news-table-scroll"
+        class="news-table-scroll"
+        role="region"
+        aria-label="News article list. Scroll horizontally to see all columns."
+        tabindex="0"
+        hidden
+      >
+        <table class="news-table">
+          <thead>
+            <tr>
+              <th class="news-table-image-heading" scope="col"><span class="visually-hidden">Article image</span></th>
+              <th scope="col" data-sort-key="title" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="title">
+                  <span>Title</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="publication" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="publication">
+                  <span>Publication</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="author" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="author">
+                  <span>Author</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="published" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="published">
+                  <span>Published</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="news-table-body"></tbody>
+        </table>
+      </div>
+
+      <nav id="news-pagination" class="news-pagination" aria-label="News pages" hidden>
+        <button id="news-page-previous" type="button">Previous</button>
+        <div id="news-page-numbers" class="news-page-numbers"></div>
+        <button id="news-page-next" type="button">Next</button>
+      </nav>
+
       <noscript>
         <div class="news-message news-message--error">
-          <p>JavaScript is required to load this local news preview.</p>
+          <p>JavaScript is required to load AQ in the News.</p>
         </div>
       </noscript>
     </section>

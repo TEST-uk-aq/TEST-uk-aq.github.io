@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1025 512" role="img" aria-labelledby="title desc">
+  <title id="title">WHO</title>
+  <desc id="desc">Traced vector version of the supplied WHO sidebar button.</desc>
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="0" x2="325.3" y2="797.4"
+                    color-interpolation="sRGB">
+      <stop offset="0" stop-color="#57C2FF"/>
+      <stop offset="92.2%" stop-color="#004D80"/>
+      <stop offset="100%" stop-color="#004375"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1025" height="512" rx="64" ry="64" fill="url(#bg)"/>
+
+  <path d="M 41 122 L 136 122 L 168 219 L 199 122 L 261 122 L 293 219 L 324 122 L 419 122 L 328 401 L 257 401 L 230 317 L 203 401 L 132 401 Z" fill="#FFFFFF"/>
+  <path d="M 424 122 L 514 122 L 514 217 L 562 217 L 562 122 L 653 122 L 653 401 L 562 401 L 562 298 L 514 298 L 514 401 L 424 401 Z" fill="#FFFFFF"/>
+  <path d="M 966.44 261.59 A 145.96 145.96 0 1 0 674.52 261.59 A 145.96 145.96 0 1 0 966.44 261.59 Z M 878.42 261.59 A 57.94 57.94 0 1 1 762.54 261.59 A 57.94 57.94 0 1 1 878.42 261.59 Z" fill="#FFFFFF" fill-rule="evenodd"/>
+</svg>
