@@ -6413,7 +6413,7 @@
           height: auto;
           min-height: 0;
           max-height: none;
-          padding: 6px 8px;
+          padding: 6px 4px 6px 8px;
         }
 
         .hex-map-page .sensor-panel-header-text,
@@ -6430,7 +6430,7 @@
           grid-area: title;
           display: flex;
           min-width: 0;
-          align-items: flex-start;
+          align-items: center;
           gap: 4px;
         }
 
@@ -6446,6 +6446,7 @@
           grid-area: hex;
           width: 16px;
           height: 18px;
+          margin-inline-start: 3px;
         }
 
         .hex-map-page .sensor-panel-title {
@@ -6770,6 +6771,7 @@
           max-width: 42vw;
           align-self: end;
           justify-self: end;
+          padding-inline-end: 10px;
           font-size: 0.8rem;
           font-weight: 600;
           text-align: right;
