@@ -18,8 +18,8 @@
         { label: 'Hex Map',     iconImg: 'uk-aq-hex-map-sidebar.svg', href: '/hex_map/' },
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
-        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/' },
-        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/' },
+        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'cic-nav-item--wordmark' },
+        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'cic-nav-item--wordmark' },
       ],
     },
 /*    {
@@ -483,6 +483,19 @@
       object-fit: contain;
       display: block;
     }
+    .cic-nav-item--wordmark {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    .cic-nav-item--wordmark .cic-nav-icon-img {
+      width: 50px !important;
+      height: 32px !important;
+      min-width: 50px !important;
+      min-height: 32px !important;
+      max-width: 50px !important;
+      max-height: 32px !important;
+      object-fit: contain;
+    }
     .cic-nav-icon-placeholder {
       width: 34px;
       height: 34px;
@@ -513,6 +526,7 @@
 
     body[data-sidebar-state="mini"] .cic-nav-label { display: none; }
     body[data-sidebar-state="mini"] .cic-nav-item  { padding: 11px; justify-content: center; }
+    body[data-sidebar-state="mini"] .cic-nav-item--wordmark { padding: 4px 5px; }
 
     /* ── Sidebar footer ── */
     #cic-sidebar-footer {
