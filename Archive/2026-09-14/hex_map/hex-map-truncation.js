@@ -1,5 +1,5 @@
 const TARGET_SELECTOR = "[data-hex-truncation]";
-const SENSOR_TABLE_WRAP_SELECTOR = ".sensor-table-wrap";
+const SENSOR_IDENTITY_SELECTOR = ".sensor-identity-cell";
 const TOOLTIP_ID = "hex-map-truncation-tooltip";
 const SENSOR_TABLE_COMPACT_WIDTH = 860;
 const IDENTITY_FIT_TOLERANCE_PX = 1;
@@ -14,7 +14,7 @@ function createHexMapTruncation(root = globalThis) {
   let resizeObserver = null;
   let identityRefreshFrame = null;
   const observed = new Set();
-  const observedIdentityLists = new Set();
+  const observedIdentities = new Set();
 
   function getTooltip() {
     if (tooltip?.isConnected) return tooltip;
@@ -32,8 +32,13 @@ function createHexMapTruncation(root = globalThis) {
 
   function isTruncated(target) {
     if (!target.isConnected || target.getClientRects().length === 0) return false;
-    return target.scrollWidth > target.clientWidth + 1
+    return target.dataset.hexTruncationForced === "true"
+      || target.scrollWidth > target.clientWidth + 1
       || target.scrollHeight > target.clientHeight + 1;
+  }
+
+  function tooltipText(target) {
+    return target.dataset.hexTruncationFullText || target.textContent.trim();
   }
 
   function restoreTabIndex(target) {
@@ -82,7 +87,7 @@ function createHexMapTruncation(root = globalThis) {
   function show(target) {
     if (!target?.isConnected || target.dataset.hexTruncated !== "true") return;
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = target.textContent.trim();
+    tooltipElement.textContent = tooltipText(target);
     if (!tooltipElement.textContent) return;
     tooltipElement.hidden = false;
     target.setAttribute("aria-describedby", TOOLTIP_ID);
@@ -120,7 +125,7 @@ function createHexMapTruncation(root = globalThis) {
       return false;
     }
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = descendants.map((item) => item.textContent.trim()).filter(Boolean).join(" · ");
+    tooltipElement.textContent = descendants.map(tooltipText).filter(Boolean).join(" · ");
     if (!tooltipElement.textContent) {
       hide();
       return false;
@@ -159,13 +164,24 @@ function createHexMapTruncation(root = globalThis) {
     const sensor = identity.querySelector(".sensor-name-button");
     const network = identity.querySelector(".sensor-network-text--compact");
     if (!sensor || !network) return null;
-    return { sensor, network };
+    if (identity.dataset.hexIdentitySensorText === undefined) {
+      identity.dataset.hexIdentitySensorText = sensor.textContent.trim();
+    }
+    if (identity.dataset.hexIdentityNetworkText === undefined) {
+      identity.dataset.hexIdentityNetworkText = network.textContent.trim();
+    }
+    return {
+      sensor,
+      network,
+      sensorText: identity.dataset.hexIdentitySensorText,
+    };
   }
 
-  function shouldPresentResponsiveIdentity(tableWrap) {
+  function shouldPresentResponsiveIdentity(identity) {
     if (root.matchMedia?.("(max-width: 767px)").matches) return true;
-    const width = tableWrap.getBoundingClientRect().width;
-    return width > 0 && width < SENSOR_TABLE_COMPACT_WIDTH;
+    const tableWrap = identity.closest(".sensor-table-wrap");
+    return Boolean(tableWrap && tableWrap.getBoundingClientRect().width > 0
+      && tableWrap.getBoundingClientRect().width < SENSOR_TABLE_COMPACT_WIDTH);
   }
 
   function identityLineHeight(identity) {
@@ -175,90 +191,92 @@ function createHexMapTruncation(root = globalThis) {
     return Number.parseFloat(styles.fontSize) * 1.25;
   }
 
+  function restoreSensorIdentityText(identity, parts) {
+    const { sensor, network, sensorText } = parts;
+    if (sensor.textContent !== sensorText) sensor.textContent = sensorText;
+    if (network.textContent !== identity.dataset.hexIdentityNetworkText) {
+      network.textContent = identity.dataset.hexIdentityNetworkText;
+    }
+    delete sensor.dataset.hexTruncationForced;
+    delete sensor.dataset.hexTruncationFullText;
+    if (sensor.dataset.hexIdentityAddedAriaLabel === "true") {
+      sensor.removeAttribute("aria-label");
+      delete sensor.dataset.hexIdentityAddedAriaLabel;
+    }
+  }
+
+  function setSensorIdentityText(parts, text, truncated) {
+    const { sensor, sensorText } = parts;
+    if (sensor.textContent !== text) sensor.textContent = text;
+    if (!truncated) return;
+    sensor.dataset.hexTruncationForced = "true";
+    sensor.dataset.hexTruncationFullText = sensorText;
+    if (!sensor.hasAttribute("aria-label")) {
+      sensor.setAttribute("aria-label", sensorText);
+      sensor.dataset.hexIdentityAddedAriaLabel = "true";
+    }
+  }
+
+  function fitsWithinTwoLines(identity) {
+    const lineHeight = identityLineHeight(identity);
+    return identity.scrollHeight <= (lineHeight * 2) + 1;
+  }
+
   function fitsInlineSensorIdentity(identity, parts) {
     const identityRect = identity.getBoundingClientRect();
     const networkRect = parts.network.getBoundingClientRect();
     if (identityRect.width <= 0 || networkRect.width <= 0) return false;
-    return identity.scrollHeight <= identityLineHeight(identity) + IDENTITY_FIT_TOLERANCE_PX
-      && identity.scrollWidth <= identity.clientWidth + IDENTITY_FIT_TOLERANCE_PX
+    return identity.scrollWidth <= identity.clientWidth + IDENTITY_FIT_TOLERANCE_PX
       && parts.network.scrollWidth <= parts.network.clientWidth + IDENTITY_FIT_TOLERANCE_PX
       && networkRect.left >= identityRect.left - IDENTITY_FIT_TOLERANCE_PX
       && networkRect.right <= identityRect.right + IDENTITY_FIT_TOLERANCE_PX;
   }
 
-  function sensorUsesSecondLine(parts) {
-    const rects = Array.from(parts.sensor.getClientRects());
-    const sensorRect = parts.sensor.getBoundingClientRect();
-    return rects.length > 1
-      || sensorRect.height > identityLineHeight(parts.sensor) + IDENTITY_FIT_TOLERANCE_PX;
+  function truncateSensorIdentity(identity, parts) {
+    const characters = Array.from(parts.sensorText);
+    let low = 0;
+    let high = characters.length;
+    let best = 0;
+    while (low <= high) {
+      const midpoint = Math.floor((low + high) / 2);
+      setSensorIdentityText(parts, `${characters.slice(0, midpoint).join("").trimEnd()}…`, true);
+      if (fitsWithinTwoLines(identity)) {
+        best = midpoint;
+        low = midpoint + 1;
+      } else {
+        high = midpoint - 1;
+      }
+    }
+    const wordBoundary = characters.slice(0, best).join("").trimEnd().lastIndexOf(" ");
+    const preferredLength = wordBoundary > 0 ? wordBoundary : best;
+    setSensorIdentityText(parts, `${characters.slice(0, preferredLength).join("").trimEnd()}…`, true);
   }
 
-  function networkSharesSensorSecondLine(parts) {
-    const sensorRects = Array.from(parts.sensor.getClientRects());
-    const finalSensorRect = sensorRects[sensorRects.length - 1] || parts.sensor.getBoundingClientRect();
-    const networkRect = parts.network.getBoundingClientRect();
-    return networkRect.width > 0
-      && Math.abs(networkRect.bottom - finalSensorRect.bottom) <= IDENTITY_FIT_TOLERANCE_PX;
-  }
-
-  function sensorIdentities(tableWrap) {
-    return Array.from(tableWrap.querySelectorAll(
-      ".sensor-table tbody tr:not(.sensor-row-divider) .sensor-identity-cell",
-    )).filter((identity) => identity.isConnected);
-  }
-
-  function clearSensorIdentityMode(tableWrap, identities = sensorIdentities(tableWrap)) {
-    delete tableWrap.dataset.hexIdentityMode;
-    delete tableWrap.dataset.hexIdentityMeasuring;
-    identities.forEach((identity) => {
-      delete identity.dataset.hexSensorWraps;
-      delete identity.dataset.hexNetworkSharesLine;
-    });
-  }
-
-  function syncSensorIdentityList(tableWrap) {
-    if (!tableWrap.isConnected || tableWrap.getClientRects().length === 0) return;
-    const identities = sensorIdentities(tableWrap);
-    if (!identities.length || !shouldPresentResponsiveIdentity(tableWrap)) {
-      clearSensorIdentityMode(tableWrap, identities);
+  function syncSensorIdentity(identity) {
+    if (!identity.isConnected || identity.getClientRects().length === 0) return;
+    const parts = getSensorIdentityParts(identity);
+    if (!parts) return;
+    restoreSensorIdentityText(identity, parts);
+    if (!shouldPresentResponsiveIdentity(identity)) {
+      delete identity.dataset.hexIdentityLayout;
       return;
     }
-    clearSensorIdentityMode(tableWrap, identities);
-    tableWrap.dataset.hexIdentityMode = "inline";
-    const everyIdentityFits = identities.every((identity) => {
-      const parts = getSensorIdentityParts(identity);
-      return Boolean(parts && fitsInlineSensorIdentity(identity, parts));
-    });
-    if (everyIdentityFits) return;
-
-    tableWrap.dataset.hexIdentityMode = "two-line";
-    tableWrap.dataset.hexIdentityMeasuring = "sensor-line";
-    const rowParts = identities.map((identity) => ({ identity, parts: getSensorIdentityParts(identity) }))
-      .filter(({ parts }) => Boolean(parts));
-    rowParts.forEach(({ identity, parts }) => {
-      identity.dataset.hexSensorWraps = sensorUsesSecondLine(parts) ? "true" : "false";
-    });
-    tableWrap.dataset.hexIdentityMeasuring = "network-line";
-    void tableWrap.offsetWidth;
-    rowParts.forEach(({ identity, parts }) => {
-      if (identity.dataset.hexSensorWraps !== "true") return;
-      identity.dataset.hexNetworkSharesLine = networkSharesSensorSecondLine(parts) ? "true" : "false";
-    });
-    delete tableWrap.dataset.hexIdentityMeasuring;
+    identity.dataset.hexIdentityLayout = "inline";
+    if (fitsInlineSensorIdentity(identity, parts)) return;
+    identity.dataset.hexIdentityLayout = "wrapped";
+    if (!fitsWithinTwoLines(identity)) truncateSensorIdentity(identity, parts);
+    descendantTargets(identity).forEach((target) => syncTarget(target));
   }
 
-  function refreshSensorIdentityLists() {
-    observedIdentityLists.forEach((tableWrap) => syncSensorIdentityList(tableWrap));
+  function refreshSensorIdentities() {
+    observedIdentities.forEach((identity) => syncSensorIdentity(identity));
   }
 
   function scheduleSensorIdentityRefresh() {
     if (identityRefreshFrame !== null) return;
-    const schedule = typeof root.requestAnimationFrame === "function"
-      ? root.requestAnimationFrame.bind(root)
-      : (callback) => (callback(), null);
-    identityRefreshFrame = schedule(() => {
+    identityRefreshFrame = root.requestAnimationFrame(() => {
       identityRefreshFrame = null;
-      refreshSensorIdentityLists();
+      refreshSensorIdentities();
       refreshShownTooltip();
     });
   }
@@ -290,18 +308,18 @@ function createHexMapTruncation(root = globalThis) {
     }, { passive: true });
     if (typeof root.ResizeObserver === "function") {
       resizeObserver = new root.ResizeObserver((entries) => {
-        let refreshIdentityLists = false;
+        let refreshIdentities = false;
         entries.forEach((entry) => {
           if (!entry.target.isConnected) {
             resizeObserver.unobserve(entry.target);
             observed.delete(entry.target);
-            observedIdentityLists.delete(entry.target);
+            observedIdentities.delete(entry.target);
             return;
           }
           if (observed.has(entry.target)) syncTarget(entry.target);
-          if (observedIdentityLists.has(entry.target)) refreshIdentityLists = true;
+          if (observedIdentities.has(entry.target)) refreshIdentities = true;
         });
-        if (refreshIdentityLists) scheduleSensorIdentityRefresh();
+        if (refreshIdentities) scheduleSensorIdentityRefresh();
         refreshShownTooltip();
       });
     }
@@ -315,10 +333,10 @@ function createHexMapTruncation(root = globalThis) {
         observed.delete(target);
       }
     });
-    observedIdentityLists.forEach((tableWrap) => {
-      if (!tableWrap.isConnected) {
-        resizeObserver.unobserve(tableWrap);
-        observedIdentityLists.delete(tableWrap);
+    observedIdentities.forEach((identity) => {
+      if (!identity.isConnected) {
+        resizeObserver.unobserve(identity);
+        observedIdentities.delete(identity);
       }
     });
   }
@@ -336,15 +354,15 @@ function createHexMapTruncation(root = globalThis) {
         observed.add(target);
       }
     });
-    const tableWraps = [];
-    if (scope instanceof Element && scope.matches(SENSOR_TABLE_WRAP_SELECTOR)) tableWraps.push(scope);
-    if (scope?.querySelectorAll) tableWraps.push(...scope.querySelectorAll(SENSOR_TABLE_WRAP_SELECTOR));
-    tableWraps.forEach((tableWrap) => {
-      if (resizeObserver && !observedIdentityLists.has(tableWrap)) {
-        resizeObserver.observe(tableWrap);
-        observedIdentityLists.add(tableWrap);
+    const identities = [];
+    if (scope instanceof Element && scope.matches(SENSOR_IDENTITY_SELECTOR)) identities.push(scope);
+    if (scope?.querySelectorAll) identities.push(...scope.querySelectorAll(SENSOR_IDENTITY_SELECTOR));
+    identities.forEach((identity) => {
+      if (resizeObserver && !observedIdentities.has(identity)) {
+        resizeObserver.observe(identity);
+        observedIdentities.add(identity);
       }
-      syncSensorIdentityList(tableWrap);
+      syncSensorIdentity(identity);
     });
   }
 

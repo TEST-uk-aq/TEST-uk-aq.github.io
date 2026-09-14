@@ -2087,7 +2087,7 @@
             line-height: 1.25;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"] .sensor-identity-cell {
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] {
             white-space: nowrap;
           }
 
@@ -2100,35 +2100,11 @@
             white-space: normal;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"] .sensor-name-button {
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] .sensor-name-button {
             white-space: nowrap;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"]
-            .sensor-network-text--compact::before {
-            content: " · ";
-          }
-
-          .sensor-table-wrap[data-hex-identity-mode="two-line"] .sensor-identity-cell {
-            max-height: none;
-            overflow: visible;
-            white-space: normal;
-          }
-
-          .sensor-table-wrap[data-hex-identity-mode="two-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="false"] .sensor-network-text--compact {
-            display: block;
-          }
-
-          .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
-            .sensor-network-text--compact {
-            display: none;
-          }
-
-          .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="network-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="true"] .sensor-network-text--compact::before,
-          .sensor-table-wrap[data-hex-identity-mode="two-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
+          .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"]
             .sensor-network-text--compact::before {
             content: " · ";
           }
@@ -6793,7 +6769,7 @@
           line-height: 1.25;
         }
 
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="inline"] .sensor-identity-cell {
+        .hex-map-page .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"] {
           white-space: nowrap;
         }
 
@@ -6812,38 +6788,9 @@
           vertical-align: text-bottom;
         }
 
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="inline"]
+        .hex-map-page .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"]
           .sensor-network-text--compact::before {
           content: " · ";
-        }
-
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"] .sensor-identity-cell {
-          max-height: none;
-          overflow: visible;
-          white-space: normal;
-        }
-
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
-          .sensor-identity-cell[data-hex-sensor-wraps="false"] .sensor-network-text--compact {
-          display: block;
-        }
-
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
-          .sensor-network-text--compact {
-          display: none;
-        }
-
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="network-line"]
-          .sensor-identity-cell[data-hex-sensor-wraps="true"] .sensor-network-text--compact::before,
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
-          .sensor-identity-cell[data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
-          .sensor-network-text--compact::before {
-          content: " · ";
-        }
-
-        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
-          .sensor-table tbody tr:not(.sensor-row-divider) {
-          height: 72px;
         }
 
         .hex-map-page .sensor-table .sensor-reading-cell {
