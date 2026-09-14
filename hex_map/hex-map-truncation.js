@@ -156,7 +156,7 @@ function createHexMapTruncation(root = globalThis) {
   }
 
   function getSensorIdentityParts(identity) {
-    const sensor = identity.querySelector(".sensor-name-button");
+    const sensor = identity.querySelector(".sensor-name-text");
     const network = identity.querySelector(".sensor-network-text--compact");
     if (!sensor || !network) return null;
     return { sensor, network };
