@@ -299,7 +299,16 @@
     if (article.author) {
       const author = document.createElement("span");
       author.className = "news-table-author-text";
-      author.textContent = article.author;
+      for (const part of article.author.match(/\S+|\s+/g) || []) {
+        if (/^\s+$/.test(part)) {
+          author.append(part);
+        } else {
+          const namePart = document.createElement("span");
+          namePart.className = "news-table-author-part";
+          namePart.textContent = part;
+          author.append(namePart);
+        }
+      }
       author.title = article.author;
       authorCell.append(author);
     } else {
