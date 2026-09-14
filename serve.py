@@ -107,7 +107,8 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
         return path == AQ_API_PREFIX or path.startswith(AQ_API_PREFIX + "/")
 
     def _is_media_api_route(self):
-        return self._request_path() == MEDIA_API_ROUTE
+        path = self._request_path()
+        return path == MEDIA_API_ROUTE or path.startswith(MEDIA_API_ROUTE + "/")
 
     def _upstream_path(self, replacement_path=None):
         parsed = urlsplit(self.path)
@@ -201,9 +202,14 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
         # The public Media endpoint needs no credential. Do not forward browser
         # Authorization, cookies, environment values or other request headers.
         headers = {"Accept": "application/json", "User-Agent": "UK-AQ-LocalDev/1.0"}
+
+        parsed = urlsplit(self.path)
+        suffix = parsed.path[len(MEDIA_API_ROUTE):]
+        upstream_path = "/articles" + suffix
+
         self._proxy_request(
             MEDIA_API_TARGET,
-            self._upstream_path("/articles"),
+            self._upstream_path(upstream_path),
             headers,
         )
 
