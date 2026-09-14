@@ -255,6 +255,9 @@ function initHexMapScrollAffordances(root) {
 
     const onScroll = () => indicators?.update?.();
     const onWheel = (event) => {
+      if (root.matchMedia?.("(max-width: 767px)").matches) {
+        return;
+      }
       if (!scrollEl.classList.contains("is-scroll-forced")) {
         return;
       }
