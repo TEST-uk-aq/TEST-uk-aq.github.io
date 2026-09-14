@@ -66,13 +66,13 @@ body {
 .news-title-image {
   display: block;
   width: auto;
-  height: 42px;
+  height: 47px;
   margin-bottom: 14px;
 }
 
 @media (min-width: 768px) {
   .news-title-image {
-    height: 50.4px;
+    height: 56px;
   }
 }
 
