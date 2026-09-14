@@ -902,13 +902,15 @@ body {
 }
 
 .news-table-author-text {
-  display: block;
+  display: -webkit-box;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .news-pagination {
