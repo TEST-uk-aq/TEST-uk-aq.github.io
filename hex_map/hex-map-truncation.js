@@ -36,6 +36,10 @@ function createHexMapTruncation(root = globalThis) {
       || target.scrollHeight > target.clientHeight + 1;
   }
 
+  function tooltipText(target) {
+    return target.dataset.hexTruncationTooltip || target.textContent.trim();
+  }
+
   function restoreTabIndex(target) {
     if (target.dataset.hexTruncationAddedTabindex !== "true") return;
     if (target.getAttribute("role") === "button" && target.getAttribute("tabindex") === "0") {
@@ -82,7 +86,7 @@ function createHexMapTruncation(root = globalThis) {
   function show(target) {
     if (!target?.isConnected || target.dataset.hexTruncated !== "true") return;
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = target.textContent.trim();
+    tooltipElement.textContent = tooltipText(target);
     if (!tooltipElement.textContent) return;
     tooltipElement.hidden = false;
     target.setAttribute("aria-describedby", TOOLTIP_ID);
@@ -120,7 +124,7 @@ function createHexMapTruncation(root = globalThis) {
       return false;
     }
     const tooltipElement = getTooltip();
-    tooltipElement.textContent = descendants.map((item) => item.textContent.trim()).filter(Boolean).join(" · ");
+    tooltipElement.textContent = descendants.map(tooltipText).filter(Boolean).join(" · ");
     if (!tooltipElement.textContent) {
       hide();
       return false;
