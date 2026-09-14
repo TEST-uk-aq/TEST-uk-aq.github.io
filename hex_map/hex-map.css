@@ -6501,7 +6501,7 @@
           min-width: 0;
           font-size: 0.72rem;
           line-height: 1.25;
-          margin-inline-start: var(--sensor-panel-mobile-reading-offset);
+          margin-inline-start: calc(var(--sensor-panel-mobile-reading-offset) + 2px);
           white-space: normal;
         }
 
