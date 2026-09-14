@@ -6454,6 +6454,10 @@
           flex: 1 1 auto;
           display: -webkit-box;
           min-width: 0;
+          /* Inter's painted glyph sits optically high in its line box beside
+             the fixed chart-control glyph. Keep the control fixed and nudge
+             the complete one- or two-line title block down on mobile. */
+          padding-block-start: 2px;
           overflow: hidden;
           font-size: 1rem;
           line-height: 1.18;
