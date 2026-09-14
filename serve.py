@@ -79,8 +79,18 @@ def _load_env_file(path):
 _ENV = _load_env_file(os.path.join(SITE_ROOT, ".env"))
 _ENV.update(os.environ)
 
-CF_CLIENT_ID = _ENV.get("CLOUDFLARE_ACCESS_CLIENT_ID", "")
-CF_CLIENT_SECRET = _ENV.get("CLOUDFLARE_ACCESS_CLIENT_SECRET", "")
+UKAQ_CF_CLIENT_ID = _ENV.get("UKAQ_CLOUDFLARE_ACCESS_CLIENT_ID", "")
+UKAQ_CF_CLIENT_SECRET = _ENV.get("UKAQ_CLOUDFLARE_ACCESS_CLIENT_SECRET", "")
+
+GENERIC_CF_CLIENT_ID = _ENV.get("CLOUDFLARE_ACCESS_CLIENT_ID", "")
+GENERIC_CF_CLIENT_SECRET = _ENV.get("CLOUDFLARE_ACCESS_CLIENT_SECRET", "")
+
+if UKAQ_CF_CLIENT_ID and UKAQ_CF_CLIENT_SECRET:
+    CF_CLIENT_ID = UKAQ_CF_CLIENT_ID
+    CF_CLIENT_SECRET = UKAQ_CF_CLIENT_SECRET
+else:
+    CF_CLIENT_ID = GENERIC_CF_CLIENT_ID
+    CF_CLIENT_SECRET = GENERIC_CF_CLIENT_SECRET
 AQ_CACHE_BYPASS_SECRET = _ENV.get("UK_AQ_CACHE_BYPASS_SECRET", "")
 TURNSTILE_SITE_KEY = _ENV.get("UK_AQ_TURNSTILE_SITE_KEY", "")
 TURNSTILE_PLACEHOLDER = "__UK_AQ_TURNSTILE_SITE_KEY__"
@@ -285,6 +295,12 @@ if __name__ == "__main__":
         print(f"  Site root            -> {SITE_ROOT}")
         print(f"  /api/aq/...          -> {AQ_API_TARGET}/api/aq/...")
         print(f"  {MEDIA_API_ROUTE} -> {MEDIA_API_TARGET}/articles")
+        print(
+            "Cloudflare Access service token:",
+            "UKAQ-specific" if UKAQ_CF_CLIENT_ID and UKAQ_CF_CLIENT_SECRET
+            else "generic" if CF_CLIENT_ID and CF_CLIENT_SECRET
+            else "missing"
+        )
         print("  Listening on 127.0.0.1 only. Ctrl+C to stop.\n")
         try:
             server.serve_forever()
