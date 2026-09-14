@@ -12,7 +12,10 @@
   const feedElement = document.querySelector(".news-feed");
   const gridElement = document.getElementById("news-grid");
   const tableScrollElement = document.getElementById("news-table-scroll");
-  const tableShellElement = tableScrollElement.parentElement;
+  const tableScrollControl = document.getElementById("news-table-scroll-control");
+  const tableScrollLeftButton = document.getElementById("news-table-scroll-left");
+  const tableScrollPosition = document.getElementById("news-table-scroll-position");
+  const tableScrollRightButton = document.getElementById("news-table-scroll-right");
   const tableBodyElement = document.getElementById("news-table-body");
   const countElement = document.getElementById("news-count");
   const retryButton = document.getElementById("news-retry");
@@ -50,16 +53,22 @@
 
   function updateTableScrollState() {
     const isVisibleList = state.view === "list" && !tableScrollElement.hidden;
-    const maxScrollLeft = tableScrollElement.scrollWidth - tableScrollElement.clientWidth;
-    const isScrollable = isVisibleList && maxScrollLeft > scrollEdgeTolerance;
+    const maxScrollLeft = Math.max(0, tableScrollElement.scrollWidth - tableScrollElement.clientWidth);
+    const isScrollable = isVisibleList && maxScrollLeft > 0;
     const canScrollLeft = isScrollable && tableScrollElement.scrollLeft > scrollEdgeTolerance;
     const canScrollRight = isScrollable
       && tableScrollElement.scrollLeft < maxScrollLeft - scrollEdgeTolerance;
-    [tableScrollElement, tableShellElement].forEach((element) => {
-      element.classList.toggle("is-scrollable-x", isScrollable);
-      element.classList.toggle("can-scroll-left", canScrollLeft);
-      element.classList.toggle("can-scroll-right", canScrollRight);
-    });
+    tableScrollControl.hidden = !isScrollable;
+    tableScrollPosition.max = String(maxScrollLeft);
+    tableScrollPosition.value = String(Math.min(maxScrollLeft, Math.max(0, tableScrollElement.scrollLeft)));
+    tableScrollLeftButton.disabled = !canScrollLeft;
+    tableScrollRightButton.disabled = !canScrollRight;
+  }
+
+  function scrollTableByPage(direction) {
+    const distance = tableScrollElement.clientWidth * 0.75 * direction;
+    const behaviour = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    tableScrollElement.scrollBy({ left: distance, behavior: behaviour });
   }
 
   function readViewPreference() {
@@ -432,6 +441,7 @@
   function hideResultSurfaces() {
     gridElement.hidden = true;
     tableScrollElement.hidden = true;
+    tableScrollControl.hidden = true;
     noResultsElement.hidden = true;
     paginationElement.hidden = true;
   }
@@ -730,6 +740,11 @@
   nextPageButton.addEventListener("click", () => changePage(state.page + 1));
   retryButton.addEventListener("click", loadArticles);
   tableScrollElement.addEventListener("scroll", updateTableScrollState, { passive: true });
+  tableScrollLeftButton.addEventListener("click", () => scrollTableByPage(-1));
+  tableScrollRightButton.addEventListener("click", () => scrollTableByPage(1));
+  tableScrollPosition.addEventListener("input", () => {
+    tableScrollElement.scrollLeft = Number(tableScrollPosition.value);
+  });
 
   function handleResize() {
     if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
