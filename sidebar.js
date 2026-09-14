@@ -487,6 +487,9 @@
       padding-top: 6px;
       padding-bottom: 6px;
     }
+    .uk-aq-nav-item--wordmark + .uk-aq-nav-item--wordmark {
+      margin-top: 6px;
+    }
     .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
       width: auto !important;
       height: 24px !important;
