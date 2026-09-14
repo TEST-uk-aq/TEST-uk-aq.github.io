@@ -78,9 +78,9 @@
                 <div id="uk-toolbar-slot" class="map-controls-row">
                   <!-- ── Toolbar: scope switcher + region popover + pollutant pills ── -->
                   <div class="toolbar" id="main-toolbar">
-                    <button type="button" class="chart-back-pill" id="chart-back-to-map" aria-label="Back to Hex Map" title="Back to Hex Map" hidden>
-                      <img src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
+                    <button type="button" class="chart-back-pill" id="chart-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map" hidden>
                       <span>Back to Hex Map</span>
+                      <img src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
                     </button>
                     <span class="field-label chart-mode-view-control">View</span>
                     <div class="segmented segmented--view chart-mode-view-control">
@@ -413,9 +413,15 @@
                   <option value="network:desc">Network Z–A</option>
                 </select>
               </div>
-              <button type="button" class="sensor-panel-close" id="sensor-panel-close" aria-label="Close sensor panel">
-                <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
-              </button>
+              <div class="sensor-panel-header-actions">
+                <button type="button" class="sensor-panel-back" id="sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map">
+                  <img class="sensor-panel-back-map-icon" src="/images/UK AQ Buttons.Hex Map.svg" alt="" aria-hidden="true" />
+                  <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
+                </button>
+                <button type="button" class="sensor-panel-close" id="sensor-panel-close" aria-label="Close sensor panel">
+                  <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                </button>
+              </div>
             </div>
             <div class="map-inline-sensor-panel-body" id="sensor-panel-body">
               <div class="details-empty" id="details-empty">Select a constituency to see sensors.</div>
@@ -1081,9 +1087,15 @@
                   <option value="network:desc">Network Z–A</option>
                 </select>
               </div>
-              <button type="button" class="sensor-panel-close" id="cr-sensor-panel-close" aria-label="Close sensor panel">
-                <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
-              </button>
+              <div class="sensor-panel-header-actions">
+                <button type="button" class="sensor-panel-back" id="cr-sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map">
+                  <img class="sensor-panel-back-map-icon" src="/images/UK AQ Buttons.Hex Map.svg" alt="" aria-hidden="true" />
+                  <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
+                </button>
+                <button type="button" class="sensor-panel-close" id="cr-sensor-panel-close" aria-label="Close sensor panel">
+                  <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                </button>
+              </div>
             </div>
             <div class="map-inline-sensor-panel-body" id="cr-sensor-panel-body">
               <div class="details-empty" id="cr-details-empty">Select a local authority to see sensors.</div>

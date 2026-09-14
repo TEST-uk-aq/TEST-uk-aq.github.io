@@ -1362,6 +1362,53 @@
         display: block;
       }
 
+      .sensor-panel-header-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: flex-start;
+        align-self: flex-start;
+        gap: 6px;
+      }
+
+      .sensor-panel-back {
+        display: none;
+        width: 64px;
+        height: 34px;
+        min-width: 64px;
+        min-height: 34px;
+        padding: 4px 6px;
+        border: 1px solid #3C78AC;
+        border-radius: 8px;
+        background: rgba(60, 120, 172, 0.07);
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+      }
+
+      body.hex-chart-mode .sensor-panel-back {
+        display: inline-flex;
+      }
+
+      .sensor-panel-back:hover {
+        background: rgba(60, 120, 172, 0.13);
+      }
+
+      .sensor-panel-back:focus-visible {
+        outline: 2px solid rgba(60, 120, 172, 0.45);
+        outline-offset: 2px;
+      }
+
+      .sensor-panel-back-map-icon {
+        width: 22px;
+        height: 22px;
+      }
+
+      .sensor-panel-back-arrow {
+        width: 16px;
+        height: 16px;
+      }
+
       /* ── Inline sensor panel (slides up from bottom) ──────── */
       .map-inline-sensor-panel {
         position: absolute;
@@ -1397,7 +1444,7 @@
         @container sensor-panel (max-width: 859px) {
           .sensor-panel-header {
             display: grid;
-            grid-template-columns: var(--sensor-chart-icon-button-size) 16px minmax(0, 1fr) auto 28px;
+            grid-template-columns: var(--sensor-chart-icon-button-size) 16px minmax(0, 1fr) auto auto;
             grid-template-areas:
               "title title title count close"
               ". hex reading reading reading";
@@ -1432,7 +1479,7 @@
             align-self: center;
           }
 
-          .sensor-panel-close {
+          .sensor-panel-header-actions {
             grid-area: close;
             align-self: center;
           }
@@ -6244,6 +6291,7 @@
         /* Touch targets; existing glyph sizes and accessible names remain unchanged. */
         .hex-map-page .map-settings,
         .hex-map-page .map-settings-close,
+        .hex-map-page .sensor-panel-back,
         .hex-map-page .sensor-panel-close,
         .hex-map-page .sensor-title-icon-button,
         .hex-map-page .networks-panel-pin,
@@ -6326,7 +6374,7 @@
            second renderer or chart-selection state path. */
         .hex-map-page .sensor-panel-header {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 18px 44px;
+          grid-template-columns: minmax(0, 1fr) 18px auto;
           grid-template-areas:
             "title hex close"
             "reading reading ."
@@ -6419,8 +6467,18 @@
         }
 
         .hex-map-page .sensor-panel-close {
+          grid-area: auto;
+          align-self: start;
+        }
+
+        .hex-map-page .sensor-panel-header-actions {
           grid-area: close;
           align-self: start;
+        }
+
+        .hex-map-page .sensor-panel-back {
+          width: 68px;
+          min-width: 68px;
         }
 
         .hex-map-page .map-inline-sensor-panel-body {

@@ -188,7 +188,7 @@
       }),
     });
 
-    const backButton = root.document.getElementById("chart-back-to-map");
+    const backButtons = Array.from(root.document.querySelectorAll("[data-chart-back-to-map]"));
     const rangeSelect = root.document.getElementById("hex-chart-window-toolbar");
     const mobileLayoutQuery = typeof root.matchMedia === "function"
       ? root.matchMedia("(max-width: 767px)")
@@ -647,7 +647,7 @@
       rangeSelect.value = state.rangeLabel;
       void state.controller?.setRange(resolveRange(state.rangeLabel));
     });
-    backButton?.addEventListener("click", exit);
+    backButtons.forEach((button) => button.addEventListener("click", exit));
     root.addEventListener("resize", () => {
       if (isLifecycleMounted()) {
         state.controller?.resize({});
