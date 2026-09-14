@@ -65,10 +65,15 @@ body {
 
 .news-title-image {
   display: block;
-  width: clamp(260px, 31vw, 430px);
-  max-width: 100%;
-  height: auto;
+  width: auto;
+  height: 42px;
   margin-bottom: 14px;
+}
+
+@media (min-width: 768px) {
+  .news-title-image {
+    height: 50.4px;
+  }
 }
 
 .news-intro p {
