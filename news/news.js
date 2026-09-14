@@ -324,7 +324,6 @@
   }
 
   function gridColumnCount() {
-    if (mobileQuery.matches) return 1;
     const styles = window.getComputedStyle(gridElement);
     const gridWidth = gridElement.clientWidth || feedElement.clientWidth;
     const minimum = Number.parseFloat(styles.getPropertyValue("--news-grid-min-column")) || 260;
