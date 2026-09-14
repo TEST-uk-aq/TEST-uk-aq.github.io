@@ -2069,11 +2069,14 @@
 
           .sensor-table .sensor-network-text--compact {
             display: inline-block;
+            inline-size: max-content;
+            max-inline-size: 100%;
             max-width: 100%;
             overflow: hidden;
             color: var(--ink-soft);
             font-size: 0.76rem;
             text-overflow: ellipsis;
+            vertical-align: text-bottom;
             white-space: nowrap;
           }
 
@@ -6772,7 +6775,9 @@
 
         .hex-map-page .sensor-table .sensor-network-text--compact {
           display: inline-block;
+          inline-size: max-content;
           min-width: 0;
+          max-inline-size: 100%;
           max-width: 100%;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -6780,6 +6785,7 @@
           color: var(--ink-3);
           font-size: 0.72rem;
           line-height: 1.25;
+          vertical-align: text-bottom;
         }
 
         .hex-map-page .sensor-table .sensor-identity-cell[data-hex-identity-layout="inline"]
