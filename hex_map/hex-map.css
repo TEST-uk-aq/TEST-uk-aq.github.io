@@ -6402,6 +6402,7 @@
            screens their rows are presented as one stacked list, without a
            second renderer or chart-selection state path. */
         .hex-map-page .sensor-panel-header {
+          --sensor-panel-mobile-reading-offset: 2px;
           display: grid;
           grid-template-columns: 18px minmax(0, 1fr) auto;
           grid-template-areas:
@@ -6447,7 +6448,7 @@
           grid-area: hex;
           width: 16px;
           height: 18px;
-          margin-inline-start: 3px;
+          margin-inline-start: calc(3px + var(--sensor-panel-mobile-reading-offset));
         }
 
         .hex-map-page .sensor-panel-title {
@@ -6478,6 +6479,7 @@
           overflow: hidden;
           font-size: 0.88rem;
           line-height: 1.25;
+          margin-inline-start: var(--sensor-panel-mobile-reading-offset);
           white-space: normal;
         }
 
@@ -6499,6 +6501,7 @@
           min-width: 0;
           font-size: 0.72rem;
           line-height: 1.25;
+          margin-inline-start: var(--sensor-panel-mobile-reading-offset);
           white-space: normal;
         }
 
@@ -6777,7 +6780,7 @@
           max-width: 42vw;
           align-self: end;
           justify-self: end;
-          padding-inline-end: 10px;
+          margin-inline-end: 14px;
           font-size: 0.8rem;
           font-weight: 600;
           text-align: right;
