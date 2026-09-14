@@ -484,8 +484,8 @@
       display: block;
     }
     .uk-aq-nav-item--wordmark {
-      padding-top: 4px;
-      padding-bottom: 4px;
+      padding-top: 6px;
+      padding-bottom: 6px;
     }
     .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
       width: auto !important;
@@ -528,7 +528,7 @@
     body[data-sidebar-state="mini"] .uk-aq-nav-item  { padding: 11px; justify-content: center; }
     body[data-sidebar-state="mini"] .uk-aq-nav-item--wordmark {
       margin-inline: -4px;
-      padding: 4px 1px;
+      padding: 6px 1px;
     }
 
     /* ── Sidebar footer ── */
