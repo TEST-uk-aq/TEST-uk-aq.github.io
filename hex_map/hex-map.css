@@ -1284,12 +1284,14 @@
       .sensor-panel-value {
         color: var(--accent-deep);
         font-weight: 700;
+        white-space: nowrap;
       }
 
       .sensor-panel-method {
         color: var(--ink-1);
         font-size: 0.95rem;
         font-weight: 400;
+        white-space: nowrap;
       }
 
       .sensor-panel-title:empty,
@@ -1371,8 +1373,8 @@
       }
 
       .sensor-panel-back-arrow {
-        width: 19px;
-        height: 19px;
+        width: 20px;
+        height: 20px;
         display: block;
         flex: 0 0 auto;
         object-fit: contain;
@@ -1439,6 +1441,7 @@
             display: flex;
             min-width: 0;
             flex-wrap: wrap;
+            align-items: baseline;
             gap: 0 5px;
             white-space: normal;
           }
@@ -1983,6 +1986,17 @@
             align-items: center;
             justify-content: center;
             overflow: visible;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode td.sensor-chart-symbol-col {
+            justify-content: flex-start;
+          }
+
+          .sensor-table-wrap.is-chart-select-mode
+            td.sensor-chart-symbol-col
+            .hex-chart-symbol-svg {
+            position: relative;
+            left: -6px;
           }
 
           .sensor-table tbody tr.sensor-row-divider,
@@ -5747,14 +5761,9 @@
           box-shadow: none;
         }
 
-        .hex-map-page .map-title-strip {
-          display: block;
-          grid-column: 1;
-          grid-row: 2;
-          margin: 0;
-          padding: 14px 12px 12px;
-          background: var(--surface);
-        }
+		.hex-map-page .map-title-strip {
+		  display: none !important;
+		}
 
         .hex-map-page .map-dashboard-title {
           font-size: clamp(1.05rem, 3.8vw, 1.3rem) !important;
@@ -6342,7 +6351,6 @@
         /* Touch targets; existing glyph sizes and accessible names remain unchanged. */
         .hex-map-page .map-settings,
         .hex-map-page .map-settings-close,
-        .hex-map-page .sensor-panel-back,
         .hex-map-page .sensor-panel-close,
         .hex-map-page .sensor-title-icon-button,
         .hex-map-page .networks-panel-pin,
@@ -6423,14 +6431,13 @@
            screens their rows are presented as one stacked list, without a
            second renderer or chart-selection state path. */
         .hex-map-page .sensor-panel-header {
-          --sensor-panel-mobile-reading-offset: 2px;
           display: grid;
-          grid-template-columns: 18px minmax(0, 1fr) auto;
+          grid-template-columns: 36px 16px minmax(0, 1fr) auto;
           grid-template-areas:
-            "title title close"
-            "hex reading reading"
-            "count count count";
-          gap: 2px 7px;
+            "title title title close"
+            ". hex reading reading"
+            ". count count count";
+          gap: 2px 4px;
           align-items: center;
           height: auto;
           min-height: 0;
@@ -6469,7 +6476,6 @@
           grid-area: hex;
           width: 16px;
           height: 18px;
-          margin-inline-start: calc(3px + var(--sensor-panel-mobile-reading-offset));
         }
 
         .hex-map-page .sensor-panel-title {
@@ -6496,11 +6502,11 @@
           display: flex;
           min-width: 0;
           flex-wrap: wrap;
+          align-items: baseline;
           gap: 0 5px;
           overflow: hidden;
           font-size: 0.88rem;
           line-height: 1.25;
-          margin-inline-start: var(--sensor-panel-mobile-reading-offset);
           white-space: normal;
         }
 
@@ -6514,7 +6520,7 @@
         }
 
         .hex-map-page .sensor-panel-method::before {
-          content: "\00b7  ";
+          content: none;
         }
 
         .hex-map-page .sensor-panel-count {
@@ -6522,7 +6528,6 @@
           min-width: 0;
           font-size: 0.72rem;
           line-height: 1.25;
-          margin-inline-start: calc(var(--sensor-panel-mobile-reading-offset) + 2px);
           white-space: normal;
         }
 
@@ -6534,11 +6539,6 @@
         .hex-map-page .sensor-panel-header-actions {
           grid-area: close;
           align-self: start;
-        }
-
-        .hex-map-page .sensor-panel-back {
-          width: 68px;
-          min-width: 68px;
         }
 
         .hex-map-page .map-inline-sensor-panel-body {
@@ -6803,7 +6803,6 @@
           justify-self: end;
           margin-inline-end: 14px;
           font-size: 0.8rem;
-          font-weight: 600;
           text-align: right;
         }
 
@@ -6812,9 +6811,7 @@
           max-width: 100%;
           align-self: start;
           justify-self: start;
-          color: var(--ink-3);
           font-size: 0.68rem;
-          line-height: 1.25;
           text-align: left;
           white-space: normal;
         }
@@ -6834,8 +6831,6 @@
           width: auto;
           min-width: 0;
           overflow: visible;
-          font-weight: 600;
-          line-height: 1.2;
           text-overflow: clip;
           white-space: normal;
         }
@@ -6860,9 +6855,8 @@
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          color: var(--ink-3);
+          color: var(--ink-soft);
           font-size: 0.72rem;
-          line-height: 1.25;
           vertical-align: text-bottom;
         }
 
