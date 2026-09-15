@@ -134,6 +134,8 @@ function refineMobileMapControls() {
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-menu {
+        left: auto;
+        right: 0;
         width: 142px;
         max-width: calc(100vw - 16px);
       }
