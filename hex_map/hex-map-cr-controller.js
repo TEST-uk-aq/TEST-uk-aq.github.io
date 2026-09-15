@@ -9,6 +9,7 @@ import truncation from "./hex-map-truncation.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
 import ukController from "./hex-map-uk-controller.js";
+import { formatRegionDisplayName } from "../shared/domain/regions-module.js";
 
 function initHexMapCrController() {
   if (typeof window === "undefined" || !window.document || !document.body.classList.contains("hex-map-page")) return;
@@ -627,7 +628,7 @@ function initHexMapCrController() {
           endpointHint.textContent = "Missing cache endpoint base URL. Add ?cache_base=... to the URL.";
           return;
         }
-        const regionSuffix = activeRegion ? ` · ${activeRegion}` : "";
+        const regionSuffix = activeRegion ? ` · ${formatRegionDisplayName(activeRegion)}` : "";
         endpointHint.textContent = `Endpoint: ${REST_URL} (${LA_CONFIG.label}${regionSuffix})`;
       }
       updateEndpointHint();
