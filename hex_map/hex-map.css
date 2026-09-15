@@ -2072,7 +2072,7 @@
             line-height: 1.25;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"] .sensor-identity-cell {
+          .sensor-identity-cell[data-hex-identity-mode="inline"] {
             white-space: nowrap;
           }
 
@@ -2085,35 +2085,34 @@
             white-space: normal;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"] .sensor-name-button {
+          .sensor-identity-cell[data-hex-identity-mode="inline"] .sensor-name-button {
             white-space: nowrap;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="inline"]
+          .sensor-identity-cell[data-hex-identity-mode="inline"]
             .sensor-network-text--compact::before {
             content: " · ";
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="two-line"] .sensor-identity-cell {
+          .sensor-identity-cell[data-hex-identity-mode="two-line"] {
             max-height: none;
             overflow: visible;
             white-space: normal;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="two-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="false"] .sensor-network-text--compact {
+          .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-sensor-wraps="false"]
+            .sensor-network-text--compact {
             display: block;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
+          .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
             .sensor-network-text--compact {
             display: none;
           }
 
-          .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="network-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="true"] .sensor-network-text--compact::before,
-          .sensor-table-wrap[data-hex-identity-mode="two-line"]
-            .sensor-identity-cell[data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
+          .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-identity-measuring="network-line"][data-hex-sensor-wraps="true"]
+            .sensor-network-text--compact::before,
+          .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
             .sensor-network-text--compact::before {
             content: " · ";
           }

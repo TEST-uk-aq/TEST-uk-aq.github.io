@@ -166,10 +166,10 @@ function createHexMapTruncation(root = globalThis) {
     return { sensor, network };
   }
 
-  function shouldPresentResponsiveIdentity(tableWrap) {
-    if (root.matchMedia?.("(max-width: 767px)").matches) return true;
+  function responsiveIdentityRegime(tableWrap) {
+    if (root.matchMedia?.("(max-width: 767px)").matches) return "narrow";
     const width = tableWrap.getBoundingClientRect().width;
-    return width > 0 && width < SENSOR_TABLE_COMPACT_WIDTH;
+    return width > 0 && width < SENSOR_TABLE_COMPACT_WIDTH ? "compact" : null;
   }
 
   function identityLineHeight(identity) {
@@ -215,6 +215,8 @@ function createHexMapTruncation(root = globalThis) {
     delete tableWrap.dataset.hexIdentityMode;
     delete tableWrap.dataset.hexIdentityMeasuring;
     identities.forEach((identity) => {
+      delete identity.dataset.hexIdentityMode;
+      delete identity.dataset.hexIdentityMeasuring;
       delete identity.dataset.hexSensorWraps;
       delete identity.dataset.hexNetworkSharesLine;
     });
@@ -223,11 +225,35 @@ function createHexMapTruncation(root = globalThis) {
   function syncSensorIdentityList(tableWrap) {
     if (!tableWrap.isConnected || tableWrap.getClientRects().length === 0) return;
     const identities = sensorIdentities(tableWrap);
-    if (!identities.length || !shouldPresentResponsiveIdentity(tableWrap)) {
-      clearSensorIdentityMode(tableWrap, identities);
+    const regime = responsiveIdentityRegime(tableWrap);
+    clearSensorIdentityMode(tableWrap, identities);
+    if (!identities.length || !regime) return;
+    if (regime === "compact") {
+      const rowParts = identities.map((identity) => ({ identity, parts: getSensorIdentityParts(identity) }))
+        .filter(({ parts }) => Boolean(parts));
+      rowParts.forEach(({ identity }) => {
+        identity.dataset.hexIdentityMode = "inline";
+      });
+      const wrapped = rowParts.filter(({ identity, parts }) => !fitsInlineSensorIdentity(identity, parts));
+      if (!wrapped.length) return;
+      wrapped.forEach(({ identity }) => {
+        identity.dataset.hexIdentityMode = "two-line";
+        identity.dataset.hexIdentityMeasuring = "sensor-line";
+      });
+      wrapped.forEach(({ identity, parts }) => {
+        identity.dataset.hexSensorWraps = sensorUsesSecondLine(parts) ? "true" : "false";
+        identity.dataset.hexIdentityMeasuring = "network-line";
+      });
+      void identities[0]?.offsetWidth;
+      wrapped.forEach(({ identity, parts }) => {
+        if (identity.dataset.hexSensorWraps === "true") {
+          identity.dataset.hexNetworkSharesLine = networkSharesSensorSecondLine(parts) ? "true" : "false";
+        }
+        delete identity.dataset.hexIdentityMeasuring;
+      });
       return;
     }
-    clearSensorIdentityMode(tableWrap, identities);
+
     tableWrap.dataset.hexIdentityMode = "inline";
     const everyIdentityFits = identities.every((identity) => {
       const parts = getSensorIdentityParts(identity);
