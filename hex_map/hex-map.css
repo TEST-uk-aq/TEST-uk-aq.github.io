@@ -8012,11 +8012,17 @@
           width: 100%;
           min-height: 64px;
           grid-template-columns: 18px minmax(0, 1fr) auto;
+          grid-template-rows: auto auto;
           grid-template-areas:
             "symbol name value"
             "symbol network time";
-          gap: 3px 6px;
+          column-gap: 6px;
+          row-gap: 3px;
           padding: 6px 8px;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-symbol {
+          align-self: center;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
@@ -8028,6 +8034,7 @@
           overflow: visible;
           font-size: 0.7rem;
           text-overflow: clip;
+          justify-self: end;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
@@ -8035,6 +8042,7 @@
           overflow: visible;
           font-size: 0.68rem;
           text-overflow: clip;
+          justify-self: end;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-name {
@@ -8076,6 +8084,7 @@
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
           min-height: var(--hex-chart-summary-base-row-height);
           grid-template-columns: 18px minmax(0, 1fr) auto auto;
+          grid-template-rows: auto;
           grid-template-areas: "symbol label value time";
           column-gap: 8px;
         }

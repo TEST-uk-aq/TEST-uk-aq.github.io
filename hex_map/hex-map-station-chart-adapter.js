@@ -248,14 +248,35 @@
     function syncChipNetworkIdentity() {
       const reading = dom()?.reading;
       if (!reading) return;
-      reading.classList.remove("hex-chart-selected-sensors--one-line");
+      reading.classList.remove(
+        "hex-chart-selected-sensors--one-line",
+        "hex-chart-selected-sensors--two-line",
+      );
       const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
       networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
       if (mobileLayoutQuery?.matches) {
         reading.classList.add("hex-chart-selected-sensors--one-line");
         const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
-        const allFit = chips.length > 0 && chips.every((chip) => chip.scrollWidth <= chip.clientWidth + 1);
-        if (!allFit) reading.classList.remove("hex-chart-selected-sensors--one-line");
+        const allFit = chips.length > 0 && chips.every((chip) => {
+          const style = root.getComputedStyle(chip);
+          const columnGap = Number.parseFloat(style.columnGap) || 0;
+          const padding = (Number.parseFloat(style.paddingLeft) || 0)
+            + (Number.parseFloat(style.paddingRight) || 0);
+          const content = [
+            ".hex-chart-chip-symbol",
+            ".hex-chart-chip-label",
+            ".hex-chart-chip-value",
+            ".hex-chart-chip-time",
+          ].map((selector) => chip.querySelector(selector))
+            .filter(Boolean);
+          const requiredWidth = content.reduce((width, element) => (
+            width + Math.max(element.scrollWidth, element.getBoundingClientRect().width)
+          ), 0) + (columnGap * Math.max(0, content.length - 1));
+          const availableWidth = chip.clientWidth - padding;
+          return requiredWidth <= availableWidth + 1;
+        });
+        reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
+        reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
       } else {
         networks.forEach((network) => {
           const label = network.closest(".hex-chart-chip-label");
