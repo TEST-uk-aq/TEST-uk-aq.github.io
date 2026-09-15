@@ -5036,48 +5036,26 @@
 
       @media (min-width: 768px) and (max-width: 1200px) {
         .toolbar-right {
-          flex: 1 0 100%;
+          flex: 1 1 auto;
           justify-content: flex-end;
-          margin-left: 0;
+          margin-left: auto;
         }
 
+        .map-floating-search,
         .map-topbar {
-          top: 56px;
+          top: 8px;
         }
       }
 
       @media (min-width: 768px) {
         .map-topbar {
           top: 12px;
-          display: grid;
-          grid-template-columns: auto auto;
-          grid-template-rows: auto auto;
-          align-items: center;
-          justify-items: end;
-          column-gap: 8px;
-          row-gap: 8px;
         }
+      }
 
-        .map-topbar > .status-indicator,
-        .map-topbar > .btn-refresh {
-          display: inline-flex;
-        }
-
-        .map-topbar > .status-indicator {
-          grid-column: 1;
-          grid-row: 1;
-        }
-
-        .map-topbar > .btn-refresh {
-          grid-column: 2;
-          grid-row: 1;
-        }
-
-        .map-topbar > .networks-pill-anchor {
-          grid-column: 1 / -1;
-          grid-row: 2;
-          justify-self: end;
-          margin-left: 0;
+      @media (min-width: 768px) and (max-width: 1200px) {
+        .map-topbar {
+          top: 8px;
         }
       }
 

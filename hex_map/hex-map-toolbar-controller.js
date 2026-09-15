@@ -349,10 +349,6 @@ function initHexMapToolbarController(root) {
     const inactiveTopbar = root.document.querySelector(
       isUk ? "#tab-panel-cr .map-topbar" : "#tab-panel-uk .map-topbar",
     );
-    const activeTopbar = root.document.querySelector(
-      isUk ? "#tab-panel-uk .map-topbar" : "#tab-panel-cr .map-topbar",
-    );
-
     if (inactiveTopbar) {
       if (inactiveStatus && inactiveStatus.parentElement !== inactiveTopbar) {
         inactiveTopbar.insertBefore(inactiveStatus, inactiveTopbar.firstChild);
@@ -361,19 +357,13 @@ function initHexMapToolbarController(root) {
         inactiveTopbar.insertBefore(inactiveRefresh, inactiveTopbar.firstChild?.nextSibling || null);
       }
     }
-    const desktopMapHost = !mobileLayoutQuery?.matches && pageMode.getMode() === "map"
-      ? activeTopbar
-      : null;
-    const activeStatusHost = mobileStatusHost || desktopMapHost || statusSlot;
-    const activeRefreshHost = mobileStatusHost || desktopMapHost || refreshSlot;
-    const desktopNetworkAnchor = desktopMapHost?.contains(networkAnchors[mapKey])
-      ? networkAnchors[mapKey]
-      : null;
+    const activeStatusHost = mobileStatusHost || statusSlot;
+    const activeRefreshHost = mobileStatusHost || refreshSlot;
     if (activeStatusHost && activeStatus && activeStatus.parentElement !== activeStatusHost) {
-      activeStatusHost.insertBefore(activeStatus, desktopNetworkAnchor);
+      activeStatusHost.appendChild(activeStatus);
     }
     if (activeRefreshHost && activeRefresh && activeRefresh.parentElement !== activeRefreshHost) {
-      activeRefreshHost.insertBefore(activeRefresh, desktopNetworkAnchor);
+      activeRefreshHost.appendChild(activeRefresh);
     }
   }
 
