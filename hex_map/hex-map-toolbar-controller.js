@@ -262,20 +262,12 @@ function initHexMapToolbarController(root) {
     return crController?.getRegion?.() || null;
   }
 
-  function getRegionDisplayLabel(region) {
-    if (mobileLayoutQuery?.matches && region === "Yorkshire and The Humber") {
-      return "Yorkshire & Humber";
-    }
-    return region;
-  }
-
   function renderRegion() {
     const current = getCurrentRegion();
     if (!current) return;
-    if (regionLabel) regionLabel.textContent = getRegionDisplayLabel(current);
+    if (regionLabel) regionLabel.textContent = current;
     regionMenu?.querySelectorAll("[data-region]").forEach((item) => {
       item.classList.toggle("active", item.dataset.region === current);
-      item.textContent = getRegionDisplayLabel(item.dataset.region);
     });
   }
 
@@ -594,7 +586,6 @@ function initHexMapToolbarController(root) {
         closeRegionPopover();
         networkController?.closePanel?.();
         syncResponsivePresentation(coordinator.getActiveMap());
-        renderRegion();
       };
       if (typeof mobileLayoutQuery.addEventListener === "function") {
         mobileLayoutQuery.addEventListener("change", handleMobileLayoutChange);
