@@ -8083,18 +8083,24 @@
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
           min-height: var(--hex-chart-summary-base-row-height);
-          grid-template-columns: 18px max-content max-content max-content;
+          grid-template-columns: 18px minmax(0, 1fr) max-content max-content;
           grid-template-rows: auto;
           grid-template-areas: "symbol label value time";
-          column-gap: 8px;
+          column-gap: 6px;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-label {
           grid-area: label;
           display: flex;
-          min-width: max-content;
+          min-width: 0;
           align-items: baseline;
           white-space: nowrap;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-value,
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-time {
+          justify-self: start;
+          text-align: left;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network {
