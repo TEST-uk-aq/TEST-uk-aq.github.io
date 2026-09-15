@@ -333,7 +333,6 @@ function initHexMapToolbarController(root) {
         delete toolbar.dataset.hexToolbarControlsWrapped;
         delete toolbar.dataset.hexToolbarLastControlRow;
         delete toolbar.dataset.hexToolbarSearchActive;
-        toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
       }
       return;
     }
@@ -342,9 +341,6 @@ function initHexMapToolbarController(root) {
       tabletSearchLayoutFrame = null;
       const { one: rowOne, two: rowTwo, three: rowThree } = toolbarControlRows;
       const controlRows = [rowOne, rowTwo, rowThree];
-      delete toolbar.dataset.hexToolbarControlsWrapped;
-      delete toolbar.dataset.hexToolbarLastControlRow;
-      toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
       toolbarControlGroups.forEach((group) => rowOne.appendChild(group));
       Object.entries(mapSearches).forEach(([key, searchNode]) => {
         if (key !== normalizedMapKey) restoreNode(searchNode);
@@ -433,21 +429,6 @@ function initHexMapToolbarController(root) {
       else delete toolbar.dataset.hexToolbarLastControlRow;
       toolbar.dataset.hexToolbarControlsWrapped = String(lastControlRowIndex > 0);
 
-      if (lastControlRowIndex === 0) {
-        const viewInteractiveControl = toolbar.querySelector(
-          ".toolbar-control-group--view .segmented--view",
-        );
-        const rowRect = rowOne.getBoundingClientRect();
-        const controlRect = viewInteractiveControl?.getBoundingClientRect();
-        if (controlRect && rowRect.width > 0) {
-          const sharedSearchStart = Math.max(0, controlRect.left - rowRect.left);
-          toolbar.style.setProperty(
-            "--hex-toolbar-shared-search-start",
-            `${sharedSearchStart}px`,
-          );
-        }
-      }
-
       if (pageMode.getMode() === "map" && activeSearch && toolbarSearchRow) {
         toolbarSearchRow.appendChild(activeSearch);
         toolbar.dataset.hexToolbarSearchActive = "true";
@@ -464,7 +445,6 @@ function initHexMapToolbarController(root) {
       delete toolbar.dataset.hexToolbarControlsWrapped;
       delete toolbar.dataset.hexToolbarLastControlRow;
       delete toolbar.dataset.hexToolbarSearchActive;
-      toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
     }
     relocationNodes.forEach(restoreNode);
     Object.values(networkAnchors).forEach(restoreNode);

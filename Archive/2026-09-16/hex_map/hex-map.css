@@ -3717,11 +3717,9 @@
       @media (min-width: 768px) {
         .toolbar {
           --hex-toolbar-row-gap: 8px;
-          --hex-toolbar-shared-search-start: 0px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) max-content;
-          grid-template-rows: none;
-          grid-auto-rows: max-content;
+          grid-template-rows: repeat(4, max-content);
           column-gap: 12px;
           row-gap: var(--hex-toolbar-row-gap);
           align-items: start;
@@ -3760,6 +3758,18 @@
           flex-wrap: wrap;
         }
 
+        .toolbar[data-hex-toolbar-last-control-row="one"] {
+          grid-template-rows: repeat(2, max-content);
+        }
+
+        .toolbar[data-hex-toolbar-last-control-row="two"] {
+          grid-template-rows: repeat(3, max-content);
+        }
+
+        .toolbar[data-hex-toolbar-last-control-row="three"] {
+          grid-template-rows: repeat(4, max-content);
+        }
+
         .toolbar-control-group {
           display: inline-flex;
           flex: 0 0 auto;
@@ -3795,11 +3805,6 @@
           gap: 8px;
         }
 
-        .toolbar-status-slot .status-pill {
-          min-width: 99px;
-          justify-content: center;
-        }
-
         .toolbar-networks-slot {
           grid-column: 2;
           grid-row: 2;
@@ -3823,19 +3828,11 @@
         .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-search-row {
           grid-column: 1;
           grid-row: 2;
-          margin-left: var(--hex-toolbar-shared-search-start);
-          margin-right: 8px;
         }
 
         .toolbar[data-hex-toolbar-last-control-row="two"] .toolbar-search-row {
           grid-column: 1 / -1;
           grid-row: 3;
-        }
-
-        .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-control-row--two,
-        .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-control-row--three,
-        .toolbar[data-hex-toolbar-last-control-row="two"] .toolbar-control-row--three {
-          display: none;
         }
 
         .toolbar-search-row .map-search {
@@ -4766,12 +4763,6 @@
       }
 
       @media (min-width: 768px) {
-        .toolbar {
-          grid-template-rows: none;
-          grid-auto-rows: max-content;
-          padding-inline: 8px;
-        }
-
         .map-controls-row:has(.toolbar[data-hex-toolbar-search-active="true"]) {
           min-height: 0;
         }
