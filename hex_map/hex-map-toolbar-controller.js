@@ -52,6 +52,7 @@ function initHexMapToolbarController(root) {
   const toolbarControlRows = {
     one: toolbar?.querySelector("[data-toolbar-control-row='one']") || null,
     two: toolbar?.querySelector("[data-toolbar-control-row='two']") || null,
+    three: toolbar?.querySelector("[data-toolbar-control-row='three']") || null,
   };
   const toolbarSearchRow = toolbar?.querySelector("[data-toolbar-search-row]") || null;
   const toolbarNetworksSlot = toolbar?.querySelector("[data-toolbar-networks-slot]") || null;
@@ -327,14 +328,19 @@ function initHexMapToolbarController(root) {
     const activeSearch = mapSearches[normalizedMapKey];
 
     clearTabletSearchPlacement();
-    if (mobileLayoutQuery?.matches || !toolbar || !toolbarControlRows.one || !toolbarControlRows.two) {
-      if (toolbar) delete toolbar.dataset.hexToolbarControlsWrapped;
+    if (mobileLayoutQuery?.matches || !toolbar || !toolbarControlRows.one || !toolbarControlRows.two || !toolbarControlRows.three) {
+      if (toolbar) {
+        delete toolbar.dataset.hexToolbarControlsWrapped;
+        delete toolbar.dataset.hexToolbarLastControlRow;
+        delete toolbar.dataset.hexToolbarSearchActive;
+      }
       return;
     }
 
     tabletSearchLayoutFrame = root.requestAnimationFrame(() => {
       tabletSearchLayoutFrame = null;
-      const { one: rowOne, two: rowTwo } = toolbarControlRows;
+      const { one: rowOne, two: rowTwo, three: rowThree } = toolbarControlRows;
+      const controlRows = [rowOne, rowTwo, rowThree];
       toolbarControlGroups.forEach((group) => rowOne.appendChild(group));
       Object.entries(mapSearches).forEach(([key, searchNode]) => {
         if (key !== normalizedMapKey) restoreNode(searchNode);
@@ -357,34 +363,89 @@ function initHexMapToolbarController(root) {
       });
       const rowStyle = root.getComputedStyle?.(rowOne);
       const groupGap = Number.parseFloat(rowStyle?.columnGap || rowStyle?.gap || "8") || 8;
-      const availableWidth = rowOne.clientWidth;
-      let rowOneWidth = 0;
-      let useSecondRow = false;
+      const rowWidths = controlRows.map(() => 0);
+      let currentRowIndex = 0;
 
       visibleGroups.forEach((group) => {
         const groupWidth = group.getBoundingClientRect().width;
-        const nextRowOneWidth = rowOneWidth ? rowOneWidth + groupGap + groupWidth : groupWidth;
-        if (!useSecondRow && nextRowOneWidth <= availableWidth + 0.5) {
-          rowOneWidth = nextRowOneWidth;
-          return;
+        while (currentRowIndex < controlRows.length - 1) {
+          const nextWidth = rowWidths[currentRowIndex]
+            ? rowWidths[currentRowIndex] + groupGap + groupWidth
+            : groupWidth;
+          if (nextWidth <= controlRows[currentRowIndex].clientWidth + 0.5) break;
+          currentRowIndex += 1;
         }
-        useSecondRow = true;
-        rowTwo.appendChild(group);
+        const targetRow = controlRows[currentRowIndex];
+        const nextWidth = rowWidths[currentRowIndex]
+          ? rowWidths[currentRowIndex] + groupGap + groupWidth
+          : groupWidth;
+        targetRow.appendChild(group);
+        rowWidths[currentRowIndex] = nextWidth;
       });
 
-      toolbar.dataset.hexToolbarControlsWrapped = String(rowTwo.children.length > 0);
+      const rightSideByRow = [
+        toolbar.querySelector(".toolbar-status-actions"),
+        toolbarNetworksSlot,
+        null,
+      ];
+      const rowsOverlap = (first, second) => first.left < second.right - 0.5
+        && first.right > second.left + 0.5
+        && first.top < second.bottom - 0.5
+        && first.bottom > second.top + 0.5;
+      const exceedsRowGeometry = (group, row, reservedControl) => {
+        const groupRect = group.getBoundingClientRect();
+        const rowRect = row.getBoundingClientRect();
+        if (groupRect.left < rowRect.left - 0.5 || groupRect.right > rowRect.right + 0.5) {
+          return true;
+        }
+        const reservedRect = reservedControl?.getBoundingClientRect();
+        return Boolean(reservedRect && reservedRect.width > 0 && reservedRect.height > 0
+          && rowsOverlap(groupRect, reservedRect));
+      };
+
+      for (let rowIndex = 0; rowIndex < controlRows.length - 1; rowIndex += 1) {
+        const row = controlRows[rowIndex];
+        const groups = Array.from(row.children).filter((child) => visibleGroups.includes(child));
+        const overflowIndex = groups.findIndex((group) => exceedsRowGeometry(
+          group,
+          row,
+          rightSideByRow[rowIndex],
+        ));
+        if (overflowIndex >= 0) {
+          const overflowingGroups = groups.slice(overflowIndex);
+          for (let groupIndex = overflowingGroups.length - 1; groupIndex >= 0; groupIndex -= 1) {
+            controlRows[rowIndex + 1].prepend(overflowingGroups[groupIndex]);
+          }
+        }
+      }
+
+      const lastControlRowIndex = controlRows.reduce((lastIndex, row, rowIndex) => (
+        Array.from(row.children).some((child) => visibleGroups.includes(child))
+          ? rowIndex
+          : lastIndex
+      ), -1);
+      const lastControlRow = ["one", "two", "three"][lastControlRowIndex];
+      if (lastControlRow) toolbar.dataset.hexToolbarLastControlRow = lastControlRow;
+      else delete toolbar.dataset.hexToolbarLastControlRow;
+      toolbar.dataset.hexToolbarControlsWrapped = String(lastControlRowIndex > 0);
 
       if (pageMode.getMode() === "map" && activeSearch && toolbarSearchRow) {
         toolbarSearchRow.appendChild(activeSearch);
+        toolbar.dataset.hexToolbarSearchActive = "true";
       } else {
         restoreNode(activeSearch);
+        delete toolbar.dataset.hexToolbarSearchActive;
       }
     });
   }
 
   function restoreDistributedControls() {
     clearTabletSearchPlacement();
-    if (toolbar) delete toolbar.dataset.hexToolbarControlsWrapped;
+    if (toolbar) {
+      delete toolbar.dataset.hexToolbarControlsWrapped;
+      delete toolbar.dataset.hexToolbarLastControlRow;
+      delete toolbar.dataset.hexToolbarSearchActive;
+    }
     relocationNodes.forEach(restoreNode);
     Object.values(networkAnchors).forEach(restoreNode);
   }
@@ -507,10 +568,8 @@ function initHexMapToolbarController(root) {
         normalizedMapKey,
         pageMode.getMode() === "chart" ? "compact-chart" : "compact-map",
       );
-      if (pageMode.getMode() === "map") {
-        relocateStatusRefreshForMap(normalizedMapKey);
-        scheduleTabletSearchPlacement(normalizedMapKey);
-      }
+      relocateStatusRefreshForMap(normalizedMapKey);
+      scheduleTabletSearchPlacement(normalizedMapKey);
       return true;
     }
 
