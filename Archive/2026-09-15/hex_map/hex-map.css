@@ -3714,112 +3714,6 @@
         align-items: center;
       }
 
-      @media (min-width: 768px) {
-        .toolbar {
-          --hex-toolbar-row-gap: 8px;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) max-content;
-          grid-template-rows: max-content max-content max-content;
-          column-gap: 12px;
-          row-gap: var(--hex-toolbar-row-gap);
-          align-items: start;
-        }
-
-        .toolbar-divider {
-          display: none !important;
-        }
-
-        .toolbar-control-row {
-          display: flex;
-          min-width: 0;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: nowrap;
-        }
-
-        .toolbar-control-row:empty,
-        .toolbar-search-row:empty,
-        .toolbar-networks-slot:empty {
-          display: none;
-        }
-
-        .toolbar-control-row--one {
-          grid-column: 1;
-          grid-row: 1;
-        }
-
-        .toolbar-control-row--two {
-          grid-column: 1;
-          grid-row: 2;
-        }
-
-        .toolbar-control-group {
-          display: inline-flex;
-          flex: 0 0 auto;
-          min-width: max-content;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .toolbar-control-group--view {
-          gap: 8px;
-        }
-
-        body.hex-chart-mode .toolbar-control-group--view,
-        .toolbar-control-group.chart-range-toolbar {
-          display: none;
-        }
-
-        body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
-          display: inline-flex;
-        }
-
-        .toolbar-right {
-          display: contents;
-        }
-
-        .toolbar-status-actions {
-          grid-column: 2;
-          grid-row: 1;
-          display: inline-flex;
-          align-items: center;
-          justify-self: end;
-          gap: 8px;
-        }
-
-        .toolbar-networks-slot {
-          grid-column: 2;
-          grid-row: 2;
-          display: flex;
-          justify-content: flex-end;
-          justify-self: end;
-        }
-
-        .toolbar-networks-slot .networks-pill-anchor {
-          width: auto;
-          height: auto;
-        }
-
-        .toolbar-search-row {
-          grid-column: 1 / -1;
-          grid-row: 3;
-          display: flex;
-          min-width: 0;
-        }
-
-        .toolbar[data-hex-toolbar-controls-wrapped="false"] .toolbar-search-row {
-          grid-column: 1;
-          grid-row: 2;
-        }
-
-        .toolbar-search-row .map-search {
-          position: relative;
-          inset: auto;
-          width: 100%;
-          max-width: none;
-        }
-      }
-
       /* Networks pill (lives inside each map-canvas, top-right) */
       .networks-pill-anchor {
         position: relative;
@@ -4699,12 +4593,10 @@
 
       .toolbar {
         width: 100%;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) max-content;
-        grid-template-rows: max-content max-content max-content;
-        align-items: start;
-        column-gap: 12px;
-        row-gap: var(--hex-toolbar-row-gap, 8px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
         padding: 6px 14px 8px;
         border-bottom: none;
         background: var(--map-wrap);

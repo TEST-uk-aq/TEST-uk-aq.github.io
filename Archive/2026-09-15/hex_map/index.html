@@ -78,93 +78,83 @@
                 <div id="uk-toolbar-slot" class="map-controls-row">
                   <!-- ── Toolbar: scope switcher + region popover + pollutant pills ── -->
                   <div class="toolbar" id="main-toolbar">
-                    <div class="toolbar-control-row toolbar-control-row--one" data-toolbar-control-row="one">
-                      <div class="toolbar-control-group toolbar-control-group--view">
-                        <span class="field-label chart-mode-view-control">View</span>
-                        <div class="segmented segmented--view chart-mode-view-control">
-                          <button type="button" id="toolbar-tab-uk" class="active">
-                            <span class="view-button-main">United Kingdom</span>
-                            <span class="view-button-sub">Constituencies</span>
-                          </button>
-                          <button type="button" id="toolbar-tab-cr">
-                            <span class="view-button-main">Countries &amp; Regions</span>
-                            <span class="view-button-sub">Local Authorities</span>
-                          </button>
-                        </div>
-
-                        <div class="toolbar-region-section chart-mode-view-control" id="toolbar-region-section">
-                          <div class="toolbar-divider"></div>
-                          <div class="popover-wrap" id="toolbar-popover-wrap">
-                            <button type="button" class="popover-trigger" id="toolbar-region-trigger" aria-haspopup="true" aria-expanded="false">
-                              <span id="toolbar-region-label">London</span>
-                              <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                                <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                              </svg>
-                            </button>
-                            <div class="popover-menu" id="toolbar-region-menu" hidden>
-                              <div class="popover-group-head">Countries</div>
-                              <div class="popover-item" data-region="Northern Ireland">Northern Ireland</div>
-                              <div class="popover-item" data-region="Scotland">Scotland</div>
-                              <div class="popover-item" data-region="Wales">Wales</div>
-                              <div class="popover-divider"></div>
-                              <div class="popover-group-head">English Regions</div>
-                              <div class="popover-item" data-region="East Midlands">East Midlands</div>
-                              <div class="popover-item" data-region="East of England">East of England</div>
-                              <div class="popover-item" data-region="London">London</div>
-                              <div class="popover-item" data-region="North East">North East</div>
-                              <div class="popover-item" data-region="North West">North West</div>
-                              <div class="popover-item" data-region="South East">South East</div>
-                              <div class="popover-item" data-region="South West">South West</div>
-                              <div class="popover-item" data-region="West Midlands">West Midlands</div>
-                              <div class="popover-item" data-region="Yorkshire and The Humber">Yorkshire &amp; Humber</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="toolbar-divider chart-mode-view-divider"></div>
-                      <div class="toolbar-control-group pollutant-control-group">
-                        <span class="field-label">Pollutant</span>
-                        <div class="pill-group">
-                          <div class="pollutant-selector" id="pollutant-selector" role="radiogroup" aria-label="Pollutant">
-                            <button type="button" class="pill" data-pollutant="pm25" role="radio" aria-checked="true" tabindex="0">PM2.5</button>
-                            <button type="button" class="pill" data-pollutant="pm10" role="radio" aria-checked="false" tabindex="-1">PM10</button>
-                            <button type="button" class="pill" data-pollutant="no2" role="radio" aria-checked="false" tabindex="-1">NO₂</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="toolbar-divider" aria-hidden="true"></div>
-                      <div class="toolbar-control-group window-stepper" id="window-stepper" data-window-stepper>
-                        <span class="field-label window-stepper-label">Window</span>
-                        <div class="window-stepper-control" role="group" aria-label="Averaging window">
-                          <button type="button" class="window-stepper-arrow window-stepper-arrow--left" data-window-step="prev" aria-label="Use shorter window">‹</button>
-                          <div class="window-stepper-value-box" aria-live="polite" aria-atomic="true">
-                            <span class="window-stepper-value" data-window-value>6 Hours</span>
-                          </div>
-                          <button type="button" class="window-stepper-arrow window-stepper-arrow--right" data-window-step="next" aria-label="Use longer window">›</button>
-                        </div>
-                      </div>
-                      <div class="toolbar-divider chart-range-toolbar" aria-hidden="true"></div>
-                      <label class="toolbar-control-group chart-range-toolbar" for="hex-chart-window-toolbar">
-                        <span class="field-label">Chart range</span>
-                        <select id="hex-chart-window-toolbar" aria-label="Chart range">
-                          <option value="12h">Last 12 hours</option>
-                          <option value="24h" selected>Last 24 hours</option>
-                          <option value="7d">Last 7 days</option>
-                          <option value="31d">Last 31 days</option>
-                          <option value="90d">Last 90 days</option>
-                        </select>
-                      </label>
+                    <span class="field-label chart-mode-view-control">View</span>
+                    <div class="segmented segmented--view chart-mode-view-control">
+                      <button type="button" id="toolbar-tab-uk" class="active">
+                        <span class="view-button-main">United Kingdom</span>
+                        <span class="view-button-sub">Constituencies</span>
+                      </button>
+                      <button type="button" id="toolbar-tab-cr">
+                        <span class="view-button-main">Countries &amp; Regions</span>
+                        <span class="view-button-sub">Local Authorities</span>
+                      </button>
                     </div>
-                    <div class="toolbar-control-row toolbar-control-row--two" data-toolbar-control-row="two"></div>
-                    <div class="toolbar-search-row" data-toolbar-search-row></div>
-                    <div class="toolbar-right">
-                      <div class="toolbar-status-actions">
-                        <div class="toolbar-status-slot" id="toolbar-status-slot" aria-live="polite"></div>
-                        <div class="toolbar-refresh-slot" id="toolbar-refresh-slot"></div>
+
+                    <div class="toolbar-region-section chart-mode-view-control" id="toolbar-region-section">
+                      <div class="toolbar-divider"></div>
+                      <div class="popover-wrap" id="toolbar-popover-wrap">
+                        <button type="button" class="popover-trigger" id="toolbar-region-trigger" aria-haspopup="true" aria-expanded="false">
+                          <span id="toolbar-region-label">London</span>
+                          <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                          </svg>
+                        </button>
+                        <div class="popover-menu" id="toolbar-region-menu" hidden>
+                          <div class="popover-group-head">Countries</div>
+                          <div class="popover-item" data-region="Northern Ireland">Northern Ireland</div>
+                          <div class="popover-item" data-region="Scotland">Scotland</div>
+                          <div class="popover-item" data-region="Wales">Wales</div>
+                          <div class="popover-divider"></div>
+                          <div class="popover-group-head">English Regions</div>
+                          <div class="popover-item" data-region="East Midlands">East Midlands</div>
+                          <div class="popover-item" data-region="East of England">East of England</div>
+                          <div class="popover-item" data-region="London">London</div>
+                          <div class="popover-item" data-region="North East">North East</div>
+                          <div class="popover-item" data-region="North West">North West</div>
+                          <div class="popover-item" data-region="South East">South East</div>
+                          <div class="popover-item" data-region="South West">South West</div>
+                          <div class="popover-item" data-region="West Midlands">West Midlands</div>
+                          <div class="popover-item" data-region="Yorkshire and The Humber">Yorkshire &amp; Humber</div>
+                        </div>
                       </div>
-                      <div class="toolbar-networks-slot" data-toolbar-networks-slot></div>
+                    </div>
+
+                    <div class="toolbar-divider chart-mode-view-divider"></div>
+                    <div class="pollutant-control-group">
+                      <span class="field-label">Pollutant</span>
+                      <div class="pill-group">
+                        <div class="pollutant-selector" id="pollutant-selector" role="radiogroup" aria-label="Pollutant">
+                          <button type="button" class="pill" data-pollutant="pm25" role="radio" aria-checked="true" tabindex="0">PM2.5</button>
+                          <button type="button" class="pill" data-pollutant="pm10" role="radio" aria-checked="false" tabindex="-1">PM10</button>
+                          <button type="button" class="pill" data-pollutant="no2" role="radio" aria-checked="false" tabindex="-1">NO₂</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="toolbar-divider" aria-hidden="true"></div>
+                    <div class="window-stepper" id="window-stepper" data-window-stepper>
+                      <span class="field-label window-stepper-label">Window</span>
+                      <div class="window-stepper-control" role="group" aria-label="Averaging window">
+                        <button type="button" class="window-stepper-arrow window-stepper-arrow--left" data-window-step="prev" aria-label="Use shorter window">‹</button>
+                        <div class="window-stepper-value-box" aria-live="polite" aria-atomic="true">
+                          <span class="window-stepper-value" data-window-value>6 Hours</span>
+                        </div>
+                        <button type="button" class="window-stepper-arrow window-stepper-arrow--right" data-window-step="next" aria-label="Use longer window">›</button>
+                      </div>
+                    </div>
+                    <div class="toolbar-divider chart-range-toolbar" aria-hidden="true"></div>
+                    <label class="chart-range-toolbar" for="hex-chart-window-toolbar">
+                      <span class="field-label">Chart range</span>
+                      <select id="hex-chart-window-toolbar" aria-label="Chart range">
+                        <option value="12h">Last 12 hours</option>
+                        <option value="24h" selected>Last 24 hours</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="31d">Last 31 days</option>
+                        <option value="90d">Last 90 days</option>
+                      </select>
+                    </label>
+                    <div class="toolbar-right">
+                      <div class="toolbar-status-slot" id="toolbar-status-slot" aria-live="polite"></div>
+                      <div class="toolbar-refresh-slot" id="toolbar-refresh-slot"></div>
                     </div>
                   </div>
                 </div>

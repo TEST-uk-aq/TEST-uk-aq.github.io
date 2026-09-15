@@ -49,15 +49,6 @@ function initHexMapToolbarController(root) {
   const windowStepperPrev = windowStepper?.querySelector("[data-window-step='prev']");
   const windowStepperNext = windowStepper?.querySelector("[data-window-step='next']");
   const windowStepperValueBox = windowStepper?.querySelector(".window-stepper-value-box");
-  const toolbarControlRows = {
-    one: toolbar?.querySelector("[data-toolbar-control-row='one']") || null,
-    two: toolbar?.querySelector("[data-toolbar-control-row='two']") || null,
-  };
-  const toolbarSearchRow = toolbar?.querySelector("[data-toolbar-search-row]") || null;
-  const toolbarNetworksSlot = toolbar?.querySelector("[data-toolbar-networks-slot]") || null;
-  const toolbarControlGroups = toolbar
-    ? Array.from(toolbar.querySelectorAll(".toolbar-control-group"))
-    : [];
 
   const WINDOW_ORDER = ["3h", "6h", "1d", "7d", "all"];
   const WINDOW_LABELS_FALLBACK = {
@@ -72,6 +63,9 @@ function initHexMapToolbarController(root) {
     : null;
   const mobileLayoutQuery = typeof root.matchMedia === "function"
     ? root.matchMedia("(max-width: 767px)")
+    : null;
+  const tabletSearchLayoutQuery = typeof root.matchMedia === "function"
+    ? root.matchMedia("(min-width: 768px) and (max-width: 1200px)")
     : null;
   const SENSOR_TABLE_COMPACT_WIDTH = 860;
   const mobileMounts = {
@@ -157,6 +151,21 @@ function initHexMapToolbarController(root) {
     node.parentNode.insertBefore(marker, node);
     originalMarkers.set(node, marker);
   });
+
+  const tabletSearchInlineStyles = new Map(
+    Object.values(mapSearches)
+      .filter(Boolean)
+      .map((node) => [node, {
+        position: node.style.position,
+        top: node.style.top,
+        right: node.style.right,
+        left: node.style.left,
+        width: node.style.width,
+        maxWidth: node.style.maxWidth,
+        zIndex: node.style.zIndex,
+      }]),
+  );
+  const toolbarInlinePosition = toolbar?.style.position || "";
 
   let mounted = false;
   let regionPopoverOpen = false;
@@ -315,76 +324,90 @@ function initHexMapToolbarController(root) {
     return true;
   }
 
+  function restoreTabletSearchInlineStyle(searchNode) {
+    const original = tabletSearchInlineStyles.get(searchNode);
+    if (!searchNode || !original) return;
+    searchNode.style.position = original.position;
+    searchNode.style.top = original.top;
+    searchNode.style.right = original.right;
+    searchNode.style.left = original.left;
+    searchNode.style.width = original.width;
+    searchNode.style.maxWidth = original.maxWidth;
+    searchNode.style.zIndex = original.zIndex;
+  }
+
   function clearTabletSearchPlacement() {
     if (tabletSearchLayoutFrame !== null) {
       root.cancelAnimationFrame(tabletSearchLayoutFrame);
       tabletSearchLayoutFrame = null;
     }
+    Object.values(mapSearches).forEach(restoreTabletSearchInlineStyle);
+    if (toolbar) toolbar.style.position = toolbarInlinePosition;
   }
 
   function scheduleTabletSearchPlacement(mapKey = coordinator.getActiveMap()) {
+    if (mobileLayoutQuery?.matches) return;
     const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
     const activeSearch = mapSearches[normalizedMapKey];
+    if (!activeSearch) return;
 
     clearTabletSearchPlacement();
-    if (mobileLayoutQuery?.matches || !toolbar || !toolbarControlRows.one || !toolbarControlRows.two) {
-      if (toolbar) delete toolbar.dataset.hexToolbarControlsWrapped;
-      return;
-    }
+    restoreNode(activeSearch);
+    if (!tabletSearchLayoutQuery?.matches || pageMode.getMode() !== "map" || !toolbar) return;
 
     tabletSearchLayoutFrame = root.requestAnimationFrame(() => {
       tabletSearchLayoutFrame = null;
-      const { one: rowOne, two: rowTwo } = toolbarControlRows;
-      toolbarControlGroups.forEach((group) => rowOne.appendChild(group));
-      Object.entries(mapSearches).forEach(([key, searchNode]) => {
-        if (key !== normalizedMapKey) restoreNode(searchNode);
+      const toolbarRight = toolbar.querySelector(".toolbar-right");
+      if (!toolbarRight || !activeSearch.isConnected) return;
+
+      const visibleRightItems = Array.from(toolbarRight.children)
+        .filter((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = typeof root.getComputedStyle === "function" ? root.getComputedStyle(node) : null;
+          return rect.width > 0 && rect.height > 0 && style?.display !== "none" && style?.visibility !== "hidden";
+        });
+      if (!visibleRightItems.length) return;
+
+      const rightItemRects = visibleRightItems.map((node) => node.getBoundingClientRect());
+      const rightContentLeft = Math.min(...rightItemRects.map((rect) => rect.left));
+      const rightContentTop = Math.min(...rightItemRects.map((rect) => rect.top));
+      const rightContentBottom = Math.max(...rightItemRects.map((rect) => rect.bottom));
+      const rightContentHeight = rightContentBottom - rightContentTop;
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const searchRect = activeSearch.getBoundingClientRect();
+      if (!(toolbarRect.width > 0 && searchRect.width > 0 && searchRect.height > 0)) return;
+
+      const toolbarStyle = typeof root.getComputedStyle === "function" ? root.getComputedStyle(toolbar) : null;
+      const paddingLeft = Number.parseFloat(toolbarStyle?.paddingLeft || "0") || 0;
+      const rowGap = Number.parseFloat(toolbarStyle?.columnGap || toolbarStyle?.gap || "8") || 8;
+      const contentLeft = toolbarRect.left + paddingLeft;
+      const availableWidth = rightContentLeft - rowGap - contentLeft;
+      if (availableWidth + 1 < searchRect.width) return;
+
+      const rowHasLeftControl = Array.from(toolbar.children).some((node) => {
+        if (node === toolbarRight || node === activeSearch || node.classList.contains("toolbar-divider")) return false;
+        const rect = node.getBoundingClientRect();
+        const style = typeof root.getComputedStyle === "function" ? root.getComputedStyle(node) : null;
+        if (rect.width <= 4 || rect.height <= 0 || style?.display === "none" || style?.visibility === "hidden") return false;
+        const overlapsStatusRow = rect.bottom > rightContentTop + 2 && rect.top < rightContentBottom - 2;
+        return overlapsStatusRow && rect.right > contentLeft + 2 && rect.left < rightContentLeft - rowGap;
       });
-      Object.entries(networkAnchors).forEach(([key, anchor]) => {
-        if (key !== normalizedMapKey) restoreNode(anchor);
-      });
+      if (rowHasLeftControl) return;
 
-      const activeNetworkAnchor = networkAnchors[normalizedMapKey];
-      if (activeNetworkAnchor && toolbarNetworksSlot
-          && activeNetworkAnchor.parentElement !== toolbarNetworksSlot) {
-        toolbarNetworksSlot.appendChild(activeNetworkAnchor);
-      }
-
-      const visibleGroups = toolbarControlGroups.filter((group) => {
-        const style = root.getComputedStyle?.(group);
-        const rect = group.getBoundingClientRect();
-        return style?.display !== "none" && style?.visibility !== "hidden"
-          && rect.width > 0 && rect.height > 0;
-      });
-      const rowStyle = root.getComputedStyle?.(rowOne);
-      const groupGap = Number.parseFloat(rowStyle?.columnGap || rowStyle?.gap || "8") || 8;
-      const availableWidth = rowOne.clientWidth;
-      let rowOneWidth = 0;
-      let useSecondRow = false;
-
-      visibleGroups.forEach((group) => {
-        const groupWidth = group.getBoundingClientRect().width;
-        const nextRowOneWidth = rowOneWidth ? rowOneWidth + groupGap + groupWidth : groupWidth;
-        if (!useSecondRow && nextRowOneWidth <= availableWidth + 0.5) {
-          rowOneWidth = nextRowOneWidth;
-          return;
-        }
-        useSecondRow = true;
-        rowTwo.appendChild(group);
-      });
-
-      toolbar.dataset.hexToolbarControlsWrapped = String(rowTwo.children.length > 0);
-
-      if (pageMode.getMode() === "map" && activeSearch && toolbarSearchRow) {
-        toolbarSearchRow.appendChild(activeSearch);
-      } else {
-        restoreNode(activeSearch);
-      }
+      toolbar.style.position = "relative";
+      activeSearch.style.position = "absolute";
+      activeSearch.style.top = `${rightContentTop - toolbarRect.top + ((rightContentHeight - searchRect.height) / 2)}px`;
+      activeSearch.style.right = "auto";
+      activeSearch.style.left = `${paddingLeft}px`;
+      activeSearch.style.width = `${searchRect.width}px`;
+      activeSearch.style.maxWidth = `${availableWidth}px`;
+      activeSearch.style.zIndex = "70";
+      toolbar.insertBefore(activeSearch, toolbarRight);
     });
   }
 
   function restoreDistributedControls() {
     clearTabletSearchPlacement();
-    if (toolbar) delete toolbar.dataset.hexToolbarControlsWrapped;
     relocationNodes.forEach(restoreNode);
     Object.values(networkAnchors).forEach(restoreNode);
   }
@@ -698,19 +721,6 @@ function initHexMapToolbarController(root) {
         const tableWrap = panel?.querySelector(".sensor-table-wrap");
         if (tableWrap) sensorListResizeObserver.observe(tableWrap);
       });
-
-      let toolbarLayoutResizeQueued = false;
-      const toolbarLayoutResizeObserver = new root.ResizeObserver(() => {
-        if (toolbarLayoutResizeQueued || mobileLayoutQuery?.matches) return;
-        toolbarLayoutResizeQueued = true;
-        root.requestAnimationFrame(() => {
-          toolbarLayoutResizeQueued = false;
-          scheduleTabletSearchPlacement(coordinator.getActiveMap());
-        });
-      });
-      [toolbar?.querySelector(".toolbar-status-actions"), toolbarNetworksSlot]
-        .filter(Boolean)
-        .forEach((target) => toolbarLayoutResizeObserver.observe(target));
     }
 
     if (reduceMotionQuery) {
