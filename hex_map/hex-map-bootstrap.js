@@ -7,6 +7,7 @@ import search from "./hex-map-search.js";
 import zoomPan from "./hex-map-zoom-pan.js";
 import pollutantAvailability from "./hex-map-pollutant-availability.js";
 import mobileMapLayout from "./hex-map-mobile-map-layout.js";
+import { formatRegionDisplayName } from "../shared/domain/regions-module.js";
 
 function keepMobileNetworksPanelOpen() {
   const mobileLayoutQuery = typeof window.matchMedia === "function"
@@ -234,13 +235,11 @@ function refineMobileMapControls() {
     if (!regionLabel) return;
     const activeRegion = regionMenu?.querySelector("[data-region].active");
     let canonicalLabel = activeRegion?.dataset.region || activeRegion?.textContent?.trim() || regionLabel.dataset.fullRegion || regionLabel.textContent.trim();
-    if (canonicalLabel === "Yorkshire & Humber") canonicalLabel = "Yorkshire and The Humber";
     if (!canonicalLabel) return;
     regionLabel.dataset.fullRegion = canonicalLabel;
-    regionLabel.textContent = mobileLayoutQuery?.matches && canonicalLabel === "Yorkshire and The Humber"
-      ? "Yorkshire & Humber"
-      : canonicalLabel;
-    regionLabel.setAttribute("aria-label", canonicalLabel);
+    const displayLabel = formatRegionDisplayName(canonicalLabel);
+    regionLabel.textContent = displayLabel;
+    regionLabel.setAttribute("aria-label", displayLabel);
   };
 
   syncRegionLabel();

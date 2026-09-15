@@ -1,5 +1,6 @@
 // Page-lifetime Hex Map search controller for UK and countries/regions.
 import coordinator from "./hex-map-coordinator.js";
+import { formatRegionDisplayName } from "../shared/domain/regions-module.js";
 
 function initHexMapSearch(root) {
   "use strict";
@@ -484,7 +485,7 @@ function initHexMapSearch(root) {
         type_label: getResultTypeLabel("constituency"),
         code,
         primary: name,
-        secondary: row.region || "",
+        secondary: formatRegionDisplayName(row.region || ""),
         _nameNorm: normalizeText(name),
         _searchNorm: normalizeText(name),
       };
@@ -507,7 +508,7 @@ function initHexMapSearch(root) {
         code,
         region_name: regionName || null,
         primary: name,
-        secondary: regionName || "",
+        secondary: formatRegionDisplayName(regionName || ""),
         _nameNorm: normalizeText(name),
         _searchNorm: normalizeText(`${name} ${regionName}`),
       };
@@ -661,7 +662,7 @@ function initHexMapSearch(root) {
       }
       const rec = lookupDestRecord(code);
       const destName = rec?.name || (code ? escapeHtml(code) : "");
-      const destRegion = kind === "cr" ? (rec?.region_name || "") : (rec?.region || "");
+      const destRegion = formatRegionDisplayName(kind === "cr" ? (rec?.region_name || "") : (rec?.region || ""));
       const nameHtml = destName ? `<div class="map-search-result-dest-name">${escapeHtml(destName)}</div>` : "";
       const regionHtml = destRegion ? `<div class="map-search-result-dest-region">${escapeHtml(destRegion)}</div>` : "";
       const textHtml = (nameHtml || regionHtml) ? `<span class="map-search-result-dest-text">${nameHtml}${regionHtml}</span>` : "";
