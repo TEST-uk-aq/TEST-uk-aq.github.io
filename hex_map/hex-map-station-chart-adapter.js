@@ -191,7 +191,7 @@
     const backButtons = Array.from(root.document.querySelectorAll("[data-chart-back-to-map]"));
     const rangeSelect = root.document.getElementById("hex-chart-window-toolbar");
     const mobileLayoutQuery = typeof root.matchMedia === "function"
-      ? root.matchMedia("(max-width: 767px)")
+      ? root.matchMedia("(max-width: 768px)")
       : null;
     const domByMap = Object.fromEntries(["uk", "cr"].map((key) => {
       const panel = root.document.getElementById(`${key}-hex-chart-mode`);
@@ -248,18 +248,26 @@
     function syncChipNetworkIdentity() {
       const reading = dom()?.reading;
       if (!reading) return;
+      reading.classList.remove("hex-chart-selected-sensors--one-line");
       const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
       networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
-      networks.forEach((network) => {
-        const label = network.closest(".hex-chart-chip-label");
-        const name = label?.querySelector(".hex-chart-chip-name");
-        const nameRects = name ? Array.from(name.getClientRects()) : [];
-        const networkRect = network.getClientRects()[0];
-        const finalNameRect = nameRects[nameRects.length - 1];
-        if (networkRect && finalNameRect && networkRect.top > finalNameRect.top + 1) {
-          network.classList.add("hex-chart-chip-network--own-line");
-        }
-      });
+      if (mobileLayoutQuery?.matches) {
+        reading.classList.add("hex-chart-selected-sensors--one-line");
+        const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
+        const allFit = chips.length > 0 && chips.every((chip) => chip.scrollWidth <= chip.clientWidth + 1);
+        if (!allFit) reading.classList.remove("hex-chart-selected-sensors--one-line");
+      } else {
+        networks.forEach((network) => {
+          const label = network.closest(".hex-chart-chip-label");
+          const name = label?.querySelector(".hex-chart-chip-name");
+          const nameRects = name ? Array.from(name.getClientRects()) : [];
+          const networkRect = network.getClientRects()[0];
+          const finalNameRect = nameRects[nameRects.length - 1];
+          if (networkRect && finalNameRect && networkRect.top > finalNameRect.top + 1) {
+            network.classList.add("hex-chart-chip-network--own-line");
+          }
+        });
+      }
       const canvas = reading.closest(".map-canvas-wrap");
       const firstChip = reading.querySelector(".hex-chart-selected-sensor-chip");
       const baseRowHeight = firstChip && typeof root.getComputedStyle === "function"
@@ -662,6 +670,7 @@
         mobileLayoutQuery.addListener(handleMobileLayoutChange);
       }
     }
+    root.document.fonts?.ready?.then(() => scheduleChipNetworkIdentity());
     Object.values(domByMap).forEach((refs) => {
       refs.panel?.addEventListener("click", (event) => event.stopPropagation());
       const activateSource = (event) => {
