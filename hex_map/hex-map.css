@@ -5631,10 +5631,23 @@
       }
 
       .hex-chart-message {
-        min-height: 0;
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        z-index: 4;
+        max-width: calc(100% - 24px);
+        transform: translateX(-50%);
+        padding: 5px 9px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 1px 4px rgba(31, 49, 65, 0.18);
         color: var(--accent-deep);
         font-size: 0.84rem;
         font-weight: 700;
+        line-height: 1.3;
+        text-align: center;
+        overflow-wrap: anywhere;
+        pointer-events: none;
       }
 
       .hex-chart-message:empty {
