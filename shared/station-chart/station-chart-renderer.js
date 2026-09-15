@@ -44,6 +44,12 @@
     return { top: marginTop, right: 24, bottom: 44, left: 72 };
   }
 
+  function aqiSourceSymbolX(width, marginLeft) {
+    const chartWidth = Math.max(0, Number(width) || 0);
+    const leftwardOffset = chartWidth <= 767 ? 64 : chartWidth <= 960 ? 68 : 62;
+    return Math.max(10, marginLeft - leftwardOffset);
+  }
+
   function xAxisTickCount(rangeMs, plotWidth) {
     const dayMs = 24 * HOUR_MS;
     const normalCount = rangeMs <= dayMs ? 8 : rangeMs <= 7 * dayMs ? 7 : 6;
@@ -454,7 +460,7 @@
       });
       const symbol = sourceIndex >= 0 ? ChartCore.getSymbolPathData(sourceIndex, 130) : null;
       if (symbol) current.aqi.append("path").attr("class", "aqi-band-source-symbol")
-        .attr("d", symbol).attr("transform", `translate(${Math.max(10, current.margin.left - 62)},24)`)
+        .attr("d", symbol).attr("transform", `translate(${aqiSourceSymbolX(current.width, current.margin.left)},24)`)
         .attr("fill", SERIES_COLOUR).attr("stroke", "#fff").attr("stroke-width", 1.35);
     }
 
