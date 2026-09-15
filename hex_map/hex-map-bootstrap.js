@@ -52,6 +52,7 @@ function refineMobileMapControls() {
   const style = document.createElement("style");
   style.textContent = `
     @media (max-width: 767px) {
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary:has(.mobile-map-controls--region .toolbar-region-section.visible) {
         grid-template-columns: minmax(0, 1fr) clamp(104px, 31vw, 120px);
         gap: 6px;
@@ -59,25 +60,32 @@ function refineMobileMapControls() {
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view {
         width: 100%;
-        grid-template-columns: minmax(82px, 0.8fr) minmax(112px, 1.2fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 4px;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view button,
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view button:not(.active),
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view button.active {
+        width: 100%;
+        height: 60px;
         min-height: 60px;
-        padding: 6px 8px;
+        padding: 6px 7px;
         overflow: hidden;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+          "main"
+          "sub";
         align-content: center;
         justify-items: center;
         text-align: center;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .view-button-main {
-        order: 0;
+        grid-area: main;
+        order: initial;
         width: 100%;
-        font-size: clamp(0.70rem, 3.1vw, 0.80rem);
+        font-size: clamp(0.68rem, 3vw, 0.78rem);
         font-weight: 700;
         line-height: 1.05;
         white-space: normal;
@@ -85,9 +93,10 @@ function refineMobileMapControls() {
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .view-button-sub {
-        order: 1;
+        grid-area: sub;
+        order: initial;
         width: 100%;
-        font-size: clamp(0.54rem, 2.35vw, 0.62rem);
+        font-size: clamp(0.52rem, 2.3vw, 0.60rem);
         font-weight: 600;
         line-height: 1.05;
         white-space: normal;
