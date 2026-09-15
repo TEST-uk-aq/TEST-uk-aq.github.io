@@ -65,6 +65,9 @@ function initHexMapToolbarController(root) {
   const mobileLayoutQuery = typeof root.matchMedia === "function"
     ? root.matchMedia("(max-width: 767px)")
     : null;
+  const tabletSearchLayoutQuery = typeof root.matchMedia === "function"
+    ? root.matchMedia("(min-width: 768px) and (max-width: 1200px)")
+    : null;
   const SENSOR_TABLE_COMPACT_WIDTH = 860;
   const mobileMounts = {
     uk: {
@@ -153,11 +156,27 @@ function initHexMapToolbarController(root) {
     originalMarkers.set(node, marker);
   });
 
+  const tabletSearchInlineStyles = new Map(
+    Object.values(mapSearches)
+      .filter(Boolean)
+      .map((node) => [node, {
+        position: node.style.position,
+        top: node.style.top,
+        right: node.style.right,
+        left: node.style.left,
+        width: node.style.width,
+        maxWidth: node.style.maxWidth,
+        zIndex: node.style.zIndex,
+      }]),
+  );
+  const toolbarInlinePosition = toolbar?.style.position || "";
+
   let mounted = false;
   let regionPopoverOpen = false;
   let prefersReducedMotion = Boolean(reduceMotionQuery?.matches);
   let windowStepperKey = null;
   let windowStepperTimer = null;
+  let tabletSearchLayoutFrame = null;
   const sensorListPresentationByMap = { uk: null, cr: null };
 
   function normalizeWindowKey(value) {
@@ -309,7 +328,90 @@ function initHexMapToolbarController(root) {
     return true;
   }
 
+  function restoreTabletSearchInlineStyle(searchNode) {
+    const original = tabletSearchInlineStyles.get(searchNode);
+    if (!searchNode || !original) return;
+    searchNode.style.position = original.position;
+    searchNode.style.top = original.top;
+    searchNode.style.right = original.right;
+    searchNode.style.left = original.left;
+    searchNode.style.width = original.width;
+    searchNode.style.maxWidth = original.maxWidth;
+    searchNode.style.zIndex = original.zIndex;
+  }
+
+  function clearTabletSearchPlacement() {
+    if (tabletSearchLayoutFrame !== null) {
+      root.cancelAnimationFrame(tabletSearchLayoutFrame);
+      tabletSearchLayoutFrame = null;
+    }
+    Object.values(mapSearches).forEach(restoreTabletSearchInlineStyle);
+    if (toolbar) toolbar.style.position = toolbarInlinePosition;
+  }
+
+  function scheduleTabletSearchPlacement(mapKey = coordinator.getActiveMap()) {
+    if (mobileLayoutQuery?.matches) return;
+    const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
+    const activeSearch = mapSearches[normalizedMapKey];
+    if (!activeSearch) return;
+
+    clearTabletSearchPlacement();
+    restoreNode(activeSearch);
+    if (!tabletSearchLayoutQuery?.matches || pageMode.getMode() !== "map" || !toolbar) return;
+
+    tabletSearchLayoutFrame = root.requestAnimationFrame(() => {
+      tabletSearchLayoutFrame = null;
+      const toolbarRight = toolbar.querySelector(".toolbar-right");
+      if (!toolbarRight || !activeSearch.isConnected) return;
+
+      const visibleRightItems = Array.from(toolbarRight.children)
+        .filter((node) => {
+          const rect = node.getBoundingClientRect();
+          const style = typeof root.getComputedStyle === "function" ? root.getComputedStyle(node) : null;
+          return rect.width > 0 && rect.height > 0 && style?.display !== "none" && style?.visibility !== "hidden";
+        });
+      if (!visibleRightItems.length) return;
+
+      const rightItemRects = visibleRightItems.map((node) => node.getBoundingClientRect());
+      const rightContentLeft = Math.min(...rightItemRects.map((rect) => rect.left));
+      const rightContentTop = Math.min(...rightItemRects.map((rect) => rect.top));
+      const rightContentBottom = Math.max(...rightItemRects.map((rect) => rect.bottom));
+      const rightContentHeight = rightContentBottom - rightContentTop;
+      const toolbarRect = toolbar.getBoundingClientRect();
+      const searchRect = activeSearch.getBoundingClientRect();
+      if (!(toolbarRect.width > 0 && searchRect.width > 0 && searchRect.height > 0)) return;
+
+      const toolbarStyle = typeof root.getComputedStyle === "function" ? root.getComputedStyle(toolbar) : null;
+      const paddingLeft = Number.parseFloat(toolbarStyle?.paddingLeft || "0") || 0;
+      const rowGap = Number.parseFloat(toolbarStyle?.columnGap || toolbarStyle?.gap || "8") || 8;
+      const contentLeft = toolbarRect.left + paddingLeft;
+      const availableWidth = rightContentLeft - rowGap - contentLeft;
+      if (availableWidth + 1 < searchRect.width) return;
+
+      const rowHasLeftControl = Array.from(toolbar.children).some((node) => {
+        if (node === toolbarRight || node === activeSearch || node.classList.contains("toolbar-divider")) return false;
+        const rect = node.getBoundingClientRect();
+        const style = typeof root.getComputedStyle === "function" ? root.getComputedStyle(node) : null;
+        if (rect.width <= 4 || rect.height <= 0 || style?.display === "none" || style?.visibility === "hidden") return false;
+        const overlapsStatusRow = rect.bottom > rightContentTop + 2 && rect.top < rightContentBottom - 2;
+        return overlapsStatusRow && rect.right > contentLeft + 2 && rect.left < rightContentLeft - rowGap;
+      });
+      if (rowHasLeftControl) return;
+
+      toolbar.style.position = "relative";
+      activeSearch.style.position = "absolute";
+      activeSearch.style.top = `${rightContentTop - toolbarRect.top + ((rightContentHeight - searchRect.height) / 2)}px`;
+      activeSearch.style.right = "auto";
+      activeSearch.style.left = `${paddingLeft}px`;
+      activeSearch.style.width = `${searchRect.width}px`;
+      activeSearch.style.maxWidth = `${availableWidth}px`;
+      activeSearch.style.zIndex = "70";
+      toolbar.insertBefore(activeSearch, toolbarRight);
+    });
+  }
+
   function restoreDistributedControls() {
+    clearTabletSearchPlacement();
     relocationNodes.forEach(restoreNode);
     Object.values(networkAnchors).forEach(restoreNode);
   }
@@ -435,6 +537,10 @@ function initHexMapToolbarController(root) {
         normalizedMapKey,
         pageMode.getMode() === "chart" ? "compact-chart" : "compact-map",
       );
+      if (pageMode.getMode() === "map") {
+        relocateStatusRefreshForMap(normalizedMapKey);
+        scheduleTabletSearchPlacement(normalizedMapKey);
+      }
       return true;
     }
 
@@ -452,6 +558,7 @@ function initHexMapToolbarController(root) {
         candidate.region?.closest(".mobile-map-controls-row--tertiary")?.classList.remove("has-region-control");
       });
       relocateStatusRefreshForMap(normalizedMapKey);
+      scheduleTabletSearchPlacement(normalizedMapKey);
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
       networkController?.syncPanelForActiveScope?.();
@@ -573,9 +680,15 @@ function initHexMapToolbarController(root) {
     toolbarTabCr?.addEventListener("click", () => handleToolbarViewClick("cr"));
     windowStepper?.addEventListener("click", handleWindowStepperClick);
     root.addEventListener("mapsettingschange", (event) => {
-      if (event.detail?.window) renderWindowStepper();
+      if (event.detail?.window) {
+        renderWindowStepper();
+        scheduleTabletSearchPlacement(coordinator.getActiveMap());
+      }
     });
-    root.addEventListener("crregionchange", renderRegion);
+    root.addEventListener("crregionchange", () => {
+      renderRegion();
+      scheduleTabletSearchPlacement(coordinator.getActiveMap());
+    });
     root.addEventListener("hexpagemodechange", () => {
       syncResponsivePresentation(coordinator.getActiveMap());
     });
@@ -592,6 +705,14 @@ function initHexMapToolbarController(root) {
         mobileLayoutQuery.addListener(handleMobileLayoutChange);
       }
     }
+
+    root.addEventListener("resize", () => {
+      if (mobileLayoutQuery?.matches) return;
+      scheduleTabletSearchPlacement(coordinator.getActiveMap());
+    });
+    root.document.fonts?.ready?.then(() => {
+      if (!mobileLayoutQuery?.matches) scheduleTabletSearchPlacement(coordinator.getActiveMap());
+    });
 
     if (typeof root.ResizeObserver === "function") {
       let sensorListResizeQueued = false;
