@@ -4564,6 +4564,19 @@
         color: var(--accent);
       }
 
+      .pollutant-control-group {
+        display: contents;
+      }
+
+      @media (min-width: 768px) {
+        .pollutant-control-group {
+          display: inline-flex;
+          flex: 0 0 auto;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+
       .map-controls-row {
         grid-column: 1 / -1;
         grid-row: 3;
@@ -4575,6 +4588,7 @@
         border-top: 1px solid var(--line-soft);
         border-bottom: none;
         margin-bottom: 0;
+        background: var(--map-wrap);
       }
 
       .map-dashboard-card #uk-toolbar-slot,
@@ -4591,7 +4605,7 @@
         flex-wrap: wrap;
         padding: 6px 14px 8px;
         border-bottom: none;
-        background: var(--surface-2);
+        background: var(--map-wrap);
         border-radius: 0;
         overflow: visible;
       }
@@ -4612,6 +4626,7 @@
         --map-legend-left-clearance: 64px;
         --map-legend-right-inset: 12px;
         border: 1px solid var(--line-soft);
+        border-top: none;
         border-bottom: none;
         border-radius: 0 0 18px 18px;
         background: var(--map-wrap);
@@ -5016,6 +5031,14 @@
       @media (max-width: 1200px) {
         .map-summary-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 768px) and (max-width: 1200px) {
+        .toolbar-right {
+          flex: 1 0 100%;
+          justify-content: flex-end;
+          margin-left: 0;
         }
       }
 
