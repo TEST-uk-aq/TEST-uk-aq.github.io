@@ -8246,3 +8246,45 @@
           }
         }
       }
+
+      /* Measure complete intrinsic rows only below the shared 768px boundary. */
+      @media (max-width: 767px) {
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {
+          grid-template-columns: 18px minmax(0, 1fr) max-content;
+          grid-template-areas:
+            "symbol name value"
+            "symbol network time";
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-value,
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
+          justify-self: stretch;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
+          grid-template-columns: 18px minmax(0, 1fr) max-content max-content;
+          grid-template-rows: auto;
+          grid-template-areas: "symbol label value time";
+          column-gap: 8px;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-label {
+          min-width: 0;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-value,
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-time {
+          justify-self: start;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip.hex-chart-selected-sensor-chip--measuring-one-line {
+          width: max-content !important;
+          min-width: max-content;
+          justify-self: start;
+          grid-template-columns: 18px max-content max-content max-content;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip.hex-chart-selected-sensor-chip--measuring-one-line .hex-chart-chip-label {
+          min-width: max-content;
+        }
+      }

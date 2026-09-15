@@ -193,6 +193,9 @@
     const mobileLayoutQuery = typeof root.matchMedia === "function"
       ? root.matchMedia("(max-width: 768px)")
       : null;
+    const narrowChipLayoutQuery = typeof root.matchMedia === "function"
+      ? root.matchMedia("(max-width: 767px)")
+      : null;
     const domByMap = Object.fromEntries(["uk", "cr"].map((key) => {
       const panel = root.document.getElementById(`${key}-hex-chart-mode`);
       return [key, {
@@ -245,6 +248,60 @@
         : (render(), null);
     }
 
+    function legacyMobileChipFit(chips) {
+      return chips.length > 0 && chips.every((chip) => {
+        const style = root.getComputedStyle(chip);
+        const columnGap = Number.parseFloat(style.columnGap) || 0;
+        const elements = [
+          chip.querySelector(".hex-chart-chip-symbol"),
+          chip.querySelector(".hex-chart-chip-label"),
+          chip.querySelector(".hex-chart-chip-value"),
+          chip.querySelector(".hex-chart-chip-time"),
+        ];
+        if (elements.some((element) => !element)) return false;
+        const rects = elements.map((element) => element.getBoundingClientRect());
+        const orderedWithoutOverlap = rects.every((rect, index) => (
+          index === 0 || rects[index - 1].right + columnGap <= rect.left + 1
+        ));
+        return chip.scrollWidth <= chip.clientWidth + 1 && orderedWithoutOverlap;
+      });
+    }
+
+    function narrowChipOneLineGeometryFits(chip) {
+      const style = root.getComputedStyle(chip);
+      const columnGap = Number.parseFloat(style.columnGap) || 0;
+      const paddingRight = Number.parseFloat(style.paddingRight) || 0;
+      const elements = [
+        chip.querySelector(".hex-chart-chip-symbol"),
+        chip.querySelector(".hex-chart-chip-label"),
+        chip.querySelector(".hex-chart-chip-value"),
+        chip.querySelector(".hex-chart-chip-time"),
+      ];
+      if (elements.some((element) => !element)) return false;
+      const [, label, value, time] = elements;
+      const [symbolRect, labelRect, valueRect, timeRect] = elements.map((element) => element.getBoundingClientRect());
+      const chipRect = chip.getBoundingClientRect();
+      const tolerance = 1;
+      return label.scrollWidth <= label.clientWidth + tolerance
+        && value.scrollWidth <= value.clientWidth + tolerance
+        && time.scrollWidth <= time.clientWidth + tolerance
+        && symbolRect.right + columnGap <= labelRect.left + tolerance
+        && labelRect.right + columnGap <= valueRect.left + tolerance
+        && valueRect.right + columnGap <= timeRect.left + tolerance
+        && timeRect.right <= chipRect.right - paddingRight + tolerance;
+    }
+
+    function narrowChipOneLineFits(chips) {
+      if (!chips.length) return false;
+      const availableWidths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
+      chips.forEach((chip) => chip.classList.add("hex-chart-selected-sensor-chip--measuring-one-line"));
+      const requiredWidths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
+      chips.forEach((chip) => chip.classList.remove("hex-chart-selected-sensor-chip--measuring-one-line"));
+      const tolerance = 1;
+      return chips.every((chip) => requiredWidths.get(chip) <= availableWidths.get(chip) + tolerance)
+        && chips.every((chip) => narrowChipOneLineGeometryFits(chip));
+    }
+
     function syncChipNetworkIdentity() {
       const reading = dom()?.reading;
       if (!reading) return;
@@ -254,25 +311,16 @@
       );
       const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
       networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
-      if (mobileLayoutQuery?.matches) {
+      if (narrowChipLayoutQuery?.matches) {
         reading.classList.add("hex-chart-selected-sensors--one-line");
         const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
-        const allFit = chips.length > 0 && chips.every((chip) => {
-          const style = root.getComputedStyle(chip);
-          const columnGap = Number.parseFloat(style.columnGap) || 0;
-          const elements = [
-            chip.querySelector(".hex-chart-chip-symbol"),
-            chip.querySelector(".hex-chart-chip-label"),
-            chip.querySelector(".hex-chart-chip-value"),
-            chip.querySelector(".hex-chart-chip-time"),
-          ];
-          if (elements.some((element) => !element)) return false;
-          const rects = elements.map((element) => element.getBoundingClientRect());
-          const orderedWithoutOverlap = rects.every((rect, index) => (
-            index === 0 || rects[index - 1].right + columnGap <= rect.left + 1
-          ));
-          return chip.scrollWidth <= chip.clientWidth + 1 && orderedWithoutOverlap;
-        });
+        const allFit = narrowChipOneLineFits(chips);
+        reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
+        reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
+      } else if (mobileLayoutQuery?.matches) {
+        reading.classList.add("hex-chart-selected-sensors--one-line");
+        const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
+        const allFit = legacyMobileChipFit(chips);
         reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
         reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
       } else {
@@ -687,6 +735,14 @@
         mobileLayoutQuery.addEventListener("change", handleMobileLayoutChange);
       } else if (typeof mobileLayoutQuery.addListener === "function") {
         mobileLayoutQuery.addListener(handleMobileLayoutChange);
+      }
+    }
+    if (narrowChipLayoutQuery) {
+      const handleNarrowChipLayoutChange = () => scheduleChipNetworkIdentity();
+      if (typeof narrowChipLayoutQuery.addEventListener === "function") {
+        narrowChipLayoutQuery.addEventListener("change", handleNarrowChipLayoutChange);
+      } else if (typeof narrowChipLayoutQuery.addListener === "function") {
+        narrowChipLayoutQuery.addListener(handleNarrowChipLayoutChange);
       }
     }
     root.document.fonts?.ready?.then(() => scheduleChipNetworkIdentity());
