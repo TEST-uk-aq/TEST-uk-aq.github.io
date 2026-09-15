@@ -260,20 +260,18 @@
         const allFit = chips.length > 0 && chips.every((chip) => {
           const style = root.getComputedStyle(chip);
           const columnGap = Number.parseFloat(style.columnGap) || 0;
-          const padding = (Number.parseFloat(style.paddingLeft) || 0)
-            + (Number.parseFloat(style.paddingRight) || 0);
-          const content = [
-            ".hex-chart-chip-symbol",
-            ".hex-chart-chip-label",
-            ".hex-chart-chip-value",
-            ".hex-chart-chip-time",
-          ].map((selector) => chip.querySelector(selector))
-            .filter(Boolean);
-          const requiredWidth = content.reduce((width, element) => (
-            width + Math.max(element.scrollWidth, element.getBoundingClientRect().width)
-          ), 0) + (columnGap * Math.max(0, content.length - 1));
-          const availableWidth = chip.clientWidth - padding;
-          return requiredWidth <= availableWidth + 1;
+          const elements = [
+            chip.querySelector(".hex-chart-chip-symbol"),
+            chip.querySelector(".hex-chart-chip-label"),
+            chip.querySelector(".hex-chart-chip-value"),
+            chip.querySelector(".hex-chart-chip-time"),
+          ];
+          if (elements.some((element) => !element)) return false;
+          const rects = elements.map((element) => element.getBoundingClientRect());
+          const orderedWithoutOverlap = rects.every((rect, index) => (
+            index === 0 || rects[index - 1].right + columnGap <= rect.left + 1
+          ));
+          return chip.scrollWidth <= chip.clientWidth + 1 && orderedWithoutOverlap;
         });
         reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
         reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
