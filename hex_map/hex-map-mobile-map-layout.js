@@ -97,7 +97,7 @@ function initHexMapMobileMapLayout(root) {
         align-items: stretch;
       }
 
-      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region:empty {
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region:not(:has(.toolbar-region-section.visible)) {
         display: none;
       }
 
