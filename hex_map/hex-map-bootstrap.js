@@ -146,12 +146,30 @@ function refineMobileMapControls() {
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary,
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary.has-region-control {
-        grid-template-columns: minmax(0, 1fr) 136px;
+        grid-template-columns: minmax(0, 1fr) clamp(150px, 40vw, 164px);
         gap: 6px;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary .mobile-map-controls--centre {
         align-items: center;
+      }
+
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary .mobile-map-controls--right {
+        width: clamp(150px, 40vw, 164px);
+        min-width: clamp(150px, 40vw, 164px);
+        justify-self: end;
+      }
+
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary .mobile-map-controls--right > .networks-pill-anchor,
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary .mobile-map-controls--right .networks-pill {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--tertiary .networks-pill-text {
+        overflow: visible;
+        text-overflow: clip;
+        white-space: nowrap;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--centre .window-stepper {
@@ -232,6 +250,38 @@ function refineMobileMapControls() {
   }
 }
 
+function showMobileNetworkSelectionCount() {
+  const mobileLayoutQuery = typeof window.matchMedia === "function"
+    ? window.matchMedia("(max-width: 767px)")
+    : null;
+  const dropdownCount = document.getElementById("network-dropdown-count");
+
+  const sync = () => {
+    if (!mobileLayoutQuery?.matches || !dropdownCount) return;
+    const count = dropdownCount.textContent?.trim();
+    if (!count) return;
+    document.querySelectorAll("[data-networks-pill] .networks-pill-text").forEach((text) => {
+      text.textContent = `Networks · ${count}`;
+    });
+  };
+
+  sync();
+  if (dropdownCount) {
+    new MutationObserver(sync).observe(dropdownCount, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+  window.addEventListener("networkselectionchange", () => window.requestAnimationFrame(sync));
+  window.addEventListener("pollutantcapabilitychange", () => window.requestAnimationFrame(sync));
+  if (typeof mobileLayoutQuery?.addEventListener === "function") {
+    mobileLayoutQuery.addEventListener("change", () => window.requestAnimationFrame(sync));
+  } else if (typeof mobileLayoutQuery?.addListener === "function") {
+    mobileLayoutQuery.addListener(() => window.requestAnimationFrame(sync));
+  }
+}
+
 toolbar.mount();
 pollutantAvailability.mount();
 urlState.bootstrap();
@@ -241,3 +291,4 @@ keepMobileNetworksPanelOpen();
 keepMobileNetworkRowsStable();
 mobileMapLayout?.mount?.();
 refineMobileMapControls();
+showMobileNetworkSelectionCount();
