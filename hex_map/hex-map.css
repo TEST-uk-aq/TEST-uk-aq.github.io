@@ -5694,7 +5694,7 @@
       }
 
       /* Phase 1 narrow-screen shell: map-first, with provisional controls in flow. */
-      @media (max-width: 767px) {
+      @media (max-width: 768px) {
         .hex-map-page .tooltip {
           display: none !important;
         }
@@ -8013,46 +8013,49 @@
           min-height: 64px;
           grid-template-columns: 18px minmax(0, 1fr) auto;
           grid-template-areas:
-            "symbol label value"
-            "symbol label time";
+            "symbol name value"
+            "symbol network time";
           gap: 3px 6px;
           padding: 6px 8px;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
-          align-self: center;
-          overflow-wrap: anywhere;
+          display: contents;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-value {
           min-width: 0;
-          overflow: hidden;
+          overflow: visible;
           font-size: 0.7rem;
-          text-overflow: ellipsis;
+          text-overflow: clip;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
           min-width: 0;
-          overflow: hidden;
+          overflow: visible;
           font-size: 0.68rem;
-          text-overflow: ellipsis;
+          text-overflow: clip;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-name {
-          display: inline;
+          display: block;
+          grid-area: name;
           font-size: 0.76rem;
           line-height: 1.18;
           white-space: normal;
+          overflow-wrap: anywhere;
           text-overflow: clip;
           overflow: visible;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network {
           display: block;
+          grid-area: network;
           min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          overflow: visible;
+          text-overflow: clip;
           white-space: normal;
+          overflow-wrap: anywhere;
           font-size: 0.7rem;
           line-height: 1.18;
         }
@@ -8068,6 +8071,36 @@
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network.hex-chart-chip-network--own-line::before {
           content: none;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
+          min-height: var(--hex-chart-summary-base-row-height);
+          grid-template-columns: 18px minmax(0, 1fr) auto auto;
+          grid-template-areas: "symbol label value time";
+          column-gap: 8px;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-label {
+          grid-area: label;
+          display: flex;
+          min-width: max-content;
+          align-items: baseline;
+          white-space: nowrap;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network {
+          display: inline;
+          white-space: nowrap;
+          overflow-wrap: normal;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-name {
+          white-space: nowrap;
+          overflow-wrap: normal;
+        }
+
+        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network::before {
+          content: " · ";
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {
