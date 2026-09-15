@@ -32,6 +32,13 @@ function keepMobileNetworkRowsStable() {
         min-height: 58px;
         padding: 6px;
       }
+
+      .hex-map-page .mobile-sensor-list-toolbar .mobile-sensor-sort select {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 0;
+        max-width: calc(100vw - 5.5rem);
+      }
     }
   `;
   document.head.appendChild(style);
