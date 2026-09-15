@@ -1027,6 +1027,8 @@ input:focus-visible {
   }
 
   .news-title-image {
+    width: auto;
+    height: 94px;
     margin-bottom: 12px;
   }
 
