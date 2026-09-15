@@ -23,9 +23,23 @@ function keepMobileNetworksPanelOpen() {
   });
 }
 
+function keepMobileNetworkRowsStable() {
+  const style = document.createElement("style");
+  style.textContent = `
+    @media (max-width: 767px) {
+      .hex-map-page .networks-panel-floating.is-inline .network-option,
+      body.hex-map-page.hex-chart-mode .networks-panel-floating .network-option {
+        min-height: 64px;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 toolbar.mount();
 pollutantAvailability.mount();
 urlState.bootstrap();
 search.mount();
 zoomPan.mount();
 keepMobileNetworksPanelOpen();
+keepMobileNetworkRowsStable();
