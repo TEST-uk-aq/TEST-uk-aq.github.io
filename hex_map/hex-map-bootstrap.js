@@ -54,8 +54,14 @@ function refineMobileMapControls() {
     @media (max-width: 767px) {
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary,
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls-row--primary:has(.mobile-map-controls--region .toolbar-region-section.visible) {
-        grid-template-columns: minmax(0, 1fr) clamp(104px, 31vw, 120px);
-        gap: 6px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left {
+        grid-column: 1 / span 2;
+        width: 100%;
+        min-width: 0;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--left .segmented--view {
@@ -104,10 +110,22 @@ function refineMobileMapControls() {
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region {
-        width: clamp(104px, 31vw, 120px);
+        grid-column: 3;
+        width: 100%;
+        min-width: 0;
+        justify-self: stretch;
+      }
+
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .toolbar-region-section.visible,
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-wrap,
+      body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
       }
 
       body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger {
+        height: 60px;
         min-height: 60px;
         padding: 5px 7px;
         gap: 4px;
