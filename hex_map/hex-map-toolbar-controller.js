@@ -31,7 +31,6 @@ function initHexMapToolbarController(root) {
     cr: panelCr?.querySelector("[data-tab-slot]"),
   };
   const toolbar = root.document.getElementById("main-toolbar");
-  const chartBackButton = root.document.getElementById("chart-back-to-map");
   const chartRangeToolbar = toolbar?.querySelector("label.chart-range-toolbar") || null;
   const toolbarSlots = {
     uk: root.document.getElementById("uk-toolbar-slot"),
@@ -89,14 +88,12 @@ function initHexMapToolbarController(root) {
   };
   const mobileChartMounts = {
     uk: {
-      back: panelUk?.querySelector("[data-mobile-chart-back]") || null,
       network: panelUk?.querySelector("[data-mobile-chart-network]") || null,
       pollutant: panelUk?.querySelector("[data-mobile-chart-pollutant]") || null,
       range: panelUk?.querySelector("[data-mobile-chart-range]") || null,
       panel: panelUk?.querySelector("[data-mobile-chart-networks-panel]") || null,
     },
     cr: {
-      back: panelCr?.querySelector("[data-mobile-chart-back]") || null,
       network: panelCr?.querySelector("[data-mobile-chart-network]") || null,
       pollutant: panelCr?.querySelector("[data-mobile-chart-pollutant]") || null,
       range: panelCr?.querySelector("[data-mobile-chart-range]") || null,
@@ -137,7 +134,6 @@ function initHexMapToolbarController(root) {
     mounts.search = (mapKey === "uk" ? panelUk : panelCr)?.querySelector("[data-mobile-map-search]") || null;
   });
   const relocationNodes = [
-    chartBackButton,
     viewControl,
     regionSection,
     pollutantSelector,
@@ -480,7 +476,7 @@ function initHexMapToolbarController(root) {
     const sensorListMounts = mobileSensorListMounts[normalizedMapKey];
     const sensorListControls = mobileSensorListControls[normalizedMapKey];
 
-    if (mobileChartMode && chartMounts?.back && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
+    if (mobileChartMode && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
       const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
       restoreDistributedControls();
       Object.values(mobileSensorListMounts).forEach((candidate) => {
@@ -488,9 +484,6 @@ function initHexMapToolbarController(root) {
       });
       relocateStatusRefreshForMap(normalizedMapKey);
       restoreNode(networkAnchors[inactiveMapKey]);
-      if (chartBackButton && chartBackButton.parentElement !== chartMounts.back) {
-        chartMounts.back.appendChild(chartBackButton);
-      }
       const activeNetworkAnchor = networkAnchors[normalizedMapKey];
       if (activeNetworkAnchor && activeNetworkAnchor.parentElement !== chartMounts.network) {
         chartMounts.network.appendChild(activeNetworkAnchor);
