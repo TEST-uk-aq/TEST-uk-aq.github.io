@@ -78,10 +78,6 @@
                 <div id="uk-toolbar-slot" class="map-controls-row">
                   <!-- ── Toolbar: scope switcher + region popover + pollutant pills ── -->
                   <div class="toolbar" id="main-toolbar">
-                    <button type="button" class="chart-back-pill" id="chart-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map" hidden>
-                      <span>Back to Hex Map</span>
-                      <img src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
-                    </button>
                     <span class="field-label chart-mode-view-control">View</span>
                     <div class="segmented segmented--view chart-mode-view-control">
                       <button type="button" id="toolbar-tab-uk" class="active">
@@ -261,7 +257,6 @@
                   <section class="hex-chart-mode-panel" id="uk-hex-chart-mode" aria-label="Selected constituency sensors chart" hidden>
                     <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="uk" aria-label="Chart controls">
                       <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--back" data-mobile-chart-back></div>
                         <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
                       </div>
                       <div class="mobile-chart-networks-panel-mount" data-mobile-chart-networks-panel></div>
@@ -416,8 +411,8 @@
                 </select>
               </div>
               <div class="sensor-panel-header-actions">
-                <button type="button" class="sensor-panel-back" id="sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map">
-                  <img class="sensor-panel-back-map-icon" src="/images/UK AQ Buttons.Hex Map.svg" alt="" aria-hidden="true" />
+                <button type="button" class="sensor-panel-back" id="sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map, keep area selected" title="Back to Hex Map, keep area selected">
+                  <img class="sensor-panel-back-map-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="" aria-hidden="true" />
                   <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
                 </button>
                 <button type="button" class="sensor-panel-close" id="sensor-panel-close" aria-label="Close sensor panel">
@@ -935,7 +930,6 @@
                   <section class="hex-chart-mode-panel" id="cr-hex-chart-mode" aria-label="Selected local authority sensors chart" hidden>
                     <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="cr" aria-label="Chart controls">
                       <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
-                        <div class="mobile-chart-control-mount mobile-chart-control-mount--back" data-mobile-chart-back></div>
                         <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
                       </div>
                       <div class="mobile-chart-networks-panel-mount" data-mobile-chart-networks-panel></div>
@@ -1090,8 +1084,8 @@
                 </select>
               </div>
               <div class="sensor-panel-header-actions">
-                <button type="button" class="sensor-panel-back" id="cr-sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map" title="Back to Hex Map">
-                  <img class="sensor-panel-back-map-icon" src="/images/UK AQ Buttons.Hex Map.svg" alt="" aria-hidden="true" />
+                <button type="button" class="sensor-panel-back" id="cr-sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map, keep area selected" title="Back to Hex Map, keep area selected">
+                  <img class="sensor-panel-back-map-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="" aria-hidden="true" />
                   <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
                 </button>
                 <button type="button" class="sensor-panel-close" id="cr-sensor-panel-close" aria-label="Close sensor panel">
