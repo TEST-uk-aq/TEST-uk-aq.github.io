@@ -45,6 +45,7 @@
         --heat-4: #5b2a86;
         --sensor-chart-icon-button-size: 38px;
         --sensor-chart-icon-glyph-size: 28px;
+        --sensor-identity-separator: "· ";
         --sensor-panel-header-height: 62px;
       }
 
@@ -2091,7 +2092,7 @@
 
           .sensor-identity-cell[data-hex-identity-mode="inline"]
             .sensor-network-text--compact::before {
-            content: " · ";
+            content: var(--sensor-identity-separator);
           }
 
           .sensor-identity-cell[data-hex-identity-mode="two-line"] {
@@ -2105,6 +2106,11 @@
             display: block;
           }
 
+          .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-network-own-line="true"]
+            .sensor-network-text--compact {
+            display: block;
+          }
+
           .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
             .sensor-network-text--compact {
             display: none;
@@ -2114,7 +2120,7 @@
             .sensor-network-text--compact::before,
           .sensor-identity-cell[data-hex-identity-mode="two-line"][data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
             .sensor-network-text--compact::before {
-            content: " · ";
+            content: var(--sensor-identity-separator);
           }
 
           .sensor-table .sensor-col-value {
@@ -5497,7 +5503,7 @@
       }
 
       .hex-chart-chip-network::before {
-        content: " · ";
+        content: var(--sensor-identity-separator);
       }
 
       .hex-chart-chip-network.hex-chart-chip-network--own-line {
@@ -6861,7 +6867,7 @@
 
         .hex-map-page .sensor-table-wrap[data-hex-identity-mode="inline"]
           .sensor-network-text--compact::before {
-          content: " · ";
+          content: var(--sensor-identity-separator);
         }
 
         .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"] .sensor-identity-cell {
@@ -6875,6 +6881,11 @@
           display: block;
         }
 
+        .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
+          .sensor-identity-cell[data-hex-network-own-line="true"] .sensor-network-text--compact {
+          display: block;
+        }
+
         .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"][data-hex-identity-measuring="sensor-line"]
           .sensor-network-text--compact {
           display: none;
@@ -6885,7 +6896,7 @@
         .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
           .sensor-identity-cell[data-hex-sensor-wraps="true"][data-hex-network-shares-line="true"]
           .sensor-network-text--compact::before {
-          content: " · ";
+          content: var(--sensor-identity-separator);
         }
 
         .hex-map-page .sensor-table-wrap[data-hex-identity-mode="two-line"]
@@ -8058,7 +8069,7 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network::before {
-          content: " · ";
+          content: var(--sensor-identity-separator);
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {

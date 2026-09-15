@@ -205,6 +205,12 @@ function createHexMapTruncation(root = globalThis) {
       && Math.abs(networkRect.bottom - finalSensorRect.bottom) <= IDENTITY_FIT_TOLERANCE_PX;
   }
 
+  function syncNetworkFinalLineState(identity, parts) {
+    const sharesFinalSensorLine = networkSharesSensorSecondLine(parts);
+    identity.dataset.hexNetworkSharesLine = sharesFinalSensorLine ? "true" : "false";
+    if (!sharesFinalSensorLine) identity.dataset.hexNetworkOwnLine = "true";
+  }
+
   function sensorIdentities(tableWrap) {
     return Array.from(tableWrap.querySelectorAll(
       ".sensor-table tbody tr:not(.sensor-row-divider) .sensor-identity-cell",
@@ -219,6 +225,7 @@ function createHexMapTruncation(root = globalThis) {
       delete identity.dataset.hexIdentityMeasuring;
       delete identity.dataset.hexSensorWraps;
       delete identity.dataset.hexNetworkSharesLine;
+      delete identity.dataset.hexNetworkOwnLine;
     });
   }
 
@@ -247,7 +254,7 @@ function createHexMapTruncation(root = globalThis) {
       void identities[0]?.offsetWidth;
       wrapped.forEach(({ identity, parts }) => {
         if (identity.dataset.hexSensorWraps === "true") {
-          identity.dataset.hexNetworkSharesLine = networkSharesSensorSecondLine(parts) ? "true" : "false";
+          syncNetworkFinalLineState(identity, parts);
         }
         delete identity.dataset.hexIdentityMeasuring;
       });
@@ -272,7 +279,7 @@ function createHexMapTruncation(root = globalThis) {
     void tableWrap.offsetWidth;
     rowParts.forEach(({ identity, parts }) => {
       if (identity.dataset.hexSensorWraps !== "true") return;
-      identity.dataset.hexNetworkSharesLine = networkSharesSensorSecondLine(parts) ? "true" : "false";
+      syncNetworkFinalLineState(identity, parts);
     });
     delete tableWrap.dataset.hexIdentityMeasuring;
   }
