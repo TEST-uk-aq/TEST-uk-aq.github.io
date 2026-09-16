@@ -49,16 +49,8 @@ function initHexMapToolbarController(root) {
   const windowStepperPrev = windowStepper?.querySelector("[data-window-step='prev']");
   const windowStepperNext = windowStepper?.querySelector("[data-window-step='next']");
   const windowStepperValueBox = windowStepper?.querySelector(".window-stepper-value-box");
-  const toolbarControlRows = {
-    one: toolbar?.querySelector("[data-toolbar-control-row='one']") || null,
-    two: toolbar?.querySelector("[data-toolbar-control-row='two']") || null,
-    three: toolbar?.querySelector("[data-toolbar-control-row='three']") || null,
-  };
   const toolbarSearchRow = toolbar?.querySelector("[data-toolbar-search-row]") || null;
   const toolbarNetworksSlot = toolbar?.querySelector("[data-toolbar-networks-slot]") || null;
-  const toolbarControlGroups = toolbar
-    ? Array.from(toolbar.querySelectorAll(".toolbar-control-group"))
-    : [];
 
   const WINDOW_ORDER = ["3h", "6h", "1d", "7d", "all"];
   const WINDOW_LABELS_FALLBACK = {
@@ -140,16 +132,18 @@ function initHexMapToolbarController(root) {
   Object.entries(mobileMounts).forEach(([mapKey, mounts]) => {
     mounts.search = (mapKey === "uk" ? panelUk : panelCr)?.querySelector("[data-mobile-map-search]") || null;
   });
-  const relocationNodes = [
+  const mainToolbarRelocationNodes = [
     viewControl,
     regionSection,
     pollutantSelector,
     windowStepper,
     chartRangeToolbar,
     ...Object.values(mapSearches),
+  ].filter(Boolean);
+  const sensorListRelocationNodes = [
     ...Object.values(mobileSensorListControls).flatMap((controls) => [controls.select, controls.sort]),
-  ]
-    .filter(Boolean);
+  ].filter(Boolean);
+  const relocationNodes = [...mainToolbarRelocationNodes, ...sensorListRelocationNodes];
   const originalMarkers = new Map();
 
   [...relocationNodes, ...Object.values(networkAnchors).filter(Boolean)].forEach((node) => {
@@ -164,7 +158,6 @@ function initHexMapToolbarController(root) {
   let prefersReducedMotion = Boolean(reduceMotionQuery?.matches);
   let windowStepperKey = null;
   let windowStepperTimer = null;
-  let tabletSearchLayoutFrame = null;
   const sensorListPresentationByMap = { uk: null, cr: null };
 
   function normalizeWindowKey(value) {
@@ -316,158 +309,72 @@ function initHexMapToolbarController(root) {
     return true;
   }
 
-  function clearTabletSearchPlacement() {
-    if (tabletSearchLayoutFrame !== null) {
-      root.cancelAnimationFrame(tabletSearchLayoutFrame);
-      tabletSearchLayoutFrame = null;
-    }
-  }
-
-  function scheduleTabletSearchPlacement(mapKey = coordinator.getActiveMap()) {
-    const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
-    const activeSearch = mapSearches[normalizedMapKey];
-
-    clearTabletSearchPlacement();
-    if (mobileLayoutQuery?.matches || !toolbar || !toolbarControlRows.one || !toolbarControlRows.two || !toolbarControlRows.three) {
-      if (toolbar) {
-        delete toolbar.dataset.hexToolbarControlsWrapped;
-        delete toolbar.dataset.hexToolbarLastControlRow;
-        delete toolbar.dataset.hexToolbarSearchActive;
-        toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
-      }
-      return;
-    }
-
-    tabletSearchLayoutFrame = root.requestAnimationFrame(() => {
-      tabletSearchLayoutFrame = null;
-      const { one: rowOne, two: rowTwo, three: rowThree } = toolbarControlRows;
-      const controlRows = [rowOne, rowTwo, rowThree];
-      delete toolbar.dataset.hexToolbarControlsWrapped;
-      delete toolbar.dataset.hexToolbarLastControlRow;
-      toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
-      toolbarControlGroups.forEach((group) => rowOne.appendChild(group));
-      Object.entries(mapSearches).forEach(([key, searchNode]) => {
-        if (key !== normalizedMapKey) restoreNode(searchNode);
-      });
-      Object.entries(networkAnchors).forEach(([key, anchor]) => {
-        if (key !== normalizedMapKey) restoreNode(anchor);
-      });
-
-      const activeNetworkAnchor = networkAnchors[normalizedMapKey];
-      if (activeNetworkAnchor && toolbarNetworksSlot
-          && activeNetworkAnchor.parentElement !== toolbarNetworksSlot) {
-        toolbarNetworksSlot.appendChild(activeNetworkAnchor);
-      }
-
-      const visibleGroups = toolbarControlGroups.filter((group) => {
-        const style = root.getComputedStyle?.(group);
-        const rect = group.getBoundingClientRect();
-        return style?.display !== "none" && style?.visibility !== "hidden"
-          && rect.width > 0 && rect.height > 0;
-      });
-      const rowStyle = root.getComputedStyle?.(rowOne);
-      const groupGap = Number.parseFloat(rowStyle?.columnGap || rowStyle?.gap || "8") || 8;
-      const rowWidths = controlRows.map(() => 0);
-      let currentRowIndex = 0;
-
-      visibleGroups.forEach((group) => {
-        const groupWidth = group.getBoundingClientRect().width;
-        while (currentRowIndex < controlRows.length - 1) {
-          const nextWidth = rowWidths[currentRowIndex]
-            ? rowWidths[currentRowIndex] + groupGap + groupWidth
-            : groupWidth;
-          if (nextWidth <= controlRows[currentRowIndex].clientWidth + 0.5) break;
-          currentRowIndex += 1;
-        }
-        const targetRow = controlRows[currentRowIndex];
-        const nextWidth = rowWidths[currentRowIndex]
-          ? rowWidths[currentRowIndex] + groupGap + groupWidth
-          : groupWidth;
-        targetRow.appendChild(group);
-        rowWidths[currentRowIndex] = nextWidth;
-      });
-
-      const rightSideByRow = [
-        toolbar.querySelector(".toolbar-status-actions"),
-        toolbarNetworksSlot,
-        null,
-      ];
-      const rowsOverlap = (first, second) => first.left < second.right - 0.5
-        && first.right > second.left + 0.5
-        && first.top < second.bottom - 0.5
-        && first.bottom > second.top + 0.5;
-      const exceedsRowGeometry = (group, row, reservedControl) => {
-        const groupRect = group.getBoundingClientRect();
-        const rowRect = row.getBoundingClientRect();
-        if (groupRect.left < rowRect.left - 0.5 || groupRect.right > rowRect.right + 0.5) {
-          return true;
-        }
-        const reservedRect = reservedControl?.getBoundingClientRect();
-        return Boolean(reservedRect && reservedRect.width > 0 && reservedRect.height > 0
-          && rowsOverlap(groupRect, reservedRect));
-      };
-
-      for (let rowIndex = 0; rowIndex < controlRows.length - 1; rowIndex += 1) {
-        const row = controlRows[rowIndex];
-        const groups = Array.from(row.children).filter((child) => visibleGroups.includes(child));
-        const overflowIndex = groups.findIndex((group) => exceedsRowGeometry(
-          group,
-          row,
-          rightSideByRow[rowIndex],
-        ));
-        if (overflowIndex >= 0) {
-          const overflowingGroups = groups.slice(overflowIndex);
-          for (let groupIndex = overflowingGroups.length - 1; groupIndex >= 0; groupIndex -= 1) {
-            controlRows[rowIndex + 1].prepend(overflowingGroups[groupIndex]);
-          }
-        }
-      }
-
-      const lastControlRowIndex = controlRows.reduce((lastIndex, row, rowIndex) => (
-        Array.from(row.children).some((child) => visibleGroups.includes(child))
-          ? rowIndex
-          : lastIndex
-      ), -1);
-      const lastControlRow = ["one", "two", "three"][lastControlRowIndex];
-      if (lastControlRow) toolbar.dataset.hexToolbarLastControlRow = lastControlRow;
-      else delete toolbar.dataset.hexToolbarLastControlRow;
-      toolbar.dataset.hexToolbarControlsWrapped = String(lastControlRowIndex > 0);
-
-      if (lastControlRowIndex === 0) {
-        const viewInteractiveControl = toolbar.querySelector(
-          ".toolbar-control-group--view .segmented--view",
-        );
-        const rowRect = rowOne.getBoundingClientRect();
-        const controlRect = viewInteractiveControl?.getBoundingClientRect();
-        if (controlRect && rowRect.width > 0) {
-          const sharedSearchStart = Math.max(0, controlRect.left - rowRect.left);
-          toolbar.style.setProperty(
-            "--hex-toolbar-shared-search-start",
-            `${sharedSearchStart}px`,
-          );
-        }
-      }
-
-      if (pageMode.getMode() === "map" && activeSearch && toolbarSearchRow) {
-        toolbarSearchRow.appendChild(activeSearch);
-        toolbar.dataset.hexToolbarSearchActive = "true";
-      } else {
-        restoreNode(activeSearch);
-        delete toolbar.dataset.hexToolbarSearchActive;
-      }
-    });
-  }
-
-  function restoreDistributedControls() {
-    clearTabletSearchPlacement();
+  function restoreMainToolbarControls() {
     if (toolbar) {
-      delete toolbar.dataset.hexToolbarControlsWrapped;
-      delete toolbar.dataset.hexToolbarLastControlRow;
       delete toolbar.dataset.hexToolbarSearchActive;
-      toolbar.style.removeProperty("--hex-toolbar-shared-search-start");
     }
-    relocationNodes.forEach(restoreNode);
+    mainToolbarRelocationNodes.forEach(restoreNode);
     Object.values(networkAnchors).forEach(restoreNode);
+  }
+
+  function restoreSensorListControls() {
+    sensorListRelocationNodes.forEach(restoreNode);
+  }
+
+  function sensorListPresentation(mapKey) {
+    if (mobileLayoutQuery?.matches) {
+      return pageMode.getMode() === "chart" ? "narrow-chart" : "narrow-map";
+    }
+    if (isCompactSensorList(mapKey)) {
+      return pageMode.getMode() === "chart" ? "compact-chart" : "compact-map";
+    }
+    return pageMode.getMode() === "chart" ? "full-chart" : "full-map";
+  }
+
+  function syncSensorListSpecificPresentation(mapKey, options = {}) {
+    const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
+    const presentation = sensorListPresentation(normalizedMapKey);
+    if (!options.force && sensorListPresentationByMap[normalizedMapKey] === presentation) {
+      return false;
+    }
+
+    restoreSensorListControls();
+    Object.values(mobileSensorListMounts).forEach((candidate) => {
+      if (!candidate?.toolbar) return;
+      candidate.toolbar.hidden = true;
+      setSensorListToolbarPresentation(candidate.toolbar, null);
+    });
+
+    const mounts = mobileSensorListMounts[normalizedMapKey];
+    const controls = mobileSensorListControls[normalizedMapKey];
+    const compactOrNarrow = presentation.startsWith("compact-") || presentation.startsWith("narrow-");
+    if (compactOrNarrow && mounts?.toolbar && mounts?.sort) {
+      if (presentation.endsWith("chart") && controls?.select && mounts.select) {
+        mounts.select.appendChild(controls.select);
+      }
+      if (controls?.sort) mounts.sort.appendChild(controls.sort);
+      setSensorListToolbarPresentation(mounts.toolbar, presentation);
+      mounts.toolbar.hidden = false;
+    }
+
+    if (toolbar) toolbar.dataset.hexSensorListPresentation = presentation;
+    notifySensorListPresentation(normalizedMapKey, presentation);
+    return true;
+  }
+
+  function syncDesktopMainToolbarPresentation(mapKey) {
+    const normalizedMapKey = mapKey === "cr" ? "cr" : "uk";
+    restoreMainToolbarControls();
+    const activeNetworkAnchor = networkAnchors[normalizedMapKey];
+    if (activeNetworkAnchor && toolbarNetworksSlot
+        && activeNetworkAnchor.parentElement !== toolbarNetworksSlot) {
+      toolbarNetworksSlot.appendChild(activeNetworkAnchor);
+    }
+    const activeSearch = mapSearches[normalizedMapKey];
+    if (pageMode.getMode() === "map" && activeSearch && toolbarSearchRow) {
+      toolbarSearchRow.appendChild(activeSearch);
+      toolbar.dataset.hexToolbarSearchActive = "true";
+    }
   }
 
   function renderMobileViewAccessibility(mapKey, mobileMapMode) {
@@ -528,18 +435,12 @@ function initHexMapToolbarController(root) {
     const normalizedMapKey = chartMapKey === "cr" || (chartMapKey !== "uk" && mapKey === "cr") ? "cr" : "uk";
     const mobileMapMode = isMobileMapMode();
     const mobileChartMode = isMobileChartMode();
-    const compactSensorList = isCompactSensorList(normalizedMapKey);
     const mounts = mobileMounts[normalizedMapKey];
     const chartMounts = mobileChartMounts[normalizedMapKey];
-    const sensorListMounts = mobileSensorListMounts[normalizedMapKey];
-    const sensorListControls = mobileSensorListControls[normalizedMapKey];
 
-    if (mobileChartMode && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
+    if (mobileChartMode && chartMounts?.network && chartMounts?.pollutant && chartMounts?.range && chartMounts?.panel) {
       const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
-      restoreDistributedControls();
-      Object.values(mobileSensorListMounts).forEach((candidate) => {
-        if (candidate?.toolbar) candidate.toolbar.hidden = true;
-      });
+      restoreMainToolbarControls();
       relocateStatusRefreshForMap(normalizedMapKey);
       restoreNode(networkAnchors[inactiveMapKey]);
       const activeNetworkAnchor = networkAnchors[normalizedMapKey];
@@ -552,15 +453,7 @@ function initHexMapToolbarController(root) {
       if (chartRangeToolbar && chartRangeToolbar.parentElement !== chartMounts.range) {
         chartMounts.range.appendChild(chartRangeToolbar);
       }
-      if (sensorListControls?.select && sensorListControls.select.parentElement !== sensorListMounts.select) {
-        sensorListMounts.select.appendChild(sensorListControls.select);
-      }
-      if (sensorListControls?.sort && sensorListControls.sort.parentElement !== sensorListMounts.sort) {
-        sensorListMounts.sort.appendChild(sensorListControls.sort);
-      }
-      setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-chart");
-      sensorListMounts.toolbar.hidden = false;
-      notifySensorListPresentation(normalizedMapKey, "narrow-chart");
+      syncSensorListSpecificPresentation(normalizedMapKey, { force: true });
       root.document.body.classList.remove("mobile-map-controls-active");
       root.document.body.classList.add("mobile-chart-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
@@ -568,55 +461,22 @@ function initHexMapToolbarController(root) {
       return true;
     }
 
-    if (compactSensorList && sensorListMounts?.toolbar && sensorListMounts?.select && sensorListMounts?.sort) {
-      restoreDistributedControls();
-      Object.values(mobileSensorListMounts).forEach((candidate) => {
-        if (candidate?.toolbar) {
-          candidate.toolbar.hidden = true;
-          setSensorListToolbarPresentation(candidate.toolbar, null);
-        }
-      });
-      if (pageMode.getMode() === "chart" && sensorListControls?.select) {
-        sensorListMounts.select.appendChild(sensorListControls.select);
-      }
-      if (sensorListControls?.sort) {
-        sensorListMounts.sort.appendChild(sensorListControls.sort);
-      }
-      setSensorListToolbarPresentation(sensorListMounts.toolbar, pageMode.getMode() === "chart" ? "compact-chart" : "compact-map");
-      sensorListMounts.toolbar.hidden = false;
-      notifySensorListPresentation(
-        normalizedMapKey,
-        pageMode.getMode() === "chart" ? "compact-chart" : "compact-map",
-      );
-      relocateStatusRefreshForMap(normalizedMapKey);
-      scheduleTabletSearchPlacement(normalizedMapKey);
-      return true;
-    }
-
     root.document.body.classList.remove("mobile-chart-controls-active");
-    Object.values(mobileSensorListMounts).forEach((candidate) => {
-      if (candidate?.toolbar) {
-        candidate.toolbar.hidden = true;
-        setSensorListToolbarPresentation(candidate.toolbar, null);
-      }
-    });
 
     if (!mobileMapMode || !mounts?.left || !mounts?.centre || !mounts?.right || !mounts?.pollutant || !mounts?.region || !mounts?.search || !mounts?.status) {
-      restoreDistributedControls();
+      syncDesktopMainToolbarPresentation(normalizedMapKey);
       Object.values(mobileMounts).forEach((candidate) => {
         candidate.region?.closest(".mobile-map-controls-row--tertiary")?.classList.remove("has-region-control");
       });
       relocateStatusRefreshForMap(normalizedMapKey);
-      scheduleTabletSearchPlacement(normalizedMapKey);
+      syncSensorListSpecificPresentation(normalizedMapKey, { force: true });
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
       networkController?.syncPanelForActiveScope?.();
-      if (!mobileLayoutQuery?.matches) {
-        notifySensorListPresentation(normalizedMapKey, pageMode.getMode() === "chart" ? "full-chart" : "full-map");
-      }
       return false;
     }
 
+    restoreMainToolbarControls();
     const inactiveMapKey = normalizedMapKey === "uk" ? "cr" : "uk";
     restoreNode(networkAnchors[inactiveMapKey]);
     restoreNode(mapSearches[inactiveMapKey]);
@@ -636,13 +496,7 @@ function initHexMapToolbarController(root) {
     if (pollutantSelector && pollutantSelector.parentElement !== mounts.pollutant) {
       mounts.pollutant.appendChild(pollutantSelector);
     }
-    restoreNode(sensorListControls?.sort);
-    if (sensorListControls?.sort && sensorListMounts?.sort) {
-      sensorListMounts.sort.appendChild(sensorListControls.sort);
-      setSensorListToolbarPresentation(sensorListMounts.toolbar, "narrow-map");
-      sensorListMounts.toolbar.hidden = false;
-    }
-    notifySensorListPresentation(normalizedMapKey, "narrow-map");
+    syncSensorListSpecificPresentation(normalizedMapKey, { force: true });
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
     networkController?.syncPanelForActiveScope?.();
@@ -731,12 +585,10 @@ function initHexMapToolbarController(root) {
     root.addEventListener("mapsettingschange", (event) => {
       if (event.detail?.window) {
         renderWindowStepper();
-        scheduleTabletSearchPlacement(coordinator.getActiveMap());
       }
     });
     root.addEventListener("crregionchange", () => {
       renderRegion();
-      scheduleTabletSearchPlacement(coordinator.getActiveMap());
     });
     root.addEventListener("hexpagemodechange", () => {
       syncResponsivePresentation(coordinator.getActiveMap());
@@ -755,14 +607,6 @@ function initHexMapToolbarController(root) {
       }
     }
 
-    root.addEventListener("resize", () => {
-      if (mobileLayoutQuery?.matches) return;
-      scheduleTabletSearchPlacement(coordinator.getActiveMap());
-    });
-    root.document.fonts?.ready?.then(() => {
-      if (!mobileLayoutQuery?.matches) scheduleTabletSearchPlacement(coordinator.getActiveMap());
-    });
-
     if (typeof root.ResizeObserver === "function") {
       let sensorListResizeQueued = false;
       const sensorListResizeObserver = new root.ResizeObserver(() => {
@@ -770,26 +614,13 @@ function initHexMapToolbarController(root) {
         sensorListResizeQueued = true;
         root.requestAnimationFrame(() => {
           sensorListResizeQueued = false;
-          syncResponsivePresentation(coordinator.getActiveMap());
+          syncSensorListSpecificPresentation(coordinator.getActiveMap());
         });
       });
       [panelUk, panelCr].forEach((panel) => {
         const tableWrap = panel?.querySelector(".sensor-table-wrap");
         if (tableWrap) sensorListResizeObserver.observe(tableWrap);
       });
-
-      let toolbarLayoutResizeQueued = false;
-      const toolbarLayoutResizeObserver = new root.ResizeObserver(() => {
-        if (toolbarLayoutResizeQueued || mobileLayoutQuery?.matches) return;
-        toolbarLayoutResizeQueued = true;
-        root.requestAnimationFrame(() => {
-          toolbarLayoutResizeQueued = false;
-          scheduleTabletSearchPlacement(coordinator.getActiveMap());
-        });
-      });
-      [toolbar?.querySelector(".toolbar-status-actions"), toolbarNetworksSlot]
-        .filter(Boolean)
-        .forEach((target) => toolbarLayoutResizeObserver.observe(target));
     }
 
     if (reduceMotionQuery) {

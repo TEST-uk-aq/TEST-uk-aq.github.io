@@ -2927,7 +2927,7 @@
         .tooltip-table {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 72px 96px;
-          column-gap: 8px;
+          column-gap: 4px;
           row-gap: 6px;
           margin-top: 10px;
           align-items: start;
@@ -3720,12 +3720,11 @@
       @media (min-width: 768px) {
         .toolbar {
           --hex-toolbar-row-gap: 8px;
-          --hex-toolbar-shared-search-start: 0px;
+          container: hex-main-toolbar / inline-size;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) max-content;
-          grid-template-rows: none;
+          grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
           grid-auto-rows: max-content;
-          column-gap: 12px;
+          column-gap: 4px;
           row-gap: var(--hex-toolbar-row-gap);
           align-items: start;
         }
@@ -3735,11 +3734,7 @@
         }
 
         .toolbar-control-row {
-          display: flex;
           min-width: 0;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: nowrap;
         }
 
         .toolbar-search-row:empty,
@@ -3748,19 +3743,12 @@
         }
 
         .toolbar-control-row--one {
-          grid-column: 1;
-          grid-row: 1;
+          display: contents;
         }
 
-        .toolbar-control-row--two {
-          grid-column: 1;
-          grid-row: 2;
-        }
-
+        .toolbar-control-row--two,
         .toolbar-control-row--three {
-          grid-column: 1 / -1;
-          grid-row: 3;
-          flex-wrap: wrap;
+          display: none;
         }
 
         .toolbar-control-group {
@@ -3773,6 +3761,16 @@
 
         .toolbar-control-group--view {
           gap: 8px;
+          width: 392px;
+          max-width: 100%;
+          min-width: 0;
+          flex-wrap: wrap;
+          grid-column: 1 / 4;
+          grid-row: 1;
+        }
+
+        .toolbar-control-group--view #toolbar-region-section.visible {
+          flex: 1 0 100%;
         }
 
         body.hex-chart-mode .toolbar-control-group--view,
@@ -3784,12 +3782,43 @@
           display: inline-flex;
         }
 
+        .toolbar .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 2;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+        }
+
+        .toolbar #window-stepper {
+          grid-column: 2;
+          grid-row: 2;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+        }
+
+        body.hex-chart-mode .toolbar .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar #window-stepper {
+          grid-column: 2;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
+          grid-column: 1 / 3;
+          grid-row: 2;
+        }
+
         .toolbar-right {
           display: contents;
         }
 
         .toolbar-status-actions {
-          grid-column: 2;
+          grid-column: 5;
           grid-row: 1;
           display: inline-flex;
           align-items: center;
@@ -3808,7 +3837,7 @@
         }
 
         .toolbar-networks-slot {
-          grid-column: 2;
+          grid-column: 5;
           grid-row: 2;
           display: flex;
           justify-content: flex-end;
@@ -3822,27 +3851,9 @@
 
         .toolbar-search-row {
           grid-column: 1 / -1;
-          grid-row: 4;
+          grid-row: 3;
           display: flex;
           min-width: 0;
-        }
-
-        .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-search-row {
-          grid-column: 1;
-          grid-row: 2;
-          margin-left: var(--hex-toolbar-shared-search-start);
-          margin-right: 8px;
-        }
-
-        .toolbar[data-hex-toolbar-last-control-row="two"] .toolbar-search-row {
-          grid-column: 1 / -1;
-          grid-row: 3;
-        }
-
-        .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-control-row--two,
-        .toolbar[data-hex-toolbar-last-control-row="one"] .toolbar-control-row--three,
-        .toolbar[data-hex-toolbar-last-control-row="two"] .toolbar-control-row--three {
-          display: none;
         }
 
         .toolbar-search-row .map-search {
@@ -3850,6 +3861,98 @@
           inset: auto;
           width: 100%;
           max-width: 1100px;
+        }
+
+        /* The measured chart controls need 1039.45px including the reserved
+           right side. 1048px retains an 8px tolerance against fractional
+           pixel chatter and switches only between these two CSS states. */
+        @container hex-main-toolbar (min-width: 1048px) {
+          body.hex-chart-mode .toolbar .pollutant-control-group,
+          body.hex-chart-mode .toolbar #window-stepper {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+          }
+
+          body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
+            grid-column: 3;
+            grid-row: 1;
+          }
+        }
+
+        /* Map mode uses the same stable source order. The wider C&R context
+           needs more space than UK before all three left groups share row 1. */
+        @container hex-main-toolbar (min-width: 1162px) {
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-control-group--view {
+            width: auto;
+            max-width: none;
+            flex-wrap: nowrap;
+            grid-column: 1;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group,
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) #window-stepper {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) #window-stepper {
+            grid-column: 3;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-search-row {
+            grid-column: 1 / 5;
+            grid-row: 2;
+          }
+        }
+
+        @container hex-main-toolbar (min-width: 1341px) {
+          body:not(.hex-chart-mode) .toolbar .toolbar-control-group--view {
+            width: auto;
+            max-width: none;
+            flex-wrap: nowrap;
+            grid-column: 1;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .toolbar-control-group--view #toolbar-region-section.visible {
+            flex: 0 1 auto;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group,
+          body:not(.hex-chart-mode) .toolbar #window-stepper {
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar #window-stepper {
+            grid-column: 3;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
+            grid-column: 1 / 5;
+            grid-row: 2;
+          }
+        }
+
+        .toolbar[data-hex-sensor-list-presentation="compact-map"] .toolbar-search-row {
+          grid-column: 1 / -1;
+          grid-row: 3;
         }
       }
 
@@ -4776,8 +4879,11 @@
 
       @media (min-width: 768px) {
         .toolbar {
+          container: hex-main-toolbar / inline-size;
+          grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
           grid-template-rows: none;
           grid-auto-rows: max-content;
+          column-gap: 4px;
           padding-inline: 8px;
         }
 
@@ -5540,12 +5646,14 @@
         --hex-chart-chip-min-width: 310px;
         --hex-chart-chip-max-width: 340px;
         --hex-chart-chip-slot-gap: 8px;
+        --hex-chart-normal-sensor-name-lines: 7;
+        --hex-chart-panel-top-spacing: 8px;
         position: absolute;
         inset: 0 0 var(--sensor-panel-height, 240px) 0;
         z-index: 12;
         display: none;
         min-height: 0;
-        padding: var(--hex-chart-networks-clearance) 18px 14px;
+        padding: var(--hex-chart-panel-top-spacing) 18px 14px;
         background: var(--map-wrap);
         color: var(--ink);
         overflow: hidden;
@@ -5553,10 +5661,10 @@
       }
 
       .map-canvas-wrap.chart-mode {
-        --hex-chart-networks-clearance: 52px;
+        --hex-chart-retained-height-budget: 52px;
         min-height: calc(
           var(--map-canvas-min-height, 700px)
-          + var(--hex-chart-networks-clearance, 52px)
+          + var(--hex-chart-retained-height-budget)
           + var(--hex-chart-summary-extra-height, 0px)
         );
       }
@@ -5729,6 +5837,7 @@
         .hex-chart-selected-sensors--two-line .hex-chart-chip-name {
           display: block;
           grid-area: name;
+          min-block-size: calc(var(--hex-chart-normal-sensor-name-lines) * 1.18em);
           line-height: 1.18;
           white-space: normal;
           overflow-wrap: anywhere;
