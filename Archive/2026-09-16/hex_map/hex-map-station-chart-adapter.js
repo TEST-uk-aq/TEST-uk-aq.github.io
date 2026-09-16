@@ -190,6 +190,9 @@
 
     const backButtons = Array.from(root.document.querySelectorAll("[data-chart-back-to-map]"));
     const rangeSelect = root.document.getElementById("hex-chart-window-toolbar");
+    const mobileLayoutQuery = typeof root.matchMedia === "function"
+      ? root.matchMedia("(max-width: 768px)")
+      : null;
     const narrowChipLayoutQuery = typeof root.matchMedia === "function"
       ? root.matchMedia("(max-width: 767px)")
       : null;
@@ -245,6 +248,25 @@
         : (render(), null);
     }
 
+    function legacyMobileChipFit(chips) {
+      return chips.length > 0 && chips.every((chip) => {
+        const style = root.getComputedStyle(chip);
+        const columnGap = Number.parseFloat(style.columnGap) || 0;
+        const elements = [
+          chip.querySelector(".hex-chart-chip-symbol"),
+          chip.querySelector(".hex-chart-chip-label"),
+          chip.querySelector(".hex-chart-chip-value"),
+          chip.querySelector(".hex-chart-chip-time"),
+        ];
+        if (elements.some((element) => !element)) return false;
+        const rects = elements.map((element) => element.getBoundingClientRect());
+        const orderedWithoutOverlap = rects.every((rect, index) => (
+          index === 0 || rects[index - 1].right + columnGap <= rect.left + 1
+        ));
+        return chip.scrollWidth <= chip.clientWidth + 1 && orderedWithoutOverlap;
+      });
+    }
+
     function narrowChipOneLineGeometryFits(chip) {
       const style = root.getComputedStyle(chip);
       const columnGap = Number.parseFloat(style.columnGap) || 0;
@@ -295,20 +317,29 @@
         const allFit = narrowChipOneLineFits(chips);
         reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
         reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
+      } else if (mobileLayoutQuery?.matches) {
+        reading.classList.add("hex-chart-selected-sensors--one-line");
+        const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
+        const allFit = legacyMobileChipFit(chips);
+        reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
+        reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
       } else {
-        reading.classList.add("hex-chart-selected-sensors--two-line");
+        networks.forEach((network) => {
+          const label = network.closest(".hex-chart-chip-label");
+          const name = label?.querySelector(".hex-chart-chip-name");
+          const nameRects = name ? Array.from(name.getClientRects()) : [];
+          const networkRect = network.getClientRects()[0];
+          const finalNameRect = nameRects[nameRects.length - 1];
+          if (networkRect && finalNameRect && networkRect.top > finalNameRect.top + 1) {
+            network.classList.add("hex-chart-chip-network--own-line");
+          }
+        });
       }
       const canvas = reading.closest(".map-canvas-wrap");
       const firstChip = reading.querySelector(".hex-chart-selected-sensor-chip");
-      const chipMinHeight = firstChip && typeof root.getComputedStyle === "function"
+      const baseRowHeight = firstChip && typeof root.getComputedStyle === "function"
         ? Number.parseFloat(root.getComputedStyle(firstChip).minHeight) || 0
         : 0;
-      const desktopBaseRowHeight = typeof root.getComputedStyle === "function"
-        ? Number.parseFloat(root.getComputedStyle(reading).getPropertyValue("--hex-chart-summary-base-row-height")) || 0
-        : 0;
-      const baseRowHeight = narrowChipLayoutQuery?.matches
-        ? chipMinHeight
-        : desktopBaseRowHeight || chipMinHeight;
       const extraHeight = Math.max(0, Math.ceil(reading.getBoundingClientRect().height - baseRowHeight));
       canvas?.style.setProperty("--hex-chart-summary-extra-height", `${extraHeight}px`);
     }
@@ -698,6 +729,14 @@
         scheduleChipNetworkIdentity();
       }
     });
+    if (mobileLayoutQuery) {
+      const handleMobileLayoutChange = () => scheduleChipNetworkIdentity();
+      if (typeof mobileLayoutQuery.addEventListener === "function") {
+        mobileLayoutQuery.addEventListener("change", handleMobileLayoutChange);
+      } else if (typeof mobileLayoutQuery.addListener === "function") {
+        mobileLayoutQuery.addListener(handleMobileLayoutChange);
+      }
+    }
     if (narrowChipLayoutQuery) {
       const handleNarrowChipLayoutChange = () => scheduleChipNetworkIdentity();
       if (typeof narrowChipLayoutQuery.addEventListener === "function") {
