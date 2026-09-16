@@ -2927,7 +2927,7 @@
         .tooltip-table {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 72px 96px;
-          column-gap: 4px;
+          column-gap: 8px;
           row-gap: 6px;
           margin-top: 10px;
           align-items: start;
