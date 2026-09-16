@@ -4913,6 +4913,16 @@
         z-index: 280;
       }
 
+      @media (min-width: 768px) and (max-width: 980px) {
+        .toolbar-search-row .map-search-results {
+          --search-result-grid: 90px minmax(0, 1fr) minmax(190px, 34%);
+          box-sizing: border-box;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+      }
+
       .map-floating-tools {
         left: 12px;
         top: auto;
