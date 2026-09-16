@@ -5643,8 +5643,8 @@
 
       .hex-chart-mode-panel {
         --hex-chart-summary-base-row-height: 42px;
-        --hex-chart-chip-min-width: 408px;
-        --hex-chart-chip-max-width: 480px;
+        --hex-chart-chip-min-width: 310px;
+        --hex-chart-chip-max-width: 340px;
         --hex-chart-chip-slot-gap: 8px;
         --hex-chart-normal-sensor-name-lines: 3;
         --hex-chart-panel-top-spacing: 8px;
@@ -5873,8 +5873,8 @@
           align-self: end;
         }
 
-        /* Slot thresholds are N * 408px plus (N - 1) * 8px gaps. */
-        @container hex-chart-panel (min-width: 824px) {
+        /* Slot thresholds are N * 310px plus (N - 1) * 8px gaps. */
+        @container hex-chart-panel (min-width: 628px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
@@ -5893,7 +5893,7 @@
           }
         }
 
-        @container hex-chart-panel (min-width: 1240px) {
+        @container hex-chart-panel (min-width: 946px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
@@ -5916,7 +5916,7 @@
           }
         }
 
-        @container hex-chart-panel (min-width: 1656px) {
+        @container hex-chart-panel (min-width: 1264px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
