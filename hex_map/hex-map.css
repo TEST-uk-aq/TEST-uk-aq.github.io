@@ -3795,9 +3795,13 @@
           gap: 8px;
         }
 
-        .toolbar-status-slot .status-pill {
+        .toolbar-status-slot {
           min-width: 99px;
-          justify-content: center;
+          justify-content: flex-end;
+        }
+
+        .toolbar-status-slot .status-pill {
+          min-width: 0;
         }
 
         .toolbar-networks-slot {
