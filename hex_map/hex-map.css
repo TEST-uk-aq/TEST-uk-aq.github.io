@@ -5643,10 +5643,10 @@
 
       .hex-chart-mode-panel {
         --hex-chart-summary-base-row-height: 42px;
-        --hex-chart-chip-min-width: 310px;
-        --hex-chart-chip-max-width: 340px;
+        --hex-chart-chip-min-width: 408px;
+        --hex-chart-chip-max-width: 480px;
         --hex-chart-chip-slot-gap: 8px;
-        --hex-chart-normal-sensor-name-lines: 7;
+        --hex-chart-normal-sensor-name-lines: 3;
         --hex-chart-panel-top-spacing: 8px;
         position: absolute;
         inset: 0 0 var(--sensor-panel-height, 240px) 0;
@@ -5824,6 +5824,7 @@
             "symbol network time";
           column-gap: 6px;
           row-gap: 3px;
+          align-items: start;
         }
 
         .hex-chart-selected-sensors--two-line .hex-chart-chip-symbol {
@@ -5837,10 +5838,14 @@
         .hex-chart-selected-sensors--two-line .hex-chart-chip-name {
           display: block;
           grid-area: name;
-          min-block-size: calc(var(--hex-chart-normal-sensor-name-lines) * 1.18em);
+          min-block-size: calc(var(--hex-chart-normal-sensor-name-lines) * 1.18em + 1px);
           line-height: 1.18;
           white-space: normal;
           overflow-wrap: anywhere;
+        }
+
+        .hex-chart-selected-sensors--two-line .hex-chart-chip-value {
+          align-self: start;
         }
 
         .hex-chart-selected-sensors--two-line .hex-chart-chip-network {
@@ -5849,6 +5854,7 @@
           min-width: 0;
           line-height: 1.18;
           white-space: nowrap;
+          align-self: end;
         }
 
         .hex-chart-selected-sensors--two-line .hex-chart-chip-network::before {
@@ -5863,7 +5869,12 @@
           text-align: left;
         }
 
-        @container hex-chart-panel (min-width: 628px) {
+        .hex-chart-selected-sensors--two-line .hex-chart-chip-time {
+          align-self: end;
+        }
+
+        /* Slot thresholds are N * 408px plus (N - 1) * 8px gaps. */
+        @container hex-chart-panel (min-width: 824px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
@@ -5882,7 +5893,7 @@
           }
         }
 
-        @container hex-chart-panel (min-width: 946px) {
+        @container hex-chart-panel (min-width: 1240px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
@@ -5905,7 +5916,7 @@
           }
         }
 
-        @container hex-chart-panel (min-width: 1264px) {
+        @container hex-chart-panel (min-width: 1656px) {
           .hex-chart-selected-sensors {
             width: min(
               100%,
