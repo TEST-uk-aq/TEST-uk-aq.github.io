@@ -4913,7 +4913,7 @@
         z-index: 280;
       }
 
-      @media (min-width: 768px) and (max-width: 980px) {
+      @media (min-width: 768px) {
         .toolbar-search-row .map-search-results {
           --search-result-grid: 90px minmax(0, 1fr) minmax(190px, 34%);
           box-sizing: border-box;
