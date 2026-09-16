@@ -1593,6 +1593,9 @@
       }
 
       .map-inline-sensor-panel-body .details-empty {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
         padding: 16px;
         color: var(--ink-soft);
         font-size: 0.9rem;
