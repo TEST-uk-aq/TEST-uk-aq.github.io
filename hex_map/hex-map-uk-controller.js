@@ -2481,18 +2481,19 @@ function initHexMapUkController(root) {
           return;
         }
         const count = Math.max(0, Number(sensorCount) || 0);
+        const panelBorderHeight = inlinePanel
+          ? Math.max(0, inlinePanel.offsetHeight - inlinePanel.clientHeight)
+          : 0;
+        const measuredHeaderHeight = inlinePanelHeader?.getBoundingClientRect().height || 0;
+        const emptyHeight = detailsEmpty && !detailsEmpty.hidden
+          ? detailsEmpty.getBoundingClientRect().height
+          : 0;
 
         if (mobileTooltipQuery?.matches) {
           detailsTableWrap?.style.removeProperty("max-height");
           detailsTableWrap?.style.removeProperty("overflow-y");
 
-          const panelBorderHeight = inlinePanel
-            ? Math.max(0, inlinePanel.offsetHeight - inlinePanel.clientHeight)
-            : 0;
-          const headerHeight = inlinePanelHeader?.getBoundingClientRect().height || 0;
-          const emptyHeight = detailsEmpty && !detailsEmpty.hidden
-            ? detailsEmpty.getBoundingClientRect().height
-            : 0;
+          const headerHeight = measuredHeaderHeight;
           const tableHeaderHeight = detailsTableHead?.getBoundingClientRect().height || 0;
           const mobileToolbarHeight = mobileSensorListToolbar && !mobileSensorListToolbar.hidden
             ? mobileSensorListToolbar.getBoundingClientRect().height
@@ -2543,14 +2544,17 @@ function initHexMapUkController(root) {
         const tableWrapMaxHeight = tableHeaderHeight + visibleRowsHeight;
         const headerHeight = Math.max(
           SENSOR_PANEL_HEADER_HEIGHT,
-          Math.ceil(inlinePanelHeader?.getBoundingClientRect().height || 0)
+          Math.ceil(measuredHeaderHeight)
         );
         const panelHeight = count
           ? headerHeight
             + sensorListToolbarHeight
             + tableHeaderHeight
             + visibleRowsHeight
-          : SENSOR_PANEL_EMPTY_HEIGHT;
+          : Math.max(
+              SENSOR_PANEL_EMPTY_HEIGHT,
+              Math.ceil(panelBorderHeight + headerHeight + emptyHeight)
+            );
         mapCanvasWrap.style.setProperty("--sensor-panel-height", `${panelHeight}px`);
         if (inlinePanelBody) {
           inlinePanelBody.classList.toggle("is-scroll-forced", hasOverflowByCount);
@@ -2569,6 +2573,15 @@ function initHexMapUkController(root) {
       function refreshInlinePanelGeometry() {
         updateInlinePanelHeight(detailsTableBody?.querySelectorAll("tr:not(.sensor-row-divider)").length || 0);
         updateSelectedHexViewportShift();
+      }
+
+      if (inlinePanelHeader && typeof ResizeObserver !== "undefined") {
+        const inlinePanelHeaderObserver = new ResizeObserver(() => {
+          if (detailsEmpty && !detailsEmpty.hidden) {
+            refreshInlinePanelGeometry();
+          }
+        });
+        inlinePanelHeaderObserver.observe(inlinePanelHeader);
       }
 
       function updateDetailsPanel() {
