@@ -46,6 +46,9 @@ function initHexMapToolbarController(root) {
   const popoverWrap = root.document.getElementById("toolbar-popover-wrap");
   const pollutantSelector = root.document.getElementById("pollutant-selector");
   const windowStepper = root.document.getElementById("window-stepper");
+  const toolbarViewGroup = toolbar?.querySelector(".toolbar-control-group--view") || null;
+  const pollutantGroup = toolbar?.querySelector(".pollutant-control-group") || null;
+  const toolbarStatusActions = toolbar?.querySelector(".toolbar-status-actions") || null;
   const windowStepperPrev = windowStepper?.querySelector("[data-window-step='prev']");
   const windowStepperNext = windowStepper?.querySelector("[data-window-step='next']");
   const windowStepperValueBox = windowStepper?.querySelector(".window-stepper-value-box");
@@ -67,6 +70,8 @@ function initHexMapToolbarController(root) {
     ? root.matchMedia("(max-width: 767px)")
     : null;
   const SENSOR_TABLE_COMPACT_WIDTH = 860;
+  const TOOLBAR_LAYOUT_PROMOTION_MARGIN = 8;
+  const TOOLBAR_LAYOUT_HOLD_MARGIN = 4;
   const mobileMounts = {
     uk: {
       left: panelUk?.querySelector("[data-mobile-map-controls-left]") || null,
@@ -158,6 +163,7 @@ function initHexMapToolbarController(root) {
   let prefersReducedMotion = Boolean(reduceMotionQuery?.matches);
   let windowStepperKey = null;
   let windowStepperTimer = null;
+  let toolbarLayoutFrame = null;
   const sensorListPresentationByMap = { uk: null, cr: null };
 
   function normalizeWindowKey(value) {
@@ -321,6 +327,169 @@ function initHexMapToolbarController(root) {
     sensorListRelocationNodes.forEach(restoreNode);
   }
 
+  function toolbarCssPixels(name, fallback) {
+    if (!toolbar) return fallback;
+    const value = Number.parseFloat(root.getComputedStyle(toolbar).getPropertyValue(name));
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function writeToolbarWidthVariable(name, value) {
+    if (!toolbar || !Number.isFinite(value) || value <= 0) return;
+    toolbar.style.setProperty(name, `${value.toFixed(2)}px`);
+  }
+
+  function measureToolbarGeometry() {
+    if (!toolbar || !pollutantGroup || !windowStepper || !toolbarStatusActions) return null;
+
+    const readWidth = (element) => element?.getBoundingClientRect().width || 0;
+    toolbar.classList.add("hex-toolbar-measuring");
+    const viewWidth = readWidth(toolbarViewGroup);
+    const pollutantWidth = readWidth(pollutantGroup);
+    const windowWidth = readWidth(windowStepper);
+    const chartRangeWidth = readWidth(chartRangeToolbar);
+    const statusWidth = readWidth(toolbarStatusActions);
+    const networksWidth = pageMode.getMode() === "map" ? readWidth(toolbarNetworksSlot) : 0;
+
+    toolbar.classList.add("hex-toolbar-measuring-wide-view");
+    const viewWideWidth = readWidth(toolbarViewGroup) || viewWidth;
+    toolbar.classList.remove("hex-toolbar-measuring-wide-view");
+    toolbar.classList.remove("hex-toolbar-measuring");
+
+    writeToolbarWidthVariable("--hex-toolbar-view-width", viewWidth);
+    writeToolbarWidthVariable("--hex-toolbar-view-wide-width", viewWideWidth);
+    writeToolbarWidthVariable("--hex-toolbar-pollutant-width", pollutantWidth);
+    writeToolbarWidthVariable("--hex-toolbar-window-width", windowWidth);
+    writeToolbarWidthVariable("--hex-toolbar-chart-range-width", chartRangeWidth);
+
+    return {
+      viewWidth,
+      viewWideWidth,
+      pollutantWidth,
+      windowWidth,
+      chartRangeWidth,
+      statusWidth,
+      networksWidth,
+      availableWidth: toolbar.getBoundingClientRect().width,
+      columnGap: toolbarCssPixels("--hex-toolbar-column-gap", 4),
+      dividerSpace: toolbarCssPixels("--hex-toolbar-divider-space", 12),
+    };
+  }
+
+  function toolbarLayoutRequirements(mode, geometry) {
+    const gap = geometry.columnGap;
+    const divider = geometry.dividerSpace;
+    if (mode === "chart") {
+      return {
+        "chart-wide":
+          geometry.pollutantWidth
+          + geometry.windowWidth
+          + geometry.chartRangeWidth
+          + geometry.statusWidth
+          + (2 * divider)
+          + (4 * gap),
+        "chart-compact": Math.max(
+          geometry.pollutantWidth
+            + geometry.windowWidth
+            + geometry.statusWidth
+            + divider
+            + (3 * gap),
+          geometry.chartRangeWidth,
+        ),
+        "chart-narrow": Math.max(
+          geometry.pollutantWidth + geometry.statusWidth + gap,
+          geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
+        ),
+      };
+    }
+
+    return {
+      "map-wide":
+        geometry.viewWideWidth
+        + geometry.pollutantWidth
+        + geometry.windowWidth
+        + geometry.statusWidth
+        + (2 * divider)
+        + (4 * gap),
+      "map-compact": Math.max(
+        geometry.viewWidth
+          + geometry.pollutantWidth
+          + geometry.statusWidth
+          + divider
+          + (3 * gap),
+        geometry.windowWidth + geometry.networksWidth + gap,
+      ),
+      "map-intermediate": Math.max(
+        geometry.viewWidth + geometry.statusWidth + gap,
+        geometry.pollutantWidth
+          + geometry.windowWidth
+          + geometry.networksWidth
+          + divider
+          + (3 * gap),
+      ),
+    };
+  }
+
+  function chooseToolbarLayout(mode, geometry) {
+    const states = mode === "chart"
+      ? ["chart-wide", "chart-compact", "chart-narrow"]
+      : ["map-wide", "map-compact", "map-intermediate", "map-narrow"];
+    const requirements = toolbarLayoutRequirements(mode, geometry);
+    const current = toolbar?.dataset.toolbarLayout || "";
+    const currentIndex = states.indexOf(current);
+
+    for (let index = 0; index < states.length - 1; index += 1) {
+      const state = states[index];
+      let required = requirements[state];
+      if (!Number.isFinite(required)) continue;
+
+      if (currentIndex < 0 || index < currentIndex) {
+        required += TOOLBAR_LAYOUT_PROMOTION_MARGIN;
+      } else if (index === currentIndex) {
+        required -= TOOLBAR_LAYOUT_HOLD_MARGIN;
+      }
+
+      if (geometry.availableWidth >= required) return state;
+    }
+    return states[states.length - 1];
+  }
+
+  function clearToolbarLayoutState() {
+    if (toolbarLayoutFrame !== null) {
+      root.cancelAnimationFrame(toolbarLayoutFrame);
+      toolbarLayoutFrame = null;
+    }
+    if (!toolbar) return;
+    toolbar.classList.remove("hex-toolbar-measuring", "hex-toolbar-measuring-wide-view");
+    delete toolbar.dataset.toolbarLayout;
+  }
+
+  function syncToolbarLayoutState() {
+    if (!toolbar || mobileLayoutQuery?.matches) {
+      clearToolbarLayoutState();
+      return null;
+    }
+    const geometry = measureToolbarGeometry();
+    if (!geometry) return null;
+    const mode = pageMode.getMode() === "chart" ? "chart" : "map";
+    const nextLayout = chooseToolbarLayout(mode, geometry);
+    if (toolbar.dataset.toolbarLayout !== nextLayout) {
+      toolbar.dataset.toolbarLayout = nextLayout;
+    }
+    return nextLayout;
+  }
+
+  function scheduleToolbarLayout() {
+    if (!toolbar || mobileLayoutQuery?.matches) {
+      clearToolbarLayoutState();
+      return;
+    }
+    if (toolbarLayoutFrame !== null) return;
+    toolbarLayoutFrame = root.requestAnimationFrame(() => {
+      toolbarLayoutFrame = null;
+      syncToolbarLayoutState();
+    });
+  }
+
   function sensorListPresentation(mapKey) {
     if (mobileLayoutQuery?.matches) {
       return pageMode.getMode() === "chart" ? "narrow-chart" : "narrow-map";
@@ -458,6 +627,7 @@ function initHexMapToolbarController(root) {
       root.document.body.classList.add("mobile-chart-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
       networkController?.syncPanelForActiveScope?.();
+      clearToolbarLayoutState();
       return true;
     }
 
@@ -473,6 +643,7 @@ function initHexMapToolbarController(root) {
       root.document.body.classList.remove("mobile-map-controls-active");
       renderMobileViewAccessibility(normalizedMapKey, false);
       networkController?.syncPanelForActiveScope?.();
+      scheduleToolbarLayout();
       return false;
     }
 
@@ -500,6 +671,7 @@ function initHexMapToolbarController(root) {
     root.document.body.classList.add("mobile-map-controls-active");
     renderMobileViewAccessibility(normalizedMapKey, true);
     networkController?.syncPanelForActiveScope?.();
+    clearToolbarLayoutState();
     return true;
   }
 
@@ -585,10 +757,12 @@ function initHexMapToolbarController(root) {
     root.addEventListener("mapsettingschange", (event) => {
       if (event.detail?.window) {
         renderWindowStepper();
+        scheduleToolbarLayout();
       }
     });
     root.addEventListener("crregionchange", () => {
       renderRegion();
+      scheduleToolbarLayout();
     });
     root.addEventListener("hexpagemodechange", () => {
       syncResponsivePresentation(coordinator.getActiveMap());
@@ -620,6 +794,31 @@ function initHexMapToolbarController(root) {
         const tableWrap = panel?.querySelector(".sensor-table-wrap");
         if (tableWrap) sensorListResizeObserver.observe(tableWrap);
       });
+
+      let lastToolbarObservedWidth = null;
+      const toolbarGeometryObserver = new root.ResizeObserver((entries) => {
+        let geometryChanged = false;
+        entries.forEach((entry) => {
+          if (entry.target === toolbar) {
+            const width = entry.contentRect?.width ?? toolbar?.getBoundingClientRect().width ?? 0;
+            if (lastToolbarObservedWidth === null || Math.abs(width - lastToolbarObservedWidth) >= 0.5) {
+              lastToolbarObservedWidth = width;
+              geometryChanged = true;
+            }
+            return;
+          }
+          geometryChanged = true;
+        });
+        if (geometryChanged) scheduleToolbarLayout();
+      });
+      [
+        toolbar,
+        toolbarStatusActions,
+        toolbarNetworksSlot,
+        chartRangeToolbar,
+      ].filter(Boolean).forEach((element) => toolbarGeometryObserver.observe(element));
+    } else {
+      root.addEventListener("resize", scheduleToolbarLayout, { passive: true });
     }
 
     if (reduceMotionQuery) {
@@ -658,6 +857,10 @@ function initHexMapToolbarController(root) {
     renderRegion();
     renderWindowStepper({ force: true });
     syncResponsivePresentation(coordinator.getActiveMap());
+    if (!mobileLayoutQuery?.matches) syncToolbarLayoutState();
+    root.document.fonts?.ready?.then?.(() => {
+      scheduleToolbarLayout();
+    });
     return true;
   }
 

@@ -3731,11 +3731,13 @@
       @media (min-width: 768px) {
         .toolbar {
           --hex-toolbar-row-gap: 8px;
+          --hex-toolbar-column-gap: 4px;
+          --hex-toolbar-divider-space: 12px;
           container: hex-main-toolbar / inline-size;
           display: grid;
           grid-template-columns: max-content minmax(0, 1fr) max-content;
           grid-auto-rows: max-content;
-          column-gap: 4px;
+          column-gap: var(--hex-toolbar-column-gap);
           row-gap: var(--hex-toolbar-row-gap);
           align-items: center;
         }
@@ -3769,6 +3771,7 @@
           min-width: max-content;
           align-items: center;
           align-self: center;
+          justify-self: start;
           gap: 8px;
         }
 
@@ -4138,6 +4141,379 @@
             grid-column: 1 / 5;
             grid-row: 2;
           }
+        }
+
+        /*
+         * Dynamic toolbar fit states.
+         *
+         * The older container-query blocks above remain a no-JS fallback.
+         * When the toolbar controller has selected an explicit fit state,
+         * these later declarations are authoritative.
+         */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"],
+        body.hex-chart-mode .toolbar[data-toolbar-layout^="chart-"] {
+          grid-auto-rows: max-content;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] .toolbar-control-group--view,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] .pollutant-control-group,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] #window-stepper,
+        body.hex-chart-mode .toolbar[data-toolbar-layout^="chart-"] .pollutant-control-group,
+        body.hex-chart-mode .toolbar[data-toolbar-layout^="chart-"] #window-stepper {
+          padding-right: 0;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] .toolbar-control-group--view::after,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] .pollutant-control-group::after,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout^="map-"] #window-stepper::after,
+        body.hex-chart-mode .toolbar[data-toolbar-layout^="chart-"] .pollutant-control-group::after,
+        body.hex-chart-mode .toolbar[data-toolbar-layout^="chart-"] #window-stepper::after {
+          content: none;
+        }
+
+        /*
+         * Map Narrow fallback.
+         * View and Window span the flexible left envelope so their widths do
+         * not inflate the Pollutant track used on row 2.
+         */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] {
+          grid-template-columns:
+            var(--hex-toolbar-pollutant-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-control-group--view {
+          grid-column: 1 / 3;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 2;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] #window-stepper {
+          grid-column: 1 / 3;
+          grid-row: 3;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-status-actions {
+          grid-column: 3;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-networks-slot {
+          grid-column: 3;
+          grid-row: 2;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-search-row {
+          grid-column: 1 / -1;
+          grid-row: 4;
+        }
+
+        /* Map Intermediate: Pollutant | Window share a tightly sized row 2. */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] {
+          grid-template-columns:
+            var(--hex-toolbar-pollutant-width, max-content)
+            var(--hex-toolbar-window-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-control-group--view {
+          grid-column: 1 / 4;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 2;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .pollutant-control-group::after {
+          content: "";
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] #window-stepper {
+          grid-column: 2;
+          grid-row: 2;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-status-actions,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-networks-slot {
+          grid-column: 4;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-search-row {
+          grid-column: 1 / -1;
+          grid-row: 3;
+        }
+
+        /* Map Compact: View | Pollutant share row 1; Window owns row 2 left. */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] {
+          grid-template-columns:
+            var(--hex-toolbar-view-width, max-content)
+            var(--hex-toolbar-pollutant-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-control-group--view {
+          grid-column: 1;
+          grid-row: 1;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-control-group--view::after {
+          content: "";
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .pollutant-control-group {
+          grid-column: 2;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] #window-stepper {
+          grid-column: 1 / 4;
+          grid-row: 2;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-status-actions,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-networks-slot {
+          grid-column: 4;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-search-row {
+          grid-column: 1 / -1;
+          grid-row: 3;
+        }
+
+        /* Map Wide: all three left control groups share row 1. */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] {
+          grid-template-columns:
+            var(--hex-toolbar-view-wide-width, max-content)
+            var(--hex-toolbar-pollutant-width, max-content)
+            var(--hex-toolbar-window-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-control-group--view {
+          width: max-content;
+          max-width: none;
+          min-width: max-content;
+          flex-wrap: nowrap;
+          grid-column: 1;
+          grid-row: 1;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-control-group--view::after,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .pollutant-control-group::after {
+          content: "";
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-control-group--view #toolbar-region-section.visible {
+          flex: 0 1 auto;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .pollutant-control-group {
+          grid-column: 2;
+          grid-row: 1;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] #window-stepper {
+          grid-column: 3;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-status-actions,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-networks-slot {
+          grid-column: 5;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] .toolbar-search-row {
+          grid-column: 1 / 5;
+          grid-row: 2;
+        }
+
+        /*
+         * Preserve the accepted wrapped C&R View/Region presentation in every
+         * map state below Wide, while UK remains one atomic View line.
+         */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-control-group--view,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-control-group--view,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-control-group--view {
+          width: 392px;
+          max-width: 100%;
+          min-width: 0;
+          flex-wrap: wrap;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)),
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)),
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)) {
+          width: max-content;
+          max-width: none;
+          min-width: max-content;
+          flex-wrap: nowrap;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-control-group--view #toolbar-region-section.visible,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] .toolbar-control-group--view #toolbar-region-section.visible,
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] .toolbar-control-group--view #toolbar-region-section.visible {
+          flex: 1 0 100%;
+        }
+
+        /* Chart Narrow: Pollutant row 1; Window | Chart range row 2. */
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] {
+          grid-template-columns:
+            var(--hex-toolbar-window-width, max-content)
+            var(--hex-toolbar-chart-range-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] .pollutant-control-group {
+          grid-column: 1 / 4;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] #window-stepper {
+          grid-column: 1;
+          grid-row: 2;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] #window-stepper::after {
+          content: "";
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] .chart-range-toolbar {
+          grid-column: 2;
+          grid-row: 2;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] .toolbar-status-actions {
+          grid-column: 4;
+          grid-row: 1;
+        }
+
+        /* Chart Compact: Pollutant | Window row 1; Chart range row 2. */
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] {
+          grid-template-columns:
+            var(--hex-toolbar-pollutant-width, max-content)
+            var(--hex-toolbar-window-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 1;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .pollutant-control-group::after {
+          content: "";
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] #window-stepper {
+          grid-column: 2;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .chart-range-toolbar {
+          grid-column: 1 / 4;
+          grid-row: 2;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .toolbar-status-actions {
+          grid-column: 4;
+          grid-row: 1;
+        }
+
+        /* Chart Wide: all three chart groups share row 1. */
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] {
+          grid-template-columns:
+            var(--hex-toolbar-pollutant-width, max-content)
+            var(--hex-toolbar-window-width, max-content)
+            var(--hex-toolbar-chart-range-width, max-content)
+            minmax(0, 1fr)
+            max-content;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .pollutant-control-group,
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] #window-stepper {
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .pollutant-control-group::after,
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] #window-stepper::after {
+          content: "";
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] #window-stepper {
+          grid-column: 2;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .chart-range-toolbar {
+          grid-column: 3;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .toolbar-status-actions {
+          grid-column: 5;
+          grid-row: 1;
+        }
+
+        /*
+         * Intrinsic measurement mode. This class is applied synchronously and
+         * removed before paint; it prevents the active grid tracks/dividers
+         * from contaminating the widths used for the next fit decision.
+         */
+        .toolbar.hex-toolbar-measuring .pollutant-control-group,
+        .toolbar.hex-toolbar-measuring #window-stepper,
+        .toolbar.hex-toolbar-measuring .chart-range-toolbar {
+          width: max-content !important;
+          max-width: none !important;
+          min-width: max-content !important;
+          padding-right: 0 !important;
+          justify-self: start !important;
+        }
+
+        .toolbar.hex-toolbar-measuring .toolbar-control-group--view {
+          padding-right: 0 !important;
+          justify-self: start !important;
+        }
+
+        .toolbar.hex-toolbar-measuring .toolbar-control-group--view:has(#toolbar-region-section.visible) {
+          width: 392px !important;
+          max-width: 100% !important;
+          min-width: 0 !important;
+          flex-wrap: wrap !important;
+        }
+
+        .toolbar.hex-toolbar-measuring .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)),
+        .toolbar.hex-toolbar-measuring.hex-toolbar-measuring-wide-view .toolbar-control-group--view {
+          width: max-content !important;
+          max-width: none !important;
+          min-width: max-content !important;
+          flex-wrap: nowrap !important;
+        }
+
+        .toolbar.hex-toolbar-measuring.hex-toolbar-measuring-wide-view .toolbar-control-group--view #toolbar-region-section.visible {
+          flex: 0 1 auto !important;
         }
 
       }
