@@ -3767,7 +3767,7 @@
           content: none;
           position: absolute;
           top: 50%;
-          right: 0;
+          right: 4px;
           width: 1px;
           height: 20px;
           background: var(--line);
@@ -3782,6 +3782,18 @@
           flex-wrap: wrap;
           grid-column: 1;
           grid-row: 1;
+        }
+
+        /*
+         * Keep the UK View label and segmented selector as one atomic line.
+         * The region-visible C&R packing remains unchanged here.
+         */
+        .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)) {
+          width: max-content;
+          max-width: none;
+          min-width: max-content;
+          flex-wrap: nowrap;
+          white-space: nowrap;
         }
 
         .toolbar-control-group--view #toolbar-region-section.visible {
@@ -3819,21 +3831,16 @@
         body.hex-chart-mode .toolbar .pollutant-control-group {
           grid-column: 1;
           grid-row: 1;
-          padding-right: 13px;
-        }
-
-        body.hex-chart-mode .toolbar .pollutant-control-group::after {
-          content: "";
         }
 
         body.hex-chart-mode .toolbar #window-stepper {
-          grid-column: 2;
-          grid-row: 1;
+          grid-column: 1;
+          grid-row: 2;
         }
 
         body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
-          grid-column: 1 / 3;
-          grid-row: 2;
+          grid-column: 1;
+          grid-row: 3;
         }
 
         .toolbar-right {
@@ -3900,7 +3907,7 @@
            934px. Below that, complete groups use separate deterministic rows. */
         @container hex-main-toolbar (min-width: 934px) {
           body:not(.hex-chart-mode) .toolbar-control-group--view {
-            padding-right: 13px;
+            padding-right: 12px;
           }
 
           body:not(.hex-chart-mode) .toolbar-control-group--view::after {
@@ -3920,13 +3927,31 @@
           body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
             grid-row: 3;
           }
+
+          body.hex-chart-mode .toolbar .pollutant-control-group {
+            padding-right: 12px;
+          }
+
+          body.hex-chart-mode .toolbar .pollutant-control-group::after {
+            content: "";
+          }
+
+          body.hex-chart-mode .toolbar #window-stepper {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
+            grid-column: 1 / 3;
+            grid-row: 2;
+          }
         }
 
         /* Divider-aware chart controls need 1053.45px including the reserved
            right side. 1074px retains the existing fractional-pixel tolerance. */
         @container hex-main-toolbar (min-width: 1074px) {
           body.hex-chart-mode .toolbar #window-stepper {
-            padding-right: 13px;
+            padding-right: 12px;
           }
 
           body.hex-chart-mode .toolbar #window-stepper::after {
@@ -3953,7 +3978,7 @@
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group {
             grid-column: 2;
             grid-row: 1;
-            padding-right: 13px;
+            padding-right: 12px;
           }
 
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group::after {
@@ -3989,7 +4014,7 @@
           body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
             grid-column: 2;
             grid-row: 1;
-            padding-right: 13px;
+            padding-right: 12px;
           }
 
           body:not(.hex-chart-mode) .toolbar .pollutant-control-group::after {
@@ -4850,9 +4875,11 @@
       }
 
       .map-summary-update-line span {
+        display: block;
         font-size: 1.25rem;
         font-weight: 700;
         color: var(--accent);
+        white-space: nowrap;
       }
 
       .pollutant-control-group {
