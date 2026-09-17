@@ -3883,7 +3883,7 @@
 
         body.hex-chart-mode .toolbar-status-actions {
           grid-column: 2;
-          justify-self: start;
+          justify-self: end;
         }
 
         .toolbar-status-slot {
