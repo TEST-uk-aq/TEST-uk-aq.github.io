@@ -3733,7 +3733,7 @@
           --hex-toolbar-row-gap: 8px;
           container: hex-main-toolbar / inline-size;
           display: grid;
-          grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
+          grid-template-columns: max-content minmax(0, 1fr) max-content;
           grid-auto-rows: max-content;
           column-gap: 4px;
           row-gap: var(--hex-toolbar-row-gap);
@@ -3839,6 +3839,10 @@
           grid-row: 3;
         }
 
+        body.hex-chart-mode .toolbar {
+          grid-template-columns: max-content minmax(max-content, 1fr);
+        }
+
         body.hex-chart-mode .toolbar .pollutant-control-group {
           grid-column: 1;
           grid-row: 1;
@@ -3847,11 +3851,17 @@
         body.hex-chart-mode .toolbar #window-stepper {
           grid-column: 1;
           grid-row: 2;
+          padding-right: 12px;
+        }
+
+        body.hex-chart-mode .toolbar #window-stepper::after {
+          content: "";
         }
 
         body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
-          grid-column: 1;
-          grid-row: 3;
+          grid-column: 2;
+          grid-row: 2;
+          justify-self: start;
         }
 
         .toolbar-right {
@@ -3859,13 +3869,17 @@
         }
 
         .toolbar-status-actions {
-          grid-column: 5;
+          grid-column: 3;
           grid-row: 1;
           display: inline-flex;
           align-items: center;
           justify-self: end;
           align-self: center;
           gap: 8px;
+        }
+
+        body.hex-chart-mode .toolbar-status-actions {
+          grid-column: 2;
         }
 
         .toolbar-status-slot {
@@ -3878,7 +3892,7 @@
         }
 
         .toolbar-networks-slot {
-          grid-column: 5;
+          grid-column: 3;
           grid-row: 2;
           display: flex;
           align-self: center;
@@ -3914,29 +3928,12 @@
           max-width: 100%;
         }
 
-        /* Compact map fits View + Pollutant + the reserved right side from
-           934px. Below that, complete groups use separate deterministic rows. */
-        @container hex-main-toolbar (min-width: 934px) {
-          body:not(.hex-chart-mode) .toolbar-control-group--view {
-            padding-right: 12px;
-          }
-
-          body:not(.hex-chart-mode) .toolbar-control-group--view::after {
-            content: "";
-          }
-
-          body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
-            grid-column: 2;
-            grid-row: 1;
-          }
-
-          body:not(.hex-chart-mode) .toolbar #window-stepper {
-            grid-column: 1;
-            grid-row: 2;
-          }
-
-          body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
-            grid-row: 3;
+        /* Targeted rendered measurement of the current controls gives a
+           747px chart-container requirement for Pollutant | Window on row 1
+           with Live/Refresh on the right. An 8px tolerance selects 755px. */
+        @container hex-main-toolbar (min-width: 755px) {
+          body.hex-chart-mode .toolbar {
+            grid-template-columns: max-content max-content minmax(max-content, 1fr);
           }
 
           body.hex-chart-mode .toolbar .pollutant-control-group {
@@ -3950,17 +3947,95 @@
           body.hex-chart-mode .toolbar #window-stepper {
             grid-column: 2;
             grid-row: 1;
+            padding-right: 0;
+          }
+
+          body.hex-chart-mode .toolbar #window-stepper::after {
+            content: none;
           }
 
           body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
             grid-column: 1 / 3;
             grid-row: 2;
           }
+
+          body.hex-chart-mode .toolbar-status-actions {
+            grid-column: 3;
+          }
         }
 
-        /* Divider-aware chart controls need 1053.45px including the reserved
-           right side. 1074px retains the existing fractional-pixel tolerance. */
+        /* Targeted rendered measurement gives an 822px map-container
+           requirement for Pollutant | Window on row 2 before Networks.
+           An 8px tolerance selects the Intermediate state at 830px. */
+        @container hex-main-toolbar (min-width: 830px) {
+          body:not(.hex-chart-mode) .toolbar {
+            grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
+            grid-column: 1;
+            grid-row: 2;
+            padding-right: 12px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group::after {
+            content: "";
+          }
+
+          body:not(.hex-chart-mode) .toolbar #window-stepper {
+            grid-column: 2;
+            grid-row: 2;
+          }
+
+          body:not(.hex-chart-mode) .toolbar-status-actions,
+          body:not(.hex-chart-mode) .toolbar-networks-slot {
+            grid-column: 4;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
+            grid-row: 3;
+          }
+        }
+
+        /* Targeted rendered measurement gives a 902px map-container
+           requirement for View | Pollutant on row 1 with Live/Refresh.
+           An 8px tolerance selects the Compact state at 910px. */
+        @container hex-main-toolbar (min-width: 910px) {
+          body:not(.hex-chart-mode) .toolbar-control-group--view {
+            padding-right: 12px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar-control-group--view::after {
+            content: "";
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
+            grid-column: 2;
+            grid-row: 1;
+            padding-right: 0;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group::after {
+            content: none;
+          }
+
+          body:not(.hex-chart-mode) .toolbar #window-stepper {
+            grid-column: 1;
+            grid-row: 2;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
+            grid-row: 3;
+          }
+        }
+
+        /* Keep the accepted wide-chart transition. At this state all three
+           chart groups share row 1 and Live/Refresh uses the final track. */
         @container hex-main-toolbar (min-width: 1074px) {
+          body.hex-chart-mode .toolbar {
+            grid-template-columns: max-content max-content max-content minmax(max-content, 1fr);
+          }
+
           body.hex-chart-mode .toolbar #window-stepper {
             padding-right: 12px;
           }
@@ -3973,11 +4048,24 @@
             grid-column: 3;
             grid-row: 1;
           }
+
+          body.hex-chart-mode .toolbar-status-actions {
+            grid-column: 4;
+          }
         }
 
         /* UK wide map needs 1167.70px for the measured controls, dividers,
            gaps and reserved right side. 1188px retains the prior tolerance. */
         @container hex-main-toolbar (min-width: 1188px) {
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) {
+            grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-status-actions,
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-networks-slot {
+            grid-column: 5;
+          }
+
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-control-group--view {
             width: auto;
             max-width: none;
@@ -4010,6 +4098,15 @@
         /* C&R wide map needs 1346.36px for the wider View/Region group plus
            the same dividers, gaps and right-side reservation. */
         @container hex-main-toolbar (min-width: 1367px) {
+          body:not(.hex-chart-mode) .toolbar {
+            grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
+          }
+
+          body:not(.hex-chart-mode) .toolbar-status-actions,
+          body:not(.hex-chart-mode) .toolbar-networks-slot {
+            grid-column: 5;
+          }
+
           body:not(.hex-chart-mode) .toolbar .toolbar-control-group--view {
             width: auto;
             max-width: none;
@@ -4971,7 +5068,7 @@
       @media (min-width: 768px) {
         .toolbar {
           container: hex-main-toolbar / inline-size;
-          grid-template-columns: max-content max-content max-content minmax(0, 1fr) max-content;
+          grid-template-columns: max-content minmax(0, 1fr) max-content;
           grid-template-rows: none;
           grid-auto-rows: max-content;
           column-gap: 4px;
