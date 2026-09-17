@@ -124,6 +124,27 @@
     rejectToken = null;
   }
 
+  function resetTurnstileWidget(reason) {
+    if (widgetId === null) return;
+    const turnstileApi = window.turnstile;
+    if (!turnstileApi || typeof turnstileApi.reset !== "function") return;
+    try {
+      turnstileApi.reset(widgetId);
+      debug("turnstile-widget-reset", { reason });
+    } catch (error) {
+      debug("turnstile-widget-reset-failed", {
+        reason,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  function isTurnstileTimeoutError(error) {
+    const message = error instanceof Error ? error.message : String(error || "");
+    return message === "Turnstile token timed out."
+      || message === "Turnstile challenge timed out.";
+  }
+
   async function ensureTurnstileScript() {
     if (window.turnstile?.render) return;
     if (!scriptInflight) {
@@ -192,31 +213,51 @@
     return widgetId;
   }
 
+  async function executeTurnstileOnce() {
+    const id = await ensureTurnstileWidget();
+    const turnstileApi = window.turnstile;
+    if (!turnstileApi || typeof turnstileApi.execute !== "function") {
+      throw new Error("Turnstile execute unavailable.");
+    }
+    const promise = new Promise((resolve, reject) => {
+      resolveToken = resolve;
+      rejectToken = reject;
+      tokenTimeoutId = setTimeout(() => {
+        const timeoutReject = rejectToken;
+        clearTurnstilePendingState();
+        if (timeoutReject) timeoutReject(new Error("Turnstile token timed out."));
+      }, 30000);
+    });
+    try {
+      debug("turnstile-execute-started");
+      turnstileApi.execute(id);
+    } catch (error) {
+      clearTurnstilePendingState();
+      throw error;
+    }
+    return promise;
+  }
+
   async function getTurnstileToken() {
     if (!tokenInflight) {
       tokenInflight = (async () => {
-        const id = await ensureTurnstileWidget();
-        const turnstileApi = window.turnstile;
-        if (!turnstileApi || typeof turnstileApi.execute !== "function") {
-          throw new Error("Turnstile execute unavailable.");
-        }
-        const promise = new Promise((resolve, reject) => {
-          resolveToken = resolve;
-          rejectToken = reject;
-          tokenTimeoutId = setTimeout(() => {
-            const timeoutReject = rejectToken;
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
+          try {
+            return await executeTurnstileOnce();
+          } catch (error) {
             clearTurnstilePendingState();
-            if (timeoutReject) timeoutReject(new Error("Turnstile token timed out."));
-          }, 30000);
-        });
-        try {
-          debug("turnstile-execute-started");
-          turnstileApi.execute(id);
-        } catch (error) {
-          clearTurnstilePendingState();
-          throw error;
+            const retryableTimeout = attempt === 1 && isTurnstileTimeoutError(error);
+            resetTurnstileWidget(retryableTimeout ? "timeout-retry" : "failed-attempt");
+            hideTurnstileContainer();
+            if (retryableTimeout) {
+              debug("turnstile-timeout-retry");
+              await new Promise((resolve) => setTimeout(resolve, 0));
+              continue;
+            }
+            throw error;
+          }
         }
-        return promise;
+        throw new Error("Turnstile token unavailable.");
       })().finally(() => { tokenInflight = null; });
     }
     return tokenInflight;

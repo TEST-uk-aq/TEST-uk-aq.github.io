@@ -17,6 +17,7 @@
   });
   const SERIES_COLOUR = "#3C78AC";
   const HOUR_MS = 60 * 60 * 1000;
+  const SYMBOL_CLIP_PADDING = 6;
 
   function nodeValue(value) {
     if (!value) return null;
@@ -214,9 +215,15 @@
       svg.selectAll("*").remove();
       svg.attr("viewBox", `0 0 ${size.width} ${size.height}`);
       const clipId = `${options.clipIdPrefix || "station-chart"}-${Math.random().toString(36).slice(2)}`;
-      svg.append("defs").append("clipPath").attr("id", clipId).append("rect")
+      const symbolClipId = `${clipId}-symbols`;
+      const defs = svg.append("defs");
+      defs.append("clipPath").attr("id", clipId).append("rect")
         .attr("x", margin.left).attr("y", margin.top)
         .attr("width", Math.max(0, size.width - margin.left - margin.right))
+        .attr("height", Math.max(0, size.height - margin.top - margin.bottom));
+      defs.append("clipPath").attr("id", symbolClipId).append("rect")
+        .attr("x", margin.left - SYMBOL_CLIP_PADDING).attr("y", margin.top)
+        .attr("width", Math.max(0, size.width - margin.left - margin.right + (2 * SYMBOL_CLIP_PADDING)))
         .attr("height", Math.max(0, size.height - margin.top - margin.bottom));
       const xScale = d3.scaleTime()
         .domain([state.range.startDate, state.range.endDate])
@@ -232,11 +239,11 @@
       const guidelineLabel = svg.append("text").attr("class", "chart-guideline-label")
         .attr("text-anchor", "end").style("opacity", 0);
       const series = svg.append("g").attr("class", "chart-series-layers").attr("clip-path", `url(#${clipId})`);
-      const symbols = svg.append("g").attr("class", "chart-series-symbols").attr("clip-path", `url(#${clipId})`);
+      const symbols = svg.append("g").attr("class", "chart-series-symbols").attr("clip-path", `url(#${symbolClipId})`);
       const empty = svg.append("g").attr("class", "chart-empty-state");
       const overlay = svg.append("rect").attr("class", "chart-overlay")
         .attr("fill", "transparent").style("pointer-events", "all");
-      frame = { ...size, margin, clipId, svg, xScale, yScale, aqi, xAxis, yAxis, yLabel, guideline, guidelineLabel, series, symbols, empty, overlay };
+      frame = { ...size, margin, clipId, symbolClipId, svg, xScale, yScale, aqi, xAxis, yAxis, yLabel, guideline, guidelineLabel, series, symbols, empty, overlay };
       layoutFrame(state);
       installTooltip();
       return frame;
@@ -248,6 +255,10 @@
       frame.svg.select(`#${frame.clipId} rect`)
         .attr("x", margin.left).attr("y", margin.top)
         .attr("width", Math.max(0, width - margin.left - margin.right))
+        .attr("height", Math.max(0, height - margin.top - margin.bottom));
+      frame.svg.select(`#${frame.symbolClipId} rect`)
+        .attr("x", margin.left - SYMBOL_CLIP_PADDING).attr("y", margin.top)
+        .attr("width", Math.max(0, width - margin.left - margin.right + (2 * SYMBOL_CLIP_PADDING)))
         .attr("height", Math.max(0, height - margin.top - margin.bottom));
       frame.xScale.range([margin.left, width - margin.right]);
       frame.yScale.range([height - margin.bottom, margin.top]);
