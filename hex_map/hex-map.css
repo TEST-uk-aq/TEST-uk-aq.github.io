@@ -5642,12 +5642,16 @@
       }
 
       .hex-chart-mode-panel {
-        --hex-chart-summary-base-row-height: 42px;
-        --hex-chart-chip-min-width: 310px;
-        --hex-chart-chip-max-width: 340px;
+        --hex-chart-chip-height: 44px;
+        --hex-chart-chip-padding-block: 3px;
+        --hex-chart-chip-line-height: 1.1;
         --hex-chart-chip-slot-gap: 8px;
-        --hex-chart-normal-sensor-name-lines: 3;
-        --hex-chart-panel-top-spacing: 8px;
+        --hex-chart-chip-row-gap: 4px;
+        --hex-chart-control-to-chips-gap: 6px;
+        --hex-chart-chips-to-aqi-gap: 6px;
+        --hex-chart-plot-left: 0px;
+        --hex-chart-plot-right: 0px;
+        --hex-chart-panel-top-spacing: var(--hex-chart-control-to-chips-gap);
         position: absolute;
         inset: 0 0 var(--sensor-panel-height, 240px) 0;
         z-index: 12;
@@ -5672,7 +5676,7 @@
       .map-canvas-wrap.chart-mode .hex-chart-mode-panel {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 0;
       }
 
       .map-canvas-wrap.chart-mode .map-svg-viewport,
@@ -5704,24 +5708,28 @@
       .hex-chart-selected-sensors {
         display: grid;
         grid-auto-flow: row;
-        gap: 6px var(--hex-chart-chip-slot-gap);
+        width: auto;
+        min-width: 0;
+        margin-inline: var(--hex-chart-plot-left) var(--hex-chart-plot-right);
+        margin-bottom: var(--hex-chart-chips-to-aqi-gap);
+        gap: var(--hex-chart-chip-row-gap) var(--hex-chart-chip-slot-gap);
       }
 
       .hex-chart-selected-sensor-chip {
+        box-sizing: border-box;
         display: grid;
-        grid-template-columns: 22px minmax(0, 1fr) auto;
-        grid-template-areas:
-          "symbol label label"
-          ". value time";
+        grid-template-columns: 22px minmax(0, 1fr);
+        grid-template-areas: "symbol label";
         align-items: center;
-        gap: 6px;
+        column-gap: 6px;
+        row-gap: 0;
         min-width: 0;
         background: #fff;
         border: 0;
         border-radius: 8px;
-        padding: 7px 10px;
-        min-height: var(--hex-chart-summary-base-row-height);
+        padding: var(--hex-chart-chip-padding-block) 10px;
         box-shadow: none;
+        overflow: hidden;
       }
 
       .hex-chart-selected-sensor-chip[role="button"] {
@@ -5747,215 +5755,92 @@
 
       .hex-chart-chip-label {
         grid-area: label;
-        display: block;
+        display: grid;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+        align-items: center;
+        height: 100%;
         min-width: 0;
+        overflow: hidden;
       }
 
       .hex-chart-chip-symbol {
         grid-area: symbol;
       }
 
+      .hex-chart-chip-line {
+        display: flex;
+        min-width: 0;
+        max-width: 100%;
+        align-items: baseline;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
       .hex-chart-chip-name {
-        display: inline;
+        display: block;
+        min-width: 0;
         font-size: 0.88rem;
         font-weight: 700;
+        line-height: var(--hex-chart-chip-line-height);
         color: var(--ink);
-        min-width: 0;
-        overflow: visible;
-        text-overflow: clip;
-        white-space: normal;
+        white-space: nowrap;
       }
 
       .hex-chart-chip-network {
-        display: inline;
+        display: block;
+        flex: 0 0 auto;
         font-size: 0.82rem;
+        line-height: var(--hex-chart-chip-line-height);
         color: var(--ink-soft);
-        min-width: 0;
-        overflow: visible;
-        text-overflow: clip;
         white-space: nowrap;
       }
 
-      .hex-chart-chip-network::before {
-        content: var(--sensor-identity-separator);
-      }
-
-      .hex-chart-chip-network.hex-chart-chip-network--own-line {
+      .hex-chart-chip-separator {
         display: block;
-      }
-
-      .hex-chart-chip-network.hex-chart-chip-network--own-line::before {
-        content: none;
-      }
-
-      .hex-chart-chip-value,
-      .hex-chart-chip-time {
+        flex: 0 0 auto;
+        margin-inline: var(--sensor-identity-separator-gap);
         font-size: 0.82rem;
         font-weight: 400;
-        color: var(--ink-1);
-        white-space: nowrap;
+        line-height: var(--hex-chart-chip-line-height);
+        color: var(--ink-soft);
       }
 
-      .hex-chart-chip-value {
-        grid-area: value;
+      .hex-chart-chip-line--2 .hex-chart-chip-name {
+        flex: 0 1 auto;
+        overflow: visible;
+        text-overflow: clip;
       }
 
-      .hex-chart-chip-time {
-        grid-area: time;
+      .hex-chart-selected-sensor-chip--truncated .hex-chart-chip-line--2 .hex-chart-chip-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       @media (min-width: 768px) {
         .hex-chart-selected-sensors {
-          width: min(100%, var(--hex-chart-chip-max-width));
-          max-width: var(--hex-chart-chip-max-width);
-          align-self: flex-start;
+          min-height: calc(
+            var(--hex-chart-chip-height)
+            + var(--hex-chart-chip-row-gap)
+            + var(--hex-chart-chip-height)
+          );
+          align-self: stretch;
           align-items: start;
           justify-content: start;
-          grid-template-columns: minmax(var(--hex-chart-chip-min-width), 1fr);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: repeat(2, var(--hex-chart-chip-height));
         }
 
-        .hex-chart-selected-sensors--two-line .hex-chart-selected-sensor-chip {
+        .hex-chart-selected-sensor-chip {
           width: 100%;
-          min-height: 64px;
-          grid-template-columns: 22px minmax(0, 1fr) max-content;
-          grid-template-rows: auto auto;
-          grid-template-areas:
-            "symbol name value"
-            "symbol network time";
-          column-gap: 6px;
-          row-gap: 3px;
-          align-items: start;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-symbol {
-          align-self: center;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-label {
-          display: contents;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-name {
-          display: block;
-          grid-area: name;
-          min-block-size: calc(var(--hex-chart-normal-sensor-name-lines) * 1.18em + 1px);
-          line-height: 1.18;
-          white-space: normal;
-          overflow-wrap: anywhere;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-value {
+          height: var(--hex-chart-chip-height);
           align-self: start;
         }
 
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-network {
-          display: block;
-          grid-area: network;
-          min-width: 0;
-          line-height: 1.18;
-          white-space: nowrap;
-          align-self: end;
+        .hex-chart-selected-sensors--four-columns {
+          min-height: var(--hex-chart-chip-height);
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-rows: var(--hex-chart-chip-height);
         }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-network::before {
-          content: none;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-value,
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-time {
-          min-width: 0;
-          overflow: visible;
-          justify-self: start;
-          text-align: left;
-        }
-
-        .hex-chart-selected-sensors--two-line .hex-chart-chip-time {
-          align-self: end;
-        }
-
-        /* Slot thresholds are N * 310px plus (N - 1) * 8px gaps. */
-        @container hex-chart-panel (min-width: 628px) {
-          .hex-chart-selected-sensors {
-            width: min(
-              100%,
-              calc(
-                var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-              )
-            );
-            max-width: calc(
-              var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-            );
-            grid-template-columns: repeat(2, minmax(var(--hex-chart-chip-min-width), 1fr));
-          }
-        }
-
-        @container hex-chart-panel (min-width: 946px) {
-          .hex-chart-selected-sensors {
-            width: min(
-              100%,
-              calc(
-                var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-              )
-            );
-            max-width: calc(
-              var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-            );
-            grid-template-columns: repeat(3, minmax(var(--hex-chart-chip-min-width), 1fr));
-          }
-        }
-
-        @container hex-chart-panel (min-width: 1264px) {
-          .hex-chart-selected-sensors {
-            width: min(
-              100%,
-              calc(
-                var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-                + var(--hex-chart-chip-slot-gap)
-                + var(--hex-chart-chip-max-width)
-              )
-            );
-            max-width: calc(
-              var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-              + var(--hex-chart-chip-slot-gap)
-              + var(--hex-chart-chip-max-width)
-            );
-            grid-template-columns: repeat(4, minmax(var(--hex-chart-chip-min-width), 1fr));
-          }
-        }
-      }
-
-      .hex-chart-chip-value {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .hex-chart-chip-value .sensor-reading-dot {
-        width: 10px;
-        height: 10px;
-        min-width: 10px;
-        min-height: 10px;
-        flex: 0 0 10px;
       }
 
       .hex-chart-symbol-svg {
@@ -8072,7 +7957,7 @@
           position: relative;
           inset: auto;
           padding: 12px 12px 16px;
-          gap: 10px;
+          gap: 0;
           overflow: visible;
         }
 
@@ -8091,6 +7976,7 @@
           width: 100%;
           min-width: 0;
           gap: 8px;
+          margin-bottom: var(--hex-chart-control-to-chips-gap);
           padding-bottom: 2px;
           border-bottom: 1px solid var(--line-soft);
         }
@@ -8183,120 +8069,47 @@
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors {
-          width: 100%;
-          max-width: none;
           grid-template-columns: minmax(0, 1fr);
-          gap: 6px;
+          gap: var(--hex-chart-chip-row-gap);
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {
           width: 100%;
-          min-height: 64px;
-          grid-template-columns: 18px minmax(0, 1fr) auto;
-          grid-template-rows: auto auto;
-          grid-template-areas:
-            "symbol name value"
-            "symbol network time";
+          height: 46px;
+          grid-template-columns: 18px minmax(0, 1fr);
+          grid-template-rows: minmax(0, 1fr);
+          grid-template-areas: "symbol label";
           column-gap: 6px;
-          row-gap: 3px;
-          padding: 6px 8px;
+          row-gap: 0;
+          padding: 3px 8px;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-symbol {
           align-self: center;
         }
 
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-label {
-          display: contents;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-value {
-          min-width: 0;
-          overflow: visible;
-          font-size: 0.7rem;
-          text-overflow: clip;
-          justify-self: end;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
-          min-width: 0;
-          overflow: visible;
-          font-size: 0.68rem;
-          text-overflow: clip;
-          justify-self: end;
-        }
-
         body.hex-map-page.hex-chart-mode .hex-chart-chip-name {
-          display: block;
-          grid-area: name;
           font-size: 0.76rem;
-          line-height: 1.18;
-          white-space: normal;
-          overflow-wrap: anywhere;
-          text-overflow: clip;
-          overflow: visible;
+          line-height: 1.1;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-chip-network {
-          display: block;
-          grid-area: network;
-          min-width: 0;
-          overflow: visible;
-          text-overflow: clip;
-          white-space: normal;
-          overflow-wrap: anywhere;
           font-size: 0.7rem;
-          line-height: 1.18;
+          line-height: 1.1;
         }
 
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-network::before {
-          content: none;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-network.hex-chart-chip-network--own-line {
-          display: block;
-          white-space: nowrap;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-network.hex-chart-chip-network--own-line::before {
-          content: none;
+        body.hex-map-page.hex-chart-mode .hex-chart-chip-separator {
+          font-size: 0.7rem;
+          line-height: 1.1;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
-          min-height: var(--hex-chart-summary-base-row-height);
-          grid-template-columns: 18px minmax(0, 1fr) max-content max-content;
-          grid-template-rows: auto;
-          grid-template-areas: "symbol label value time";
-          column-gap: 6px;
+          height: 44px;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-label {
-          grid-area: label;
-          display: flex;
-          min-width: 0;
-          align-items: baseline;
-          white-space: nowrap;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-value,
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-time {
-          justify-self: start;
-          text-align: left;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network {
-          display: inline;
-          white-space: nowrap;
-          overflow-wrap: normal;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-name {
-          white-space: nowrap;
-          overflow-wrap: normal;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-network::before {
-          content: var(--sensor-identity-separator);
+          display: block;
+          height: auto;
         }
 
         body.hex-map-page.hex-chart-mode .hex-chart-wrap {
@@ -8609,47 +8422,5 @@
 
         .hex-map-page .map-search-result--postcode .map-search-result-dest-region::before {
           content: "\00a0\00b7\00a0";
-        }
-      }
-
-      /* Measure complete intrinsic rows only below the shared 768px boundary. */
-      @media (max-width: 767px) {
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip {
-          grid-template-columns: 18px minmax(0, 1fr) max-content;
-          grid-template-areas:
-            "symbol name value"
-            "symbol network time";
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-value,
-        body.hex-map-page.hex-chart-mode .hex-chart-chip-time {
-          justify-self: stretch;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-selected-sensor-chip {
-          grid-template-columns: 18px minmax(0, 1fr) max-content max-content;
-          grid-template-rows: auto;
-          grid-template-areas: "symbol label value time";
-          column-gap: 8px;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-label {
-          min-width: 0;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-value,
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensors--one-line .hex-chart-chip-time {
-          justify-self: start;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip.hex-chart-selected-sensor-chip--measuring-one-line {
-          width: max-content !important;
-          min-width: max-content;
-          justify-self: start;
-          grid-template-columns: 18px max-content max-content max-content;
-        }
-
-        body.hex-map-page.hex-chart-mode .hex-chart-selected-sensor-chip.hex-chart-selected-sensor-chip--measuring-one-line .hex-chart-chip-label {
-          min-width: max-content;
         }
       }

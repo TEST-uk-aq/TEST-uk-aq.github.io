@@ -10,6 +10,7 @@
 
   if (!domain) throw new Error("UkAqStationChartDomain is required");
   const MAX_SELECTED_SENSORS = 4;
+  const FOUR_COLUMN_PLOT_THRESHOLD = 960;
   const DAY_MS = 24 * 60 * 60 * 1000;
   const RANGE_VALUES = new Set(["12h", "24h", "7d", "31d", "90d"]);
 
@@ -218,6 +219,7 @@
       pollutantAdapter: null,
     };
     let chipIdentityFrame = null;
+    let chipMeasureContext = null;
     const chipIdentityResizeObserver = typeof root.ResizeObserver === "function"
       ? new root.ResizeObserver(() => scheduleChipNetworkIdentity())
       : null;
@@ -245,77 +247,183 @@
         : (render(), null);
     }
 
-    function narrowChipOneLineGeometryFits(chip) {
-      const style = root.getComputedStyle(chip);
-      const columnGap = Number.parseFloat(style.columnGap) || 0;
-      const paddingRight = Number.parseFloat(style.paddingRight) || 0;
-      const elements = [
-        chip.querySelector(".hex-chart-chip-symbol"),
-        chip.querySelector(".hex-chart-chip-label"),
-        chip.querySelector(".hex-chart-chip-value"),
-        chip.querySelector(".hex-chart-chip-time"),
-      ];
-      if (elements.some((element) => !element)) return false;
-      const [, label, value, time] = elements;
-      const [symbolRect, labelRect, valueRect, timeRect] = elements.map((element) => element.getBoundingClientRect());
-      const chipRect = chip.getBoundingClientRect();
-      const tolerance = 1;
-      return label.scrollWidth <= label.clientWidth + tolerance
-        && value.scrollWidth <= value.clientWidth + tolerance
-        && time.scrollWidth <= time.clientWidth + tolerance
-        && symbolRect.right + columnGap <= labelRect.left + tolerance
-        && labelRect.right + columnGap <= valueRect.left + tolerance
-        && valueRect.right + columnGap <= timeRect.left + tolerance
-        && timeRect.right <= chipRect.right - paddingRight + tolerance;
+    function currentPlotGeometry() {
+      const refs = dom();
+      const frame = state.renderer?.frame;
+      const range = frame?.xScale?.range?.();
+      if (frame && Array.isArray(range) && range.length >= 2) {
+        const plotLeft = Number(range[0]);
+        const plotRight = Number(range[1]);
+        if (Number.isFinite(plotLeft) && Number.isFinite(plotRight) && plotRight >= plotLeft) {
+          return {
+            left: plotLeft,
+            right: Math.max(0, Number(frame.width) - plotRight),
+            width: plotRight - plotLeft,
+          };
+        }
+      }
+      const chartWidth = refs?.wrap?.getBoundingClientRect?.().width || refs?.svg?.clientWidth || 0;
+      const chartHeight = refs?.wrap?.getBoundingClientRect?.().height || refs?.svg?.clientHeight || 0;
+      const margin = root.UkAqStationChartRenderer?.chartMargins?.(chartWidth, chartHeight);
+      if (!margin || !chartWidth) return null;
+      return {
+        left: Number(margin.left) || 0,
+        right: Number(margin.right) || 0,
+        width: Math.max(0, chartWidth - (Number(margin.left) || 0) - (Number(margin.right) || 0)),
+      };
     }
 
-    function narrowChipOneLineFits(chips) {
-      if (!chips.length) return false;
-      const availableWidths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
-      chips.forEach((chip) => chip.classList.add("hex-chart-selected-sensor-chip--measuring-one-line"));
-      const requiredWidths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
-      chips.forEach((chip) => chip.classList.remove("hex-chart-selected-sensor-chip--measuring-one-line"));
-      const tolerance = 1;
-      return chips.every((chip) => requiredWidths.get(chip) <= availableWidths.get(chip) + tolerance)
-        && chips.every((chip) => narrowChipOneLineGeometryFits(chip));
+    function textWidth(element, text) {
+      if (!element || typeof root.getComputedStyle !== "function") return Infinity;
+      chipMeasureContext ||= root.document.createElement("canvas").getContext("2d");
+      if (!chipMeasureContext) return Infinity;
+      const style = root.getComputedStyle(element);
+      chipMeasureContext.font = style.font || `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      return chipMeasureContext.measureText(String(text || "")).width;
+    }
+
+    function separatorWidth(element) {
+      if (!element || typeof root.getComputedStyle !== "function") return 0;
+      const style = root.getComputedStyle(element);
+      return textWidth(element, "·")
+        + (Number.parseFloat(style.marginLeft) || 0)
+        + (Number.parseFloat(style.marginRight) || 0);
+    }
+
+    function splitSensorName(sensorName, firstLineWidth, secondLineWidth, measureElement) {
+      const characters = Array.from(String(sensorName || ""));
+      let low = 0;
+      let high = characters.length;
+      while (low < high) {
+        const midpoint = Math.ceil((low + high) / 2);
+        if (textWidth(measureElement, characters.slice(0, midpoint).join("").trimEnd()) <= firstLineWidth) low = midpoint;
+        else high = midpoint - 1;
+      }
+      const naturalBreaks = [];
+      for (let index = 1; index <= low; index += 1) {
+        if (/\s/u.test(characters[index - 1]) || characters[index - 1] === "-") naturalBreaks.push(index);
+      }
+      const fullNaturalBreak = naturalBreaks.slice().reverse().find((index) => (
+        textWidth(measureElement, characters.slice(index).join("").trimStart()) <= secondLineWidth + 1
+      ));
+      const maximumContinuation = characters.slice(low).join("").trimStart();
+      const splitIndex = fullNaturalBreak
+        ?? (textWidth(measureElement, maximumContinuation) <= secondLineWidth + 1
+          ? low
+          : naturalBreaks[naturalBreaks.length - 1] ?? low);
+      return {
+        first: characters.slice(0, splitIndex).join("").trimEnd(),
+        continuation: characters.slice(splitIndex).join("").trimStart(),
+      };
+    }
+
+    function setIdentityPiece(element, text, visible = true) {
+      if (!element) return;
+      const nextText = String(text || "");
+      if (element.textContent !== nextText) element.textContent = nextText;
+      element.hidden = !visible;
+    }
+
+    function applyOneLineIdentity(chip) {
+      const sensorName = String(chip.dataset.sensorName || "");
+      const networkName = String(chip.dataset.networkName || "");
+      const lineOne = chip.querySelector(".hex-chart-chip-line--1");
+      const lineTwo = chip.querySelector(".hex-chart-chip-line--2");
+      setIdentityPiece(lineOne?.querySelector(".hex-chart-chip-name"), sensorName);
+      setIdentityPiece(lineOne?.querySelector(".hex-chart-chip-separator"), "·");
+      setIdentityPiece(lineOne?.querySelector(".hex-chart-chip-network"), networkName);
+      if (lineTwo) lineTwo.hidden = true;
+      chip.classList.remove("hex-chart-selected-sensor-chip--truncated");
+    }
+
+    function applyTwoLineIdentity(chip) {
+      const sensorName = String(chip.dataset.sensorName || "");
+      const networkName = String(chip.dataset.networkName || "");
+      const label = chip.querySelector(".hex-chart-chip-label");
+      const lineOne = chip.querySelector(".hex-chart-chip-line--1");
+      const lineTwo = chip.querySelector(".hex-chart-chip-line--2");
+      const firstSensor = lineOne?.querySelector(".hex-chart-chip-name");
+      const firstSeparator = lineOne?.querySelector(".hex-chart-chip-separator");
+      const firstNetwork = lineOne?.querySelector(".hex-chart-chip-network");
+      const continuation = lineTwo?.querySelector(".hex-chart-chip-name");
+      const secondSeparator = lineTwo?.querySelector(".hex-chart-chip-separator");
+      const secondNetwork = lineTwo?.querySelector(".hex-chart-chip-network");
+      if (!label || !firstSensor || !lineTwo || !continuation || !secondSeparator || !secondNetwork) return;
+      lineTwo.hidden = false;
+      setIdentityPiece(firstSeparator, "", false);
+      setIdentityPiece(firstNetwork, "", false);
+      setIdentityPiece(secondNetwork, networkName);
+      const availableWidth = label.getBoundingClientRect().width;
+      if (textWidth(firstSensor, sensorName) <= availableWidth + 1) {
+        setIdentityPiece(firstSensor, sensorName);
+        setIdentityPiece(continuation, "", false);
+        setIdentityPiece(secondSeparator, "", false);
+        chip.classList.remove("hex-chart-selected-sensor-chip--truncated");
+        return;
+      }
+      const availableContinuationWidth = Math.max(
+        0,
+        availableWidth - separatorWidth(secondSeparator) - textWidth(secondNetwork, networkName),
+      );
+      const split = splitSensorName(sensorName, availableWidth, availableContinuationWidth, firstSensor);
+      setIdentityPiece(firstSensor, split.first);
+      setIdentityPiece(continuation, split.continuation);
+      setIdentityPiece(secondSeparator, "·");
+      chip.classList.toggle(
+        "hex-chart-selected-sensor-chip--truncated",
+        textWidth(continuation, split.continuation) > availableContinuationWidth + 1,
+      );
+    }
+
+    function oneLineIdentityFits(chip) {
+      const label = chip.querySelector(".hex-chart-chip-label");
+      const sensor = chip.querySelector(".hex-chart-chip-line--1 .hex-chart-chip-name");
+      const separator = chip.querySelector(".hex-chart-chip-line--1 .hex-chart-chip-separator");
+      const network = chip.querySelector(".hex-chart-chip-line--1 .hex-chart-chip-network");
+      if (!label || !sensor || !separator || !network) return false;
+      return textWidth(sensor, chip.dataset.sensorName)
+        + separatorWidth(separator)
+        + textWidth(network, chip.dataset.networkName)
+        <= label.getBoundingClientRect().width + 1;
     }
 
     function syncChipNetworkIdentity() {
       const reading = dom()?.reading;
       if (!reading) return;
+      const plot = currentPlotGeometry();
+      if (plot) {
+        reading.style.setProperty("--hex-chart-plot-left", `${plot.left}px`);
+        reading.style.setProperty("--hex-chart-plot-right", `${plot.right}px`);
+      }
+      const isNarrow = Boolean(narrowChipLayoutQuery?.matches);
+      const fourColumns = !isNarrow && Boolean(plot && plot.width >= FOUR_COLUMN_PLOT_THRESHOLD);
       reading.classList.remove(
         "hex-chart-selected-sensors--one-line",
         "hex-chart-selected-sensors--two-line",
+        "hex-chart-selected-sensors--four-columns",
       );
-      const networks = Array.from(reading.querySelectorAll(".hex-chart-chip-network"));
-      networks.forEach((network) => network.classList.remove("hex-chart-chip-network--own-line"));
-      if (narrowChipLayoutQuery?.matches) {
-        reading.classList.add("hex-chart-selected-sensors--one-line");
-        const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
-        const allFit = narrowChipOneLineFits(chips);
-        reading.classList.toggle("hex-chart-selected-sensors--one-line", allFit);
-        reading.classList.toggle("hex-chart-selected-sensors--two-line", !allFit);
+      reading.classList.toggle("hex-chart-selected-sensors--four-columns", fourColumns);
+      const chips = Array.from(reading.querySelectorAll(".hex-chart-selected-sensor-chip"));
+      if (isNarrow) {
+        const allFit = chips.length > 0 && chips.every(oneLineIdentityFits);
+        reading.classList.add(allFit ? "hex-chart-selected-sensors--one-line" : "hex-chart-selected-sensors--two-line");
+        chips.forEach(allFit ? applyOneLineIdentity : applyTwoLineIdentity);
       } else {
         reading.classList.add("hex-chart-selected-sensors--two-line");
+        chips.forEach(applyTwoLineIdentity);
       }
       const canvas = reading.closest(".map-canvas-wrap");
-      const firstChip = reading.querySelector(".hex-chart-selected-sensor-chip");
-      const chipMinHeight = firstChip && typeof root.getComputedStyle === "function"
-        ? Number.parseFloat(root.getComputedStyle(firstChip).minHeight) || 0
-        : 0;
-      const desktopBaseRowHeight = typeof root.getComputedStyle === "function"
-        ? Number.parseFloat(root.getComputedStyle(reading).getPropertyValue("--hex-chart-summary-base-row-height")) || 0
-        : 0;
-      const baseRowHeight = narrowChipLayoutQuery?.matches
-        ? chipMinHeight
-        : desktopBaseRowHeight || chipMinHeight;
-      const extraHeight = Math.max(0, Math.ceil(reading.getBoundingClientRect().height - baseRowHeight));
-      canvas?.style.setProperty("--hex-chart-summary-extra-height", `${extraHeight}px`);
+      canvas?.style.setProperty(
+        "--hex-chart-summary-extra-height",
+        !isNarrow && !fourColumns ? "48px" : "0px",
+      );
     }
 
     function clearChipPresentationGeometry() {
       Object.values(domByMap).forEach(({ reading }) => {
         reading?.closest(".map-canvas-wrap")?.style.removeProperty("--hex-chart-summary-extra-height");
+        reading?.style.removeProperty("--hex-chart-plot-left");
+        reading?.style.removeProperty("--hex-chart-plot-right");
       });
     }
     function setMessage(text, options = {}) {
@@ -366,7 +474,7 @@
       state.aqiSourceId = state.selectedIds.has(load.aqiSourceStationId)
         ? load.aqiSourceStationId
         : selected[0]?.station_id || null;
-      renderChips(context);
+      renderChips();
       syncTable(chartMapKey());
       notifySelection();
     }
@@ -421,6 +529,7 @@
       });
       const refs = domByMap[mapKey];
       state.controller.mount({ svg: refs.svg, tooltip: refs.tooltip, wrap: refs.wrap });
+      chipIdentityResizeObserver?.observe(refs.wrap);
       createPollutantHandoff();
     }
 
@@ -506,22 +615,18 @@
       if (keepTop) keepTop.disabled = !active || state.selectedIds.size <= 1 || !ordered.length;
     }
 
-    function renderChips(context = currentContext()) {
+    function renderChips() {
       const reading = dom()?.reading;
       if (!reading) return;
       const selected = selectedEntries();
-      const adapter = mapAdapter();
       reading.innerHTML = selected.map((entry, index) => {
         const id = entry.station_id;
         const stationName = String(entry.stationName || entry.station_name || "Unknown sensor");
         const network = String(entry.networkLabel || entry.network_label || "Unknown network");
-        const value = Number(entry.value);
-        const readingValue = Number.isFinite(value) ? `${value.toFixed(1)} ${entry.units || context?.units || ""}`.trim() : "No data";
-        const updated = entry.timestamp ? new Date(entry.timestamp).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "--:--";
-        const colour = adapter?.getSensorCurrentColor?.(id) || "var(--no-data)";
         const source = id === state.aqiSourceId;
         const symbol = root.ChartCore.getSymbolSvgMarkup(index, { className: "hex-chart-symbol-svg chart-mode-sensor-symbol-svg", sizePx: 22, area: 120 });
-        return `<div class="hex-chart-selected-sensor-chip${source ? " is-aqi-source" : ""}" role="button" tabindex="0" data-aqi-source-station-id="${escapeHtml(id)}" aria-pressed="${source ? "true" : "false"}" aria-label="Use ${escapeHtml(stationName)} for DAQI and EAQI bands"><span class="hex-chart-chip-symbol">${symbol}</span><span class="hex-chart-chip-label"><span class="hex-chart-chip-name">${escapeHtml(stationName)}</span><span class="hex-chart-chip-network">${escapeHtml(network)}</span></span><span class="hex-chart-chip-value"><span class="sensor-reading-dot" style="--sensor-reading-color:${escapeHtml(colour)}"></span>${escapeHtml(readingValue)}</span><span class="hex-chart-chip-time">${escapeHtml(updated)}</span></div>`;
+        const fullIdentity = `${stationName} · ${network}`;
+        return `<div class="hex-chart-selected-sensor-chip${source ? " is-aqi-source" : ""}" role="button" tabindex="0" data-aqi-source-station-id="${escapeHtml(id)}" data-sensor-name="${escapeHtml(stationName)}" data-network-name="${escapeHtml(network)}" aria-pressed="${source ? "true" : "false"}" aria-label="Use ${escapeHtml(fullIdentity)} for DAQI and EAQI bands" title="${escapeHtml(fullIdentity)}"><span class="hex-chart-chip-symbol">${symbol}</span><span class="hex-chart-chip-label" aria-hidden="true"><span class="hex-chart-chip-line hex-chart-chip-line--1"><span class="hex-chart-chip-name">${escapeHtml(stationName)}</span><span class="hex-chart-chip-separator" hidden>·</span><span class="hex-chart-chip-network" hidden>${escapeHtml(network)}</span></span><span class="hex-chart-chip-line hex-chart-chip-line--2"><span class="hex-chart-chip-name" hidden></span><span class="hex-chart-chip-separator" hidden>·</span><span class="hex-chart-chip-network">${escapeHtml(network)}</span></span></span></div>`;
       }).join("");
       chipIdentityResizeObserver?.observe(reading);
       scheduleChipNetworkIdentity();
