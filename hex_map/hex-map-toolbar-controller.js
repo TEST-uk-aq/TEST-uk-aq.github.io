@@ -394,19 +394,21 @@ function initHexMapToolbarController(root) {
           + geometry.chartRangeWidth
           + geometry.statusWidth
           + (2 * divider)
-          + (4 * gap),
-        "chart-compact": Math.max(
-          geometry.pollutantWidth
-            + geometry.windowWidth
-            + geometry.statusWidth
-            + divider
-            + (3 * gap),
-          geometry.chartRangeWidth,
-        ),
-        "chart-narrow": Math.max(
-          geometry.pollutantWidth + geometry.statusWidth + gap,
-          geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
-        ),
+          + (3 * gap),
+        "chart-compact":
+          Math.max(
+            geometry.pollutantWidth + divider + geometry.windowWidth + gap,
+            geometry.chartRangeWidth,
+          )
+          + geometry.statusWidth
+          + gap,
+        "chart-narrow":
+          Math.max(
+            geometry.pollutantWidth,
+            geometry.windowWidth + divider,
+          )
+          + Math.max(geometry.statusWidth, geometry.chartRangeWidth)
+          + gap,
         "chart-wrapped": Math.max(
           geometry.pollutantWidth,
           geometry.statusWidth,

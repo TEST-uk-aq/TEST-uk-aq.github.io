@@ -3883,6 +3883,7 @@
 
         body.hex-chart-mode .toolbar-status-actions {
           grid-column: 2;
+          justify-self: start;
         }
 
         .toolbar-status-slot {
@@ -4412,15 +4413,11 @@
 
         /* Chart Narrow: Pollutant row 1; Window | Chart range row 2. */
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] {
-          grid-template-columns:
-            calc(var(--hex-toolbar-window-width, 0px) + var(--hex-toolbar-divider-space))
-            var(--hex-toolbar-chart-range-width, max-content)
-            minmax(0, 1fr)
-            max-content;
+          grid-template-columns: max-content minmax(max-content, 1fr);
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] .pollutant-control-group {
-          grid-column: 1 / 4;
+          grid-column: 1;
           grid-row: 1;
         }
 
@@ -4440,7 +4437,7 @@
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] .toolbar-status-actions {
-          grid-column: 4;
+          grid-column: 2;
           grid-row: 1;
         }
 
@@ -4517,8 +4514,7 @@
           grid-template-columns:
             calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-window-width, max-content)
-            minmax(0, 1fr)
-            max-content;
+            minmax(max-content, 1fr);
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .pollutant-control-group {
@@ -4537,12 +4533,12 @@
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .chart-range-toolbar {
-          grid-column: 1 / 4;
+          grid-column: 1 / 3;
           grid-row: 2;
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] .toolbar-status-actions {
-          grid-column: 4;
+          grid-column: 3;
           grid-row: 1;
         }
 
@@ -4552,8 +4548,7 @@
             calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
             calc(var(--hex-toolbar-window-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-chart-range-width, max-content)
-            minmax(0, 1fr)
-            max-content;
+            minmax(max-content, 1fr);
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .pollutant-control-group,
@@ -4582,7 +4577,7 @@
         }
 
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] .toolbar-status-actions {
-          grid-column: 5;
+          grid-column: 4;
           grid-row: 1;
         }
 
