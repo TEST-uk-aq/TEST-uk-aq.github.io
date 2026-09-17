@@ -235,6 +235,17 @@
         display: none !important;
       }
 
+      /* Network filtering is a map-mode control. In chart mode, remove the
+         selector/panel and their reserved rows without changing selection
+         state. Remaining chart-control rows then collapse naturally. */
+      body.hex-chart-mode .toolbar-networks-slot,
+      body.hex-chart-mode .networks-pill-anchor,
+      body.hex-chart-mode #networks-panel-floating,
+      body.hex-chart-mode .mobile-chart-controls-row--primary,
+      body.hex-chart-mode .mobile-chart-networks-panel-mount {
+        display: none !important;
+      }
+
       .map-wrap .tab-slot {
         position: absolute;
         top: 0;

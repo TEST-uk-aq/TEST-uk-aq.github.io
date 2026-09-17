@@ -100,16 +100,30 @@
     return RANGE_VALUES.has(label) ? label : "24h";
   }
 
-  function resolveRange(label) {
-    const endDate = new Date();
+  function entryHourKey(entry) {
+    const raw = entry?.timestamp;
+    if (!raw) return null;
+    const timestamp = raw instanceof Date ? raw : new Date(raw);
+    return Number.isFinite(timestamp.getTime())
+      ? Math.floor(timestamp.getTime() / domain.HOUR_MS) * domain.HOUR_MS
+      : null;
+  }
+
+  function resolveRange(label, entries = [], now = new Date()) {
+    const nowDate = now instanceof Date ? new Date(now.getTime()) : new Date(now);
+    const nowMs = Number.isFinite(nowDate.getTime()) ? nowDate.getTime() : Date.now();
+    const currentHourMs = Math.floor(nowMs / domain.HOUR_MS) * domain.HOUR_MS;
+    const hasCurrentHourData = (Array.isArray(entries) ? entries : [])
+      .some((entry) => entryHourKey(entry) === currentHourMs);
+    const endMs = currentHourMs - (hasCurrentHourData ? 0 : domain.HOUR_MS);
     const duration = label === "12h" ? 12 * 60 * 60 * 1000
       : label === "7d" ? 7 * DAY_MS
         : label === "31d" ? 31 * DAY_MS
           : label === "90d" ? 90 * DAY_MS
             : DAY_MS;
     return domain.snapshotChartRange({
-      start_utc: new Date(endDate.getTime() - duration).toISOString(),
-      end_utc: endDate.toISOString(),
+      start_utc: new Date(endMs - duration).toISOString(),
+      end_utc: new Date(endMs).toISOString(),
     });
   }
 
@@ -453,9 +467,14 @@
     }
 
     function stationContext(load, status) {
+      const selectedIds = new Set((load.selectedStationIds || []).map((stationId) => String(stationId)));
+      const rangeEntries = status === "ready"
+        ? (load.entries || []).filter((entry) => selectedIds.has(String(entry?.station_id ?? entry?.stationId ?? "")))
+        : [];
       return {
         pollutant: load.pollutant,
         status,
+        range: status === "ready" ? resolveRange(state.rangeLabel, rangeEntries) : undefined,
         entries: status === "ready" ? load.entries : [],
         selectedStationIds: load.selectedStationIds,
         primaryStationId: load.primaryStationId,
@@ -645,12 +664,15 @@
     }
 
     function commitSelection(options = {}) {
-      selectedEntries().forEach((entry) => state.retainedEntries.set(entry.station_id, entry));
+      const entries = selectedEntries();
+      entries.forEach((entry) => state.retainedEntries.set(entry.station_id, entry));
       if (!state.selectedIds.has(state.aqiSourceId)) state.aqiSourceId = Array.from(state.selectedIds)[0] || null;
       renderChips();
       syncTable(chartMapKey());
       notifySelection();
-      return options.reload === false ? Promise.resolve() : state.controller?.setSelection(selectedEntries());
+      return options.reload === false ? Promise.resolve() : state.controller?.setSelection(entries, {
+        range: resolveRange(state.rangeLabel, entries),
+      });
     }
 
     function enter(options = {}) {
@@ -674,7 +696,7 @@
       syncChartSelectionTables();
       scheduleSensorPanelGeometryRefresh(mapKey);
       createController(mapKey);
-      void state.controller.setRange(resolveRange(state.rangeLabel));
+      void state.controller.setRange(resolveRange(state.rangeLabel, selectedEntries()));
       state.pollutantAdapter.sync({ ...context, entries: state.visibleEntries }, context.dataStatus);
       return true;
     }
@@ -788,7 +810,7 @@
       await mapAdapter()?.refreshForChartMode?.();
       const pollutant = domain.normalizePollutant(currentContext()?.pollutant);
       if (pollutant && pollutant === state.pollutantContextController?.renderedPollutant) {
-        await state.controller?.setRange(resolveRange(state.rangeLabel));
+        await state.controller?.setRange(resolveRange(state.rangeLabel, selectedEntries()));
       }
     }
 
@@ -796,7 +818,7 @@
       if (!isLifecycleMounted()) return;
       state.rangeLabel = normalizeRangeLabel(rangeSelect.value);
       rangeSelect.value = state.rangeLabel;
-      void state.controller?.setRange(resolveRange(state.rangeLabel));
+      void state.controller?.setRange(resolveRange(state.rangeLabel, selectedEntries()));
     });
     backButtons.forEach((button) => button.addEventListener("click", exit));
     root.addEventListener("resize", () => {

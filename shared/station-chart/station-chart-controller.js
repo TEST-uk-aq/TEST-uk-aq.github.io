@@ -779,8 +779,14 @@
       const pollutant = domain.normalizePollutant(config.pollutant);
       const status = String(config.status || "").trim().toLowerCase();
       const contextGuard = normalizeContextGuard(config.contextGuard);
+      const nextRange = config.range === undefined || config.range === null
+        ? null
+        : domain.snapshotChartRange(config.range);
       if (!pollutant || !["loading", "ready", "failed"].includes(status) || !contextGuard) {
         return Promise.reject(new Error("station_chart_pollutant_context_invalid"));
+      }
+      if (config.range !== undefined && config.range !== null && !nextRange) {
+        return Promise.reject(new Error("station_chart_pollutant_context_range_invalid"));
       }
       if (!contextGuardCurrent(contextGuard)) {
         return Promise.resolve({ status: "obsolete", committed: false });
@@ -837,6 +843,7 @@
           ? requestedPrimaryId
           : selection[0]?.station_id || null;
       chartPollutant = pollutant;
+      if (nextRange) range = nextRange;
       const renderMode = String(config.renderMode || "pollutant-replacement");
       return load("pollutant-replacement", {
         contextGuard,
@@ -851,8 +858,14 @@
       });
     }
 
-    function setSelection(entries) {
+    function setSelection(entries, config = {}) {
       if (destroyed) return Promise.resolve(null);
+      const nextRange = config.range === undefined || config.range === null
+        ? null
+        : domain.snapshotChartRange(config.range);
+      if (config.range !== undefined && config.range !== null && !nextRange) {
+        return Promise.reject(new Error("station_chart_selection_range_invalid"));
+      }
       const seen = new Set();
       selection = (Array.isArray(entries) ? entries : []).map(normalizeEntry).filter(function (entry) {
         if (!entry || seen.has(entry.station_id)) return false;
@@ -863,6 +876,7 @@
         aqiSourceId = selection[0]?.station_id || null;
       }
       if (!chartPollutant && selection[0]) chartPollutant = selection[0].pollutant;
+      if (nextRange) range = nextRange;
       return load("sensor-change");
     }
 
