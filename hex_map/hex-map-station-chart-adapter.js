@@ -290,31 +290,28 @@
         + (Number.parseFloat(style.marginRight) || 0);
     }
 
-    function splitSensorName(sensorName, firstLineWidth, secondLineWidth, measureElement) {
-      const characters = Array.from(String(sensorName || ""));
-      let low = 0;
-      let high = characters.length;
-      while (low < high) {
-        const midpoint = Math.ceil((low + high) / 2);
-        if (textWidth(measureElement, characters.slice(0, midpoint).join("").trimEnd()) <= firstLineWidth) low = midpoint;
-        else high = midpoint - 1;
+    function splitSensorName(sensorName, firstLineWidth, measureElement) {
+      const tokens = String(sensorName || "").trim().split(/\s+/u).filter(Boolean);
+      let lineOneTokenCount = 0;
+      while (lineOneTokenCount < tokens.length) {
+        const candidate = tokens.slice(0, lineOneTokenCount + 1).join(" ");
+        if (textWidth(measureElement, candidate) > firstLineWidth) break;
+        lineOneTokenCount += 1;
       }
-      const naturalBreaks = [];
-      for (let index = 1; index <= low; index += 1) {
-        if (/\s/u.test(characters[index - 1]) || characters[index - 1] === "-") naturalBreaks.push(index);
-      }
-      const fullNaturalBreak = naturalBreaks.slice().reverse().find((index) => (
-        textWidth(measureElement, characters.slice(index).join("").trimStart()) <= secondLineWidth + 1
-      ));
-      const maximumContinuation = characters.slice(low).join("").trimStart();
-      const splitIndex = fullNaturalBreak
-        ?? (textWidth(measureElement, maximumContinuation) <= secondLineWidth + 1
-          ? low
-          : naturalBreaks[naturalBreaks.length - 1] ?? low);
       return {
-        first: characters.slice(0, splitIndex).join("").trimEnd(),
-        continuation: characters.slice(splitIndex).join("").trimStart(),
+        first: tokens.slice(0, lineOneTokenCount).join(" "),
+        continuation: tokens.slice(lineOneTokenCount).join(" "),
       };
+    }
+
+    function longestFittingPrefix(text, availableWidth, measureElement) {
+      const characters = Array.from(String(text || ""));
+      let longest = "";
+      for (let index = 1; index <= characters.length; index += 1) {
+        const candidate = characters.slice(0, index).join("").trimEnd();
+        if (textWidth(measureElement, candidate) <= availableWidth) longest = candidate;
+      }
+      return longest;
     }
 
     function setIdentityPiece(element, text, visible = true) {
@@ -365,14 +362,19 @@
         0,
         availableWidth - separatorWidth(secondSeparator) - textWidth(secondNetwork, networkName),
       );
-      const split = splitSensorName(sensorName, availableWidth, availableContinuationWidth, firstSensor);
+      const split = splitSensorName(sensorName, availableWidth, firstSensor);
       setIdentityPiece(firstSensor, split.first);
-      setIdentityPiece(continuation, split.continuation);
       setIdentityPiece(secondSeparator, "·");
-      chip.classList.toggle(
-        "hex-chart-selected-sensor-chip--truncated",
-        textWidth(continuation, split.continuation) > availableContinuationWidth + 1,
-      );
+      if (textWidth(continuation, split.continuation) <= availableContinuationWidth) {
+        setIdentityPiece(continuation, split.continuation);
+        chip.classList.remove("hex-chart-selected-sensor-chip--truncated");
+        return;
+      }
+      const ellipsisWidth = textWidth(continuation, "…");
+      const sensorPrefixWidth = Math.max(0, availableContinuationWidth - ellipsisWidth);
+      const visiblePrefix = longestFittingPrefix(split.continuation, sensorPrefixWidth, continuation);
+      setIdentityPiece(continuation, `${visiblePrefix}…`);
+      chip.classList.add("hex-chart-selected-sensor-chip--truncated");
     }
 
     function oneLineIdentityFits(chip) {

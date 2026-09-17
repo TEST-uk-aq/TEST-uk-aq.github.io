@@ -3866,15 +3866,6 @@
           max-width: 1100px;
         }
 
-        .toolbar-search-row.has-networks-panel-search-safe-area .map-search {
-          max-width: min(1100px, var(--networks-panel-search-safe-width));
-        }
-
-        .toolbar-search-row.has-networks-panel-search-safe-area .map-search-results {
-          width: 100%;
-          max-width: 100%;
-        }
-
         /* The measured chart controls need 1039.45px including the reserved
            right side. 1048px retains an 8px tolerance against fractional
            pixel chatter and switches only between these two CSS states. */

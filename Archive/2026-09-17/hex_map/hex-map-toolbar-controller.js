@@ -597,6 +597,7 @@ function initHexMapToolbarController(root) {
     if (mobileLayoutQuery) {
       const handleMobileLayoutChange = () => {
         closeRegionPopover();
+        networkController?.closePanel?.();
         syncResponsivePresentation(coordinator.getActiveMap());
       };
       if (typeof mobileLayoutQuery.addEventListener === "function") {

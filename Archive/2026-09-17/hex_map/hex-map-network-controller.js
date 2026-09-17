@@ -39,11 +39,12 @@ function initHexMapNetworkController(root) {
   let renderedKey = "";
   let panelPinned = false;
   let panelAnchorPill = null;
+  let panelPinnedWidthPx = null;
+  let panelPinnedTopPx = null;
+  let panelPinnedLeftPx = null;
   let cachedPanelWidth = 0;
-  let panelPresentationFrame = null;
 
   const PANEL_MARGIN_PX = 8;
-  const SEARCH_PANEL_GAP_PX = 12;
   const LONDON_MAP_GAP_PX = -72;
   const PIN_ICON_OFF_SRC = "/images/UK-AQ_pin100_off.svg";
   const PIN_ICON_ON_SRC = "/images/UK-AQ_pin100_on.svg";
@@ -581,7 +582,7 @@ function initHexMapNetworkController(root) {
     dropdownMenu.classList.remove("is-docked");
     dropdownMenu.classList.toggle("is-inline", isMobileInlinePresentation());
     dropdownMenu.classList.toggle("is-floating", !isMobileInlinePresentation());
-    if (isMobileInlinePresentation()) {
+    if (!panelPinned || isMobileInlinePresentation()) {
       dropdownMenu.style.width = "";
       dropdownMenu.style.top = "";
       dropdownMenu.style.left = "";
@@ -592,6 +593,7 @@ function initHexMapNetworkController(root) {
 
   function getPanelWidth() {
     if (!dropdownMenu) return 0;
+    if (Number.isFinite(panelPinnedWidthPx) && panelPinnedWidthPx > 0) return panelPinnedWidthPx;
     if (cachedPanelWidth > 0) return cachedPanelWidth;
     const previous = {
       hidden: dropdownMenu.hidden,
@@ -619,56 +621,17 @@ function initHexMapNetworkController(root) {
     getPanelWidth();
   }
 
-  function clearSearchSafeArea() {
-    document.querySelectorAll("[data-toolbar-search-row]").forEach((row) => {
-      row.classList.remove("has-networks-panel-search-safe-area");
-      row.style.removeProperty("--networks-panel-search-safe-width");
-    });
-  }
-
-  function updatePanelPresentationState() {
-    const isOpen = Boolean(dropdownMenu && !dropdownMenu.hidden);
-    document.body.dataset.networksPanelPresentation = isOpen
-      ? (isMobileInlinePresentation() ? "inline" : "floating")
-      : "closed";
-    document.body.dataset.networksPanelPinned = String(panelPinned);
-  }
-
-  function updateSearchSafeArea() {
-    clearSearchSafeArea();
-    updatePanelPresentationState();
-    if (isMobileInlinePresentation()
-        || !dropdownMenu
-        || dropdownMenu.hidden
-        || !dropdownMenu.classList.contains("is-floating")) return;
-
-    const searchRow = document.querySelector("[data-toolbar-search-row]");
-    const search = searchRow?.querySelector(".map-search");
-    if (!searchRow || !search) return;
-
-    const panelRect = dropdownMenu.getBoundingClientRect();
-    const searchRect = search.getBoundingClientRect();
-    if (!panelRect.width || !searchRect.width) return;
-
-    const safeWidth = Math.max(0, Math.min(
-      searchRect.width,
-      Math.floor(panelRect.left - SEARCH_PANEL_GAP_PX - searchRect.left),
-    ));
-    if (safeWidth >= searchRect.width) return;
-
-    searchRow.style.setProperty("--networks-panel-search-safe-width", `${safeWidth}px`);
-    searchRow.classList.add("has-networks-panel-search-safe-area");
-  }
-
   function applyPinnedPlacement() {
     if (!dropdownMenu) return;
-    const anchor = getActivePill();
-    if (anchor) panelAnchorPill = anchor;
-    positionPanel(panelAnchorPill || anchor);
+    const anchor = panelAnchorPill || getActivePill();
+    setFloatingHost(anchor);
+    if (Number.isFinite(panelPinnedWidthPx)) dropdownMenu.style.width = `${panelPinnedWidthPx}px`;
+    if (Number.isFinite(panelPinnedTopPx)) dropdownMenu.style.top = `${panelPinnedTopPx}px`;
+    if (Number.isFinite(panelPinnedLeftPx)) dropdownMenu.style.left = `${panelPinnedLeftPx}px`;
+    dropdownMenu.style.right = "auto";
   }
 
   function updatePanelSafeArea() {
-    updateSearchSafeArea();
     if (isMobileInlinePresentation()) {
       document.querySelectorAll(".map-canvas-wrap").forEach((wrap) => {
         wrap.classList.remove("has-networks-panel-safe-area");
@@ -677,6 +640,7 @@ function initHexMapNetworkController(root) {
       return;
     }
     if (!panelPinned || !dropdownMenu || dropdownMenu.hidden) clearDockedHosts();
+    else applyPinnedPlacement();
     let targetWrap = null;
     let targetSafeRight = null;
     const londonActive = activeScope === "cr" && String(root.crMap?.getRegion?.() || "").toLowerCase() === "london";
@@ -715,23 +679,14 @@ function initHexMapNetworkController(root) {
       updatePanelSafeArea();
       return;
     }
+    if (panelPinned) return applyPinnedPlacement();
     setFloatingHost(pill);
-    dropdownMenu.style.width = "";
     const host = getFloatingHost(pill);
     const rect = pill.getBoundingClientRect();
+    const panelRect = dropdownMenu.getBoundingClientRect();
     const hostRect = host.getBoundingClientRect();
     const hostWidth = host === document.body ? root.innerWidth : hostRect.width;
     const hostHeight = host === document.body ? root.innerHeight : hostRect.height;
-    const availableWidth = Math.max(0, Math.min(
-      hostWidth - (PANEL_MARGIN_PX * 2),
-      root.innerWidth - (PANEL_MARGIN_PX * 2),
-    ));
-    let panelRect = dropdownMenu.getBoundingClientRect();
-    if (availableWidth > 0 && panelRect.width > availableWidth) {
-      dropdownMenu.style.width = `${Math.floor(availableWidth)}px`;
-      panelRect = dropdownMenu.getBoundingClientRect();
-    }
-    cachedPanelWidth = panelRect.width || 0;
     let top = rect.bottom - hostRect.top + PANEL_MARGIN_PX;
     let left = rect.right - hostRect.left - panelRect.width;
     if (left < PANEL_MARGIN_PX) left = PANEL_MARGIN_PX;
@@ -746,28 +701,6 @@ function initHexMapNetworkController(root) {
     updatePanelSafeArea();
   }
 
-  function syncPanelTriggerState() {
-    const isOpen = Boolean(dropdownMenu && !dropdownMenu.hidden);
-    pills.forEach((pill) => pill.setAttribute("aria-expanded", String(isOpen && pill === panelAnchorPill)));
-  }
-
-  function schedulePanelPresentationSync() {
-    if (panelPresentationFrame !== null) return;
-    panelPresentationFrame = root.requestAnimationFrame(() => {
-      panelPresentationFrame = null;
-      if (!dropdownMenu || dropdownMenu.hidden) {
-        syncPanelTriggerState();
-        updatePanelSafeArea();
-        return;
-      }
-      const activePill = getActivePill();
-      if (activePill) panelAnchorPill = activePill;
-      if (panelPinned) applyPinnedPlacement();
-      else positionPanel(panelAnchorPill || activePill);
-      syncPanelTriggerState();
-    });
-  }
-
   function setPanelOpen(isOpen, anchorPill, options = {}) {
     if (!dropdownMenu) return;
     const focusTarget = panelAnchorPill || anchorPill || getActivePill();
@@ -776,51 +709,52 @@ function initHexMapNetworkController(root) {
     if (isOpen) {
       panelAnchorPill = anchorPill || getActivePill();
       setFloatingHost(panelAnchorPill);
-      schedulePanelPresentationSync();
+      root.requestAnimationFrame(() => {
+        positionPanel(panelAnchorPill);
+      });
     } else {
       if (!panelPinned || isMobileInlinePresentation()) panelAnchorPill = null;
       setFloatingHost();
       updatePanelSafeArea();
     }
     syncInlinePanelMountState(isOpen);
-    syncPanelTriggerState();
+    pills.forEach((pill) => pill.setAttribute("aria-expanded", String(isOpen && pill === panelAnchorPill)));
     if (!isOpen && options.restoreFocus) focusTarget?.focus?.({ preventScroll: true });
   }
 
   function setPanelPinned(nextPinned) {
     panelPinned = Boolean(nextPinned);
+    if (!panelPinned) {
+      panelPinnedWidthPx = null;
+      panelPinnedTopPx = null;
+      panelPinnedLeftPx = null;
+    } else if (dropdownMenu && !dropdownMenu.hidden) {
+      const rect = dropdownMenu.getBoundingClientRect();
+      const anchor = panelAnchorPill || getActivePill();
+      const hostRect = getFloatingHost(anchor).getBoundingClientRect();
+      panelPinnedWidthPx = rect.width || null;
+      panelPinnedTopPx = rect.top - hostRect.top;
+      panelPinnedLeftPx = rect.left - hostRect.left;
+    }
     panelPin?.setAttribute("aria-pressed", String(panelPinned));
     panelPin?.setAttribute("aria-label", panelPinned ? "Unpin networks panel" : "Pin networks panel");
     panelPin?.setAttribute("title", panelPinned ? "Unpin networks panel" : "Pin networks panel");
     if (panelPinIcon) panelPinIcon.src = panelPinned ? PIN_ICON_ON_SRC : PIN_ICON_OFF_SRC;
-    if (dropdownMenu && !dropdownMenu.hidden) schedulePanelPresentationSync();
+    if (dropdownMenu && !dropdownMenu.hidden) root.requestAnimationFrame(() => positionPanel(panelAnchorPill || getActivePill()));
     else if (!panelPinned) setFloatingHost();
     updatePanelSafeArea();
   }
 
   function syncPanelForActiveScope() {
-    if (panelPinned && dropdownMenu && !dropdownMenu.hidden) {
+    if (panelPinned && !isMobileInlinePresentation() && dropdownMenu && !dropdownMenu.hidden) {
       panelAnchorPill = getActivePill();
-      syncPanelTriggerState();
-      schedulePanelPresentationSync();
+      pills.forEach((pill) => pill.setAttribute("aria-expanded", String(pill === panelAnchorPill)));
+      root.requestAnimationFrame(() => positionPanel(panelAnchorPill));
     } else {
       setPanelOpen(false);
     }
     updateDropdownState();
-    schedulePanelPresentationSync();
-  }
-
-  function syncPanelForResponsiveChange() {
-    if (dropdownMenu && !dropdownMenu.hidden && !panelPinned) {
-      setPanelOpen(false);
-      return;
-    }
-    if (dropdownMenu && !dropdownMenu.hidden) {
-      panelAnchorPill = getActivePill();
-      schedulePanelPresentationSync();
-    } else {
-      updatePanelSafeArea();
-    }
+    root.requestAnimationFrame(updatePanelSafeArea);
   }
 
   pills.forEach((pill) => pill.addEventListener("click", () => {
@@ -845,21 +779,13 @@ function initHexMapNetworkController(root) {
   });
   root.addEventListener("resize", () => {
     cachedPanelWidth = 0;
-    schedulePanelPresentationSync();
+    if (dropdownMenu && !dropdownMenu.hidden && !panelPinned) positionPanel(panelAnchorPill || getActivePill());
+    updatePanelSafeArea();
   });
   root.addEventListener("scroll", () => {
-    if (dropdownMenu && !dropdownMenu.hidden) schedulePanelPresentationSync();
+    if (dropdownMenu && !dropdownMenu.hidden && !panelPinned) positionPanel(panelAnchorPill || getActivePill());
   }, { passive: true });
-  root.addEventListener("crregionchange", schedulePanelPresentationSync);
-  root.addEventListener("hexpagemodechange", schedulePanelPresentationSync);
-  root.addEventListener("hexsensorlistpresentationchange", schedulePanelPresentationSync);
-  if (mobileLayoutQuery) {
-    if (typeof mobileLayoutQuery.addEventListener === "function") {
-      mobileLayoutQuery.addEventListener("change", syncPanelForResponsiveChange);
-    } else if (typeof mobileLayoutQuery.addListener === "function") {
-      mobileLayoutQuery.addListener(syncPanelForResponsiveChange);
-    }
-  }
+  root.addEventListener("crregionchange", () => root.requestAnimationFrame(updatePanelSafeArea));
 
   persistSelection();
   syncSelectionUi();
