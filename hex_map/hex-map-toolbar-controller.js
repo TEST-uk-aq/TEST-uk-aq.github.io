@@ -341,6 +341,10 @@ function initHexMapToolbarController(root) {
   function measureToolbarGeometry() {
     if (!toolbar || !pollutantGroup || !windowStepper || !toolbarStatusActions) return null;
 
+    const toolbarStyle = root.getComputedStyle(toolbar);
+    const toolbarPaddingInline =
+      (Number.parseFloat(toolbarStyle.paddingLeft) || 0)
+      + (Number.parseFloat(toolbarStyle.paddingRight) || 0);
     const readWidth = (element) => element?.getBoundingClientRect().width || 0;
     toolbar.classList.add("hex-toolbar-measuring");
     const viewWidth = readWidth(toolbarViewGroup);
@@ -369,7 +373,11 @@ function initHexMapToolbarController(root) {
       chartRangeWidth,
       statusWidth,
       networksWidth,
-      availableWidth: toolbar.getBoundingClientRect().width,
+      /* clientWidth includes padding. Grid tracks only receive the content
+         box inside that padding, so do not overstate the usable fit width. */
+      availableWidth: Math.max(
+        0, toolbar.clientWidth - toolbarPaddingInline
+      ),
       columnGap: toolbarCssPixels("--hex-toolbar-column-gap", 4),
       dividerSpace: toolbarCssPixels("--hex-toolbar-divider-space", 12),
     };
@@ -399,6 +407,11 @@ function initHexMapToolbarController(root) {
           geometry.pollutantWidth + geometry.statusWidth + gap,
           geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
         ),
+        "chart-wrapped": Math.max(
+          geometry.pollutantWidth,
+          geometry.statusWidth,
+          geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
+        ),
       };
     }
 
@@ -426,13 +439,18 @@ function initHexMapToolbarController(root) {
           + divider
           + (3 * gap),
       ),
+      "map-narrow": Math.max(
+        geometry.viewWidth + geometry.statusWidth + gap,
+        geometry.pollutantWidth + geometry.networksWidth + gap,
+        geometry.windowWidth,
+      ),
     };
   }
 
   function chooseToolbarLayout(mode, geometry) {
     const states = mode === "chart"
-      ? ["chart-wide", "chart-compact", "chart-narrow"]
-      : ["map-wide", "map-compact", "map-intermediate", "map-narrow"];
+      ? ["chart-wide", "chart-compact", "chart-narrow", "chart-wrapped", "chart-stacked"]
+      : ["map-wide", "map-compact", "map-intermediate", "map-narrow", "map-wrapped"];
     const requirements = toolbarLayoutRequirements(mode, geometry);
     const current = toolbar?.dataset.toolbarLayout || "";
     const currentIndex = states.indexOf(current);

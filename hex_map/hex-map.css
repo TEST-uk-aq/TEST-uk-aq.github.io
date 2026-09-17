@@ -4213,10 +4213,51 @@
           grid-row: 4;
         }
 
+        /*
+         * Map Wrapped fallback.
+         * Right-side controls get dedicated full-width rows before Narrow
+         * would push them beyond the toolbar edge.
+         */
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] .toolbar-control-group--view {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] .toolbar-status-actions {
+          grid-column: 1;
+          grid-row: 2;
+          justify-self: end;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 3;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] .toolbar-networks-slot {
+          grid-column: 1;
+          grid-row: 4;
+          justify-self: end;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] #window-stepper {
+          grid-column: 1;
+          grid-row: 5;
+        }
+
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wrapped"] .toolbar-search-row {
+          grid-column: 1;
+          grid-row: 6;
+        }
+
         /* Map Intermediate: Pollutant | Window share a tightly sized row 2. */
         body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-intermediate"] {
           grid-template-columns:
-            var(--hex-toolbar-pollutant-width, max-content)
+            calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-window-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -4255,7 +4296,7 @@
         /* Map Compact: View | Pollutant share row 1; Window owns row 2 left. */
         body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-compact"] {
           grid-template-columns:
-            var(--hex-toolbar-view-width, max-content)
+            calc(var(--hex-toolbar-view-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-pollutant-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -4294,8 +4335,8 @@
         /* Map Wide: all three left control groups share row 1. */
         body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-wide"] {
           grid-template-columns:
-            var(--hex-toolbar-view-wide-width, max-content)
-            var(--hex-toolbar-pollutant-width, max-content)
+            calc(var(--hex-toolbar-view-wide-width, 0px) + var(--hex-toolbar-divider-space))
+            calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-window-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -4372,7 +4413,7 @@
         /* Chart Narrow: Pollutant row 1; Window | Chart range row 2. */
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-narrow"] {
           grid-template-columns:
-            var(--hex-toolbar-window-width, max-content)
+            calc(var(--hex-toolbar-window-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-chart-range-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -4403,10 +4444,78 @@
           grid-row: 1;
         }
 
+        /*
+         * Chart Wrapped fallback.
+         * Live/Refresh gets its own right-aligned row while Window and Chart
+         * range remain together for as long as their natural geometry fits.
+         */
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] {
+          grid-template-columns:
+            calc(var(--hex-toolbar-window-width, 0px) + var(--hex-toolbar-divider-space))
+            var(--hex-toolbar-chart-range-width, max-content)
+            minmax(0, 1fr);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] .pollutant-control-group {
+          grid-column: 1 / -1;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] .toolbar-status-actions {
+          grid-column: 1 / -1;
+          grid-row: 2;
+          justify-self: end;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] #window-stepper {
+          grid-column: 1;
+          grid-row: 3;
+          padding-right: var(--hex-toolbar-divider-space);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] #window-stepper::after {
+          content: "";
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wrapped"] .chart-range-toolbar {
+          grid-column: 2;
+          grid-row: 3;
+        }
+
+        /*
+         * Chart Stacked fallback.
+         * If Window | Chart range no longer fits as one row, keep every
+         * functional group on-screen on its own authorised row.
+         */
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-stacked"] {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-stacked"] .pollutant-control-group {
+          grid-column: 1;
+          grid-row: 1;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-stacked"] .toolbar-status-actions {
+          grid-column: 1;
+          grid-row: 2;
+          justify-self: end;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-stacked"] #window-stepper {
+          grid-column: 1;
+          grid-row: 3;
+        }
+
+        body.hex-chart-mode .toolbar[data-toolbar-layout="chart-stacked"] .chart-range-toolbar {
+          grid-column: 1;
+          grid-row: 4;
+        }
+
         /* Chart Compact: Pollutant | Window row 1; Chart range row 2. */
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-compact"] {
           grid-template-columns:
-            var(--hex-toolbar-pollutant-width, max-content)
+            calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-window-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -4440,8 +4549,8 @@
         /* Chart Wide: all three chart groups share row 1. */
         body.hex-chart-mode .toolbar[data-toolbar-layout="chart-wide"] {
           grid-template-columns:
-            var(--hex-toolbar-pollutant-width, max-content)
-            var(--hex-toolbar-window-width, max-content)
+            calc(var(--hex-toolbar-pollutant-width, 0px) + var(--hex-toolbar-divider-space))
+            calc(var(--hex-toolbar-window-width, 0px) + var(--hex-toolbar-divider-space))
             var(--hex-toolbar-chart-range-width, max-content)
             minmax(0, 1fr)
             max-content;
@@ -5895,26 +6004,14 @@
       @media (max-width: 980px) {
         .map-dashboard-card {
           grid-template-columns: 1fr;
-          padding: 16px;
         }
         .map-summary-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        .map-controls-row {
-          grid-column: 1;
-          grid-row: 3;
-          min-height: 72px;
-          margin: 0;
-          padding: 0;
-        }
         .map-dashboard-card .map-canvas-wrap {
           grid-column: 1 / -1;
           grid-row: 4;
-          border: none;
-          border-radius: 0;
           background: var(--map-wrap);
-          margin-left: 0;
-          margin-bottom: 0;
         }
         .map-zoom-controls {
           bottom: 60px;
@@ -5936,13 +6033,9 @@
         }
       }
 
-      /* Keep the tablet canvas edge and lower-left zoom stack aligned with
-         the >980px desktop treatment without changing the <768px touch UI. */
+      /* Keep the tablet lower-left zoom stack aligned without changing the
+         >=768px card/toolbar/canvas geometry at the 980px boundary. */
       @media (min-width: 768px) and (max-width: 980px) {
-        .map-dashboard-card .map-canvas-wrap {
-          margin-bottom: -16px;
-        }
-
         .map-zoom-controls {
           bottom: 56px;
         }
