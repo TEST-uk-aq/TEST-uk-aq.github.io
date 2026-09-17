@@ -3726,7 +3726,7 @@
           grid-auto-rows: max-content;
           column-gap: 4px;
           row-gap: var(--hex-toolbar-row-gap);
-          align-items: start;
+          align-items: center;
         }
 
         .toolbar-divider {
@@ -3752,11 +3752,26 @@
         }
 
         .toolbar-control-group {
+          position: relative;
           display: inline-flex;
           flex: 0 0 auto;
           min-width: max-content;
           align-items: center;
+          align-self: center;
           gap: 8px;
+        }
+
+        .toolbar-control-group--view::after,
+        .toolbar .pollutant-control-group::after,
+        .toolbar #window-stepper::after {
+          content: none;
+          position: absolute;
+          top: 50%;
+          right: 0;
+          width: 1px;
+          height: 20px;
+          background: var(--line);
+          transform: translateY(-50%);
         }
 
         .toolbar-control-group--view {
@@ -3765,7 +3780,7 @@
           max-width: 100%;
           min-width: 0;
           flex-wrap: wrap;
-          grid-column: 1 / 4;
+          grid-column: 1;
           grid-row: 1;
         }
 
@@ -3797,13 +3812,18 @@
         }
 
         .toolbar #window-stepper {
-          grid-column: 2;
-          grid-row: 2;
+          grid-column: 1;
+          grid-row: 3;
         }
 
         body.hex-chart-mode .toolbar .pollutant-control-group {
           grid-column: 1;
           grid-row: 1;
+          padding-right: 13px;
+        }
+
+        body.hex-chart-mode .toolbar .pollutant-control-group::after {
+          content: "";
         }
 
         body.hex-chart-mode .toolbar #window-stepper {
@@ -3843,6 +3863,7 @@
           grid-column: 5;
           grid-row: 2;
           display: flex;
+          align-self: center;
           justify-content: flex-end;
           justify-self: end;
         }
@@ -3854,7 +3875,7 @@
 
         .toolbar-search-row {
           grid-column: 1 / -1;
-          grid-row: 3;
+          grid-row: 4;
           display: flex;
           min-width: 0;
         }
@@ -3875,19 +3896,52 @@
           max-width: 100%;
         }
 
-        /* The measured chart controls need 1039.45px including the reserved
-           right side. 1048px retains an 8px tolerance against fractional
-           pixel chatter and switches only between these two CSS states. */
-        @container hex-main-toolbar (min-width: 1048px) {
+        /* Compact map fits View + Pollutant + the reserved right side from
+           934px. Below that, complete groups use separate deterministic rows. */
+        @container hex-main-toolbar (min-width: 934px) {
+          body:not(.hex-chart-mode) .toolbar-control-group--view {
+            padding-right: 13px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar-control-group--view::after {
+            content: "";
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
+            grid-column: 2;
+            grid-row: 1;
+          }
+
+          body:not(.hex-chart-mode) .toolbar #window-stepper {
+            grid-column: 1;
+            grid-row: 2;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .toolbar-search-row {
+            grid-row: 3;
+          }
+        }
+
+        /* Divider-aware chart controls need 1053.45px including the reserved
+           right side. 1074px retains the existing fractional-pixel tolerance. */
+        @container hex-main-toolbar (min-width: 1074px) {
+          body.hex-chart-mode .toolbar #window-stepper {
+            padding-right: 13px;
+          }
+
+          body.hex-chart-mode .toolbar #window-stepper::after {
+            content: "";
+          }
+
           body.hex-chart-mode .toolbar-control-group.chart-range-toolbar {
             grid-column: 3;
             grid-row: 1;
           }
         }
 
-        /* Map mode uses the same stable source order. The wider C&R context
-           needs more space than UK before all three left groups share row 1. */
-        @container hex-main-toolbar (min-width: 1162px) {
+        /* UK wide map needs 1167.70px for the measured controls, dividers,
+           gaps and reserved right side. 1188px retains the prior tolerance. */
+        @container hex-main-toolbar (min-width: 1188px) {
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .toolbar-control-group--view {
             width: auto;
             max-width: none;
@@ -3899,6 +3953,11 @@
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group {
             grid-column: 2;
             grid-row: 1;
+            padding-right: 13px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) .pollutant-control-group::after {
+            content: "";
           }
 
           body:not(.hex-chart-mode) .toolbar:not(:has(#toolbar-region-section.visible)) #window-stepper {
@@ -3912,7 +3971,9 @@
           }
         }
 
-        @container hex-main-toolbar (min-width: 1341px) {
+        /* C&R wide map needs 1346.36px for the wider View/Region group plus
+           the same dividers, gaps and right-side reservation. */
+        @container hex-main-toolbar (min-width: 1367px) {
           body:not(.hex-chart-mode) .toolbar .toolbar-control-group--view {
             width: auto;
             max-width: none;
@@ -3928,6 +3989,11 @@
           body:not(.hex-chart-mode) .toolbar .pollutant-control-group {
             grid-column: 2;
             grid-row: 1;
+            padding-right: 13px;
+          }
+
+          body:not(.hex-chart-mode) .toolbar .pollutant-control-group::after {
+            content: "";
           }
 
           body:not(.hex-chart-mode) .toolbar #window-stepper {
@@ -3941,10 +4007,6 @@
           }
         }
 
-        .toolbar[data-hex-sensor-list-presentation="compact-map"] .toolbar-search-row {
-          grid-column: 1 / -1;
-          grid-row: 3;
-        }
       }
 
       /* Networks pill (lives inside each map-canvas, top-right) */
