@@ -15,6 +15,7 @@
     rel="stylesheet"
   >
   <link rel="stylesheet" href="/site-ui.css">
+  <link rel="stylesheet" href="/bottom-nav.css">
   <link rel="stylesheet" href="news.css">
   <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
   <script src="news.js" defer></script>
@@ -208,6 +209,33 @@
         </div>
       </noscript>
     </section>
+
+    <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">
+      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--two">
+        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+            </span>
+            <span class="ukaq-bottom-nav-title-switch">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+            </span>
+          </div>
+          <p class="ukaq-bottom-nav-description">View sensor locations and readings on an interactive UK map.</p>
+        </a>
+      </div>
+    </nav>
   </main>
 </body>
 </html>

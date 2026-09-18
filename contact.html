@@ -199,9 +199,25 @@
     /* Homepage UK AQ tool cards, scoped to this page. */
     .tool-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1.5rem;
       align-items: stretch;
+    }
+
+    .contact-tools-wide {
+      margin-top: 2.25rem;
+    }
+
+    @media (max-width: 1100px) {
+      .contact-tools-wide .tool-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 767px) {
+      .contact-tools-wide .tool-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .tool-card {
@@ -398,35 +414,47 @@
           <p class="about-copy">The site includes live monitoring data, interactive maps and charts, air quality indices, WHO guideline comparisons, and articles about air pollution and its effects on health.</p>
           <p class="about-copy about-attribution">UK AQ is an independent project created and maintained by Mike Hinford.</p>
         </section>
-
-        <section class="contact-section" aria-labelledby="ukaq-tools-heading">
-
-          <div class="tool-grid">
-            <a class="tool-card tool-card--ukaq" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
-              <div class="tool-card-header">
-                <span class="tool-card-icon-box">
-                  <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
-                </span>
-                <img class="tool-card-title-graphic" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
-              </div>
-              <p class="tool-card-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
-            </a>
-
-            <a class="tool-card tool-card--ukaq" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
-              <div class="tool-card-header">
-                <span class="tool-card-icon-box">
-                  <img class="tool-card-icon" src="sidebar-images/uk-aq-location-pin.svg" alt="">
-                </span>
-                <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
-                  <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--sensor-map" src="images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
-                  <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
-                </span>
-              </div>
-              <p class="tool-card-description">View sensor locations and readings on an interactive UK map.</p>
-            </a>
-          </div>
-        </section>
       </div>
+
+      <nav class="contact-tools-wide" aria-label="Explore UK AQ">
+        <div class="tool-grid">
+          <a class="tool-card tool-card--ukaq" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+            <div class="tool-card-header">
+              <span class="tool-card-icon-box">
+                <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+              </span>
+              <img class="tool-card-title-graphic" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
+            </div>
+            <p class="tool-card-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+          </a>
+
+          <a class="tool-card tool-card--ukaq" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+            <div class="tool-card-header">
+              <span class="tool-card-icon-box">
+                <img class="tool-card-icon" src="sidebar-images/uk-aq-location-pin.svg" alt="">
+              </span>
+              <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
+                <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--sensor-map" src="images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+                <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+              </span>
+            </div>
+            <p class="tool-card-description">View sensor locations and readings on an interactive UK map.</p>
+          </a>
+
+          <a class="tool-card tool-card--ukaq" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+            <div class="tool-card-header">
+              <span class="tool-card-icon-box">
+                <img class="tool-card-icon" src="sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+              </span>
+              <span class="tool-card-title-graphic-switch" data-one-line-min-width="360">
+                <img class="tool-card-title-graphic tool-card-title-graphic--two-line" src="images/UK-AQ-NEWS-2lines.png" alt="AQ in the News">
+                <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-NEWS-1line.png" alt="AQ in the News">
+              </span>
+            </div>
+            <p class="tool-card-description">Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
+          </a>
+        </div>
+      </nav>
 
     </div>
   </main>
