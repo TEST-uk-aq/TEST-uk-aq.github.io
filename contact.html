@@ -198,25 +198,33 @@
 
     /* Homepage UK AQ tool cards, scoped to this page. */
     .tool-grid {
+      --tool-card-max: calc((1220px - 3rem) / 3);
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, var(--tool-card-max)));
       gap: 1.5rem;
       align-items: stretch;
+      justify-content: center;
     }
 
     .contact-tools-wide {
       margin-top: 2.25rem;
     }
 
+    @media (min-width: 1300px) {
+      .contact-tools-wide .tool-grid {
+        --tool-card-max: calc((1280px - 3rem) / 3);
+      }
+    }
+
     @media (max-width: 1100px) {
       .contact-tools-wide .tool-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, var(--tool-card-max)));
       }
     }
 
     @media (max-width: 767px) {
       .contact-tools-wide .tool-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, var(--tool-card-max));
       }
     }
 
@@ -274,6 +282,12 @@
       display: block;
     }
 
+    .tool-card[href="/sensor_map/"] .tool-card-icon-box,
+    .tool-card[href="/sensor_map/"] .tool-card-icon {
+      width: 60px;
+      flex-basis: 60px;
+    }
+
     .tool-card-title-graphic {
       display: block;
       flex: 1 1 auto;
@@ -323,7 +337,7 @@
       font-size: 1rem;
       line-height: 1.35;
       color: #111;
-      text-align: center;
+      text-align: left;
     }
 
     /* ── Responsive ── */
@@ -446,7 +460,7 @@
               <span class="tool-card-icon-box">
                 <img class="tool-card-icon" src="sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
               </span>
-              <span class="tool-card-title-graphic-switch" data-one-line-min-width="360">
+              <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
                 <img class="tool-card-title-graphic tool-card-title-graphic--two-line" src="images/UK-AQ-NEWS-2lines.png" alt="AQ in the News">
                 <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-NEWS-1line.png" alt="AQ in the News">
               </span>

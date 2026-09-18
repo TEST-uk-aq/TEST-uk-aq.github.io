@@ -182,10 +182,13 @@ footer {
   display: none;
 }
 
-/* Keep the UK AQ tool cards centred as a group. Two cards straddle the page
-   centreline; restoring the commented Sensors card gives three centred cards. */
+/* Keep the UK AQ tool cards centred as a group and match the Beta homepage's
+   1220px/1280px content widths so the cards do not become too wide. */
 .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-grid {
   display: flex;
+  width: 100%;
+  max-width: 1220px;
+  margin-inline: auto;
   justify-content: center;
   align-items: stretch;
   flex-wrap: wrap;
@@ -195,6 +198,22 @@ footer {
 .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card {
   flex: 0 1 calc((100% - 3rem) / 3);
   max-width: calc((100% - 3rem) / 3);
+}
+
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/sensor_map/"] .tool-card-icon-box,
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/sensor_map/"] .tool-card-icon {
+  width: 60px;
+  flex-basis: 60px;
+}
+
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card-description {
+  text-align: left;
+}
+
+@media (min-width: 1300px) {
+  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-grid {
+    max-width: 1280px;
+  }
 }
 
 @media (max-width: 980px) {

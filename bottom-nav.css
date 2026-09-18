@@ -3,17 +3,19 @@
 }
 
 .ukaq-bottom-nav-grid {
+  --ukaq-bottom-nav-card-max: calc((1220px - 3rem) / 3);
   display: grid;
   gap: 1.5rem;
   align-items: stretch;
+  justify-content: center;
 }
 
 .ukaq-bottom-nav-grid--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, var(--ukaq-bottom-nav-card-max)));
 }
 
 .ukaq-bottom-nav-grid--two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, var(--ukaq-bottom-nav-card-max)));
 }
 
 .ukaq-bottom-nav-card {
@@ -68,6 +70,12 @@
   object-fit: contain;
 }
 
+.ukaq-bottom-nav-card[href="/sensor_map/"] .ukaq-bottom-nav-icon-box,
+.ukaq-bottom-nav-card[href="/sensor_map/"] .ukaq-bottom-nav-icon {
+  width: 60px;
+  flex-basis: 60px;
+}
+
 .ukaq-bottom-nav-title {
   display: block;
   flex: 1 1 auto;
@@ -86,6 +94,7 @@
   align-items: center;
   min-width: 0;
   width: 100%;
+  container-type: inline-size;
 }
 
 .ukaq-bottom-nav-title-switch .ukaq-bottom-nav-title--two-line {
@@ -103,10 +112,10 @@
   font-size: 1rem;
   line-height: 1.35;
   color: #111;
-  text-align: center;
+  text-align: left;
 }
 
-@container (min-width: 470px) {
+@container (min-width: 220px) {
   .ukaq-bottom-nav-title-switch .ukaq-bottom-nav-title--two-line {
     display: none;
   }
@@ -116,16 +125,22 @@
   }
 }
 
+@media (min-width: 1300px) {
+  .ukaq-bottom-nav-grid {
+    --ukaq-bottom-nav-card-max: calc((1280px - 3rem) / 3);
+  }
+}
+
 @media (max-width: 980px) {
   .ukaq-bottom-nav-grid--three {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, var(--ukaq-bottom-nav-card-max)));
   }
 }
 
 @media (max-width: 640px) {
   .ukaq-bottom-nav-grid--three,
   .ukaq-bottom-nav-grid--two {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, var(--ukaq-bottom-nav-card-max));
   }
 }
 
