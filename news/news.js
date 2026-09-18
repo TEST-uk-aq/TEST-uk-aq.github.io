@@ -36,6 +36,10 @@
   const gridViewButton = document.getElementById("news-view-grid");
   const listViewButton = document.getElementById("news-view-list");
   const sortHeadingButtons = Array.from(document.querySelectorAll(".news-sort-heading"));
+  const toolbarPageWrap = document.getElementById("news-toolbar-page-wrap");
+  const toolbarPageCurrent = document.getElementById("news-toolbar-page-current");
+  const toolbarPreviousPageButton = document.getElementById("news-toolbar-page-previous");
+  const toolbarNextPageButton = document.getElementById("news-toolbar-page-next");
   const paginationElement = document.getElementById("news-pagination");
   const pageNumbersElement = document.getElementById("news-page-numbers");
   const previousPageButton = document.getElementById("news-page-previous");
@@ -529,9 +533,23 @@
   function renderPagination(totalResults) {
     const totalPages = Math.max(1, Math.ceil(totalResults / state.pageSize));
     state.page = Math.min(Math.max(1, state.page), totalPages);
+    const hasResults = totalResults > 0;
+    const isFirstPage = state.page === 1;
+    const isLastPage = state.page === totalPages;
+    const pageLabel = `Page ${state.page} of ${totalPages}`;
+
+    toolbarPageWrap.hidden = !hasResults;
+    if (hasResults) {
+      toolbarPageCurrent.textContent = `${state.page} / ${totalPages}`;
+      toolbarPageCurrent.title = pageLabel;
+      toolbarPageCurrent.setAttribute("aria-label", pageLabel);
+      toolbarPreviousPageButton.disabled = isFirstPage;
+      toolbarNextPageButton.disabled = isLastPage;
+    }
+
     paginationElement.hidden = totalPages <= 1;
-    previousPageButton.disabled = state.page === 1;
-    nextPageButton.disabled = state.page === totalPages;
+    previousPageButton.disabled = isFirstPage;
+    nextPageButton.disabled = isLastPage;
     const items = paginationItems(state.page, totalPages).map((item) => {
       if (item === "ellipsis") {
         const ellipsis = document.createElement("span");
@@ -591,6 +609,7 @@
       gridElement.replaceChildren();
       tableBodyElement.replaceChildren();
       noResultsElement.hidden = false;
+      renderPagination(0);
       renderResultsSummary(0, 0, 0);
       storeSessionState();
       return;
@@ -881,6 +900,8 @@
   document.addEventListener("click", (event) => {
     if (!searchFieldsDetails.contains(event.target)) searchFieldsDetails.open = false;
   });
+  toolbarPreviousPageButton.addEventListener("click", () => changePage(state.page - 1));
+  toolbarNextPageButton.addEventListener("click", () => changePage(state.page + 1));
   previousPageButton.addEventListener("click", () => changePage(state.page - 1));
   nextPageButton.addEventListener("click", () => changePage(state.page + 1));
   retryButton.addEventListener("click", loadArticles);
