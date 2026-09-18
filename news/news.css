@@ -329,7 +329,7 @@ body {
 }
 
 .news-grid-sort select {
-  width: clamp(10.5rem, 18vw, 13rem);
+  width: auto;
   min-height: 44px;
   padding: 0 32px 0 11px;
   border: 1px solid var(--news-border);
@@ -909,14 +909,15 @@ body {
 }
 
 .news-results-footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   margin-top: 28px;
 }
 
 .news-results-summary {
+  grid-column: 1;
   margin: 0;
   color: var(--news-ink-soft);
   font-size: 0.88rem;
@@ -925,8 +926,10 @@ body {
 
 .news-pagination {
   display: flex;
+  grid-column: 2;
   flex: 0 0 auto;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -1023,7 +1026,25 @@ input:focus-visible {
   }
 
   .news-toolbar-actions {
-    justify-content: space-between;
+    justify-content: flex-end;
+  }
+
+  .news-results-footer {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .news-pagination {
+    order: 1;
+    justify-content: center;
+  }
+
+  .news-results-summary {
+    order: 2;
+    align-self: auto;
+    text-align: center;
   }
 }
 
@@ -1060,21 +1081,27 @@ input:focus-visible {
   }
 
   .news-toolbar-actions {
-    align-items: stretch;
-    flex-direction: column-reverse;
+    width: 100%;
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-end;
   }
 
   .news-grid-sort {
-    justify-content: space-between;
+    flex: 0 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
   }
 
   .news-grid-sort select {
-    flex: 1 1 auto;
-    width: auto;
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   .news-view-switch {
-    align-self: flex-end;
+    flex: 0 0 auto;
+    align-self: center;
+    margin-left: 0;
   }
 
   .news-view-switch button,
@@ -1114,14 +1141,22 @@ input:focus-visible {
   }
 
   .news-results-footer {
-    align-items: stretch;
+    display: flex;
+    align-items: center;
     flex-direction: column;
     gap: 12px;
   }
 
   .news-pagination {
-    justify-content: space-between;
+    order: 1;
+    justify-content: center;
     gap: 5px;
+  }
+
+  .news-results-summary {
+    order: 2;
+    align-self: auto;
+    text-align: center;
   }
 
   .news-pagination > button {
