@@ -6092,7 +6092,8 @@
       .legend-pill {
         position: relative;
         display: grid !important;
-        grid-template-columns: minmax(88px, 148px) auto minmax(108px, 156px);
+        width: fit-content;
+        grid-template-columns: max-content max-content max-content;
         grid-template-areas: "pollutant scale method";
         align-items: center;
         column-gap: 10px;
@@ -6155,9 +6156,9 @@
       }
 
       .legend-pill .legend-value {
-        width: 44px;
-        min-width: 44px;
-        flex: 0 0 44px;
+        width: auto;
+        min-width: max-content;
+        flex: none;
       }
 
       /* When the canvas itself, rather than the viewport, becomes too narrow
@@ -6195,7 +6196,7 @@
           justify-self: center;
           width: max-content;
           max-width: 100%;
-          gap: 6px;
+          gap: 0;
           min-height: 0;
           text-align: center;
         }
@@ -6221,6 +6222,7 @@
         .map-legend-region .legend-title-line > #legend-label,
         .map-legend-region .legend-title-line > #cr-legend-label {
           width: auto;
+          min-width: 0 !important;
           flex: 0 0 auto;
           justify-content: center;
           text-align: center;
@@ -6229,6 +6231,7 @@
         .map-legend-region .legend-title-line > #legend-label::before,
         .map-legend-region .legend-title-line > #cr-legend-label::before {
           content: "·";
+          margin-inline: 0.25em;
         }
 
         .map-legend-region .legend-pill .legend-scale {
