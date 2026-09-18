@@ -9238,11 +9238,21 @@
       }
 
       @media (max-width: 767px) {
-        .hex-map-page .mobile-map-controls--centre .window-stepper-control {
+        .hex-map-page .mobile-map-controls--centre .window-stepper {
+          --window-stepper-value-width: clamp(64px, 12vw, 80px);
+          --window-stepper-control-width: calc(60px + var(--window-stepper-value-width));
           width: var(--window-stepper-control-width);
           min-width: var(--window-stepper-control-width);
           max-width: var(--window-stepper-control-width);
-          grid-template-columns: 44px var(--window-stepper-value-width) 44px;
+          grid-template-columns: 30px var(--window-stepper-value-width) 30px;
+        }
+
+        .hex-map-page .window-stepper-control,
+        .hex-map-page .mobile-map-controls--centre .window-stepper-control {
+          width: var(--window-stepper-control-width, 140px);
+          min-width: var(--window-stepper-control-width, 140px);
+          max-width: var(--window-stepper-control-width, 140px);
+          grid-template-columns: 30px var(--window-stepper-value-width, 80px) 30px;
           height: 44px;
           align-items: center;
           overflow: visible;
@@ -9251,10 +9261,11 @@
           background: transparent;
         }
 
+        .hex-map-page .window-stepper-value-box,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
-          width: var(--window-stepper-value-width);
-          min-width: var(--window-stepper-value-width);
-          max-width: var(--window-stepper-value-width);
+          width: var(--window-stepper-value-width, 80px);
+          min-width: var(--window-stepper-value-width, 80px);
+          max-width: var(--window-stepper-value-width, 80px);
           height: 34px;
           border-top: 1px solid var(--ukaq-control-selected-border);
           border-right: 0;
@@ -9264,26 +9275,63 @@
           background: var(--ukaq-control-selected-bg);
         }
 
+        .hex-map-page .window-stepper-value,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value {
           color: var(--ukaq-control-selected-text);
+          font-size: 0;
+          line-height: 1.05;
+          text-align: center;
+          white-space: pre-line;
         }
 
+        .hex-map-page .window-stepper-value::before {
+          display: block;
+          font-size: clamp(0.64rem, 2.8vw, 0.74rem);
+          font-weight: 700;
+          line-height: 1.05;
+          text-align: center;
+          white-space: pre-line;
+        }
+
+        .hex-map-page .window-stepper[data-window="3h"] .window-stepper-value::before {
+          content: "3\A Hours";
+        }
+
+        .hex-map-page .window-stepper[data-window="6h"] .window-stepper-value::before {
+          content: "6\A Hours";
+        }
+
+        .hex-map-page .window-stepper[data-window="1d"] .window-stepper-value::before {
+          content: "1 Day";
+        }
+
+        .hex-map-page .window-stepper[data-window="7d"] .window-stepper-value::before {
+          content: "7 Days";
+        }
+
+        .hex-map-page .window-stepper[data-window="all"] .window-stepper-value::before {
+          content: "No\A Limit";
+        }
+
+        .hex-map-page .window-stepper-arrow,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow {
-          width: 44px;
-          min-width: 44px;
+          width: 30px;
+          min-width: 30px;
           height: 44px;
           justify-self: stretch;
           justify-content: center;
           padding: 0;
         }
 
+        .hex-map-page .window-stepper-arrow::after,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::after {
           inset: 5px 0;
         }
 
+        .hex-map-page .window-stepper-arrow::before,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::before {
-          width: 12px;
-          height: 14px;
+          width: 11px;
+          height: 13px;
           border: 0;
         }
       }
@@ -9292,30 +9340,32 @@
         body.hex-map-page.mobile-map-controls-active
           .mobile-map-controls-row--utility
           .mobile-map-controls--centre {
-          width: 138px;
-          min-width: 138px;
-          max-width: 138px;
+          width: 124px;
+          min-width: 124px;
+          max-width: 124px;
         }
 
         .hex-map-page .mobile-map-controls--centre .window-stepper {
-          --window-stepper-value-width: 50px;
-          --window-stepper-control-width: 138px;
-          width: 138px;
-          min-width: 138px;
-          max-width: 138px;
-          grid-template-columns: 44px 50px 44px;
+          --window-stepper-value-width: 64px;
+          --window-stepper-control-width: 124px;
+          width: 124px;
+          min-width: 124px;
+          max-width: 124px;
+          grid-template-columns: 30px 64px 30px;
         }
 
+        .hex-map-page .window-stepper-control,
         .hex-map-page .mobile-map-controls--centre .window-stepper-control {
-          width: 138px;
-          min-width: 138px;
-          max-width: 138px;
-          grid-template-columns: 44px 50px 44px;
+          width: 124px;
+          min-width: 124px;
+          max-width: 124px;
+          grid-template-columns: 30px 64px 30px;
         }
 
+        .hex-map-page .window-stepper-value-box,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
-          width: 50px;
-          min-width: 50px;
-          max-width: 50px;
+          width: 64px;
+          min-width: 64px;
+          max-width: 64px;
         }
       }
