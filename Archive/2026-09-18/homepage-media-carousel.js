@@ -12,8 +12,6 @@
   const mobileTeaser = document.querySelector("[data-homepage-media-mobile]");
   const mobileContent = document.querySelector("[data-homepage-media-mobile-content]");
   const rotationMs = 8000;
-  const imageFallbackDelayMs = 2000;
-  const transitionMs = 500;
   const freshnessMs = 15 * 60 * 1000;
   let articles = [];
   let currentIndex = 0;
@@ -23,10 +21,6 @@
   let lastSuccessfulVersionCheckAt = 0;
   let nextFreshnessCheckNotBefore = 0;
   let refreshInFlight = null;
-  let transitionInFlight = false;
-  let navigationToken = 0;
-  let desktopCard = null;
-  const imageStates = new Map();
 
   if (!carousel || !content || !mobileTeaser || !mobileContent) return;
 
@@ -86,7 +80,8 @@
       document.hidden
     ) return;
     rotationTimer = window.setTimeout(() => {
-      navigateTo(currentIndex + 1);
+      showArticle(currentIndex + 1);
+      scheduleRotation();
     }, rotationMs);
   }
 
@@ -164,7 +159,8 @@
     previous.type = "button";
     previous.setAttribute("aria-label", "Previous article");
     previous.addEventListener("click", () => {
-      navigateTo(currentIndex - 1);
+      showArticle(currentIndex - 1);
+      scheduleRotation();
     });
     const dots = document.createElement("div");
     dots.className = "homepage-media-carousel-dots";
@@ -174,7 +170,8 @@
       dot.setAttribute("aria-label", `Show article ${index + 1}`);
       if (index === currentIndex) dot.setAttribute("aria-current", "true");
       dot.addEventListener("click", () => {
-        navigateTo(index);
+        showArticle(index);
+        scheduleRotation();
       });
       dots.append(dot);
     });
@@ -182,71 +179,37 @@
     next.type = "button";
     next.setAttribute("aria-label", "Next article");
     next.addEventListener("click", () => {
-      navigateTo(currentIndex + 1);
+      showArticle(currentIndex + 1);
+      scheduleRotation();
     });
     controls.append(previous, dots, next);
     return controls;
   }
 
-  function imageStateFor(article) {
-    const imageUrl = safeHttpUrl(article.preview_image_url, true);
-    if (!imageUrl) return { status: "fallback", image: null, ready: Promise.resolve() };
-    const key = `${article.id}:${imageUrl}`;
-    if (imageStates.has(key)) return imageStates.get(key);
-    const state = { status: "loading", image: null, ready: null, listeners: new Set() };
-    state.ready = new Promise((resolve) => {
-      let settled = false;
-      const finish = (status, image = null) => {
-        state.status = status;
-        state.image = image;
-        state.listeners.forEach(listener => listener());
-        if (!settled) {
-          settled = true;
-          resolve();
-        }
-      };
-      const image = new Image();
-      image.decoding = "async";
-      image.addEventListener("load", async () => {
-        if (typeof image.decode === "function") {
-          try {
-            await image.decode();
-          } catch (_error) {
-            if (!image.complete || !image.naturalWidth) return;
-          }
-        }
-        finish("ready", image);
-      }, { once: true });
-      image.addEventListener("error", () => finish("fallback"), { once: true });
-      window.setTimeout(() => finish("fallback"), imageFallbackDelayMs);
-      image.src = imageUrl;
-    });
-    imageStates.set(key, state);
-    return state;
-  }
-
-  function attachReadyImage(card, state) {
-    if (state.status !== "ready" || !state.image) return;
-    const image = state.image.cloneNode();
-    image.className = "homepage-media-carousel-image";
-    image.alt = "";
-    card.prepend(image);
-    requestAnimationFrame(() => image.classList.add("is-ready"));
-  }
-
-  function buildDesktopCard(article, allowLoadingState = false) {
+  function showArticle(nextIndex) {
+    if (!articles.length) return;
+    currentIndex = (nextIndex + articles.length) % articles.length;
+    const article = articles[currentIndex];
     const title = text(article.display_title) || text(article.title);
     const publisher = text(article.publisher) || "Publisher";
+
+    if (!desktopQuery.matches) {
+      showMobileArticle(article, publisher, title);
+      return;
+    }
+
     const card = articleLink(article, "homepage-media-carousel-card", publisher, title);
-    const state = imageStateFor(article);
-    if (allowLoadingState && state.status === "loading") card.classList.add("is-image-loading");
-    attachReadyImage(card, state);
-    const updateImage = () => {
-      if (!card.isConnected || card.querySelector(".homepage-media-carousel-image")) return;
-      card.classList.remove("is-image-loading");
-      attachReadyImage(card, state);
-    };
-    state.listeners.add(updateImage);
+
+    const imageUrl = safeHttpUrl(article.preview_image_url, true);
+    if (imageUrl) {
+      const image = document.createElement("img");
+      image.className = "homepage-media-carousel-image";
+      image.src = imageUrl;
+      image.alt = "";
+      image.decoding = "async";
+      image.addEventListener("error", () => image.remove(), { once: true });
+      card.append(image);
+    }
 
     const gradient = document.createElement("div");
     gradient.className = "homepage-media-carousel-card-gradient";
@@ -270,81 +233,10 @@
     overlay.append(addTextElement("h3", "homepage-media-carousel-title", title));
     card.append(overlay);
 
-    if (allowLoadingState && state.status === "loading") {
-      state.ready.then(() => {
-        if (!card.isConnected) return;
-        updateImage();
-      });
-    }
-    return card;
-  }
-
-  function renderDesktopInitial() {
-    const stage = document.createElement("div");
-    stage.className = "homepage-media-carousel-stage";
-    desktopCard = buildDesktopCard(articles[currentIndex], true);
-    stage.append(desktopCard);
-    content.replaceChildren(stage, createControls());
-    imageStateFor(articles[(currentIndex + 1) % articles.length]);
-  }
-
-  async function navigateTo(nextIndex) {
-    if (!articles.length || transitionInFlight) return;
-    const targetIndex = (nextIndex + articles.length) % articles.length;
-    if (!desktopQuery.matches) {
-      currentIndex = targetIndex;
-      const article = articles[currentIndex];
-      showMobileArticle(article, text(article.publisher) || "Publisher", text(article.display_title) || text(article.title));
-      scheduleRotation();
-      return;
-    }
-    if (targetIndex === currentIndex) {
-      scheduleRotation();
-      return;
-    }
-    stopRotation();
-    transitionInFlight = true;
-    const token = ++navigationToken;
-    const state = imageStateFor(articles[targetIndex]);
-    await state.ready;
-    if (token !== navigationToken || !desktopQuery.matches) return;
-    const stage = content.querySelector(".homepage-media-carousel-stage");
-    if (!stage || !desktopCard) {
-      transitionInFlight = false;
-      updatePresentation();
-      return;
-    }
-    const incoming = buildDesktopCard(articles[targetIndex]);
-    incoming.classList.add("is-entering");
-    stage.append(incoming);
-    void incoming.offsetWidth;
-    incoming.classList.remove("is-entering");
-    desktopCard.classList.add("is-leaving");
-    const outgoing = desktopCard;
-    await new Promise(resolve => window.setTimeout(resolve, reducedMotionQuery.matches ? 0 : transitionMs));
-    outgoing.remove();
-    desktopCard = incoming;
-    currentIndex = targetIndex;
-    content.replaceChildren(stage, createControls());
-    transitionInFlight = false;
-    imageStateFor(articles[(currentIndex + 1) % articles.length]);
-    scheduleRotation();
-  }
-
-  function showArticle(nextIndex) {
-    if (!articles.length) return;
-    currentIndex = (nextIndex + articles.length) % articles.length;
-    const article = articles[currentIndex];
-    if (!desktopQuery.matches) {
-      showMobileArticle(article, text(article.publisher) || "Publisher", text(article.display_title) || text(article.title));
-      return;
-    }
-    renderDesktopInitial();
+    content.replaceChildren(card, createControls());
   }
 
   function updatePresentation() {
-    navigationToken += 1;
-    transitionInFlight = false;
     if (articles.length) {
       carousel.hidden = !desktopQuery.matches;
       mobileTeaser.hidden = desktopQuery.matches;

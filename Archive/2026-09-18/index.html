@@ -129,11 +129,6 @@
         min-width: 0;
       }
 
-      .homepage-media-carousel-stage {
-        position: relative;
-        aspect-ratio: 16 / 9;
-      }
-
       .homepage-media-carousel-card {
         position: relative;
         display: block;
@@ -152,33 +147,6 @@
         text-decoration: none;
         transform-origin: center;
         transition: transform 180ms ease, box-shadow 180ms ease;
-      }
-
-      .homepage-media-carousel-stage .homepage-media-carousel-card {
-        position: absolute;
-        inset: 0;
-        opacity: 1;
-        transition: opacity 500ms ease, transform 180ms ease, box-shadow 180ms ease;
-      }
-
-      .homepage-media-carousel-stage .homepage-media-carousel-card.is-entering,
-      .homepage-media-carousel-stage .homepage-media-carousel-card.is-leaving {
-        opacity: 0;
-      }
-
-      .homepage-media-carousel-card::before {
-        position: absolute;
-        z-index: 0;
-        inset: 0;
-        background: #e9edf0;
-        content: "";
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 500ms ease;
-      }
-
-      .homepage-media-carousel-card.is-image-loading::before {
-        opacity: 1;
       }
 
       .homepage-media-carousel-card:focus-visible {
@@ -200,12 +168,6 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        opacity: 0;
-        transition: opacity 500ms ease;
-      }
-
-      .homepage-media-carousel-image.is-ready {
-        opacity: 1;
       }
 
       .homepage-media-carousel-cue {
@@ -365,9 +327,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .homepage-media-carousel-card,
-      .homepage-media-carousel-cue,
-      .homepage-media-carousel-card::before,
-      .homepage-media-carousel-image {
+      .homepage-media-carousel-cue {
         transition: none;
       }
 
