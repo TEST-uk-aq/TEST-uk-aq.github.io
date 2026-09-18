@@ -382,7 +382,7 @@ body {
 }
 
 .news-toolbar-page-wrap:hover::after,
-.news-toolbar-page-wrap:focus-within::after {
+.news-toolbar-page-wrap:has(:focus-visible)::after {
   opacity: 1;
   transform: translate(-50%, 0);
 }

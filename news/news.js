@@ -542,7 +542,6 @@
     if (hasResults) {
       toolbarPageCurrent.textContent = `${state.page} / ${totalPages}`;
       toolbarPageWrap.dataset.pageLabel = pageLabel;
-      toolbarPageCurrent.title = pageLabel;
       toolbarPageCurrent.setAttribute("aria-label", pageLabel);
       toolbarPreviousPageButton.disabled = isFirstPage;
       toolbarNextPageButton.disabled = isLastPage;
