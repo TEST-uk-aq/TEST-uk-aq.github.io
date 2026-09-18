@@ -6668,15 +6668,15 @@
 
         .hex-map-page .page-title-heading {
           width: 100%;
-          min-height: 44px;
+          min-height: 54px;
           min-width: 0;
-          align-self: flex-start;
+          align-self: stretch;
           justify-content: flex-start;
         }
 
         .hex-map-page .page-title {
           display: block;
-          width: clamp(148px, 44vw, 176px);
+          width: clamp(164px, 50vw, 180px);
           max-width: 100%;
           height: auto;
           max-height: none;

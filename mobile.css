@@ -468,15 +468,15 @@
   #uk-aq-header {
     min-height: 54px;
     min-width: 0;
-    align-items: flex-start;
+    align-items: center;
     padding: 0 60px 0 52px;
   }
 
   #uk-aq-header .page-title {
-    margin-top: 6px;
+    margin-top: 0;
     max-width: 100%;
     height: auto;
-    max-height: 31px;
+    max-height: 34px;
     flex-shrink: 1;
   }
 
