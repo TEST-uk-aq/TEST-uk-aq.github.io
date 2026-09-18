@@ -27,6 +27,7 @@
   let navigationToken = 0;
   let desktopCard = null;
   const imageStates = new Map();
+  const desktopCards = new Set();
 
   if (!carousel || !content || !mobileTeaser || !mobileContent) return;
 
@@ -190,38 +191,77 @@
 
   function imageStateFor(article) {
     const imageUrl = safeHttpUrl(article.preview_image_url, true);
-    if (!imageUrl) return { status: "fallback", image: null, ready: Promise.resolve() };
+    if (!imageUrl) {
+      return {
+        status: "missing",
+        image: null,
+        ready: Promise.resolve(),
+        subscribe: () => () => {},
+      };
+    }
     const key = `${article.id}:${imageUrl}`;
     if (imageStates.has(key)) return imageStates.get(key);
-    const state = { status: "loading", image: null, ready: null, listeners: new Set() };
-    state.ready = new Promise((resolve) => {
-      let settled = false;
-      const finish = (status, image = null) => {
-        state.status = status;
-        state.image = image;
-        state.listeners.forEach(listener => listener());
-        if (!settled) {
-          settled = true;
-          resolve();
-        }
-      };
-      const image = new Image();
-      image.decoding = "async";
-      image.addEventListener("load", async () => {
-        if (typeof image.decode === "function") {
-          try {
-            await image.decode();
-          } catch (_error) {
-            if (!image.complete || !image.naturalWidth) return;
-          }
-        }
-        finish("ready", image);
-      }, { once: true });
-      image.addEventListener("error", () => finish("fallback"), { once: true });
-      window.setTimeout(() => finish("fallback"), imageFallbackDelayMs);
-      image.src = imageUrl;
-    });
+    const listeners = new Set();
+    let resolveDisplayable;
+    let isDisplayable = false;
+    const state = {
+      status: "loading",
+      image: null,
+      ready: new Promise(resolve => { resolveDisplayable = resolve; }),
+      subscribe(listener) {
+        if (!["loading", "timed-out"].includes(state.status)) return () => {};
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+    };
+    const markDisplayable = () => {
+      if (isDisplayable) return;
+      isDisplayable = true;
+      resolveDisplayable();
+    };
+    const notify = (terminal = false) => {
+      const currentListeners = Array.from(listeners);
+      if (terminal) listeners.clear();
+      currentListeners.forEach(listener => listener());
+    };
+    let fallbackTimer = null;
     imageStates.set(key, state);
+    const image = new Image();
+    image.decoding = "async";
+    image.addEventListener("load", async () => {
+      if (["ready", "failed"].includes(state.status)) return;
+      if (typeof image.decode === "function") {
+        try {
+          await image.decode();
+        } catch (_error) {
+          if (!image.complete || !image.naturalWidth) return;
+        }
+      }
+      if (state.status === "failed") return;
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+      state.status = "ready";
+      state.image = image;
+      markDisplayable();
+      notify(true);
+    }, { once: true });
+    image.addEventListener("error", () => {
+      if (["ready", "failed"].includes(state.status)) return;
+      window.clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+      state.status = "failed";
+      state.image = null;
+      markDisplayable();
+      notify(true);
+    }, { once: true });
+    fallbackTimer = window.setTimeout(() => {
+      if (state.status !== "loading") return;
+      fallbackTimer = null;
+      state.status = "timed-out";
+      markDisplayable();
+      notify();
+    }, imageFallbackDelayMs);
+    image.src = imageUrl;
     return state;
   }
 
@@ -242,11 +282,16 @@
     if (allowLoadingState && state.status === "loading") card.classList.add("is-image-loading");
     attachReadyImage(card, state);
     const updateImage = () => {
-      if (!card.isConnected || card.querySelector(".homepage-media-carousel-image")) return;
+      if (card.querySelector(".homepage-media-carousel-image")) return;
       card.classList.remove("is-image-loading");
       attachReadyImage(card, state);
     };
-    state.listeners.add(updateImage);
+    const unsubscribe = state.subscribe(updateImage);
+    card.cleanupImageState = () => {
+      unsubscribe();
+      desktopCards.delete(card);
+    };
+    desktopCards.add(card);
 
     const gradient = document.createElement("div");
     gradient.className = "homepage-media-carousel-card-gradient";
@@ -270,16 +315,11 @@
     overlay.append(addTextElement("h3", "homepage-media-carousel-title", title));
     card.append(overlay);
 
-    if (allowLoadingState && state.status === "loading") {
-      state.ready.then(() => {
-        if (!card.isConnected) return;
-        updateImage();
-      });
-    }
     return card;
   }
 
   function renderDesktopInitial() {
+    desktopCards.forEach(card => card.cleanupImageState());
     const stage = document.createElement("div");
     stage.className = "homepage-media-carousel-stage";
     desktopCard = buildDesktopCard(articles[currentIndex], true);
@@ -322,6 +362,7 @@
     desktopCard.classList.add("is-leaving");
     const outgoing = desktopCard;
     await new Promise(resolve => window.setTimeout(resolve, reducedMotionQuery.matches ? 0 : transitionMs));
+    outgoing.cleanupImageState?.();
     outgoing.remove();
     desktopCard = incoming;
     currentIndex = targetIndex;
@@ -336,6 +377,8 @@
     currentIndex = (nextIndex + articles.length) % articles.length;
     const article = articles[currentIndex];
     if (!desktopQuery.matches) {
+      desktopCards.forEach(card => card.cleanupImageState());
+      desktopCard = null;
       showMobileArticle(article, text(article.publisher) || "Publisher", text(article.display_title) || text(article.title));
       return;
     }
@@ -360,6 +403,8 @@
   function hideMedia() {
     stopRotation();
     stopFreshnessChecks();
+    desktopCards.forEach(card => card.cleanupImageState());
+    desktopCard = null;
     content.replaceChildren();
     mobileContent.replaceChildren();
     carousel.hidden = true;
