@@ -70,6 +70,83 @@
       display: none;
     }
 
+    .homepage-media-news-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 32px;
+      box-sizing: border-box;
+      padding: 3px 3px 3px 9px;
+      border: 1px solid #3c78ac;
+      border-radius: 9px;
+      background: rgba(60, 120, 172, 0.07);
+      color: #3c78ac;
+      box-shadow: 0 1px 3px rgba(40, 90, 132, 0.08);
+      text-decoration: none;
+      transition: opacity 180ms ease, background-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .homepage-media-news-link:hover {
+      background: rgba(60, 120, 172, 0.13);
+      box-shadow: 0 3px 8px rgba(40, 90, 132, 0.12);
+    }
+
+    .homepage-media-news-link:focus-visible {
+      outline: 2px solid rgba(60, 120, 172, 0.5);
+      outline-offset: 2px;
+    }
+
+    .homepage-media-news-arrow {
+      position: relative;
+      display: block;
+      flex: 0 0 31px;
+      width: 31px;
+      height: 16px;
+    }
+
+    .homepage-media-news-arrow::before {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 21px;
+      height: 5px;
+      border-radius: 999px 0 0 999px;
+      background: #3c78ac;
+      content: "";
+      transform: translateY(-50%);
+    }
+
+    .homepage-media-news-arrow::after {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 11px solid #3c78ac;
+      content: "";
+      transform: translateY(-50%);
+    }
+
+    .homepage-media-news-word {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 24px;
+      box-sizing: border-box;
+      padding: 0 7px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #4bbaf0 0%, #05679b 55%, #00578c 100%);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1;
+    }
+
     @media (min-width: 768px) {
       .home-header-inner {
         display: grid;
@@ -110,7 +187,18 @@
         display: grid;
         align-content: start;
         justify-items: end;
+        align-self: start;
+        gap: 8px;
         margin: 0;
+      }
+
+      .homepage-media-carousel-heading-title {
+        width: 100%;
+        margin: 0;
+      }
+
+      .homepage-media-carousel-heading .homepage-media-news-link {
+        justify-self: center;
       }
 
       .homepage-media-carousel-heading img {
@@ -338,6 +426,15 @@
         .homepage-media-carousel-card:hover .homepage-media-carousel-cue {
           opacity: 1;
         }
+
+        .homepage-media-carousel-heading .homepage-media-news-link {
+          opacity: 0;
+        }
+
+        .homepage-media-carousel-heading:hover .homepage-media-news-link,
+        .homepage-media-carousel-heading:focus-within .homepage-media-news-link {
+          opacity: 1;
+        }
       }
     }
 
@@ -367,7 +464,8 @@
       .homepage-media-carousel-card,
       .homepage-media-carousel-cue,
       .homepage-media-carousel-card::before,
-      .homepage-media-carousel-image {
+      .homepage-media-carousel-image,
+      .homepage-media-news-link {
         transition: none;
       }
 
@@ -2093,7 +2191,13 @@
       </div>
       <aside class="homepage-media-carousel" aria-label="Latest News on Air Quality" hidden data-homepage-media-carousel>
         <div class="homepage-media-carousel-inner">
-          <h2 class="homepage-media-carousel-heading"><img src="images/UK-AQ-latest-news-air-quality.png" alt="Latest News on Air Quality"></h2>
+          <div class="homepage-media-carousel-heading">
+            <h2 class="homepage-media-carousel-heading-title"><img src="images/UK-AQ-latest-news-air-quality.png" alt="Latest News on Air Quality"></h2>
+            <a class="homepage-media-news-link" href="/news/" aria-label="Open AQ in the News">
+              <span class="homepage-media-news-arrow" aria-hidden="true"></span>
+              <span class="homepage-media-news-word" aria-hidden="true">NEWS</span>
+            </a>
+          </div>
           <div class="homepage-media-carousel-content" data-homepage-media-content></div>
         </div>
       </aside>
@@ -2105,6 +2209,10 @@
     <aside class="homepage-media-mobile" aria-label="Latest News on Air Quality" hidden data-homepage-media-mobile>
       <h2 class="homepage-media-mobile-heading"><img src="images/UK-AQ-latest-news-air-quality-1-line.png" alt="Latest News on Air Quality"></h2>
       <div data-homepage-media-mobile-content></div>
+      <a class="homepage-media-news-link homepage-media-mobile-news-link" href="/news/" aria-label="Open AQ in the News">
+        <span class="homepage-media-news-arrow" aria-hidden="true"></span>
+        <span class="homepage-media-news-word" aria-hidden="true">NEWS</span>
+      </a>
     </aside>
     <section class="who-dashboard-card who-bars-pending" aria-labelledby="who-guideline-title">
       <div class="who-summary-shell">
