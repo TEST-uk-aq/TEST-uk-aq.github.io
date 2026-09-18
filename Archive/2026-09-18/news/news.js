@@ -63,7 +63,6 @@
   let refreshTimer = null;
   const scrollEdgeTolerance = 3;
   const minimumScrollThumbWidth = 44;
-  const imageFallbackDelayMs = 2000;
 
   function updateTableScrollState() {
     const isVisibleList = state.view === "list" && !tableScrollElement.hidden;
@@ -247,35 +246,14 @@
 
   function appendImage(container, article, className) {
     if (!article.imageUrl) return;
-    container.classList.add("is-image-loading");
     const image = document.createElement("img");
     image.className = className;
+    image.src = article.imageUrl;
     image.alt = "";
     image.loading = "lazy";
     image.decoding = "async";
-    const fallbackTimer = window.setTimeout(() => {
-      container.classList.remove("is-image-loading");
-    }, imageFallbackDelayMs);
-    const reveal = async () => {
-      if (typeof image.decode === "function") {
-        try {
-          await image.decode();
-        } catch (_error) {
-          if (!image.complete || !image.naturalWidth) return;
-        }
-      }
-      window.clearTimeout(fallbackTimer);
-      container.classList.remove("is-image-loading");
-      image.classList.add("is-ready");
-    };
-    image.addEventListener("load", reveal, { once: true });
-    image.addEventListener("error", () => {
-      window.clearTimeout(fallbackTimer);
-      container.classList.remove("is-image-loading");
-      image.remove();
-    }, { once: true });
+    image.addEventListener("error", () => image.remove(), { once: true });
     container.append(image);
-    image.src = article.imageUrl;
   }
 
   function destinationCue(article) {
