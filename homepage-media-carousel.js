@@ -11,6 +11,7 @@
   const content = document.querySelector("[data-homepage-media-content]");
   const mobileTeaser = document.querySelector("[data-homepage-media-mobile]");
   const mobileContent = document.querySelector("[data-homepage-media-mobile-content]");
+  const mobileControls = document.querySelector("[data-homepage-media-mobile-controls]");
   const rotationMs = 8000;
   const imageFallbackDelayMs = 2000;
   const transitionMs = 500;
@@ -29,7 +30,7 @@
   const imageStates = new Map();
   const desktopCards = new Set();
 
-  if (!carousel || !content || !mobileTeaser || !mobileContent) return;
+  if (!carousel || !content || !mobileTeaser || !mobileContent || !mobileControls) return;
 
   function safeHttpUrl(value, httpsOnly = false) {
     if (typeof value !== "string" || !value.trim()) return null;
@@ -155,7 +156,8 @@
     icon.alt = "";
     icon.setAttribute("aria-hidden", "true");
     card.append(icon);
-    mobileContent.replaceChildren(card, createControls("homepage-media-mobile-controls"));
+    mobileContent.replaceChildren(card);
+    mobileControls.replaceChildren(createControls("homepage-media-mobile-controls"));
   }
 
   function createControls(extraClass = "") {
@@ -407,6 +409,7 @@
     desktopCard = null;
     content.replaceChildren();
     mobileContent.replaceChildren();
+    mobileControls.replaceChildren();
     carousel.hidden = true;
     mobileTeaser.hidden = true;
   }

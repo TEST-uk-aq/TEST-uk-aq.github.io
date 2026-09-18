@@ -74,12 +74,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
-      min-height: 32px;
+      gap: 8px;
+      min-height: 40px;
       box-sizing: border-box;
-      padding: 3px 3px 3px 9px;
+      padding: 3px 4px 3px 10px;
       border: 1px solid #3c78ac;
-      border-radius: 9px;
+      border-radius: 10px;
       background: rgba(60, 120, 172, 0.07);
       color: #3c78ac;
       box-shadow: 0 1px 3px rgba(40, 90, 132, 0.08);
@@ -100,16 +100,16 @@
     .homepage-media-news-arrow {
       position: relative;
       display: block;
-      flex: 0 0 31px;
-      width: 31px;
-      height: 16px;
+      flex: 0 0 37px;
+      width: 37px;
+      height: 18px;
     }
 
     .homepage-media-news-arrow::before {
       position: absolute;
       top: 50%;
       left: 0;
-      width: 21px;
+      width: 25px;
       height: 5px;
       border-radius: 999px 0 0 999px;
       background: #3c78ac;
@@ -123,28 +123,18 @@
       right: 0;
       width: 0;
       height: 0;
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
-      border-left: 11px solid #3c78ac;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+      border-left: 12px solid #3c78ac;
       content: "";
       transform: translateY(-50%);
     }
 
-    .homepage-media-news-word {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 58px;
-      height: 24px;
-      box-sizing: border-box;
-      padding: 0 7px;
-      border-radius: 7px;
-      background: linear-gradient(135deg, #4bbaf0 0%, #05679b 55%, #00578c 100%);
-      color: #fff;
-      font-size: 0.82rem;
-      font-weight: 900;
-      letter-spacing: -0.035em;
-      line-height: 1;
+    .homepage-media-news-icon {
+      display: block;
+      flex: 0 0 auto;
+      width: 72px;
+      height: auto;
     }
 
     @media (min-width: 768px) {
@@ -2195,7 +2185,7 @@
             <h2 class="homepage-media-carousel-heading-title"><img src="images/UK-AQ-latest-news-air-quality.png" alt="Latest News on Air Quality"></h2>
             <a class="homepage-media-news-link" href="/news/" aria-label="Open AQ in the News">
               <span class="homepage-media-news-arrow" aria-hidden="true"></span>
-              <span class="homepage-media-news-word" aria-hidden="true">NEWS</span>
+              <img class="homepage-media-news-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="" aria-hidden="true">
             </a>
           </div>
           <div class="homepage-media-carousel-content" data-homepage-media-content></div>
@@ -2209,10 +2199,13 @@
     <aside class="homepage-media-mobile" aria-label="Latest News on Air Quality" hidden data-homepage-media-mobile>
       <h2 class="homepage-media-mobile-heading"><img src="images/UK-AQ-latest-news-air-quality-1-line.png" alt="Latest News on Air Quality"></h2>
       <div data-homepage-media-mobile-content></div>
-      <a class="homepage-media-news-link homepage-media-mobile-news-link" href="/news/" aria-label="Open AQ in the News">
-        <span class="homepage-media-news-arrow" aria-hidden="true"></span>
-        <span class="homepage-media-news-word" aria-hidden="true">NEWS</span>
-      </a>
+      <div class="homepage-media-mobile-footer">
+        <div class="homepage-media-mobile-controls-slot" data-homepage-media-mobile-controls></div>
+        <a class="homepage-media-news-link homepage-media-mobile-news-link" href="/news/" aria-label="Open AQ in the News">
+          <span class="homepage-media-news-arrow" aria-hidden="true"></span>
+          <img class="homepage-media-news-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="" aria-hidden="true">
+        </a>
+      </div>
     </aside>
     <section class="who-dashboard-card who-bars-pending" aria-labelledby="who-guideline-title">
       <div class="who-summary-shell">
