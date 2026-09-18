@@ -9090,11 +9090,12 @@
          Keeps the existing blue selected-value treatment while matching the
          connected previous/value/next control family used on the News page. */
       .hex-map-page .window-stepper-control {
+        --window-stepper-desktop-height: 33.2px;
         display: inline-grid;
         grid-template-columns: 30px 112px 30px;
         align-items: center;
         gap: 0;
-        height: 30px;
+        height: var(--window-stepper-desktop-height);
         overflow: visible;
         border: 0;
         border-radius: 0;
@@ -9106,7 +9107,7 @@
         display: inline-grid;
         width: 30px;
         min-width: 30px;
-        height: 30px;
+        height: var(--window-stepper-desktop-height, 33.2px);
         place-items: center;
         padding: 0;
         border: 0;
@@ -9134,11 +9135,11 @@
       }
 
       .hex-map-page .window-stepper-arrow--left::after {
-        border-radius: 7px 0 0 7px;
+        border-radius: 6px 0 0 6px;
       }
 
       .hex-map-page .window-stepper-arrow--right::after {
-        border-radius: 0 7px 7px 0;
+        border-radius: 0 6px 6px 0;
       }
 
       .hex-map-page .window-stepper-arrow::before {
@@ -9223,7 +9224,7 @@
 
       .hex-map-page .window-stepper-value-box {
         width: 112px;
-        height: 30px;
+        height: var(--window-stepper-desktop-height, 33.2px);
         overflow: hidden;
         border-top: 1px solid var(--ukaq-control-selected-border);
         border-right: 0;
@@ -9239,20 +9240,28 @@
 
       @media (max-width: 767px) {
         .hex-map-page .mobile-map-controls--centre .window-stepper {
-          --window-stepper-value-width: clamp(64px, 12vw, 80px);
-          --window-stepper-control-width: calc(60px + var(--window-stepper-value-width));
+          --window-stepper-arrow-width: 24px;
+          --window-stepper-value-width: clamp(60px, 10vw, 72px);
+          --window-stepper-control-width:
+            calc((2 * var(--window-stepper-arrow-width)) + var(--window-stepper-value-width));
           width: var(--window-stepper-control-width);
           min-width: var(--window-stepper-control-width);
           max-width: var(--window-stepper-control-width);
-          grid-template-columns: 30px var(--window-stepper-value-width) 30px;
+          grid-template-columns:
+            var(--window-stepper-arrow-width)
+            var(--window-stepper-value-width)
+            var(--window-stepper-arrow-width);
         }
 
         .hex-map-page .window-stepper-control,
         .hex-map-page .mobile-map-controls--centre .window-stepper-control {
-          width: var(--window-stepper-control-width, 140px);
-          min-width: var(--window-stepper-control-width, 140px);
-          max-width: var(--window-stepper-control-width, 140px);
-          grid-template-columns: 30px var(--window-stepper-value-width, 80px) 30px;
+          width: var(--window-stepper-control-width, 120px);
+          min-width: var(--window-stepper-control-width, 120px);
+          max-width: var(--window-stepper-control-width, 120px);
+          grid-template-columns:
+            var(--window-stepper-arrow-width, 24px)
+            var(--window-stepper-value-width, 72px)
+            var(--window-stepper-arrow-width, 24px);
           height: 44px;
           align-items: center;
           overflow: visible;
@@ -9263,10 +9272,11 @@
 
         .hex-map-page .window-stepper-value-box,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
-          width: var(--window-stepper-value-width, 80px);
-          min-width: var(--window-stepper-value-width, 80px);
-          max-width: var(--window-stepper-value-width, 80px);
-          height: 34px;
+          position: relative;
+          width: var(--window-stepper-value-width, 72px);
+          min-width: var(--window-stepper-value-width, 72px);
+          max-width: var(--window-stepper-value-width, 72px);
+          height: 44px;
           border-top: 1px solid var(--ukaq-control-selected-border);
           border-right: 0;
           border-bottom: 1px solid var(--ukaq-control-selected-border);
@@ -9277,46 +9287,49 @@
 
         .hex-map-page .window-stepper-value,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value {
-          color: var(--ukaq-control-selected-text);
-          font-size: 0;
-          line-height: 1.05;
-          text-align: center;
-          white-space: pre-line;
+          color: transparent !important;
+          font-size: 0 !important;
         }
 
-        .hex-map-page .window-stepper-value::before {
-          display: block;
+        .hex-map-page .window-stepper-value-box::after {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          color: var(--ukaq-control-selected-text);
+          content: "";
           font-size: clamp(0.64rem, 2.8vw, 0.74rem);
           font-weight: 700;
           line-height: 1.05;
           text-align: center;
           white-space: pre-line;
+          pointer-events: none;
         }
 
-        .hex-map-page .window-stepper[data-window="3h"] .window-stepper-value::before {
+        .hex-map-page .window-stepper[data-window="3h"] .window-stepper-value-box::after {
           content: "3\A Hours";
         }
 
-        .hex-map-page .window-stepper[data-window="6h"] .window-stepper-value::before {
+        .hex-map-page .window-stepper[data-window="6h"] .window-stepper-value-box::after {
           content: "6\A Hours";
         }
 
-        .hex-map-page .window-stepper[data-window="1d"] .window-stepper-value::before {
+        .hex-map-page .window-stepper[data-window="1d"] .window-stepper-value-box::after {
           content: "1 Day";
         }
 
-        .hex-map-page .window-stepper[data-window="7d"] .window-stepper-value::before {
+        .hex-map-page .window-stepper[data-window="7d"] .window-stepper-value-box::after {
           content: "7 Days";
         }
 
-        .hex-map-page .window-stepper[data-window="all"] .window-stepper-value::before {
+        .hex-map-page .window-stepper[data-window="all"] .window-stepper-value-box::after {
           content: "No\A Limit";
         }
 
         .hex-map-page .window-stepper-arrow,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow {
-          width: 30px;
-          min-width: 30px;
+          width: var(--window-stepper-arrow-width, 24px);
+          min-width: var(--window-stepper-arrow-width, 24px);
           height: 44px;
           justify-self: stretch;
           justify-content: center;
@@ -9325,13 +9338,21 @@
 
         .hex-map-page .window-stepper-arrow::after,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::after {
-          inset: 5px 0;
+          inset: 0;
+        }
+
+        .hex-map-page .window-stepper-arrow--left::after {
+          border-radius: 9px 0 0 9px;
+        }
+
+        .hex-map-page .window-stepper-arrow--right::after {
+          border-radius: 0 9px 9px 0;
         }
 
         .hex-map-page .window-stepper-arrow::before,
         .hex-map-page .mobile-map-controls--centre .window-stepper-arrow::before {
-          width: 11px;
-          height: 13px;
+          width: 10px;
+          height: 12px;
           border: 0;
         }
       }
@@ -9340,32 +9361,33 @@
         body.hex-map-page.mobile-map-controls-active
           .mobile-map-controls-row--utility
           .mobile-map-controls--centre {
-          width: 124px;
-          min-width: 124px;
-          max-width: 124px;
+          width: 102px;
+          min-width: 102px;
+          max-width: 102px;
         }
 
         .hex-map-page .mobile-map-controls--centre .window-stepper {
-          --window-stepper-value-width: 64px;
-          --window-stepper-control-width: 124px;
-          width: 124px;
-          min-width: 124px;
-          max-width: 124px;
-          grid-template-columns: 30px 64px 30px;
+          --window-stepper-arrow-width: 21px;
+          --window-stepper-value-width: 60px;
+          --window-stepper-control-width: 102px;
+          width: 102px;
+          min-width: 102px;
+          max-width: 102px;
+          grid-template-columns: 21px 60px 21px;
         }
 
         .hex-map-page .window-stepper-control,
         .hex-map-page .mobile-map-controls--centre .window-stepper-control {
-          width: 124px;
-          min-width: 124px;
-          max-width: 124px;
-          grid-template-columns: 30px 64px 30px;
+          width: 102px;
+          min-width: 102px;
+          max-width: 102px;
+          grid-template-columns: 21px 60px 21px;
         }
 
         .hex-map-page .window-stepper-value-box,
         .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
-          width: 64px;
-          min-width: 64px;
-          max-width: 64px;
+          width: 60px;
+          min-width: 60px;
+          max-width: 60px;
         }
       }
