@@ -3,6 +3,9 @@
 
   const endpoint = "/api/media/articles";
   const viewPreferenceKey = "uk_aq_news_view_v1";
+  const sessionStateKey = "uk_aq_news_session_v1";
+  const refreshIntervalMs = 15 * 60 * 1000;
+  const focusRefreshStaleMs = 2 * 60 * 1000;
   const mobileQuery = window.matchMedia("(max-width: 767px)");
   const statusElement = document.getElementById("news-status");
   const errorElement = document.getElementById("news-error");
@@ -38,14 +41,15 @@
   const previousPageButton = document.getElementById("news-page-previous");
   const nextPageButton = document.getElementById("news-page-next");
 
+  const restoredSessionState = readSessionState();
   const state = {
     articles: [],
     view: readViewPreference(),
-    search: "",
-    searchFields: new Set(["title", "publication", "author"]),
-    sortKey: "published",
-    sortDirection: "desc",
-    page: 1,
+    search: restoredSessionState.search,
+    searchFields: new Set(restoredSessionState.searchFields),
+    sortKey: restoredSessionState.sortKey,
+    sortDirection: restoredSessionState.sortDirection,
+    page: restoredSessionState.page,
     pageSize: 10,
     suggestions: [],
     activeSuggestion: -1,
@@ -53,6 +57,9 @@
 
   let resizeFrame = null;
   let tableScrollDrag = null;
+  let articlesLoading = false;
+  let lastSuccessfulRefreshAt = 0;
+  let refreshTimer = null;
   const scrollEdgeTolerance = 3;
   const minimumScrollThumbWidth = 44;
 
@@ -110,6 +117,48 @@
       localStorage.setItem(viewPreferenceKey, state.view);
     } catch (_error) {
       // The preference is optional when browser storage is unavailable.
+    }
+  }
+
+  function readSessionState() {
+    const defaults = {
+      search: "",
+      searchFields: ["title", "publication", "author"],
+      sortKey: "published",
+      sortDirection: "desc",
+      page: 1,
+    };
+    try {
+      const stored = JSON.parse(sessionStorage.getItem(sessionStateKey) || "null");
+      if (!stored || typeof stored !== "object") return defaults;
+      const allowedFields = new Set(["title", "publication", "author"]);
+      const allowedSortKeys = new Set(["published", "title", "publication", "author"]);
+      const searchFields = Array.isArray(stored.searchFields)
+        ? stored.searchFields.filter(field => allowedFields.has(field))
+        : defaults.searchFields;
+      return {
+        search: typeof stored.search === "string" ? stored.search : defaults.search,
+        searchFields,
+        sortKey: allowedSortKeys.has(stored.sortKey) ? stored.sortKey : defaults.sortKey,
+        sortDirection: stored.sortDirection === "asc" ? "asc" : defaults.sortDirection,
+        page: Number.isSafeInteger(stored.page) && stored.page > 0 ? stored.page : defaults.page,
+      };
+    } catch (_error) {
+      return defaults;
+    }
+  }
+
+  function storeSessionState() {
+    try {
+      sessionStorage.setItem(sessionStateKey, JSON.stringify({
+        search: state.search,
+        searchFields: Array.from(state.searchFields),
+        sortKey: state.sortKey,
+        sortDirection: state.sortDirection,
+        page: state.page,
+      }));
+    } catch (_error) {
+      // Session state is optional when browser storage is unavailable.
     }
   }
 
@@ -514,6 +563,7 @@
       tableBodyElement.replaceChildren();
       noResultsElement.hidden = false;
       renderResultsSummary(0, 0, 0);
+      storeSessionState();
       return;
     }
 
@@ -531,6 +581,7 @@
     updateTableScrollState();
     renderResultsSummary(start, pageArticles.length, filtered.length);
     renderPagination(filtered.length);
+    storeSessionState();
   }
 
   function changePage(page) {
@@ -691,11 +742,42 @@
     return articles;
   }
 
-  async function loadArticles() {
-    toolbarElement.hidden = true;
-    showOnly(statusElement);
-    retryButton.disabled = true;
-    closeSuggestions();
+  function clearRefreshTimer() {
+    if (refreshTimer === null) return;
+    window.clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+
+  function scheduleRefresh(delayMs = refreshIntervalMs) {
+    clearRefreshTimer();
+    if (document.hidden) return;
+    refreshTimer = window.setTimeout(() => {
+      refreshTimer = null;
+      if (!document.hidden) void loadArticles({ background: true });
+    }, Math.max(0, delayMs));
+  }
+
+  function refreshIfStale() {
+    if (document.hidden || articlesLoading) return;
+    const age = lastSuccessfulRefreshAt
+      ? Date.now() - lastSuccessfulRefreshAt
+      : Number.POSITIVE_INFINITY;
+    if (age >= focusRefreshStaleMs) {
+      void loadArticles({ background: true });
+      return;
+    }
+    scheduleRefresh(Math.max(0, refreshIntervalMs - age));
+  }
+
+  async function loadArticles({ background = false } = {}) {
+    if (articlesLoading) return;
+    articlesLoading = true;
+    if (!background) {
+      toolbarElement.hidden = true;
+      showOnly(statusElement);
+      retryButton.disabled = true;
+      closeSuggestions();
+    }
     try {
       const rawArticles = await fetchAllArticles();
       const uniqueArticles = [];
@@ -707,19 +789,25 @@
         uniqueArticles.push(article);
       });
       state.articles = uniqueArticles.map(normaliseArticle);
+      lastSuccessfulRefreshAt = Date.now();
       if (!state.articles.length) {
+        toolbarElement.hidden = true;
         showOnly(emptyElement);
         return;
       }
       showOnly(null);
       toolbarElement.hidden = false;
-      state.page = 1;
       renderResults();
     } catch (_error) {
-      state.articles = [];
-      showOnly(errorElement);
+      if (!background) {
+        state.articles = [];
+        toolbarElement.hidden = true;
+        showOnly(errorElement);
+      }
     } finally {
-      retryButton.disabled = false;
+      articlesLoading = false;
+      if (!background) retryButton.disabled = false;
+      scheduleRefresh(refreshIntervalMs);
     }
   }
 
@@ -847,7 +935,24 @@
     window.addEventListener("resize", handleResize, { passive: true });
   }
   mobileQuery.addEventListener("change", handleResize);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      clearRefreshTimer();
+    } else {
+      refreshIfStale();
+    }
+  });
+  window.addEventListener("focus", refreshIfStale);
+  window.addEventListener("pagehide", storeSessionState);
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) refreshIfStale();
+  });
 
+  searchInput.value = state.search;
+  searchClearButton.hidden = !state.search;
+  searchFieldInputs.forEach((input) => {
+    input.checked = state.searchFields.has(input.value);
+  });
   updateSearchFieldSummary();
   syncViewControls();
   syncSortControls();
