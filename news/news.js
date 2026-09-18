@@ -50,6 +50,7 @@
     sortKey: restoredSessionState.sortKey,
     sortDirection: restoredSessionState.sortDirection,
     page: restoredSessionState.page,
+    selectedArticleId: restoredSessionState.selectedArticleId,
     pageSize: 10,
     suggestions: [],
     activeSuggestion: -1,
@@ -127,6 +128,7 @@
       sortKey: "published",
       sortDirection: "desc",
       page: 1,
+      selectedArticleId: null,
     };
     try {
       const stored = JSON.parse(sessionStorage.getItem(sessionStateKey) || "null");
@@ -142,6 +144,9 @@
         sortKey: allowedSortKeys.has(stored.sortKey) ? stored.sortKey : defaults.sortKey,
         sortDirection: stored.sortDirection === "asc" ? "asc" : defaults.sortDirection,
         page: Number.isSafeInteger(stored.page) && stored.page > 0 ? stored.page : defaults.page,
+        selectedArticleId: Number.isSafeInteger(stored.selectedArticleId) && stored.selectedArticleId > 0
+          ? stored.selectedArticleId
+          : null,
       };
     } catch (_error) {
       return defaults;
@@ -156,6 +161,7 @@
         sortKey: state.sortKey,
         sortDirection: state.sortDirection,
         page: state.page,
+        selectedArticleId: state.selectedArticleId,
       }));
     } catch (_error) {
       // Session state is optional when browser storage is unavailable.
@@ -384,6 +390,7 @@
   }
 
   function articleMatches(article, query = normalisedSearch(state.search)) {
+    if (state.selectedArticleId !== null) return article.id === state.selectedArticleId;
     if (!query) return true;
     if (
       state.searchFields.has("title") &&
@@ -615,21 +622,6 @@
     );
   }
 
-  function matchedSuggestionValue(article) {
-    const query = normalisedSearch(state.search);
-    if (state.searchFields.has("title")) {
-      if (normalisedSearch(article.displayTitle).includes(query)) return article.displayTitle;
-      if (normalisedSearch(article.originalTitle).includes(query)) return article.originalTitle;
-    }
-    if (state.searchFields.has("publication") && normalisedSearch(article.publisher).includes(query)) {
-      return article.publisher;
-    }
-    if (state.searchFields.has("author") && normalisedSearch(article.author).includes(query)) {
-      return article.author;
-    }
-    return article.displayTitle;
-  }
-
   function closeSuggestions() {
     state.suggestions = [];
     state.activeSuggestion = -1;
@@ -653,17 +645,12 @@
   function selectSuggestion(index) {
     const article = state.suggestions[index];
     if (!article) return;
-    state.search = matchedSuggestionValue(article);
+    state.search = article.displayTitle;
+    state.selectedArticleId = article.id;
     searchInput.value = state.search;
     searchClearButton.hidden = false;
     state.page = 1;
     closeSuggestions();
-    const filtered = filteredAndSortedArticles();
-    const selectedIndex = filtered.findIndex(candidate =>
-      article.id !== null ? candidate.id === article.id : candidate.stableIndex === article.stableIndex,
-    );
-    state.pageSize = pageSizeForCurrentView();
-    if (selectedIndex >= 0) state.page = Math.floor(selectedIndex / state.pageSize) + 1;
     renderResults();
     searchInput.blur();
   }
@@ -705,6 +692,7 @@
 
   function updateSearch() {
     state.search = searchInput.value;
+    state.selectedArticleId = null;
     state.page = 1;
     searchClearButton.hidden = !state.search;
     renderResults();
@@ -855,6 +843,7 @@
   searchFieldInputs.forEach((input) => {
     input.addEventListener("change", () => {
       state.searchFields = new Set(searchFieldInputs.filter(field => field.checked).map(field => field.value));
+      state.selectedArticleId = null;
       state.page = 1;
       updateSearchFieldSummary();
       renderResults();
