@@ -9391,3 +9391,43 @@
           max-width: 60px;
         }
       }
+
+      /* Mobile control typography: keep primary labels comfortably large.
+         Only the longer secondary/view labels scale down as space tightens. */
+      @media (max-width: 767px) {
+        .hex-map-page #toolbar-tab-uk .view-button-main {
+          font-size: 0.95rem;
+          line-height: 1.05;
+        }
+
+        .hex-map-page #toolbar-tab-uk .view-button-sub {
+          font-size: clamp(0.72rem, 4.2vw, 0.82rem);
+          line-height: 1.05;
+        }
+
+        .hex-map-page #toolbar-tab-cr .view-button-main {
+          font-size: clamp(0.78rem, 4.6vw, 0.9rem);
+          line-height: 1.05;
+        }
+
+        .hex-map-page #toolbar-tab-cr .view-button-sub {
+          font-size: clamp(0.66rem, 4vw, 0.78rem);
+          line-height: 1.05;
+        }
+
+        .hex-map-page .pollutant-selector .pill,
+        .hex-map-page .mobile-map-controls--right .pollutant-selector .pill,
+        body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill {
+          font-size: 0.95rem;
+        }
+
+        .hex-map-page .mobile-map-controls--left #toolbar-tab-uk .view-button-main::before {
+          font-size: 0.95rem;
+          line-height: 1.05;
+        }
+
+        .hex-map-page .mobile-map-controls--left #toolbar-tab-cr .view-button-main::before {
+          font-size: clamp(0.7rem, 3.6vw, 0.82rem);
+          line-height: 1.05;
+        }
+      }
