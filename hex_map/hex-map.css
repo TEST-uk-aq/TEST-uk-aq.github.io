@@ -9142,12 +9142,15 @@
       }
 
       .hex-map-page .window-stepper-arrow::before {
-        position: relative;
+        position: absolute;
         z-index: 1;
+        top: 50%;
+        left: 50%;
         width: 12px;
         height: 14px;
         border: 0;
         background: currentColor;
+        transform: translate(-50%, -50%);
         transition: transform 0.15s ease;
       }
 
@@ -9180,13 +9183,17 @@
 
       .hex-map-page .window-stepper-arrow:hover:not(:disabled)::before,
       .hex-map-page .window-stepper-arrow:focus-visible:not(:disabled)::before {
-        transform: translateY(-1px);
+        transform: translate(-50%, calc(-50% - 1px));
         filter: none;
       }
 
-      .hex-map-page .window-stepper-arrow:active:not(:disabled)::after,
-      .hex-map-page .window-stepper-arrow:active:not(:disabled)::before {
+      .hex-map-page .window-stepper-arrow:active:not(:disabled)::after {
         transform: translateY(0);
+        box-shadow: none;
+      }
+
+      .hex-map-page .window-stepper-arrow:active:not(:disabled)::before {
+        transform: translate(-50%, -50%);
         box-shadow: none;
       }
 
@@ -9278,5 +9285,37 @@
           width: 12px;
           height: 14px;
           border: 0;
+        }
+      }
+
+      @media (max-width: 359px) {
+        body.hex-map-page.mobile-map-controls-active
+          .mobile-map-controls-row--utility
+          .mobile-map-controls--centre {
+          width: 138px;
+          min-width: 138px;
+          max-width: 138px;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper {
+          --window-stepper-value-width: 50px;
+          --window-stepper-control-width: 138px;
+          width: 138px;
+          min-width: 138px;
+          max-width: 138px;
+          grid-template-columns: 44px 50px 44px;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper-control {
+          width: 138px;
+          min-width: 138px;
+          max-width: 138px;
+          grid-template-columns: 44px 50px 44px;
+        }
+
+        .hex-map-page .mobile-map-controls--centre .window-stepper-value-box {
+          width: 50px;
+          min-width: 50px;
+          max-width: 50px;
         }
       }
