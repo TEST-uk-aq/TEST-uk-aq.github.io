@@ -541,6 +541,7 @@
     toolbarPageWrap.hidden = !hasResults;
     if (hasResults) {
       toolbarPageCurrent.textContent = `${state.page} / ${totalPages}`;
+      toolbarPageWrap.dataset.pageLabel = pageLabel;
       toolbarPageCurrent.title = pageLabel;
       toolbarPageCurrent.setAttribute("aria-label", pageLabel);
       toolbarPreviousPageButton.disabled = isFirstPage;
@@ -632,10 +633,10 @@
     storeSessionState();
   }
 
-  function changePage(page) {
+  function changePage(page, { scrollToToolbar = true } = {}) {
     state.page = page;
     renderResults();
-    toolbarElement.scrollIntoView({ block: "start" });
+    if (scrollToToolbar) toolbarElement.scrollIntoView({ block: "start" });
   }
 
   function setView(view) {
@@ -900,8 +901,12 @@
   document.addEventListener("click", (event) => {
     if (!searchFieldsDetails.contains(event.target)) searchFieldsDetails.open = false;
   });
-  toolbarPreviousPageButton.addEventListener("click", () => changePage(state.page - 1));
-  toolbarNextPageButton.addEventListener("click", () => changePage(state.page + 1));
+  toolbarPreviousPageButton.addEventListener("click", () => {
+    changePage(state.page - 1, { scrollToToolbar: false });
+  });
+  toolbarNextPageButton.addEventListener("click", () => {
+    changePage(state.page + 1, { scrollToToolbar: false });
+  });
   previousPageButton.addEventListener("click", () => changePage(state.page - 1));
   nextPageButton.addEventListener("click", () => changePage(state.page + 1));
   retryButton.addEventListener("click", loadArticles);
