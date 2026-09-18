@@ -973,18 +973,22 @@ function initHexMapSearch(root) {
       }
       if (result.kind === "postcode") {
         await runPostcodeLookupResult(result);
+        inputEl.blur();
         return;
       }
       if (result.kind === "constituency") {
         await selectConstituencyResult(result);
+        inputEl.blur();
         return;
       }
       if (result.kind === "local_authority") {
         await selectLocalAuthorityResult(result);
+        inputEl.blur();
         return;
       }
       if (result.kind === "sensor") {
         await selectSensorResult(result);
+        inputEl.blur();
       }
     }
 

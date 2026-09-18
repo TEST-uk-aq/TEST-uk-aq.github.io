@@ -5053,6 +5053,12 @@
         color: var(--ink-1);
         background: transparent;
       }
+      @media (hover: none) and (pointer: coarse) {
+        .hex-map-page .map-search-input {
+          font-size: 16px;
+        }
+      }
+
       .map-search-input::placeholder {
         color: color-mix(in oklab, var(--ink-4) 78%, white);
       }

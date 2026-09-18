@@ -614,6 +614,7 @@
     state.pageSize = pageSizeForCurrentView();
     if (selectedIndex >= 0) state.page = Math.floor(selectedIndex / state.pageSize) + 1;
     renderResults();
+    searchInput.blur();
   }
 
   function renderSuggestions() {
