@@ -115,6 +115,11 @@
   text-align: left;
 }
 
+.ukaq-bottom-nav-card[href="/news/"] .ukaq-bottom-nav-header,
+.ukaq-bottom-nav-card[href="/news/"] .ukaq-bottom-nav-description {
+  transform: translateY(-6px);
+}
+
 @container (min-width: 220px) {
   .ukaq-bottom-nav-title-switch .ukaq-bottom-nav-title--two-line {
     display: none;

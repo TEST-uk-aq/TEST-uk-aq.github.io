@@ -210,6 +210,11 @@ footer {
   text-align: left;
 }
 
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/news/"] .tool-card-header,
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/news/"] .tool-card-description {
+  transform: translateY(-6px);
+}
+
 @media (min-width: 1300px) {
   .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-grid {
     max-width: 1280px;
