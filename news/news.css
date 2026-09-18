@@ -50,7 +50,7 @@ body {
   width: min(100%, 1540px);
   min-width: 0;
   margin: 0 auto;
-  padding: 52px 28px 72px;
+  padding: 52px 28px 30px;
 }
 
 .news-intro {
@@ -1051,7 +1051,7 @@ input:focus-visible {
 @media (max-width: 767px) {
   .news-main {
     width: 100%;
-    padding: 16px 12px 48px;
+    padding: 16px 12px 20px;
   }
 
   .news-title-picture {
