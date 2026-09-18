@@ -1036,7 +1036,7 @@ input:focus-visible {
   .news-title-picture {
     display: flex;
     align-items: center;
-    min-height: 54px;
+    min-height: 44px;
     margin-left: 52px;
     max-width: calc(100% - 112px);
   }
@@ -1137,6 +1137,17 @@ input:focus-visible {
     min-width: 40px;
     min-height: 44px;
     padding: 7px;
+  }
+}
+
+@media (max-width: 399px) {
+  .news-title-picture {
+    align-items: flex-start;
+    min-height: 52px;
+  }
+
+  .news-title-image {
+    max-height: 52px;
   }
 }
 

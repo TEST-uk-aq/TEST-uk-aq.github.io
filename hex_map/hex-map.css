@@ -6640,8 +6640,8 @@
 
         .hex-map-page main > header {
           order: 1;
-          height: 54px;
-          min-height: 54px;
+          height: 44px;
+          min-height: 44px;
           min-width: 0;
           justify-content: flex-start;
           padding: 0 60px 0 52px;
@@ -6668,7 +6668,7 @@
 
         .hex-map-page .page-title-heading {
           width: 100%;
-          min-height: 54px;
+          min-height: 44px;
           min-width: 0;
           align-self: stretch;
           justify-content: flex-start;
