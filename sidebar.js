@@ -57,6 +57,7 @@
     className: 'uk-aq-home-nav-item',
   };
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
+  const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
@@ -76,6 +77,24 @@
       sessionStorage.setItem(SITE_VERSION_CACHE_KEY, version);
     } catch (_) {
       // Session storage is an optimisation only.
+    }
+  }
+
+  function rememberSidebarNavHandoff() {
+    try {
+      sessionStorage.setItem(SIDEBAR_NAV_HANDOFF_KEY, EXPANDED);
+    } catch (_) {
+      // Navigation continuity is cosmetic only.
+    }
+  }
+
+  function consumeSidebarNavHandoff() {
+    try {
+      const state = sessionStorage.getItem(SIDEBAR_NAV_HANDOFF_KEY);
+      sessionStorage.removeItem(SIDEBAR_NAV_HANDOFF_KEY);
+      return state === EXPANDED;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -737,9 +756,13 @@
   // ─── Mount ────────────────────────────────────────────────────────────────────
   function mount() {
     // Establish responsive page geometry before creating any visible chrome.
+    const bp = getBreakpoint();
+    const restoreExpandedForNavigation = consumeSidebarNavHandoff();
     document.body.style.transition = 'none';
     pinnedOpenDesktop = false;
-    setState(getBreakpoint() === 'mobile' ? DRAWER : MINI);
+    setState(bp === 'mobile' ? DRAWER : (
+      bp === 'desktop' && restoreExpandedForNavigation ? EXPANDED : MINI
+    ));
 
     // Injected sidebar styles
     if (!document.getElementById('uk-aq-sidebar-styles')) {
@@ -838,6 +861,26 @@
 
   // ─── Events ───────────────────────────────────────────────────────────────────
   function bindEvents(btn, overlay) {
+    const sidebar = document.getElementById('uk-aq-sidebar');
+
+    // Keep a hover-expanded desktop sidebar visually open across same-tab
+    // internal navigation. The destination consumes this one-time handoff.
+    sidebar.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const link = target?.closest('a.uk-aq-nav-item');
+      if (!link || event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (link.target && link.target !== '_self') return;
+      if (link.origin !== location.origin) return;
+      if (
+        getBreakpoint() === 'desktop'
+        && !pinnedOpenDesktop
+        && getState() === EXPANDED
+      ) {
+        rememberSidebarNavHandoff();
+      }
+    });
+
     // Hamburger toggle
     btn.addEventListener('click', () => {
       const bp = getBreakpoint();
@@ -863,7 +906,7 @@
     });
 
     // Desktop hover-expand for the full mini sidebar strip
-    document.getElementById('uk-aq-sidebar').addEventListener('mouseenter', () => {
+    sidebar.addEventListener('mouseenter', () => {
       clearTimeout(autoCollapseTimer);
       if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === MINI) {
         setState(EXPANDED);
@@ -871,7 +914,7 @@
     });
 
     // Resume auto-collapse on mouse leave
-    document.getElementById('uk-aq-sidebar').addEventListener('mouseleave', () => {
+    sidebar.addEventListener('mouseleave', () => {
       if (!pinnedOpenDesktop && getBreakpoint() === 'desktop' && getState() === EXPANDED) {
         scheduleAutoCollapse();
       }
