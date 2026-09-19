@@ -271,7 +271,7 @@
       --uk-aq-surface-2:     #fbfaf6;
       --uk-aq-sidebar-w:             212px;
       --uk-aq-sidebar-mini-w:        64px;
-      --uk-aq-sidebar-drawer-w:      280px;
+      --uk-aq-sidebar-drawer-w:      212px;
       --uk-aq-ease:          0.3s ease;
       --uk-aq-font:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
@@ -361,7 +361,7 @@
     #ukaq-home-logo {
       position: absolute;
       top: 16px; right: 28px;
-      z-index: 10011;
+      z-index: 10008;
       display: block;
       border-radius: 16px;
       overflow: visible;
