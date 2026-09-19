@@ -366,6 +366,7 @@ body {
   z-index: 20;
   bottom: calc(100% + 7px);
   left: 50%;
+  display: none;
   padding: 5px 7px;
   border-radius: 6px;
   color: #fff;
@@ -1145,6 +1146,12 @@ input:focus-visible {
 .news-search-input:focus,
 .news-search-input:focus-visible {
   outline: none;
+}
+
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  .news-toolbar-page-wrap::after {
+    display: block;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
