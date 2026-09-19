@@ -273,10 +273,15 @@
     document.body.setAttribute('data-sidebar-state', state);
   }
 
-  function scheduleAutoCollapse() {
+  function scheduleAutoCollapse(isHoverActive = () => false) {
     clearTimeout(autoCollapseTimer);
     autoCollapseTimer = setTimeout(() => {
-      if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === EXPANDED) {
+      if (
+        getBreakpoint() === 'desktop'
+        && !pinnedOpenDesktop
+        && getState() === EXPANDED
+        && !isHoverActive()
+      ) {
         setState(MINI);
       }
     }, 500);
@@ -881,6 +886,20 @@
   // ─── Events ───────────────────────────────────────────────────────────────────
   function bindEvents(btn, overlay) {
     const sidebar = document.getElementById('uk-aq-sidebar');
+    const isSidebarChromeHovered = () => (
+      sidebar.matches(':hover') || btn.matches(':hover')
+    );
+    const handleDesktopHoverEnter = () => {
+      clearTimeout(autoCollapseTimer);
+      if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === MINI) {
+        setState(EXPANDED);
+      }
+    };
+    const handleDesktopHoverLeave = () => {
+      if (!pinnedOpenDesktop && getBreakpoint() === 'desktop' && getState() === EXPANDED) {
+        scheduleAutoCollapse(isSidebarChromeHovered);
+      }
+    };
 
     // Keep a hover-expanded desktop sidebar visually open across same-tab
     // internal navigation. The destination consumes this one-time handoff.
@@ -909,7 +928,11 @@
         clearTimeout(autoCollapseTimer);
         pinnedOpenDesktop = !pinnedOpenDesktop;
         writePinnedSidebarPreference(pinnedOpenDesktop);
-        setState(pinnedOpenDesktop ? EXPANDED : MINI);
+        setState(
+          pinnedOpenDesktop || (bp === 'desktop' && isSidebarChromeHovered())
+            ? EXPANDED
+            : MINI
+        );
       }
       updateHamburgerIcon(btn);
     });
@@ -920,20 +943,13 @@
       updateHamburgerIcon(btn);
     });
 
-    // Desktop hover-expand for the full mini sidebar strip
-    sidebar.addEventListener('mouseenter', () => {
-      clearTimeout(autoCollapseTimer);
-      if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === MINI) {
-        setState(EXPANDED);
-      }
-    });
+    // Desktop hover-expand treats the sidebar and hamburger as one hover region.
+    sidebar.addEventListener('mouseenter', handleDesktopHoverEnter);
+    btn.addEventListener('mouseenter', handleDesktopHoverEnter);
 
-    // Resume auto-collapse on mouse leave
-    sidebar.addEventListener('mouseleave', () => {
-      if (!pinnedOpenDesktop && getBreakpoint() === 'desktop' && getState() === EXPANDED) {
-        scheduleAutoCollapse();
-      }
-    });
+    // Only collapse after the pointer leaves both the sidebar and hamburger.
+    sidebar.addEventListener('mouseleave', handleDesktopHoverLeave);
+    btn.addEventListener('mouseleave', handleDesktopHoverLeave);
 
     // Responsive resize
     window.addEventListener('resize', () => {
