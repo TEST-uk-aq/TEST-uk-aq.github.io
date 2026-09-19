@@ -9457,19 +9457,19 @@
         .hex-map-page #toolbar-tab-cr .view-button-main::before {
           display: block;
           content: "Countries\A& Regions";
-          font-size: clamp(0.72rem, 3vw, 0.9rem);
+          font-size: clamp(0.8rem, calc(0.5rem + 1.5vw), 0.9rem);
           line-height: 1.02;
           text-align: center;
           white-space: pre;
         }
 
         .hex-map-page #toolbar-tab-cr .view-button-sub {
-          font-size: clamp(0.6rem, 2.6vw, 0.76rem);
+          font-size: clamp(0.56rem, calc(0.34rem + 1.1vw), 0.76rem);
           line-height: 1.02;
           white-space: nowrap;
         }
 
         .hex-map-page .mobile-map-controls--left #toolbar-tab-cr .view-button-main::before {
-          font-size: clamp(0.66rem, 3.1vw, 0.8rem);
+          font-size: clamp(0.74rem, calc(0.5rem + 1.2vw), 0.82rem);
         }
       }
