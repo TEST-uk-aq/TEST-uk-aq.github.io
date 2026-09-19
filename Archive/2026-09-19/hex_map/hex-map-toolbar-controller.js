@@ -71,6 +71,7 @@ function initHexMapToolbarController(root) {
     : null;
   const SENSOR_TABLE_COMPACT_WIDTH = 860;
   const TOOLBAR_LAYOUT_PROMOTION_MARGIN = 8;
+  const TOOLBAR_LAYOUT_HOLD_MARGIN = 4;
   const mobileMounts = {
     uk: {
       left: panelUk?.querySelector("[data-mobile-map-controls-left]") || null,
@@ -185,28 +186,6 @@ function initHexMapToolbarController(root) {
     windowStepper.dataset.window = windowKey;
   }
 
-  function createWindowStepperValue(label) {
-    const value = root.document.createElement("span");
-    value.className = "window-stepper-value";
-    value.setAttribute("data-window-value", "");
-
-    const phrase = root.document.createElement("span");
-    phrase.className = "window-stepper-value-label";
-    phrase.textContent = label;
-    value.appendChild(phrase);
-
-    const lines = root.document.createElement("span");
-    lines.className = "window-stepper-value-lines";
-    lines.setAttribute("aria-hidden", "true");
-    label.split(" ").forEach((part) => {
-      const line = root.document.createElement("span");
-      line.textContent = part;
-      lines.appendChild(line);
-    });
-    value.appendChild(lines);
-    return value;
-  }
-
   function resetWindowStepperValue(label) {
     if (!windowStepperValueBox) return;
     if (windowStepperTimer) {
@@ -214,7 +193,7 @@ function initHexMapToolbarController(root) {
       windowStepperTimer = null;
     }
     windowStepperValueBox.classList.remove("is-animating", "is-moving-prev", "is-moving-next");
-    windowStepperValueBox.replaceChildren(createWindowStepperValue(label));
+    windowStepperValueBox.innerHTML = `<span class="window-stepper-value" data-window-value>${label}</span>`;
   }
 
   function animateWindowStepper(label, direction) {
@@ -235,11 +214,12 @@ function initHexMapToolbarController(root) {
     if (valueNodes.length > 1) {
       valueNodes.slice(0, -1).forEach((node) => node.remove());
     }
-    const incomingNode = createWindowStepperValue(label);
-    incomingNode.classList.add(
-      "window-stepper-value--incoming",
-      direction === "next" ? "from-right" : "from-left",
-    );
+    const incomingNode = root.document.createElement("span");
+    incomingNode.className = `window-stepper-value window-stepper-value--incoming ${
+      direction === "next" ? "from-right" : "from-left"
+    }`;
+    incomingNode.setAttribute("data-window-value", "");
+    incomingNode.textContent = label;
     currentNode.classList.add("window-stepper-value--outgoing");
     windowStepperValueBox.appendChild(incomingNode);
     windowStepperValueBox.classList.remove("is-moving-prev", "is-moving-next");
@@ -354,7 +334,7 @@ function initHexMapToolbarController(root) {
   }
 
   function writeToolbarWidthVariable(name, value) {
-    if (!toolbar || !Number.isFinite(value) || value < 0) return;
+    if (!toolbar || !Number.isFinite(value) || value <= 0) return;
     toolbar.style.setProperty(name, `${value.toFixed(2)}px`);
   }
 
@@ -366,52 +346,33 @@ function initHexMapToolbarController(root) {
       (Number.parseFloat(toolbarStyle.paddingLeft) || 0)
       + (Number.parseFloat(toolbarStyle.paddingRight) || 0);
     const readWidth = (element) => element?.getBoundingClientRect().width || 0;
-    const mapMode = pageMode.getMode() === "map";
-    const regionVisible = mapMode && regionSection?.classList.contains("visible");
-    const previousRegionLayout = toolbar.dataset.regionLayout;
-    const previousWindowLayout = toolbar.dataset.windowLayout;
-    delete toolbar.dataset.regionLayout;
-    delete toolbar.dataset.windowLayout;
     toolbar.classList.add("hex-toolbar-measuring");
     const viewWidth = readWidth(toolbarViewGroup);
-    const regionWidth = regionVisible ? readWidth(regionSection) : 0;
     const pollutantWidth = readWidth(pollutantGroup);
     const windowWidth = readWidth(windowStepper);
     const chartRangeWidth = readWidth(chartRangeToolbar);
     const statusWidth = readWidth(toolbarStatusActions);
-    const networksWidth = mapMode
-      ? readWidth(toolbarNetworksSlot?.querySelector(".networks-pill")) : 0;
-    let compactWindowWidth = 0;
-    let compactRegionWidth = 0;
-    if (mapMode) {
-      toolbar.dataset.windowLayout = "compact";
-      compactWindowWidth = readWidth(windowStepper);
-      if (regionVisible) {
-        toolbar.dataset.regionLayout = "compact";
-        compactRegionWidth = readWidth(regionSection);
-      }
-    }
-    if (previousRegionLayout) toolbar.dataset.regionLayout = previousRegionLayout;
-    else delete toolbar.dataset.regionLayout;
-    if (previousWindowLayout) toolbar.dataset.windowLayout = previousWindowLayout;
-    else delete toolbar.dataset.windowLayout;
+    const networksWidth = pageMode.getMode() === "map" ? readWidth(toolbarNetworksSlot) : 0;
+
+    toolbar.classList.add("hex-toolbar-measuring-wide-view");
+    const viewWideWidth = readWidth(toolbarViewGroup) || viewWidth;
+    toolbar.classList.remove("hex-toolbar-measuring-wide-view");
     toolbar.classList.remove("hex-toolbar-measuring");
 
+    writeToolbarWidthVariable("--hex-toolbar-view-width", viewWidth);
+    writeToolbarWidthVariable("--hex-toolbar-view-wide-width", viewWideWidth);
     writeToolbarWidthVariable("--hex-toolbar-pollutant-width", pollutantWidth);
     writeToolbarWidthVariable("--hex-toolbar-window-width", windowWidth);
     writeToolbarWidthVariable("--hex-toolbar-chart-range-width", chartRangeWidth);
 
     return {
       viewWidth,
-      regionWidth,
-      compactRegionWidth,
+      viewWideWidth,
       pollutantWidth,
       windowWidth,
-      compactWindowWidth,
       chartRangeWidth,
       statusWidth,
       networksWidth,
-      viewRegionGap: toolbarCssPixels("--hex-toolbar-view-region-gap", 8),
       /* clientWidth includes padding. Grid tracks only receive the content
          box inside that padding, so do not overstate the usable fit width. */
       availableWidth: Math.max(
@@ -419,141 +380,97 @@ function initHexMapToolbarController(root) {
       ),
       columnGap: toolbarCssPixels("--hex-toolbar-column-gap", 4),
       dividerSpace: toolbarCssPixels("--hex-toolbar-divider-space", 12),
-      searchNetworksGap: toolbarCssPixels("--hex-toolbar-search-networks-gap", 12),
-      searchMinWidth: toolbarCssPixels("--hex-toolbar-search-min-width", 340),
     };
   }
 
-  function chartToolbarLayoutRequirements(geometry) {
+  function toolbarLayoutRequirements(mode, geometry) {
     const gap = geometry.columnGap;
     const divider = geometry.dividerSpace;
+    if (mode === "chart") {
+      return {
+        "chart-wide":
+          geometry.pollutantWidth
+          + geometry.windowWidth
+          + geometry.chartRangeWidth
+          + geometry.statusWidth
+          + (2 * divider)
+          + (3 * gap),
+        "chart-compact":
+          Math.max(
+            geometry.pollutantWidth + divider + geometry.windowWidth + gap,
+            geometry.chartRangeWidth,
+          )
+          + geometry.statusWidth
+          + gap,
+        "chart-narrow":
+          Math.max(
+            geometry.pollutantWidth,
+            geometry.windowWidth + divider,
+          )
+          + Math.max(geometry.statusWidth, geometry.chartRangeWidth)
+          + gap,
+        "chart-wrapped": Math.max(
+          geometry.pollutantWidth,
+          geometry.statusWidth,
+          geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
+        ),
+      };
+    }
+
     return {
-      "chart-wide":
-        geometry.pollutantWidth
+      "map-wide":
+        geometry.viewWideWidth
+        + geometry.pollutantWidth
         + geometry.windowWidth
-        + geometry.chartRangeWidth
         + geometry.statusWidth
         + (2 * divider)
-        + (3 * gap),
-      "chart-compact":
-        Math.max(
-          geometry.pollutantWidth + divider + geometry.windowWidth + gap,
-          geometry.chartRangeWidth,
-        )
-        + geometry.statusWidth
-        + gap,
-      "chart-narrow":
-        Math.max(
-          geometry.pollutantWidth,
-          geometry.windowWidth + divider,
-        )
-        + Math.max(geometry.statusWidth, geometry.chartRangeWidth)
-        + gap,
-      "chart-wrapped": Math.max(
-        geometry.pollutantWidth,
-        geometry.statusWidth,
-        geometry.windowWidth + geometry.chartRangeWidth + divider + gap,
+        + (4 * gap),
+      "map-compact": Math.max(
+        geometry.viewWidth
+          + geometry.pollutantWidth
+          + geometry.statusWidth
+          + divider
+          + (3 * gap),
+        geometry.windowWidth + geometry.networksWidth + gap,
+      ),
+      "map-intermediate": Math.max(
+        geometry.viewWidth + geometry.statusWidth + gap,
+        geometry.pollutantWidth
+          + geometry.windowWidth
+          + geometry.networksWidth
+          + divider
+          + (3 * gap),
+      ),
+      "map-narrow": Math.max(
+        geometry.viewWidth + geometry.statusWidth + gap,
+        geometry.pollutantWidth + geometry.networksWidth + gap,
+        geometry.windowWidth,
       ),
     };
   }
 
-  function mapToolbarCandidates(geometry) {
-    const gap = geometry.columnGap;
-    const divider = geometry.dividerSpace;
-    const regionVisible = geometry.regionWidth > 0;
-    const regionWidth = (layout) => !regionVisible ? 0
-      : layout === "compact" ? geometry.compactRegionWidth : geometry.regionWidth;
-    const contextWidth = (layout) => geometry.viewWidth
-      + (regionVisible ? regionWidth(layout) + geometry.viewRegionGap : 0);
-    const rowOne = (layout, pollutant, window, regionRow) => {
-      const leftWidth = (regionRow === 1 ? contextWidth(layout) : geometry.viewWidth)
-        + (pollutant ? geometry.pollutantWidth + divider + gap : 0)
-        + (window ? geometry.windowWidth + divider + gap : 0);
-      return leftWidth + geometry.statusWidth + gap;
-    };
-    const rowTwo = (regionRow, layout, windowLayout, networksRow) => {
-      const windowWidth = windowLayout === "compact"
-        ? geometry.compactWindowWidth : geometry.windowWidth;
-      const region = regionRow === 2 ? regionWidth(layout) + divider + gap : 0;
-      const networks = networksRow === 2 ? geometry.networksWidth + gap : 0;
-      return region + geometry.pollutantWidth + divider + gap + windowWidth + networks;
-    };
-    const sharedSearchRow = geometry.searchMinWidth + geometry.searchNetworksGap
-      + geometry.networksWidth;
-    const candidates = [];
-    const add = (layout, regionRow, regionLayout, networksRow, windowLayout, firstRow, secondRow) => {
-      candidates.push({
-        id: `${layout}:${regionRow}:${regionLayout}:${networksRow}:${windowLayout}`,
-        layout, regionRow, regionLayout, networksRow, windowLayout,
-        required: Math.max(firstRow, secondRow, networksRow === 3 ? sharedSearchRow : 0),
-      });
-    };
-    const layouts = regionVisible ? ["normal", "compact"] : ["normal"];
-
-    for (const regionLayout of layouts) {
-      add("map-wide", 1, regionLayout, 2, "normal",
-        rowOne(regionLayout, true, true, 1), sharedSearchRow);
-    }
-    for (const regionLayout of layouts) {
-      add("map-compact", 1, regionLayout, 2, "normal",
-        rowOne(regionLayout, true, false, 1),
-        geometry.windowWidth + geometry.networksWidth + gap);
-    }
-    for (const regionLayout of layouts) {
-      add("map-intermediate", 1, regionLayout, 2, "normal",
-        rowOne(regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 2));
-    }
-    if (regionVisible) {
-      for (const regionLayout of layouts) {
-        add("map-intermediate", 2, regionLayout, 2, "normal",
-          rowOne(regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 2));
-      }
-    }
-    for (const windowLayout of ["normal", "compact"]) {
-      for (const regionLayout of layouts) {
-        add("map-narrow", 1, regionLayout, 3, windowLayout,
-          rowOne(regionLayout, false, false, 1), rowTwo(1, regionLayout, windowLayout, 3));
-      }
-    }
-    if (regionVisible) {
-      for (const regionLayout of layouts) {
-        add("map-narrow", 2, regionLayout, 3, "normal",
-          rowOne(regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 3));
-      }
-      /* Once Region owns row 2, preserve its compact fallback before
-         compacting Window. A normal Region never pairs with compact Window. */
-      add("map-narrow", 2, "compact", 3, "compact",
-        rowOne("compact", false, false, 2), rowTwo(2, "compact", "compact", 3));
-    }
-    return candidates;
-  }
-
   function chooseToolbarLayout(mode, geometry) {
-    const chartRequirements = mode === "chart"
-      ? chartToolbarLayoutRequirements(geometry) : null;
-    const candidates = mode === "chart"
+    const states = mode === "chart"
       ? ["chart-wide", "chart-compact", "chart-narrow", "chart-wrapped", "chart-stacked"]
-        .map((layout) => ({
-          id: layout, layout,
-          required: chartRequirements[layout],
-        }))
-      : mapToolbarCandidates(geometry);
-    const current = mode === "chart" ? toolbar?.dataset.toolbarLayout
-      : `${toolbar?.dataset.toolbarLayout}:${toolbar?.dataset.regionRow}:${toolbar?.dataset.regionLayout}:${toolbar?.dataset.networksRow}:${toolbar?.dataset.windowLayout}`;
-    const currentIndex = candidates.findIndex((candidate) => candidate.id === current);
+      : ["map-wide", "map-compact", "map-intermediate", "map-narrow", "map-wrapped"];
+    const requirements = toolbarLayoutRequirements(mode, geometry);
+    const current = toolbar?.dataset.toolbarLayout || "";
+    const currentIndex = states.indexOf(current);
 
-    for (let index = 0; index < candidates.length - 1; index += 1) {
-      const candidate = candidates[index];
-      let required = candidate.required;
+    for (let index = 0; index < states.length - 1; index += 1) {
+      const state = states[index];
+      let required = requirements[state];
       if (!Number.isFinite(required)) continue;
 
       if (currentIndex < 0 || index < currentIndex) {
         required += TOOLBAR_LAYOUT_PROMOTION_MARGIN;
+      } else if (index === currentIndex) {
+        required -= TOOLBAR_LAYOUT_HOLD_MARGIN;
       }
 
-      if (geometry.availableWidth >= required) return candidate;
+      if (geometry.availableWidth >= required) return state;
     }
-    return candidates[candidates.length - 1];
+    return states[states.length - 1];
   }
 
   function clearToolbarLayoutState() {
@@ -562,12 +479,8 @@ function initHexMapToolbarController(root) {
       toolbarLayoutFrame = null;
     }
     if (!toolbar) return;
-    toolbar.classList.remove("hex-toolbar-measuring");
+    toolbar.classList.remove("hex-toolbar-measuring", "hex-toolbar-measuring-wide-view");
     delete toolbar.dataset.toolbarLayout;
-    delete toolbar.dataset.regionRow;
-    delete toolbar.dataset.regionLayout;
-    delete toolbar.dataset.networksRow;
-    delete toolbar.dataset.windowLayout;
   }
 
   function syncToolbarLayoutState() {
@@ -578,20 +491,11 @@ function initHexMapToolbarController(root) {
     const geometry = measureToolbarGeometry();
     if (!geometry) return null;
     const mode = pageMode.getMode() === "chart" ? "chart" : "map";
-    const next = chooseToolbarLayout(mode, geometry);
-    toolbar.dataset.toolbarLayout = next.layout;
-    if (mode === "map") {
-      toolbar.dataset.regionRow = String(next.regionRow);
-      toolbar.dataset.regionLayout = next.regionLayout;
-      toolbar.dataset.networksRow = String(next.networksRow);
-      toolbar.dataset.windowLayout = next.windowLayout;
-    } else {
-      delete toolbar.dataset.regionRow;
-      delete toolbar.dataset.regionLayout;
-      delete toolbar.dataset.networksRow;
-      delete toolbar.dataset.windowLayout;
+    const nextLayout = chooseToolbarLayout(mode, geometry);
+    if (toolbar.dataset.toolbarLayout !== nextLayout) {
+      toolbar.dataset.toolbarLayout = nextLayout;
     }
-    return next.layout;
+    return nextLayout;
   }
 
   function scheduleToolbarLayout() {
@@ -914,37 +818,27 @@ function initHexMapToolbarController(root) {
       let lastToolbarObservedWidth = null;
       const toolbarGeometryObserver = new root.ResizeObserver((entries) => {
         let geometryChanged = false;
-        let toolbarWidthChanged = false;
         entries.forEach((entry) => {
           if (entry.target === toolbar) {
             const width = entry.contentRect?.width ?? toolbar?.getBoundingClientRect().width ?? 0;
             if (lastToolbarObservedWidth === null || Math.abs(width - lastToolbarObservedWidth) >= 0.5) {
               lastToolbarObservedWidth = width;
               geometryChanged = true;
-              toolbarWidthChanged = true;
             }
             return;
           }
           geometryChanged = true;
         });
-        /* A stale map candidate can flex-wrap before a queued animation frame
-           selects its compact successor. Resolve an actual toolbar-width change
-           during ResizeObserver delivery, which occurs before the next paint. */
-        if (toolbarWidthChanged) syncToolbarLayoutState();
-        else if (geometryChanged) scheduleToolbarLayout();
+        if (geometryChanged) scheduleToolbarLayout();
       });
       [
         toolbar,
-        toolbarViewGroup,
-        regionSection,
-        pollutantGroup,
-        windowStepper,
         toolbarStatusActions,
         toolbarNetworksSlot,
         chartRangeToolbar,
       ].filter(Boolean).forEach((element) => toolbarGeometryObserver.observe(element));
     } else {
-      root.addEventListener("resize", syncToolbarLayoutState, { passive: true });
+      root.addEventListener("resize", scheduleToolbarLayout, { passive: true });
     }
 
     if (reduceMotionQuery) {
