@@ -771,6 +771,88 @@ function initHexMapSearch(root) {
       inputEl.placeholder = getPlaceholder(kind);
     }
 
+    const SELECTION_VIEW_INITIAL_DELAY_MS = 360;
+    const SELECTION_VIEW_RETRY_MS = 100;
+    const SELECTION_VIEW_MAX_ATTEMPTS = 12;
+    let selectionViewTimerId = null;
+
+    function frameSelectedHexAndFirstSensor(attempt = 0) {
+      const panelId = kind === "cr" ? "cr-map-inline-sensor-panel" : "map-inline-sensor-panel";
+      const tableBodyId = kind === "cr" ? "cr-sensor-table-body" : "sensor-table-body";
+      const panel = document.getElementById(panelId);
+      const canvasWrap = panel?.closest(".map-canvas-wrap") || null;
+      const selectedHex = canvasWrap?.querySelector(".hex.is-selected") || null;
+      const firstSensor = document.getElementById(tableBodyId)
+        ?.querySelector("tr:not(.sensor-row-divider)") || null;
+
+      if (
+        !canvasWrap?.classList.contains("hex-selected")
+        || !selectedHex
+        || !firstSensor
+      ) {
+        if (attempt < SELECTION_VIEW_MAX_ATTEMPTS) {
+          window.setTimeout(
+            () => frameSelectedHexAndFirstSensor(attempt + 1),
+            SELECTION_VIEW_RETRY_MS,
+          );
+        }
+        return;
+      }
+
+      const hexRect = selectedHex.getBoundingClientRect();
+      const firstSensorRect = firstSensor.getBoundingClientRect();
+      if (!hexRect.height || !firstSensorRect.height) {
+        if (attempt < SELECTION_VIEW_MAX_ATTEMPTS) {
+          window.setTimeout(
+            () => frameSelectedHexAndFirstSensor(attempt + 1),
+            SELECTION_VIEW_RETRY_MS,
+          );
+        }
+        return;
+      }
+
+      const visualViewport = window.visualViewport;
+      const viewportTop = visualViewport?.offsetTop || 0;
+      const viewportHeight = visualViewport?.height
+        || window.innerHeight
+        || document.documentElement.clientHeight;
+      const visibleTop = viewportTop + 12;
+      const visibleBottom = viewportTop + viewportHeight - 12;
+      const minimumDelta = firstSensorRect.bottom - visibleBottom;
+      const maximumDelta = hexRect.top - visibleTop;
+
+      let deltaY = 0;
+      if (minimumDelta <= maximumDelta) {
+        // The whole selected hex and first sensor fit. Move only if needed.
+        deltaY = Math.min(maximumDelta, Math.max(minimumDelta, 0));
+      } else {
+        // On a very short viewport, prioritise showing the first sensor while
+        // retaining as much of the selected hex as the available height allows.
+        deltaY = minimumDelta;
+      }
+
+      if (Math.abs(deltaY) < 1) {
+        return;
+      }
+
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      window.scrollBy({
+        top: deltaY,
+        left: 0,
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }
+
+    function scheduleSelectionViewFrame() {
+      if (selectionViewTimerId) {
+        window.clearTimeout(selectionViewTimerId);
+      }
+      selectionViewTimerId = window.setTimeout(() => {
+        selectionViewTimerId = null;
+        window.requestAnimationFrame(() => frameSelectedHexAndFirstSensor());
+      }, SELECTION_VIEW_INITIAL_DELAY_MS);
+    }
+
     function setActiveIndex(nextIndex, { scrollIntoView = false } = {}) {
       if (!Number.isFinite(nextIndex) || nextIndex < 0 || nextIndex >= state.results.length) {
         state.activeIndex = -1;
@@ -974,21 +1056,25 @@ function initHexMapSearch(root) {
       if (result.kind === "postcode") {
         await runPostcodeLookupResult(result);
         inputEl.blur();
+        scheduleSelectionViewFrame();
         return;
       }
       if (result.kind === "constituency") {
         await selectConstituencyResult(result);
         inputEl.blur();
+        scheduleSelectionViewFrame();
         return;
       }
       if (result.kind === "local_authority") {
         await selectLocalAuthorityResult(result);
         inputEl.blur();
+        scheduleSelectionViewFrame();
         return;
       }
       if (result.kind === "sensor") {
         await selectSensorResult(result);
         inputEl.blur();
+        scheduleSelectionViewFrame();
       }
     }
 

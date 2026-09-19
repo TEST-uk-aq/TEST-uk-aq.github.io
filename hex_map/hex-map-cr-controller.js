@@ -6,6 +6,7 @@ import urlState from "./hex-map-url-state.js";
 import summary from "./hex-map-summary.js";
 import scrollAffordances from "./hex-map-scroll-affordances.js";
 import truncation from "./hex-map-truncation.js";
+import mobileMapLayout from "./hex-map-mobile-map-layout.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
 import ukController from "./hex-map-uk-controller.js";
@@ -2073,6 +2074,11 @@ function initHexMapCrController() {
         updateSummary();
         updateDetailsPanel();
         updateSelectedHexViewportShift();
+        if (cell) {
+          mobileMapLayout?.frameSelectedArea?.("cr");
+        } else {
+          mobileMapLayout?.cancelViewportFrame?.();
+        }
       }
 
       function updateSelectedHexViewportShift() {
