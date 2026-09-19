@@ -1174,6 +1174,12 @@ input:focus-visible {
 }
 
 @media (hover: none) and (pointer: coarse) {
+  .news-grid-sort select {
+    height: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
   .news-grid-card .news-persistent-link-icon,
   .news-thumbnail .news-persistent-link-icon {
     width: 22px;
