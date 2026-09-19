@@ -1212,6 +1212,17 @@ input:focus-visible {
 }
 
 @media (max-width: 767px) {
+  .news-grid-card .news-persistent-link-icon,
+  .news-thumbnail .news-persistent-link-icon {
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.38);
+    box-sizing: content-box;
+    filter: none;
+  }
+
   .news-main {
     width: 100%;
     padding: 16px 12px 20px;
