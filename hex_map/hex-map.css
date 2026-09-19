@@ -9473,3 +9473,11 @@
           font-size: clamp(0.74rem, calc(0.5rem + 1.2vw), 0.82rem);
         }
       }
+
+      /* Give Local Authorities a little extra clearance only at the narrowest
+         phone widths, without changing the larger Countries & Regions text. */
+      @media (max-width: 340px) {
+        .hex-map-page #toolbar-tab-cr .view-button-sub {
+          font-size: 0.52rem;
+        }
+      }
