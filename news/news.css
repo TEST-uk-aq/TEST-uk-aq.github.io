@@ -1212,6 +1212,10 @@ input:focus-visible {
 }
 
 @media (max-width: 767px) {
+  .news-toolbar {
+    margin-bottom: 14px;
+  }
+
   .news-main {
     width: 100%;
     padding: 16px 12px 20px;
@@ -1277,7 +1281,6 @@ input:focus-visible {
     margin-left: 0;
   }
 
-  .news-view-switch button,
   .news-search-fields summary,
   .news-search-clear {
     min-height: 44px;
