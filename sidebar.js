@@ -862,18 +862,12 @@
       updateHamburgerIcon(btn);
     });
 
-    // Left-edge hover re-expand (desktop)
-    document.addEventListener('mousemove', e => {
-      if (getBreakpoint() !== 'desktop') return;
-      if (!pinnedOpenDesktop && e.clientX < 20 && (getState() === COLLAPSED || getState() === MINI)) {
-        clearTimeout(autoCollapseTimer);
-        setState(EXPANDED);
-      }
-    });
-
-    // Cancel auto-collapse while mouse is inside sidebar
+    // Desktop hover-expand for the full mini sidebar strip
     document.getElementById('uk-aq-sidebar').addEventListener('mouseenter', () => {
       clearTimeout(autoCollapseTimer);
+      if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === MINI) {
+        setState(EXPANDED);
+      }
     });
 
     // Resume auto-collapse on mouse leave
