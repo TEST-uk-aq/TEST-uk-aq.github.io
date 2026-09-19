@@ -19,7 +19,7 @@
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
         { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
-        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark' },
+        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--news' },
       ],
     },
 /*    {
@@ -269,7 +269,7 @@
       --uk-aq-line-soft:     #eef0f3;
       --uk-aq-surface:       #ffffff;
       --uk-aq-surface-2:     #fbfaf6;
-      --uk-aq-sidebar-w:             232px;
+      --uk-aq-sidebar-w:             212px;
       --uk-aq-sidebar-mini-w:        64px;
       --uk-aq-sidebar-drawer-w:      280px;
       --uk-aq-ease:          0.3s ease;
@@ -511,6 +511,9 @@
       max-width: none !important;
       max-height: 24px !important;
       object-fit: contain;
+    }
+    .uk-aq-nav-item--news .uk-aq-nav-label {
+      margin-left: 3px;
     }
     .uk-aq-nav-icon-placeholder {
       width: 34px;
