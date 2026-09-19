@@ -4609,7 +4609,7 @@
         }
 
         .toolbar.hex-toolbar-measuring .toolbar-control-group--view:not(:has(#toolbar-region-section.visible)),
-        .toolbar.hex-toolbar-measuring.hex-toolbar-measuring-wide-view .toolbar-control-group--view {
+        .toolbar.hex-toolbar-measuring.hex-toolbar-measuring-wide-view .toolbar-control-group--view:has(#toolbar-region-section.visible) {
           width: max-content !important;
           max-width: none !important;
           min-width: max-content !important;
