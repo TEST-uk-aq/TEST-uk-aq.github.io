@@ -99,7 +99,7 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .news-search-shell {
@@ -1212,10 +1212,6 @@ input:focus-visible {
 }
 
 @media (max-width: 767px) {
-  .news-toolbar {
-    margin-bottom: 14px;
-  }
-
   .news-main {
     width: 100%;
     padding: 16px 12px 20px;
