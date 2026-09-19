@@ -8600,6 +8600,14 @@
           }
         }
 
+        /* The selected-hex panel no longer needs to pull the Networks control
+           upwards. Keep it in the normal mobile row at every narrow width. */
+        .hex-map-page .map-canvas-wrap.hex-selected
+          + .mobile-map-controls-row
+          .mobile-map-controls--right {
+          transform: none;
+        }
+
         /* Mobile chart mode is a separate presentation from the map-first
            mobile layout. The toolbar controller moves these same controls
            into the chart panel; their listeners and state remain authoritative. */
