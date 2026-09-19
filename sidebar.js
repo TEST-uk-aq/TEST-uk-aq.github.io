@@ -444,7 +444,7 @@
 	  border-radius: 7px;
 	  color: var(--uk-aq-ink-2);
 	  font-size: 15px;
-	  font-weight: 500;
+	  font-weight: 700;
 	  font-family: var(--uk-aq-font);
 	  text-decoration: none;
 	  border: 1px solid transparent;
