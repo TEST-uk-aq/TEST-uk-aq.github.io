@@ -58,6 +58,7 @@
   };
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
   const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
+  const SIDEBAR_PINNED_KEY = 'uk_aq_sidebar_pinned_v1';
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
@@ -77,6 +78,22 @@
       sessionStorage.setItem(SITE_VERSION_CACHE_KEY, version);
     } catch (_) {
       // Session storage is an optimisation only.
+    }
+  }
+
+  function readPinnedSidebarPreference() {
+    try {
+      return sessionStorage.getItem(SIDEBAR_PINNED_KEY) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function writePinnedSidebarPreference(pinned) {
+    try {
+      sessionStorage.setItem(SIDEBAR_PINNED_KEY, pinned ? '1' : '0');
+    } catch (_) {
+      // Sidebar pin persistence is session-scoped and non-critical.
     }
   }
 
@@ -269,7 +286,7 @@
     const img = btn?.querySelector('img');
     if (!img) return;
     const mobileOpen = getBreakpoint() === 'mobile' && document.body.classList.contains('uk-aq-drawer-open');
-    const shouldShowOn = pinnedOpenDesktop || mobileOpen;
+    const shouldShowOn = mobileOpen || (getBreakpoint() !== 'mobile' && pinnedOpenDesktop);
     const target = `${location.origin}${shouldShowOn ? SIDEBAR_ICON_ON : SIDEBAR_ICON_OFF}`;
     if (img.src !== target) img.src = target;
   }
@@ -759,9 +776,11 @@
     const bp = getBreakpoint();
     const restoreExpandedForNavigation = consumeSidebarNavHandoff();
     document.body.style.transition = 'none';
-    pinnedOpenDesktop = false;
+    pinnedOpenDesktop = readPinnedSidebarPreference();
     setState(bp === 'mobile' ? DRAWER : (
-      bp === 'desktop' && restoreExpandedForNavigation ? EXPANDED : MINI
+      pinnedOpenDesktop || (bp === 'desktop' && restoreExpandedForNavigation)
+        ? EXPANDED
+        : MINI
     ));
 
     // Injected sidebar styles
@@ -888,13 +907,9 @@
         document.body.classList.toggle('uk-aq-drawer-open');
       } else {
         clearTimeout(autoCollapseTimer);
-        if (pinnedOpenDesktop) {
-          pinnedOpenDesktop = false;
-          setState(MINI);
-        } else {
-          pinnedOpenDesktop = true;
-          setState(EXPANDED);
-        }
+        pinnedOpenDesktop = !pinnedOpenDesktop;
+        writePinnedSidebarPreference(pinnedOpenDesktop);
+        setState(pinnedOpenDesktop ? EXPANDED : MINI);
       }
       updateHamburgerIcon(btn);
     });
@@ -925,12 +940,10 @@
       const bp = getBreakpoint();
       clearTimeout(autoCollapseTimer);
       if (bp === 'tablet') {
-        setState(MINI);
-        pinnedOpenDesktop = false;
+        setState(pinnedOpenDesktop ? EXPANDED : MINI);
         document.body.classList.remove('uk-aq-drawer-open');
       } else if (bp === 'mobile') {
         setState(DRAWER);
-        pinnedOpenDesktop = false;
         document.body.classList.remove('uk-aq-drawer-open');
       } else if (getState() === MINI || getState() === DRAWER || getState() === COLLAPSED) {
         document.body.classList.remove('uk-aq-drawer-open');
