@@ -182,9 +182,9 @@ footer {
   display: none;
 }
 
-/* Preserve the homepage's centred 3/2/1 layout while bottom-nav.css owns the
-   shared UK AQ card presentation. */
-.home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-grid {
+/* Keep the UK AQ tool cards centred as a group and match the Beta homepage's
+   1220px/1280px content widths so the cards do not become too wide. */
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-grid {
   display: flex;
   width: 100%;
   max-width: 1220px;
@@ -195,30 +195,41 @@ footer {
   gap: 1.5rem;
 }
 
-.home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-card {
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card {
   flex: 0 1 calc((100% - 3rem) / 3);
   max-width: calc((100% - 3rem) / 3);
 }
 
-@media (min-width: 1300px) {
-  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-grid {
-    max-width: 1280px;
-  }
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/sensor_map/"] .tool-card-icon-box,
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/sensor_map/"] .tool-card-icon {
+  width: 60px;
+  flex-basis: 60px;
+}
 
-  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-card {
-    min-height: 174px;
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card-description {
+  text-align: left;
+}
+
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/news/"] .tool-card-header,
+.home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card[href="/news/"] .tool-card-description {
+  transform: translateY(-6px);
+}
+
+@media (min-width: 1300px) {
+  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-grid {
+    max-width: 1280px;
   }
 }
 
 @media (max-width: 980px) {
-  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-card {
+  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card {
     flex-basis: calc((100% - 1.5rem) / 2);
     max-width: calc((100% - 1.5rem) / 2);
   }
 }
 
 @media (max-width: 640px) {
-  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .ukaq-bottom-nav-card {
+  .home-page .home-section[aria-labelledby="home-ukaq-heading"] .tool-card {
     flex-basis: 100%;
     max-width: 100%;
   }

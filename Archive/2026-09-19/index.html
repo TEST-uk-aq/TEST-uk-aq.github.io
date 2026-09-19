@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UK AQ</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="/bottom-nav.css">
   <link rel="icon" href="/images/favicon.ico" type="image/png">
   <link rel="preload" as="image" href="/sidebar-images/uk-aq-hex-map-sidebar.svg" />
   <link rel="preload" as="image" href="/sidebar-images/youtube-logo.svg" />
@@ -1480,6 +1479,12 @@
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
+    .tool-card--ukaq {
+      background:
+        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(135deg, #67B0ED, #175283) border-box;
+    }
+
     .tool-card:hover {
       transform: translateY(-3px);
       box-shadow: 0 12px 26px rgba(16, 24, 34, 0.12);
@@ -1574,7 +1579,6 @@
       align-items: center;
       min-width: 0;
       width: 100%;
-      container-type: inline-size;
     }
 
     .tool-card-title-graphic-switch .tool-card-title-graphic--two-line {
@@ -1587,15 +1591,16 @@
       max-height: var(--title-one-line-max-h);
     }
 
-    @container (min-width: 220px) {
-      .tool-card-title-graphic-switch .tool-card-title-graphic--two-line {
-        display: none;
-      }
+    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--two-line {
+      display: none;
+    }
 
-      .tool-card-title-graphic-switch .tool-card-title-graphic--one-line {
-        display: block;
-        max-height: clamp(28px, 14cqi, 44px);
-      }
+    .tool-card-title-graphic-switch.show-one-line .tool-card-title-graphic--one-line {
+      display: block;
+    }
+
+    .tool-card-title-graphic--sensor-map {
+      max-height: 58px;
     }
 
     .tool-card-title-graphic--de {
@@ -2720,15 +2725,15 @@
     <section class="home-section" aria-labelledby="home-ukaq-heading">
       <h2 id="home-ukaq-heading" class="sr-only">UK AQ tools</h2>
 
-      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
-        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
-          <div class="ukaq-bottom-nav-header">
-            <span class="ukaq-bottom-nav-icon-box">
-              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+      <div class="tool-grid">
+        <a class="tool-card tool-card--ukaq" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="tool-card-header">
+            <span class="tool-card-icon-box">
+              <img class="tool-card-icon" src="sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
             </span>
-            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+            <img class="tool-card-title-graphic" src="images/UK-AQ-hex-map.svg" alt="Hex Map">
           </div>
-          <p class="ukaq-bottom-nav-description">
+          <p class="tool-card-description">
             Compare latest pollutant readings by UK constituencies, countries, and local authorities.
           </p>
         </a>
@@ -2745,32 +2750,32 @@
           </p>
         </a>
 -->
-        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
-          <div class="ukaq-bottom-nav-header">
-            <span class="ukaq-bottom-nav-icon-box">
-              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+        <a class="tool-card tool-card--ukaq" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="tool-card-header">
+            <span class="tool-card-icon-box">
+              <img class="tool-card-icon" src="sidebar-images/uk-aq-location-pin.svg" alt="">
             </span>
-            <span class="ukaq-bottom-nav-title-switch">
-              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
-              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+            <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
+              <img class="tool-card-title-graphic tool-card-title-graphic--two-line tool-card-title-graphic--sensor-map" src="images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+              <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
             </span>
           </div>
-          <p class="ukaq-bottom-nav-description">
+          <p class="tool-card-description">
             View sensor locations and readings on an interactive UK map.
           </p>
         </a>
 
-        <a class="ukaq-bottom-nav-card" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
-          <div class="ukaq-bottom-nav-header">
-            <span class="ukaq-bottom-nav-icon-box">
-              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+        <a class="tool-card tool-card--ukaq" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+          <div class="tool-card-header">
+            <span class="tool-card-icon-box">
+              <img class="tool-card-icon" src="sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
             </span>
-            <span class="ukaq-bottom-nav-title-switch">
-              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-NEWS-2lines.png" alt="AQ in the News">
-              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-NEWS-1line.png" alt="AQ in the News">
+            <span class="tool-card-title-graphic-switch" data-one-line-min-width="220">
+              <img class="tool-card-title-graphic tool-card-title-graphic--two-line" src="images/UK-AQ-NEWS-2lines.png" alt="AQ in the News">
+              <img class="tool-card-title-graphic tool-card-title-graphic--one-line" src="images/UK-AQ-NEWS-1line.png" alt="AQ in the News">
             </span>
           </div>
-          <p class="ukaq-bottom-nav-description">
+          <p class="tool-card-description">
             Air quality news from the UK and around the world, covering air pollution and its effects on health.
           </p>
         </a>
@@ -3146,6 +3151,50 @@
 
       loadWhoSummary();
       startWhoBarReveal();
+    })();
+  </script>
+  <script>
+    (() => {
+      const switches = Array.from(document.querySelectorAll(".tool-card-title-graphic-switch"));
+      if (!switches.length) return;
+
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+      function updateSwitch(switchEl) {
+        const width = switchEl.clientWidth || 0;
+        if (width <= 0) return;
+
+        const card = switchEl.closest(".tool-card");
+        const isUkaqCard = card?.classList.contains("tool-card--ukaq");
+        const minWidth = Number(switchEl.dataset.oneLineMinWidth || (isUkaqCard ? 210 : 220));
+        const showOneLine = width >= minWidth;
+
+        switchEl.classList.toggle("show-one-line", showOneLine);
+
+        const twoLineMax = 58;
+        const oneLineMax = clamp(width * (isUkaqCard ? 0.145 : 0.14), 28, 44);
+        switchEl.style.setProperty("--title-two-line-max-h", `${twoLineMax.toFixed(1)}px`);
+        switchEl.style.setProperty("--title-one-line-max-h", `${oneLineMax.toFixed(1)}px`);
+      }
+
+      function updateAll() {
+        switches.forEach(updateSwitch);
+      }
+
+      if ("ResizeObserver" in window) {
+        const resizeObserver = new ResizeObserver((entries) => {
+          entries.forEach((entry) => updateSwitch(entry.target));
+        });
+        switches.forEach((switchEl) => resizeObserver.observe(switchEl));
+      } else {
+        window.addEventListener("resize", updateAll, { passive: true });
+      }
+
+      if (document.fonts?.ready) {
+        document.fonts.ready.then(updateAll).catch(() => {});
+      }
+      window.addEventListener("load", updateAll, { once: true });
+      updateAll();
     })();
   </script>
   <script src="/homepage-pollutant-metadata-carousel.js"></script>
