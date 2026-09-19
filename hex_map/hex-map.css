@@ -875,7 +875,7 @@
         container-name: sensor-table;
         overflow-x: auto;
         overflow-y: hidden;
-        overscroll-behavior-y: contain;
+        overscroll-behavior-y: auto;
         scrollbar-width: none;
         scrollbar-gutter: auto;
       }
@@ -1475,7 +1475,7 @@
         flex: 1;
         overflow-y: hidden;
         padding: 0;
-        overscroll-behavior-y: contain;
+        overscroll-behavior-y: auto;
         position: relative;
       }
 
@@ -1486,7 +1486,7 @@
       .sensor-table-wrap.is-scroll-forced {
         max-height: calc(44px + (46px * 4));
         overflow-y: scroll;
-        overscroll-behavior-y: contain;
+        overscroll-behavior-y: auto;
         scrollbar-gutter: auto;
         scrollbar-width: none;
       }

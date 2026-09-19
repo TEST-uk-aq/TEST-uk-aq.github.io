@@ -254,27 +254,8 @@ function initHexMapScrollAffordances(root) {
     let scrollContextKey = "";
 
     const onScroll = () => indicators?.update?.();
-    const onWheel = (event) => {
-      if (root.matchMedia?.("(max-width: 767px)").matches) {
-        return;
-      }
-      if (!scrollEl.classList.contains("is-scroll-forced")) {
-        return;
-      }
-      event.stopPropagation();
-      const maxScrollTop = scrollEl.scrollHeight - scrollEl.clientHeight;
-      if (maxScrollTop <= 0 || !event.deltaY) {
-        return;
-      }
-      const atTop = scrollEl.scrollTop <= 0;
-      const atBottom = scrollEl.scrollTop >= maxScrollTop - 1;
-      if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
-        event.preventDefault();
-      }
-    };
 
     scrollEl.addEventListener("scroll", onScroll);
-    scrollEl.addEventListener("wheel", onWheel, { passive: false });
 
     const controller = Object.freeze({
       update() {
@@ -301,7 +282,6 @@ function initHexMapScrollAffordances(root) {
       },
       destroy() {
         scrollEl.removeEventListener("scroll", onScroll);
-        scrollEl.removeEventListener("wheel", onWheel);
         persistentScrollbar?.destroy?.();
         indicators?.destroy?.();
         if (attachedSensorTables.get(scrollEl) === controller) {
