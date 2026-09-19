@@ -1365,17 +1365,6 @@ input:focus-visible {
   }
 }
 
-@media (max-width: 399px) {
-  .news-title-picture {
-    align-items: flex-start;
-    min-height: 52px;
-  }
-
-  .news-title-image {
-    max-height: 52px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .news-spinner {
     animation: none;
