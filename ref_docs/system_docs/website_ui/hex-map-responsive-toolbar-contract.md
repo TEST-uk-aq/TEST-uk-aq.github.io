@@ -42,6 +42,8 @@ Inspection of the runtime showed that `hex-map-toolbar-controller.js` used a mea
 Subsequent TEST visual review on 17 September 2026 established additional presentation requirements:
 
 - keeping Pollutant and Window internally atomic must not force the complete toolbar off the right edge;
+- a pinned/expanded sidebar may reduce the toolbar's available inline width, but the toolbar responds only to its actual measured width; it does not need sidebar-specific layout semantics;
+- the fit reservation for Live/Refresh must be large enough for the wider normal `Loading...` status state so pressing Refresh does not create a new row transition merely because the status pill grew;
 - when the wide map row no longer fits, complete groups move through deterministic intermediate row states instead of dropping earlier than necessary;
 - at narrower map widths, Window may share row 2 with Pollutant before Pollutant itself can move up beside View;
 - at narrower chart widths, Window and Chart range may share row 2 when they fit even though Window cannot yet join Pollutant on row 1;
@@ -74,6 +76,10 @@ The Compact sensor-list ResizeObserver MAY detect a genuine presentation-boundar
 The toolbar MUST remain wholly inside its usable inline area. Preserving an atomic control group is not permission to let the right-hand side overflow, clip or disappear off-screen. If the current row cannot contain the complete authorised groups plus the reserved right-side controls, the toolbar MUST enter its next deterministic row state.
 
 Keep each control group on the **highest authorised row where the complete required row geometry fits**. Move a group down only when keeping it on that row would cause overlap, clipping, or violation of the required spacing. Do not move a group down early merely to create extra visual breathing room or unused space on the row above.
+
+The fit calculation MUST reserve the width required by the wider normal status state, currently `Loading...`, together with Refresh. A layout that fits only while the shorter `Live` state is rendered is not a valid fit. The status state changing between `Live` and `Loading...` MUST NOT by itself force an otherwise avoidable toolbar row transition.
+
+Selecting the final authorised Narrow map state MUST also constrain its CSS presentation to the authorised three-row geometry. Generic flex wrapping MUST NOT silently create a fourth row after the layout selector has chosen the Narrow state.
 
 ## Ownership principle
 
@@ -132,22 +138,33 @@ Therefore:
 
 - normal Region beside View is preferred;
 - if that row becomes too wide, compact Region is tried first;
-- failure of `View + compact Region + Live/Refresh` is a **relocation trigger**, not a contract failure;
-- once that compact row no longer fits, Region MAY move down as its own grid/control item;
+- failure of `normal View + compact Region + Live/Refresh` is the trigger to try compact View, not yet to relocate Region;
+- if `compact View + compact Region + Loading.../Refresh` still does not fit, Region MAY move down as its own grid/control item;
 - Region moving down does NOT mean Region and Pollutant become one responsive group;
 - Pollutant MUST NOT carry Region with it merely because Pollutant changes row;
 - Region and Pollutant MUST remain independently measured and independently placeable;
 - the same authoritative Region control/state is reused in every presentation;
 - no duplicate Region control, handler, menu state, URL/history path or business logic may be introduced.
 
-### Region compaction priority
+### Region and View compaction priority
 
-For any row on which Region is currently placed:
+For row 1 while Region is beside View:
+
+```text
+1. try normal View + normal Region
+2. if that row does not fit, try normal View + compact Region
+3. if that still does not fit, try compact View and retry Region on row 1
+4. only then move Region to its next authorised row
+```
+
+Compact View is a presentation-only fallback of the same authoritative View control. It MAY reduce horizontal padding and/or use a modestly smaller text treatment, but it MUST retain both existing View choices, their labels, selected state, accessible names and handlers. It MUST NOT create a duplicate View control or reduce the control below an appropriate usable touch/click target. Compact View SHOULD preserve the existing outer height so entering the fallback does not increase row height.
+
+For any row after Region has relocated:
 
 ```text
 1. try normal Region
 2. if that row does not fit, try compact Region
-3. only then relocate another control/right-side reservation or move Region to its next authorised row
+3. only then relocate another right-side reservation or use the next authorised fallback
 ```
 
 After Region moves to a different row, retry normal Region there before keeping it compact. Compact Region is therefore demand-driven and row-specific, not sticky.
@@ -399,7 +416,7 @@ row 3 left:
 
 Again, try normal Region then compact Region on row 1.
 
-If `View + compact Region + Live/Refresh` no longer fits, Region may relocate independently to row 2. This does NOT itself force Networks to move:
+If `normal View + compact Region + Loading.../Refresh` no longer fits, try compact View with Region still on row 1 first. Only if the compact-View retry still cannot fit may Region relocate independently to row 2. This does NOT itself force Networks to move:
 
 ```text
 row 1 left:
@@ -424,7 +441,7 @@ Narrow is the final three-row fit regime. Region placement and Networks placemen
 
 If row 1 can still contain View + Region + Live/Refresh, keep Region with View.
 
-If it cannot even with compact Region, place Region on row 2.
+If it cannot after compact Region and the authorised compact-View retry, place Region on row 2.
 
 Networks remains on row 2 for as long as the complete current row-2 geometry fits. If it does not fit after any required Region compaction, move Networks to row 3:
 
@@ -456,17 +473,21 @@ After Networks moves, retry normal Region on row 2 if Region is there and the ne
 
 Only after Networks relocation and required Region compaction have been exhausted may Window compact.
 
+If the complete authorised Narrow candidate then fits on rows 1 and 2 but the shared Search/Networks row is still the limiting row, Search MAY enter its authorised compact presentation. Compact Search is a width-only presentation of the same authoritative Search control. It is available only in Narrow after Networks has moved to row 3, and only when the normal Search minimum would otherwise make the complete three-row candidate invalid.
+
+The normal Search minimum remains `340px`. Compact Search has an authorised minimum inline width of `272px`. It MUST retain the same Search field, input semantics, placeholder/label behaviour, result data, keyboard behaviour and handlers. It MUST NOT create a duplicate Search implementation or reduce the required `12px` Search-to-Networks gap.
+
 The narrowest authorised Countries & Regions fallback is therefore:
 
 ```text
 row 1:
-  View                                             Live | Refresh
+  compact View                                     Live | Refresh
 
 row 2:
   compact Region | Pollutant | compact Window
 
 row 3:
-  Search                                           Networks
+  compact Search                                   Networks
 ```
 
 The controls shown together on row 2 remain independent controls. They are not an atomic Region/Pollutant/Window group.
@@ -477,8 +498,9 @@ The complete priority is:
 
 ```text
 row 1:
-  normal Region beside View
-  -> compact Region beside View
+  normal View + normal Region
+  -> normal View + compact Region
+  -> compact View + retry Region
   -> if still impossible, Region may relocate down independently
 
 row 2 when Region is present:
@@ -493,13 +515,21 @@ row 2 when Region remains on row 1:
   Pollutant | Window + Networks
   -> move Networks to row 3 if needed
   -> compact Window only if still needed
+
+row 3 after Networks has moved:
+  normal Search + Networks
+  -> compact Search only if that shared row is still the limiting geometry
 ```
+
+Compact Search MUST NOT be selected merely because the viewport or sidebar is at a particular width. It is demand-driven by the actual measured Narrow candidate geometry. If compact Search allows Region to remain on row 1, Region MUST NOT be moved down merely to avoid using compact Search because Region is required to stay on the highest authorised row where the complete candidate fits.
+
+All fit decisions above MUST use the reserved `Loading...` + Refresh width rather than the shorter instantaneous `Live` width.
 
 Pollutant remains normal and atomic throughout unless another contract explicitly authorises changing it.
 
 The previous four-, five- and six-row map fallbacks remain unauthorised at `>=768px`.
 
-This three-row maximum applies to **every rendered map state and every transition between states**, not only the final settled layout. A narrowing toolbar MUST NOT temporarily pass through a four-row state such as:
+This three-row maximum applies to **every rendered map state and every transition between states**, not only the final settled layout. Once the final Narrow candidate is selected, the implementation MUST keep Region/Pollutant/Window on their authorised row 2 using the preceding compact fallbacks as necessary; ordinary flex wrapping is not an authorised extra fallback. A narrowing toolbar MUST NOT temporarily pass through a four-row state such as:
 
 ```text
 row 1: View / Live | Refresh
@@ -538,12 +568,56 @@ Before implementation, measure the transition/fallback candidates rather than re
 The minimum-width stop conditions are the final authorised fallbacks:
 
 ```text
-row 1: View + Live/Refresh
+row 1: compact View + Live/Refresh
 row 2: compact Region | Pollutant | compact Window   (when Region has relocated)
-row 3: Search + Networks
+row 3: compact Search + Networks
 ```
 
-If those final fallbacks cannot fit at the minimum usable `>=768px` toolbar width, stop and report the measured deficit. Failure of `View + compact Region + Live/Refresh` alone is NOT a stop condition; it is the signal to relocate Region.
+The compact Search minimum is `272px`; the normal Search minimum remains `340px`.
+
+If those final fallbacks cannot fit at the minimum usable `>=768px` toolbar width, stop and report the measured deficit. Failure of `normal View + compact Region + Loading.../Refresh` alone is NOT a stop condition; compact View must be tried next. Failure of the compact-View candidate is the signal that Region may relocate.
+
+## Measured minimum-width decision for Narrow Search
+
+Targeted geometry review on 20 September 2026 established that the previously authorised final Search/Networks row could not fit at the minimum valid desktop/tablet geometry with the shared sidebar expanded.
+
+At a `768px` viewport the measured/calculated toolbar geometry was:
+
+```text
+viewport                                      768px
+expanded sidebar body offset                -212px
+remaining body content                       556px
+main horizontal padding                     - 56px
+map-card border + horizontal padding        - 38px
+map-controls content                         462px
+toolbar inline padding                      - 16px
+controller availableWidth                    446px
+```
+
+The normal final row required:
+
+```text
+Search minimum                               340px
+Search-to-Networks gap                        12px
+Networks pill                              146.45px
+required                                   498.45px
+deficit                                     52.45px
+```
+
+The limiting row was therefore row 3, not row 1 or row 2. Adding another map row or allowing ordinary flex wrapping remains prohibited.
+
+The authorised resolution is a Narrow-only compact Search minimum of `272px`:
+
+```text
+compact Search                               272px
+Search-to-Networks gap                        12px
+Networks pill                              146.45px
+required                                   430.45px
+available                                    446px
+measured headroom                            15.55px
+```
+
+This value is an authorised component minimum derived from the measured minimum toolbar geometry. It MUST NOT be implemented as a sidebar-specific rule or a new viewport breakpoint.
 
 ## Search placement
 
@@ -571,7 +645,9 @@ When Search shares a row with Networks, Search is left-aligned to the shared lef
 
 Its right edge MUST stop before Networks with the normal deliberate gap. Search MUST NOT pass underneath Networks or force Networks beyond the inner padded right edge.
 
-Compacting or relocating Region, or compacting Window, MUST NOT create row 4.
+Normal Search keeps its `340px` minimum. In Narrow only, after Networks has moved to row 3, Search MAY use the compact `272px` minimum when the normal Search width is the limiting geometry for an otherwise valid three-row candidate. This compaction changes only the Search control's width allocation. It MUST NOT change Search semantics, text size, result behaviour or the required `12px` gap to Networks.
+
+Compacting or relocating Region, compacting Window, or compacting Search MUST NOT create row 4.
 
 Search interaction and Networks-panel safe-width behaviour remain governed by the existing Search and Networks-panel contracts.
 
@@ -582,6 +658,8 @@ Live/Refresh retain their existing state and controls in both map mode and chart
 Networks retains its authoritative selection state but is presented only in map mode. Entering chart mode MUST suppress the Networks trigger/panel and any layout reservation for it without clearing Network selection.
 
 Live/Refresh remains row 1 right.
+
+The toolbar fit reservation for this right-side pair MUST use the width required by the wider normal status state, currently `Loading...`, even while `Live` is displayed. The rendered pill may still contract visually to `Live`; only the fit reservation remains large enough to guarantee that entering `Loading...` does not unexpectedly force another toolbar layout.
 
 Networks remains on its higher authorised row for as long as the **complete current row geometry** fits:
 
@@ -608,11 +686,13 @@ The shared `768px` mobile boundary remains fixed.
 
 Selection among `>=768px` map/chart presentation states is geometry-driven under the dynamic-fit amendment. Observed screenshot widths and old fixed values such as `830px` or `910px` are diagnostic only and are not authoritative state boundaries.
 
+The selector responds to the toolbar's actual available inline width. It MUST NOT special-case whether that width was reduced by the pinned sidebar, browser resizing, DevTools, a window split or another surrounding layout change.
+
 Fit calculations include the complete normal or authorised compact controls, same-row dividers/gaps and the right-side reservations present in that candidate state.
 
 A candidate state does not fit if it requires clipping, overlap, unauthorised group splitting or pushing a right-side control outside the usable toolbar area.
 
-The minimum-width checks for the final authorised row-1, row-2 and row-3 fallbacks are targeted structural viability checks, not new hard-coded breakpoints. `View + compact Region + Live/Refresh` is a transition measurement that determines when Region must relocate, not a minimum-width stop condition.
+The minimum-width checks for the final authorised row-1, row-2 and row-3 fallbacks are targeted structural viability checks, not new hard-coded breakpoints. `normal View + compact Region + Loading.../Refresh` is a transition measurement that determines when compact View must be tried, not a minimum-width stop condition. Compact Search's `272px` minimum is a component presentation constraint, not a viewport breakpoint.
 
 ## Below 768px
 
@@ -635,7 +715,11 @@ The current toolbar controller should retain only genuine presentation-regime re
 
 For the atomic Pollutant/Window rule, keep their existing label and controls in stable one-line group containers.
 
-For map row packing, prefer explicit CSS/grid structural states for Wide, Compact, Intermediate and Narrow. Try normal then compact Region on its current row. If Region can no longer remain with View, relocate Region independently to row 2. Networks then remains on row 2 while the complete current row fits; Networks relocation precedes Window compaction. Do not treat Region and Pollutant as one responsive group merely because they share row 2.
+For map row packing, prefer explicit CSS/grid structural states for Wide, Compact, Intermediate and Narrow. Try normal Region, then compact Region, then compact View with Region retried on row 1. If Region can still no longer remain with View, relocate Region independently to row 2. Networks then remains on row 2 while the complete current row fits; Networks relocation precedes Window compaction. The final Narrow CSS state must prevent generic flex wrapping from manufacturing a fourth control row. Do not treat Region and Pollutant as one responsive group merely because they share row 2.
+
+Fit-state measurement should reserve the width of the wider normal status presentation, currently `Loading...` + Refresh, rather than measuring only the status text currently visible.
+
+For the final Narrow Search row, retain the normal `340px` Search minimum until the normal Search/Networks row is the limiting geometry. Only then may the same Search control use its authorised compact `272px` minimum. Do not key this presentation to sidebar state or a viewport breakpoint.
 
 For chart row packing, prefer explicit Narrow, Compact and Wide states. At Narrow chart widths, Window and Chart range share row 2 when their combined geometry fits; do not reserve a third row merely because Window cannot yet fit on row 1.
 
@@ -682,8 +766,10 @@ Before implementation, perform only targeted structural checks needed to establi
 - whether Region can remain independently placeable from Pollutant while reusing one authoritative state/control;
 - whether normal and compact Region geometries can be measured on row 1 and, after relocation, on row 2;
 - whether compact Region has the same rendered outer height as normal Region in both placements;
-- whether compact Region is tried before Region leaves View's row;
-- whether failure of `View + compact Region + Live/Refresh` triggers Region relocation rather than a stop;
+- whether compact Region is tried before compact View, and compact View is tried before Region leaves View's row;
+- whether compact View preserves the same authoritative View choices/state and an appropriate usable control height;
+- whether failure of `compact View + compact Region + Loading.../Refresh` triggers Region relocation rather than a stop;
+- whether the fit reservation uses the wider `Loading...` status state even while `Live` is displayed;
 - whether Region is retried at normal width after relocation or after Networks moves;
 - whether Pollutant and Window retain separate stable group containers;
 - whether Networks remains row 2 until the complete current row genuinely fails;
@@ -692,19 +778,21 @@ Before implementation, perform only targeted structural checks needed to establi
 - whether normal and compact Window geometry can be measured deterministically;
 - whether compact Window renders a real line break with no visible `\A`, `/A`, `\\A` or `\n` marker;
 - whether Search and Networks can share their authorised row without overlap;
+- whether normal Search remains at its `340px` minimum until the Narrow Search/Networks row is genuinely limiting;
+- whether compact Search uses the same authoritative Search control at a `272px` minimum without changing Search semantics or the required `12px` gap;
 - whether Live/Refresh and Networks align to the inner padded right edge and remain wholly inside the card border;
 - whether state selection can occur without a measurement/layout feedback loop.
 
 The targeted minimum-width viability checks are:
 
 ```text
-View + Live/Refresh
+compact View + Live/Refresh
 compact Region | Pollutant | compact Window   when Region has relocated
-Search + Networks shared row
+compact Search + Networks shared row
 right-side controls inside padded card edge
 ```
 
-`View + compact Region + Live/Refresh` is measured only to determine when Region must leave View's row. Its failure is NOT a reason to stop.
+`View + compact Region + Live/Refresh` is an intermediate measurement only. Compact View MUST be tried next, using the wider `Loading...` + Refresh reservation. Failure of that compact-View candidate is the signal that Region may leave View's row; it is NOT a reason to stop.
 
 If one of the final minimum-width fallback rows fails, report the measured deficit before changing the contract or adding rows.
 
@@ -735,8 +823,11 @@ map mode >=768px:
     Networks stays row 2 only while the complete current row fits
     Networks moves to Search row when required
     Window compacts only after Networks relocation and Region width options are exhausted
+    Search compacts to its authorised 272px minimum only when Networks is on row 3 and normal Search is the limiting geometry
 
-  compact Region is tried before Region leaves View's row
+  compact Region is tried before compact View, and compact View is tried before Region leaves View's row
+  compact View preserves both View choices/state and does not create a duplicate control
+  layout fit reserves Loading... + Refresh width even while Live is displayed
   compact Region keeps the same outer height as normal Region
   Region is retried at normal width after relocation or newly freed space
   Region and Pollutant remain independently measured/placed
