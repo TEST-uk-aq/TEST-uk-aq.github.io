@@ -42,7 +42,7 @@ Inspection of the runtime showed that `hex-map-toolbar-controller.js` used a mea
 Subsequent TEST visual review on 17 September 2026 established additional presentation requirements:
 
 - keeping Pollutant and Window internally atomic must not force the complete toolbar off the right edge;
-- a pinned/expanded sidebar may reduce the toolbar's available inline width, but the toolbar responds only to its actual measured width; it does not need sidebar-specific layout semantics;
+- at `920px` and above, a pinned/expanded sidebar may reduce the toolbar's available inline width, but the toolbar responds only to its actual measured width; from `768px` through `919px`, the Hex Map-specific shared-navigation rule prevents a pinned sidebar and keeps hover expansion overlay-only, so sidebar reveal must not reduce toolbar width; the toolbar itself remains unaware of sidebar state;
 - the fit reservation for Live/Refresh must be large enough for the wider normal `Loading...` status state so pressing Refresh does not create a new row transition merely because the status pill grew;
 - when the wide map row no longer fits, complete groups move through deterministic intermediate row states instead of dropping earlier than necessary;
 - at narrower map widths, Window may share row 2 with Pollutant before Pollutant itself can move up beside View;
@@ -575,13 +575,15 @@ row 3: compact Search + Networks
 
 The compact Search minimum is `272px`; the normal Search minimum remains `340px`.
 
-If those final fallbacks cannot fit at the minimum usable `>=768px` toolbar width, stop and report the measured deficit. Failure of `normal View + compact Region + Loading.../Refresh` alone is NOT a stop condition; compact View must be tried next. Failure of the compact-View candidate is the signal that Region may relocate.
+If those final fallbacks cannot fit at an actually supported measured `>=768px` toolbar width, stop and report the measured deficit. Failure of `normal View + compact Region + Loading.../Refresh` alone is NOT a stop condition; compact View must be tried next. Failure of the compact-View candidate is the signal that Region may relocate.
 
-## Measured minimum-width decision for Narrow Search
+## Historical measured narrow geometry and retained compact Search
 
-Targeted geometry review on 20 September 2026 established that the previously authorised final Search/Networks row could not fit at the minimum valid desktop/tablet geometry with the shared sidebar expanded.
+Targeted geometry review on 20 September 2026 established that the previously authorised final Search/Networks row could not fit when a `768px` Hex Map viewport was allowed to keep the shared sidebar expanded and consume `212px` of layout width.
 
-At a `768px` viewport the measured/calculated toolbar geometry was:
+That sidebar-induced state is no longer an authorised Hex Map presentation from `768px` through `919px`: the sidebar must now remain Mini for layout purposes and any hover expansion overlays the page. The measurement below is retained as the evidence that authorised compact toolbar fallbacks must remain capable of handling genuinely constrained toolbar containers caused by other geometry, rather than as a required sidebar state.
+
+The historical measured/calculated geometry was:
 
 ```text
 viewport                                      768px
@@ -617,7 +619,7 @@ available                                    446px
 measured headroom                            15.55px
 ```
 
-This value is an authorised component minimum derived from the measured minimum toolbar geometry. It MUST NOT be implemented as a sidebar-specific rule or a new viewport breakpoint.
+This value remains an authorised component minimum derived from measured constrained-toolbar geometry. It MUST NOT be implemented as a sidebar-specific rule or a new toolbar viewport breakpoint. The separate `920px` Hex Map sidebar rule governs navigation occupancy only and MUST NOT directly select compact Search or another toolbar candidate.
 
 ## Search placement
 
@@ -680,13 +682,42 @@ Networks uses its normal/natural content width. Moving it to row 3 is preferred 
 
 A candidate state is invalid if a right-side control overlaps the card border, clips, overflows, or forces another required control underneath it.
 
+## Hex Map constrained-width sidebar behaviour
+
+The toolbar remains width-driven, but the surrounding Hex Map navigation has an explicit presentation rule to avoid manufacturing an unnecessarily narrow toolbar merely because the sidebar is pinned.
+
+For `body.hex-map-page`:
+
+```text
+<768px       existing mobile drawer behaviour
+768-919px    Mini sidebar reserves 64px; hover-expanded sidebar overlays the page
+>=920px      existing normal tablet/desktop sidebar pin and layout-width behaviour
+```
+
+From `768px` through `919px`:
+
+- the sidebar MUST settle to Mini and reserve only `64px` of page width;
+- permanent/pinned expansion MUST be unavailable;
+- if pinning was on when this range is entered, pinning MUST be turned off and that off state persisted;
+- the hamburger MUST remain visually off and MUST NOT toggle or pin the sidebar;
+- the disabled hamburger MUST NOT use its normal hover lift or shadow affordance;
+- hover over the sidebar/navigation hover region MUST still be able to reveal the full `212px` sidebar so icon meanings remain discoverable;
+- the additional expanded width MUST overlay the Hex Map instead of changing body padding or narrowing the page;
+- hover expansion therefore MUST NOT trigger a toolbar-width reduction or toolbar candidate transition;
+- leaving the hover region MUST collapse the sidebar back to Mini;
+- this presentation MUST NOT use the mobile `DRAWER` state or mobile overlay/backdrop semantics.
+
+Other pages are outside this exception and retain their existing shared-sidebar behaviour.
+
 ## Responsive thresholds
 
 The shared `768px` mobile boundary remains fixed.
 
-Selection among `>=768px` map/chart presentation states is geometry-driven under the dynamic-fit amendment. Observed screenshot widths and old fixed values such as `830px` or `910px` are diagnostic only and are not authoritative state boundaries.
+The Hex Map has one separate navigation-occupancy boundary at `920px`: from `768px` through `919px`, the shared sidebar rests at its `64px` Mini width, cannot be pinned, and may expand only as an overlay on hover; at `920px` and above, normal tablet/desktop pinning and layout-width behaviour applies. This is not a toolbar-state breakpoint and does not change the `768px` mobile boundary.
 
-The selector responds to the toolbar's actual available inline width. It MUST NOT special-case whether that width was reduced by the pinned sidebar, browser resizing, DevTools, a window split or another surrounding layout change.
+Selection among `>=768px` map/chart toolbar presentation states remains geometry-driven under the dynamic-fit amendment. Observed screenshot widths and old fixed values such as `830px` or `910px` are diagnostic only and are not authoritative toolbar-state boundaries.
+
+The selector responds to the toolbar's actual available inline width. It MUST NOT special-case sidebar state, the `920px` navigation boundary, browser resizing, DevTools, a window split or another surrounding layout change. At `920px` and above a pinned sidebar may still reduce the measured width; from `768px` through `919px`, hover expansion is overlay-only and therefore must not change the toolbar's measured available width.
 
 Fit calculations include the complete normal or authorised compact controls, same-row dividers/gaps and the right-side reservations present in that candidate state.
 
@@ -702,14 +733,15 @@ Below `768px`, continue to follow the mobile layout/control contracts. Existing 
 
 ## Implementation direction
 
-Likely implementation ownership is:
+Implementation ownership is split deliberately:
 
 ```text
-/hex_map/hex-map.css
-/hex_map/hex-map-toolbar-controller.js
+/sidebar.js                         Hex Map-only 768-919px sidebar Mini/hover-overlay rule
+/hex_map/hex-map.css                toolbar presentation
+/hex_map/hex-map-toolbar-controller.js  toolbar geometry/state selection
 ```
 
-The preferred implementation remains primarily CSS/container-driven at `>=768px`.
+The sidebar rule MUST stay in the existing shared navigation implementation and MUST NOT be reimplemented inside Hex Map toolbar code. The preferred toolbar implementation remains primarily CSS/container-driven at `>=768px`.
 
 The current toolbar controller should retain only genuine presentation-regime relocation and authoritative DOM ownership. Do not reintroduce the removed greedy resize-time distributor.
 
@@ -803,6 +835,16 @@ After deployment to TEST, perform real visual/functional acceptance by continuou
 Acceptance MUST cover:
 
 ```text
+Hex Map sidebar:
+  <768px: existing mobile drawer unchanged
+  768-919px: Mini sidebar remains visible and reserves only 64px
+  768-919px: any prior pinned/always-on state is turned off and persisted off
+  768-919px: hamburger remains off/non-interactive with no hover lift or shadow
+  768-919px: sidebar can still expand on hover to reveal labels
+  768-919px: hover expansion overlays the page and does not change Hex Map/page/toolbar width
+  768-919px: leaving the hover region collapses back to Mini
+  >=920px: existing normal pin/unpin and layout-width behaviour resumes
+  other pages: existing sidebar behaviour unchanged
 map mode >=768px:
   Wide:
     row 1 View + Region | Pollutant | Window / Live+Refresh

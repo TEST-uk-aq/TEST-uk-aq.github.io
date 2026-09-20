@@ -64,8 +64,31 @@ Its mobile drawer behaviour MUST preserve:
 - viewport widths below `768px` use the drawer state;
 - the hamburger opens and closes the drawer;
 - the overlay closes an open drawer;
-- desktop hover and pin behaviour remains desktop-only;
+- desktop hover and pin behaviour remains desktop-only except for the explicitly authorised Hex Map `768px` through `919px` hover-only navigation exception below;
 - responsive work MUST NOT create a second navigation implementation.
+
+### Hex Map constrained-width navigation exception
+
+The Hex Map has one intentional page-specific navigation exception at viewport widths from `768px` through `919px`.
+
+This is **not** a second mobile boundary and MUST NOT switch the Hex Map into its below-`768px` mobile controls. It changes only how the existing shared sidebar occupies space while the Hex Map remains in its normal `>=768px` presentation.
+
+For `body.hex-map-page` only:
+
+- below `768px`, retain the existing mobile drawer behaviour;
+- from `768px` through `919px`, the sidebar MUST rest in its normal `64px` Mini presentation and the page MAY reserve only that Mini width;
+- in that constrained range, the sidebar MUST NOT be pinnable or left permanently expanded;
+- if the sidebar is pinned when the Hex Map enters that constrained range, the pinned state MUST be turned off and the persisted pinned preference MUST be updated to off;
+- the hamburger remains visibly off in that constrained range and MUST NOT toggle pin state or expanded state;
+- the hamburger MUST NOT use its interactive hover lift or shadow treatment while it is disabled in that constrained range;
+- the user MUST still be able to reveal the full sidebar labels by hover;
+- hover expansion from Mini to the full `212px` sidebar MUST overlay the Hex Map rather than increasing body/page left padding beyond the Mini `64px` reservation;
+- therefore opening the hover-expanded sidebar MUST NOT reduce the Hex Map's available page or toolbar width;
+- when the pointer leaves the hover-expanded sidebar/navigation hover region, it MUST collapse back to Mini and reveal the unobscured page again;
+- at `920px` and above, the existing normal tablet/desktop sidebar pin and layout-width behaviour applies again;
+- other public pages keep their existing sidebar behaviour at all `>=768px` widths.
+
+This exception MUST reuse `/sidebar.js` and the existing sidebar DOM/state ownership. It MUST NOT create a second Hex Map navigation implementation or reuse the mobile drawer state for the `768px` through `919px` presentation.
 
 The hamburger's approximately `44px × 44px` effective control remains the reference minimum interaction size for mobile controls.
 
