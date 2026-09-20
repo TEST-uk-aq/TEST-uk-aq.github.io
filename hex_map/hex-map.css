@@ -3739,6 +3739,7 @@
           --hex-toolbar-view-region-gap: 8px;
           --hex-toolbar-search-networks-gap: 12px;
           --hex-toolbar-search-min-width: 340px;
+          --hex-toolbar-search-compact-min-width: 272px;
           container: hex-main-toolbar / inline-size;
           display: grid;
           grid-template-columns: max-content minmax(0, 1fr) max-content;
@@ -4337,6 +4338,10 @@
           flex: 1 1 var(--hex-toolbar-search-min-width);
           min-width: var(--hex-toolbar-search-min-width);
           margin-right: calc(var(--hex-toolbar-search-networks-gap) - var(--hex-toolbar-column-gap));
+        }
+        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-search-layout="compact"] .toolbar-search-row {
+          flex-basis: var(--hex-toolbar-search-compact-min-width);
+          min-width: var(--hex-toolbar-search-compact-min-width);
         }
         body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-networks-slot {
           order: 22;
