@@ -225,9 +225,9 @@ body {
   z-index: 8;
   display: grid;
   width: 190px;
-  gap: 2px;
+  gap: 0;
   margin: 0;
-  padding: 10px;
+  padding: 28px 10px 8px;
   border: 1px solid var(--news-border);
   border-radius: 12px;
   background: var(--news-surface);
@@ -235,18 +235,23 @@ body {
 }
 
 .news-search-fields legend {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  margin: 0;
   padding: 0 4px;
   color: var(--news-ink-soft);
   font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .news-search-fields label {
   display: flex;
-  min-height: 40px;
+  min-height: 36px;
   align-items: center;
   gap: 9px;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border-radius: 8px;
   font-size: 0.88rem;
   cursor: pointer;

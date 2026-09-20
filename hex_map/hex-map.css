@@ -8036,7 +8036,7 @@
           border-radius: 0;
           background: transparent;
           box-shadow: none;
-          font-size: 0.82rem;
+          font-size: clamp(0.82rem, 4vw, 0.95rem);
         }
 
         .hex-map-page .mobile-map-controls--left .popover-trigger::before,
