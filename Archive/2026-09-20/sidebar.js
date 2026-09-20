@@ -255,7 +255,7 @@
     return 'desktop';
   }
 
-  function isHexMapConstrainedSidebarMode() {
+  function isHexMapOverlayMode() {
     return document.body.classList.contains('hex-map-page')
       && window.innerWidth >= 768
       && window.innerWidth < 920;
@@ -283,7 +283,7 @@
     clearTimeout(autoCollapseTimer);
     autoCollapseTimer = setTimeout(() => {
       if (
-        (getBreakpoint() === 'desktop' || isHexMapConstrainedSidebarMode())
+        getBreakpoint() === 'desktop'
         && !pinnedOpenDesktop
         && getState() === EXPANDED
         && !isHoverActive()
@@ -296,10 +296,9 @@
   function updateHamburgerIcon(btn) {
     const img = btn?.querySelector('img');
     if (!img) return;
-    const mobileDrawer = getBreakpoint() === 'mobile';
-    const drawerOpen = mobileDrawer && document.body.classList.contains('uk-aq-drawer-open');
-    const shouldShowOn = drawerOpen
-      || (!mobileDrawer && !isHexMapConstrainedSidebarMode() && pinnedOpenDesktop);
+    const drawerPresentation = getBreakpoint() === 'mobile' || isHexMapOverlayMode();
+    const drawerOpen = drawerPresentation && document.body.classList.contains('uk-aq-drawer-open');
+    const shouldShowOn = drawerOpen || (!drawerPresentation && pinnedOpenDesktop);
     const target = `${location.origin}${shouldShowOn ? SIDEBAR_ICON_ON : SIDEBAR_ICON_OFF}`;
     if (img.src !== target) img.src = target;
   }
@@ -333,12 +332,6 @@
     body[data-sidebar-state="collapsed"] { padding-left: 0; }
     body[data-sidebar-state="mini"]      { padding-left: var(--uk-aq-sidebar-mini-w); }
     body[data-sidebar-state="drawer"]    { padding-left: 0; }
-
-    @media (min-width: 768px) and (max-width: 919px) {
-      body.hex-map-page[data-sidebar-state="expanded"] {
-        padding-left: var(--uk-aq-sidebar-mini-w);
-      }
-    }
 
     /* ── Sidebar panel ── */
     #uk-aq-sidebar {
@@ -406,17 +399,9 @@
     @media (max-width: 767px) {
       #uk-aq-hamburger { position: absolute; }
     }
-    #uk-aq-hamburger:hover:not(:disabled) {
+    #uk-aq-hamburger:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 14px rgba(20,34,37,0.12);
-    }
-    @media (min-width: 768px) and (max-width: 919px) {
-      body.hex-map-page #uk-aq-hamburger:disabled {
-        cursor: default;
-        pointer-events: none;
-        transform: none;
-        box-shadow: none;
-      }
     }
     #uk-aq-hamburger img { width: 44px; height: 44px; object-fit: contain; display: block; }
 
@@ -804,11 +789,7 @@
     const restoreExpandedForNavigation = consumeSidebarNavHandoff();
     document.body.style.transition = 'none';
     pinnedOpenDesktop = readPinnedSidebarPreference();
-    if (isHexMapConstrainedSidebarMode() && pinnedOpenDesktop) {
-      pinnedOpenDesktop = false;
-      writePinnedSidebarPreference(false);
-    }
-    setState(bp === 'mobile' ? DRAWER : (
+    setState(bp === 'mobile' || isHexMapOverlayMode() ? DRAWER : (
       pinnedOpenDesktop || (bp === 'desktop' && restoreExpandedForNavigation)
         ? EXPANDED
         : MINI
@@ -836,7 +817,6 @@
     const btn = document.createElement('button');
     btn.id = 'uk-aq-hamburger';
     btn.setAttribute('aria-label', 'Toggle navigation');
-    btn.disabled = isHexMapConstrainedSidebarMode();
     btn.innerHTML = `<img src="${location.origin}${SIDEBAR_ICON_OFF}" alt="Menu">`;
 
     // Shared top-right UK AQ home logo
@@ -913,26 +893,18 @@
   // ─── Events ───────────────────────────────────────────────────────────────────
   function bindEvents(btn, overlay) {
     const sidebar = document.getElementById('uk-aq-sidebar');
-    let wasHexMapConstrainedSidebarMode = isHexMapConstrainedSidebarMode();
+    let wasHexMapOverlayMode = isHexMapOverlayMode();
     const isSidebarChromeHovered = () => (
       sidebar.matches(':hover') || btn.matches(':hover')
     );
     const handleDesktopHoverEnter = () => {
       clearTimeout(autoCollapseTimer);
-      if (
-        (getBreakpoint() === 'desktop' || isHexMapConstrainedSidebarMode())
-        && !pinnedOpenDesktop
-        && getState() === MINI
-      ) {
+      if (getBreakpoint() === 'desktop' && !pinnedOpenDesktop && getState() === MINI) {
         setState(EXPANDED);
       }
     };
     const handleDesktopHoverLeave = () => {
-      if (
-        !pinnedOpenDesktop
-        && (getBreakpoint() === 'desktop' || isHexMapConstrainedSidebarMode())
-        && getState() === EXPANDED
-      ) {
+      if (!pinnedOpenDesktop && getBreakpoint() === 'desktop' && getState() === EXPANDED) {
         scheduleAutoCollapse(isSidebarChromeHovered);
       }
     };
@@ -958,10 +930,7 @@
     // Hamburger toggle
     btn.addEventListener('click', () => {
       const bp = getBreakpoint();
-      if (isHexMapConstrainedSidebarMode()) {
-        return;
-      }
-      if (bp === 'mobile') {
+      if (bp === 'mobile' || isHexMapOverlayMode()) {
         document.body.classList.toggle('uk-aq-drawer-open');
       } else {
         clearTimeout(autoCollapseTimer);
@@ -993,18 +962,12 @@
     // Responsive resize
     window.addEventListener('resize', () => {
       const bp = getBreakpoint();
-      const hexMapConstrainedSidebarMode = isHexMapConstrainedSidebarMode();
+      const hexMapOverlayMode = isHexMapOverlayMode();
       clearTimeout(autoCollapseTimer);
-      if (hexMapConstrainedSidebarMode) {
-        if (pinnedOpenDesktop) {
-          pinnedOpenDesktop = false;
-          writePinnedSidebarPreference(false);
-        }
-        document.body.classList.remove('uk-aq-drawer-open');
-        if (!wasHexMapConstrainedSidebarMode) {
-          setState(MINI);
-        } else if (getState() !== MINI && getState() !== EXPANDED) {
-          setState(MINI);
+      if (hexMapOverlayMode) {
+        setState(DRAWER);
+        if (!wasHexMapOverlayMode) {
+          document.body.classList.remove('uk-aq-drawer-open');
         }
       } else if (bp === 'tablet') {
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
@@ -1018,8 +981,7 @@
       } else {
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
       }
-      btn.disabled = hexMapConstrainedSidebarMode;
-      wasHexMapConstrainedSidebarMode = hexMapConstrainedSidebarMode;
+      wasHexMapOverlayMode = hexMapOverlayMode;
       updateHamburgerIcon(btn);
     });
   }
