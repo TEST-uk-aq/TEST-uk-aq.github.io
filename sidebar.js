@@ -255,6 +255,12 @@
     return 'desktop';
   }
 
+  function isHexMapOverlayMode() {
+    return document.body.classList.contains('hex-map-page')
+      && window.innerWidth >= 768
+      && window.innerWidth < 920;
+  }
+
   function isHomePage() {
     const p = location.pathname;
     return p === '/' || p === '/index.html' || p === '';
@@ -290,8 +296,9 @@
   function updateHamburgerIcon(btn) {
     const img = btn?.querySelector('img');
     if (!img) return;
-    const mobileOpen = getBreakpoint() === 'mobile' && document.body.classList.contains('uk-aq-drawer-open');
-    const shouldShowOn = mobileOpen || (getBreakpoint() !== 'mobile' && pinnedOpenDesktop);
+    const drawerPresentation = getBreakpoint() === 'mobile' || isHexMapOverlayMode();
+    const drawerOpen = drawerPresentation && document.body.classList.contains('uk-aq-drawer-open');
+    const shouldShowOn = drawerOpen || (!drawerPresentation && pinnedOpenDesktop);
     const target = `${location.origin}${shouldShowOn ? SIDEBAR_ICON_ON : SIDEBAR_ICON_OFF}`;
     if (img.src !== target) img.src = target;
   }
@@ -782,7 +789,7 @@
     const restoreExpandedForNavigation = consumeSidebarNavHandoff();
     document.body.style.transition = 'none';
     pinnedOpenDesktop = readPinnedSidebarPreference();
-    setState(bp === 'mobile' ? DRAWER : (
+    setState(bp === 'mobile' || isHexMapOverlayMode() ? DRAWER : (
       pinnedOpenDesktop || (bp === 'desktop' && restoreExpandedForNavigation)
         ? EXPANDED
         : MINI
@@ -886,6 +893,7 @@
   // ─── Events ───────────────────────────────────────────────────────────────────
   function bindEvents(btn, overlay) {
     const sidebar = document.getElementById('uk-aq-sidebar');
+    let wasHexMapOverlayMode = isHexMapOverlayMode();
     const isSidebarChromeHovered = () => (
       sidebar.matches(':hover') || btn.matches(':hover')
     );
@@ -922,7 +930,7 @@
     // Hamburger toggle
     btn.addEventListener('click', () => {
       const bp = getBreakpoint();
-      if (bp === 'mobile') {
+      if (bp === 'mobile' || isHexMapOverlayMode()) {
         document.body.classList.toggle('uk-aq-drawer-open');
       } else {
         clearTimeout(autoCollapseTimer);
@@ -954,8 +962,14 @@
     // Responsive resize
     window.addEventListener('resize', () => {
       const bp = getBreakpoint();
+      const hexMapOverlayMode = isHexMapOverlayMode();
       clearTimeout(autoCollapseTimer);
-      if (bp === 'tablet') {
+      if (hexMapOverlayMode) {
+        setState(DRAWER);
+        if (!wasHexMapOverlayMode) {
+          document.body.classList.remove('uk-aq-drawer-open');
+        }
+      } else if (bp === 'tablet') {
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
         document.body.classList.remove('uk-aq-drawer-open');
       } else if (bp === 'mobile') {
@@ -967,6 +981,7 @@
       } else {
         setState(pinnedOpenDesktop ? EXPANDED : MINI);
       }
+      wasHexMapOverlayMode = hexMapOverlayMode;
       updateHamburgerIcon(btn);
     });
   }
