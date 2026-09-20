@@ -529,6 +529,13 @@ function initHexMapToolbarController(root) {
     const addNarrow = (regionRow, viewLayout, regionLayout, windowLayout, firstRow, secondRow) => {
       add("map-narrow", regionRow, viewLayout, regionLayout, 3, windowLayout, firstRow, secondRow);
       add("map-narrow", regionRow, viewLayout, regionLayout, 3, windowLayout, firstRow, secondRow, "compact");
+      if (regionRow === 2 && viewLayout === "normal") {
+        const compactViewFirstRow = rowOne("compact", regionLayout, false, false, regionRow);
+        add("map-narrow", regionRow, "compact", regionLayout, 3, windowLayout,
+          compactViewFirstRow, secondRow);
+        add("map-narrow", regionRow, "compact", regionLayout, 3, windowLayout,
+          compactViewFirstRow, secondRow, "compact");
+      }
     };
     const normalViewPresentations = regionVisible
       ? [["normal", "normal"], ["normal", "compact"]]
@@ -571,7 +578,9 @@ function initHexMapToolbarController(root) {
     }
     if (regionVisible) {
       /* Once Region moves down, exhaust Region and Networks fallbacks before
-         compacting Window. Pollutant always remains normal and atomic. */
+         compacting Window. Each Networks-row-three candidate retries compact
+         View after both Search presentations. Pollutant remains normal and
+         atomic throughout. */
       for (const regionLayout of ["normal", "compact"]) {
         add("map-intermediate", 2, "normal", regionLayout, 2, "normal",
           rowOne("normal", regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 2));
