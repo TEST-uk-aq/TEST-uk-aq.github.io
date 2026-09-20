@@ -256,12 +256,15 @@
   }
 
   function isConstrainedSidebarMode() {
-    return (
-      document.body.classList.contains('hex-map-page')
-      || document.body.classList.contains('home-page')
-    )
-      && window.innerWidth >= 768
-      && window.innerWidth < 920;
+    const width = window.innerWidth;
+    if (width < 768) return false;
+    if (document.body.classList.contains('hex-map-page')) {
+      return width < 920;
+    }
+    if (document.body.classList.contains('home-page')) {
+      return width < 1100;
+    }
+    return false;
   }
 
   function isSidebarHoverMode() {
@@ -342,7 +345,12 @@
     body[data-sidebar-state="drawer"]    { padding-left: 0; }
 
     @media (min-width: 768px) and (max-width: 919px) {
-      body.hex-map-page[data-sidebar-state="expanded"],
+      body.hex-map-page[data-sidebar-state="expanded"] {
+        padding-left: var(--uk-aq-sidebar-mini-w);
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1099px) {
       body.home-page[data-sidebar-state="expanded"] {
         padding-left: var(--uk-aq-sidebar-mini-w);
       }
@@ -419,7 +427,14 @@
       box-shadow: 0 8px 14px rgba(20,34,37,0.12);
     }
     @media (min-width: 768px) and (max-width: 919px) {
-      body.hex-map-page #uk-aq-hamburger:disabled,
+      body.hex-map-page #uk-aq-hamburger:disabled {
+        cursor: default;
+        pointer-events: none;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    @media (min-width: 768px) and (max-width: 1099px) {
       body.home-page #uk-aq-hamburger:disabled {
         cursor: default;
         pointer-events: none;
@@ -1010,7 +1025,7 @@
         }
         document.body.classList.remove('uk-aq-drawer-open');
         if (!wasConstrainedSidebarMode) {
-          setState(MINI);
+          setState(isSidebarChromeHovered() ? EXPANDED : MINI);
         } else if (getState() !== MINI && getState() !== EXPANDED) {
           setState(MINI);
         }
