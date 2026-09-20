@@ -4354,8 +4354,10 @@
           grid-column: 1 / 5;
           grid-row: 3;
           width: auto;
-          min-width: 0;
-          margin-right: 0;
+          min-width: var(--hex-toolbar-search-min-width);
+          /* Grid already supplies its normal 4px gap; retain the remaining
+             8px so Search and Networks keep their intended 12px spacing. */
+          margin-right: calc(var(--hex-toolbar-search-networks-gap) - var(--hex-toolbar-column-gap));
         }
         body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-networks-slot {
           grid-column: 5;

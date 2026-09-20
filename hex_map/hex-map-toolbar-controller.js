@@ -381,23 +381,31 @@ function initHexMapToolbarController(root) {
     const windowWidth = readWidth(windowStepper);
     const chartRangeWidth = readWidth(chartRangeToolbar);
     const statusWidth = readWidth(toolbarStatusActions);
-    const statusHint = toolbarStatusActions.querySelector(".status-pill .hint");
-    const statusHintStyle = statusHint ? root.getComputedStyle(statusHint) : null;
-    const statusTextWidth = (text) => {
-      if (!statusHintStyle || !root.document?.createElement) return 0;
-      const context = root.document.createElement("canvas").getContext("2d");
-      if (!context) return 0;
-      context.font = statusHintStyle.font;
-      const letterSpacing = Number.parseFloat(statusHintStyle.letterSpacing);
-      return context.measureText(text).width
-        + (Number.isFinite(letterSpacing) ? letterSpacing * Math.max(0, text.length - 1) : 0);
-    };
-    /* Reserve the normal Loading... presentation while retaining the visible
-       status pill's natural width (for example, Live remains compact). */
-    const loadingStatusReservation = statusWidth + Math.max(
-      0,
-      statusTextWidth("Loading...") - statusTextWidth(statusHint?.textContent?.trim() || ""),
-    );
+    const statusSlot = toolbarStatusActions.querySelector(".toolbar-status-slot");
+    const refreshSlot = toolbarStatusActions.querySelector(".toolbar-refresh-slot");
+    const statusPill = statusSlot?.querySelector(".status-pill");
+    let loadingPillWidth = 0;
+    if (statusSlot && statusPill) {
+      /* This inert, presentation-only clone measures Loading... with the
+         pulse dot hidden. It does not create a second functional status. */
+      const loadingPill = statusPill.cloneNode(true);
+      loadingPill.removeAttribute("id");
+      loadingPill.removeAttribute("data-status-pill");
+      loadingPill.dataset.state = "idle";
+      loadingPill.setAttribute("aria-hidden", "true");
+      loadingPill.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;";
+      const loadingHint = loadingPill.querySelector(".hint");
+      if (loadingHint) loadingHint.textContent = "Loading...";
+      statusSlot.appendChild(loadingPill);
+      loadingPillWidth = readWidth(loadingPill);
+      loadingPill.remove();
+    }
+    /* Map fit reserves the larger of the desktop status-slot reservation and
+       an actual Loading... pill, then adds the rendered Refresh width and its
+       normal flex gap. The visible Live pill remains content-sized. */
+    const actionGap = Number.parseFloat(root.getComputedStyle(toolbarStatusActions).gap) || 0;
+    const loadingStatusReservation = Math.max(readWidth(statusSlot), loadingPillWidth)
+      + actionGap + readWidth(refreshSlot);
     const networksWidth = mapMode
       ? readWidth(toolbarNetworksSlot?.querySelector(".networks-pill")) : 0;
     let compactViewWidth = 0;
@@ -516,28 +524,44 @@ function initHexMapToolbarController(root) {
         required: Math.max(firstRow, secondRow, networksRow === 3 ? sharedSearchRow : 0),
       });
     };
-    const rowOnePresentations = regionVisible
-      ? [["normal", "normal"], ["normal", "compact"], ["compact", "normal"], ["compact", "compact"]]
+    const normalViewPresentations = regionVisible
+      ? [["normal", "normal"], ["normal", "compact"]]
       : [["normal", "normal"]];
+    const compactViewPresentations = regionVisible
+      ? [["compact", "normal"], ["compact", "compact"]]
+      : [];
 
-    for (const [viewLayout, regionLayout] of rowOnePresentations) {
+    /* Wide, Compact and Intermediate retain normal View. */
+    for (const [viewLayout, regionLayout] of normalViewPresentations) {
       add("map-wide", 1, viewLayout, regionLayout, 2, "normal",
         rowOne(viewLayout, regionLayout, true, true, 1), sharedSearchRow);
     }
-    for (const [viewLayout, regionLayout] of rowOnePresentations) {
+    for (const [viewLayout, regionLayout] of normalViewPresentations) {
       add("map-compact", 1, viewLayout, regionLayout, 2, "normal",
         rowOne(viewLayout, regionLayout, true, false, 1),
         geometry.windowWidth + geometry.networksWidth + gap);
     }
-    for (const [viewLayout, regionLayout] of rowOnePresentations) {
+    for (const [viewLayout, regionLayout] of normalViewPresentations) {
       add("map-intermediate", 1, viewLayout, regionLayout, 2, "normal",
         rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 2));
     }
-    /* Keep Region beside View through normal Region, compact Region, then
-       compact View before Region is allowed to relocate independently. */
-    for (const [viewLayout, regionLayout] of rowOnePresentations) {
+    /* With Region still beside View, move Networks first, then compact
+       Window. Compact View is the final Region-row-one presentation retry. */
+    for (const [viewLayout, regionLayout] of normalViewPresentations) {
       add("map-narrow", 1, viewLayout, regionLayout, 3, "normal",
         rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 3));
+    }
+    for (const [viewLayout, regionLayout] of normalViewPresentations) {
+      add("map-narrow", 1, viewLayout, regionLayout, 3, "compact",
+        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "compact", 3));
+    }
+    for (const [viewLayout, regionLayout] of compactViewPresentations) {
+      add("map-narrow", 1, viewLayout, regionLayout, 3, "normal",
+        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 3));
+    }
+    for (const [viewLayout, regionLayout] of compactViewPresentations) {
+      add("map-narrow", 1, viewLayout, regionLayout, 3, "compact",
+        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "compact", 3));
     }
     if (regionVisible) {
       /* Once Region moves down, exhaust Region and Networks fallbacks before
