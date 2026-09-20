@@ -368,10 +368,8 @@ function initHexMapToolbarController(root) {
     const readWidth = (element) => element?.getBoundingClientRect().width || 0;
     const mapMode = pageMode.getMode() === "map";
     const regionVisible = mapMode && regionSection?.classList.contains("visible");
-    const previousViewLayout = toolbar.dataset.viewLayout;
     const previousRegionLayout = toolbar.dataset.regionLayout;
     const previousWindowLayout = toolbar.dataset.windowLayout;
-    delete toolbar.dataset.viewLayout;
     delete toolbar.dataset.regionLayout;
     delete toolbar.dataset.windowLayout;
     toolbar.classList.add("hex-toolbar-measuring");
@@ -381,39 +379,11 @@ function initHexMapToolbarController(root) {
     const windowWidth = readWidth(windowStepper);
     const chartRangeWidth = readWidth(chartRangeToolbar);
     const statusWidth = readWidth(toolbarStatusActions);
-    const statusSlot = toolbarStatusActions.querySelector(".toolbar-status-slot");
-    const refreshSlot = toolbarStatusActions.querySelector(".toolbar-refresh-slot");
-    const statusPill = statusSlot?.querySelector(".status-pill");
-    let loadingPillWidth = 0;
-    if (statusSlot && statusPill) {
-      /* This inert, presentation-only clone measures Loading... with the
-         pulse dot hidden. It does not create a second functional status. */
-      const loadingPill = statusPill.cloneNode(true);
-      loadingPill.removeAttribute("id");
-      loadingPill.removeAttribute("data-status-pill");
-      loadingPill.dataset.state = "idle";
-      loadingPill.setAttribute("aria-hidden", "true");
-      loadingPill.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;";
-      const loadingHint = loadingPill.querySelector(".hint");
-      if (loadingHint) loadingHint.textContent = "Loading...";
-      statusSlot.appendChild(loadingPill);
-      loadingPillWidth = readWidth(loadingPill);
-      loadingPill.remove();
-    }
-    /* Map fit reserves the larger of the desktop status-slot reservation and
-       an actual Loading... pill, then adds the rendered Refresh width and its
-       normal flex gap. The visible Live pill remains content-sized. */
-    const actionGap = Number.parseFloat(root.getComputedStyle(toolbarStatusActions).gap) || 0;
-    const loadingStatusReservation = Math.max(readWidth(statusSlot), loadingPillWidth)
-      + actionGap + readWidth(refreshSlot);
     const networksWidth = mapMode
       ? readWidth(toolbarNetworksSlot?.querySelector(".networks-pill")) : 0;
-    let compactViewWidth = 0;
     let compactWindowWidth = 0;
     let compactRegionWidth = 0;
     if (mapMode) {
-      toolbar.dataset.viewLayout = "compact";
-      compactViewWidth = readWidth(toolbarViewGroup);
       toolbar.dataset.windowLayout = "compact";
       compactWindowWidth = readWidth(windowStepper);
       if (regionVisible) {
@@ -421,8 +391,6 @@ function initHexMapToolbarController(root) {
         compactRegionWidth = readWidth(regionSection);
       }
     }
-    if (previousViewLayout) toolbar.dataset.viewLayout = previousViewLayout;
-    else delete toolbar.dataset.viewLayout;
     if (previousRegionLayout) toolbar.dataset.regionLayout = previousRegionLayout;
     else delete toolbar.dataset.regionLayout;
     if (previousWindowLayout) toolbar.dataset.windowLayout = previousWindowLayout;
@@ -435,7 +403,6 @@ function initHexMapToolbarController(root) {
 
     return {
       viewWidth,
-      compactViewWidth,
       regionWidth,
       compactRegionWidth,
       pollutantWidth,
@@ -443,7 +410,6 @@ function initHexMapToolbarController(root) {
       compactWindowWidth,
       chartRangeWidth,
       statusWidth,
-      statusReservationWidth: loadingStatusReservation,
       networksWidth,
       viewRegionGap: toolbarCssPixels("--hex-toolbar-view-region-gap", 8),
       /* clientWidth includes padding. Grid tracks only receive the content
@@ -455,7 +421,6 @@ function initHexMapToolbarController(root) {
       dividerSpace: toolbarCssPixels("--hex-toolbar-divider-space", 12),
       searchNetworksGap: toolbarCssPixels("--hex-toolbar-search-networks-gap", 12),
       searchMinWidth: toolbarCssPixels("--hex-toolbar-search-min-width", 340),
-      compactSearchMinWidth: toolbarCssPixels("--hex-toolbar-search-compact-min-width", 272),
     };
   }
 
@@ -496,95 +461,69 @@ function initHexMapToolbarController(root) {
     const gap = geometry.columnGap;
     const divider = geometry.dividerSpace;
     const regionVisible = geometry.regionWidth > 0;
-    const viewWidth = (layout) => layout === "compact" ? geometry.compactViewWidth : geometry.viewWidth;
     const regionWidth = (layout) => !regionVisible ? 0
       : layout === "compact" ? geometry.compactRegionWidth : geometry.regionWidth;
-    const contextWidth = (viewLayout, regionLayout) => viewWidth(viewLayout)
-      + (regionVisible ? regionWidth(regionLayout) + geometry.viewRegionGap : 0);
-    const rowOne = (viewLayout, regionLayout, pollutant, window, regionRow) => {
-      const leftWidth = (regionRow === 1
-        ? contextWidth(viewLayout, regionLayout) : viewWidth(viewLayout))
+    const contextWidth = (layout) => geometry.viewWidth
+      + (regionVisible ? regionWidth(layout) + geometry.viewRegionGap : 0);
+    const rowOne = (layout, pollutant, window, regionRow) => {
+      const leftWidth = (regionRow === 1 ? contextWidth(layout) : geometry.viewWidth)
         + (pollutant ? geometry.pollutantWidth + divider + gap : 0)
         + (window ? geometry.windowWidth + divider + gap : 0);
-      return leftWidth + geometry.statusReservationWidth + gap;
+      return leftWidth + geometry.statusWidth + gap;
     };
-    const rowTwo = (regionRow, regionLayout, windowLayout, networksRow) => {
+    const rowTwo = (regionRow, layout, windowLayout, networksRow) => {
       const windowWidth = windowLayout === "compact"
         ? geometry.compactWindowWidth : geometry.windowWidth;
-      const region = regionRow === 2 ? regionWidth(regionLayout) + divider + gap : 0;
+      const region = regionRow === 2 ? regionWidth(layout) + divider + gap : 0;
       const networks = networksRow === 2 ? geometry.networksWidth + gap : 0;
       return region + geometry.pollutantWidth + divider + gap + windowWidth + networks;
     };
-    const searchRowWidth = (layout) => (layout === "compact"
-      ? geometry.compactSearchMinWidth : geometry.searchMinWidth)
-      + geometry.searchNetworksGap + geometry.networksWidth;
+    const sharedSearchRow = geometry.searchMinWidth + geometry.searchNetworksGap
+      + geometry.networksWidth;
     const candidates = [];
-    const add = (layout, regionRow, viewLayout, regionLayout, networksRow, windowLayout, firstRow, secondRow, searchLayout = "normal") => {
+    const add = (layout, regionRow, regionLayout, networksRow, windowLayout, firstRow, secondRow) => {
       candidates.push({
-        id: `${layout}:${regionRow}:${viewLayout}:${regionLayout}:${networksRow}:${windowLayout}:${searchLayout}`,
-        layout, regionRow, viewLayout, regionLayout, networksRow, windowLayout, searchLayout,
-        required: Math.max(firstRow, secondRow, networksRow === 3 ? searchRowWidth(searchLayout) : 0),
+        id: `${layout}:${regionRow}:${regionLayout}:${networksRow}:${windowLayout}`,
+        layout, regionRow, regionLayout, networksRow, windowLayout,
+        required: Math.max(firstRow, secondRow, networksRow === 3 ? sharedSearchRow : 0),
       });
     };
-    const addNarrow = (regionRow, viewLayout, regionLayout, windowLayout, firstRow, secondRow) => {
-      add("map-narrow", regionRow, viewLayout, regionLayout, 3, windowLayout, firstRow, secondRow);
-      add("map-narrow", regionRow, viewLayout, regionLayout, 3, windowLayout, firstRow, secondRow, "compact");
-    };
-    const normalViewPresentations = regionVisible
-      ? [["normal", "normal"], ["normal", "compact"]]
-      : [["normal", "normal"]];
-    const compactViewPresentations = regionVisible
-      ? [["compact", "normal"], ["compact", "compact"]]
-      : [];
+    const layouts = regionVisible ? ["normal", "compact"] : ["normal"];
 
-    /* Wide, Compact and Intermediate retain normal View. */
-    for (const [viewLayout, regionLayout] of normalViewPresentations) {
-      add("map-wide", 1, viewLayout, regionLayout, 2, "normal",
-        rowOne(viewLayout, regionLayout, true, true, 1), searchRowWidth("normal"));
+    for (const regionLayout of layouts) {
+      add("map-wide", 1, regionLayout, 2, "normal",
+        rowOne(regionLayout, true, true, 1), sharedSearchRow);
     }
-    for (const [viewLayout, regionLayout] of normalViewPresentations) {
-      add("map-compact", 1, viewLayout, regionLayout, 2, "normal",
-        rowOne(viewLayout, regionLayout, true, false, 1),
+    for (const regionLayout of layouts) {
+      add("map-compact", 1, regionLayout, 2, "normal",
+        rowOne(regionLayout, true, false, 1),
         geometry.windowWidth + geometry.networksWidth + gap);
     }
-    for (const [viewLayout, regionLayout] of normalViewPresentations) {
-      add("map-intermediate", 1, viewLayout, regionLayout, 2, "normal",
-        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 2));
-    }
-    /* With Region still beside View, move Networks first, then compact
-       Window. Compact View is the final Region-row-one presentation retry. */
-    for (const [viewLayout, regionLayout] of normalViewPresentations) {
-      addNarrow(1, viewLayout, regionLayout, "normal",
-        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 3));
-    }
-    for (const [viewLayout, regionLayout] of normalViewPresentations) {
-      addNarrow(1, viewLayout, regionLayout, "compact",
-        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "compact", 3));
-    }
-    for (const [viewLayout, regionLayout] of compactViewPresentations) {
-      addNarrow(1, viewLayout, regionLayout, "normal",
-        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 3));
-    }
-    for (const [viewLayout, regionLayout] of compactViewPresentations) {
-      addNarrow(1, viewLayout, regionLayout, "compact",
-        rowOne(viewLayout, regionLayout, false, false, 1), rowTwo(1, regionLayout, "compact", 3));
+    for (const regionLayout of layouts) {
+      add("map-intermediate", 1, regionLayout, 2, "normal",
+        rowOne(regionLayout, false, false, 1), rowTwo(1, regionLayout, "normal", 2));
     }
     if (regionVisible) {
-      /* Once Region moves down, exhaust Region and Networks fallbacks before
-         compacting Window. Pollutant always remains normal and atomic. */
-      for (const regionLayout of ["normal", "compact"]) {
-        add("map-intermediate", 2, "normal", regionLayout, 2, "normal",
-          rowOne("normal", regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 2));
+      for (const regionLayout of layouts) {
+        add("map-intermediate", 2, regionLayout, 2, "normal",
+          rowOne(regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 2));
       }
-      for (const regionLayout of ["normal", "compact"]) {
-        addNarrow(2, "normal", regionLayout, "normal",
-          rowOne("normal", regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 3));
+    }
+    for (const windowLayout of ["normal", "compact"]) {
+      for (const regionLayout of layouts) {
+        add("map-narrow", 1, regionLayout, 3, windowLayout,
+          rowOne(regionLayout, false, false, 1), rowTwo(1, regionLayout, windowLayout, 3));
       }
-      addNarrow(2, "normal", "compact", "compact",
-        rowOne("normal", "compact", false, false, 2), rowTwo(2, "compact", "compact", 3));
-    } else {
-      addNarrow(1, "normal", "normal", "compact",
-        rowOne("normal", "normal", false, false, 1), rowTwo(1, "normal", "compact", 3));
+    }
+    if (regionVisible) {
+      for (const regionLayout of layouts) {
+        add("map-narrow", 2, regionLayout, 3, "normal",
+          rowOne(regionLayout, false, false, 2), rowTwo(2, regionLayout, "normal", 3));
+      }
+      /* Once Region owns row 2, preserve its compact fallback before
+         compacting Window. A normal Region never pairs with compact Window. */
+      add("map-narrow", 2, "compact", 3, "compact",
+        rowOne("compact", false, false, 2), rowTwo(2, "compact", "compact", 3));
     }
     return candidates;
   }
@@ -600,7 +539,7 @@ function initHexMapToolbarController(root) {
         }))
       : mapToolbarCandidates(geometry);
     const current = mode === "chart" ? toolbar?.dataset.toolbarLayout
-      : `${toolbar?.dataset.toolbarLayout}:${toolbar?.dataset.regionRow}:${toolbar?.dataset.viewLayout}:${toolbar?.dataset.regionLayout}:${toolbar?.dataset.networksRow}:${toolbar?.dataset.windowLayout}:${toolbar?.dataset.searchLayout}`;
+      : `${toolbar?.dataset.toolbarLayout}:${toolbar?.dataset.regionRow}:${toolbar?.dataset.regionLayout}:${toolbar?.dataset.networksRow}:${toolbar?.dataset.windowLayout}`;
     const currentIndex = candidates.findIndex((candidate) => candidate.id === current);
 
     for (let index = 0; index < candidates.length - 1; index += 1) {
@@ -626,11 +565,9 @@ function initHexMapToolbarController(root) {
     toolbar.classList.remove("hex-toolbar-measuring");
     delete toolbar.dataset.toolbarLayout;
     delete toolbar.dataset.regionRow;
-    delete toolbar.dataset.viewLayout;
     delete toolbar.dataset.regionLayout;
     delete toolbar.dataset.networksRow;
     delete toolbar.dataset.windowLayout;
-    delete toolbar.dataset.searchLayout;
   }
 
   function syncToolbarLayoutState() {
@@ -645,18 +582,14 @@ function initHexMapToolbarController(root) {
     toolbar.dataset.toolbarLayout = next.layout;
     if (mode === "map") {
       toolbar.dataset.regionRow = String(next.regionRow);
-      toolbar.dataset.viewLayout = next.viewLayout;
       toolbar.dataset.regionLayout = next.regionLayout;
       toolbar.dataset.networksRow = String(next.networksRow);
       toolbar.dataset.windowLayout = next.windowLayout;
-      toolbar.dataset.searchLayout = next.searchLayout;
     } else {
       delete toolbar.dataset.regionRow;
-      delete toolbar.dataset.viewLayout;
       delete toolbar.dataset.regionLayout;
       delete toolbar.dataset.networksRow;
       delete toolbar.dataset.windowLayout;
-      delete toolbar.dataset.searchLayout;
     }
     return next.layout;
   }

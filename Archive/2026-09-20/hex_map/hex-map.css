@@ -3739,7 +3739,6 @@
           --hex-toolbar-view-region-gap: 8px;
           --hex-toolbar-search-networks-gap: 12px;
           --hex-toolbar-search-min-width: 340px;
-          --hex-toolbar-search-compact-min-width: 272px;
           container: hex-main-toolbar / inline-size;
           display: grid;
           grid-template-columns: max-content minmax(0, 1fr) max-content;
@@ -4299,71 +4298,6 @@
           width: 100%;
           min-width: 0;
           margin-right: 0;
-        }
-
-        /* Final Map Narrow retains the ordered-flex mechanism used by the
-           other map fits. Two full-width ordered breaks create exactly the
-           authorised three row groups without sharing track widths. */
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] {
-          display: flex;
-          flex-wrap: wrap;
-        }
-
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"]::before,
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"]::after {
-          display: block;
-          flex: 0 0 100%;
-          height: 0;
-        }
-
-        /* Region beside View: View | Region | status, then Pollutant | Window. */
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="1"] .toolbar-control-group--view { order: 1; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="1"] #toolbar-region-section.visible { order: 2; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="1"] .toolbar-status-actions { order: 3; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"]::before { order: 10; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="1"] .pollutant-control-group { order: 11; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="1"] #window-stepper { order: 12; }
-
-        /* Region on row two: View | status, then Region | Pollutant | Window. */
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="2"] .toolbar-control-group--view { order: 1; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="2"] .toolbar-status-actions { order: 2; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="2"] #toolbar-region-section.visible { order: 11; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="2"] .pollutant-control-group { order: 12; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-region-row="2"] #window-stepper { order: 13; }
-
-        /* The second break isolates Search | Networks as the final row. */
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"]::after { order: 20; }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-search-row {
-          order: 21;
-          flex: 1 1 var(--hex-toolbar-search-min-width);
-          min-width: var(--hex-toolbar-search-min-width);
-          margin-right: calc(var(--hex-toolbar-search-networks-gap) - var(--hex-toolbar-column-gap));
-        }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"][data-search-layout="compact"] .toolbar-search-row {
-          flex-basis: var(--hex-toolbar-search-compact-min-width);
-          min-width: var(--hex-toolbar-search-compact-min-width);
-        }
-        body:not(.hex-chart-mode) .toolbar[data-toolbar-layout="map-narrow"] .toolbar-networks-slot {
-          order: 22;
-          margin-left: auto;
-        }
-
-        /* Compact View is a presentation state of the existing segmented
-           control. Its buttons, handlers, labels and accessible names remain
-           unchanged while the measured inline footprint is reduced. */
-        body:not(.hex-chart-mode) .toolbar[data-view-layout="compact"] .toolbar-control-group--view {
-          gap: 4px;
-        }
-        body:not(.hex-chart-mode) .toolbar[data-view-layout="compact"] .toolbar-control-group--view .field-label {
-          font-size: 12px;
-        }
-        body:not(.hex-chart-mode) .toolbar[data-view-layout="compact"] .segmented--view {
-          padding: 2px;
-          gap: 1px;
-        }
-        body:not(.hex-chart-mode) .toolbar[data-view-layout="compact"] .segmented--view button {
-          padding-inline: 8px;
-          font-size: 14px;
         }
 
         /* Compact Window changes only the value presentation. */
