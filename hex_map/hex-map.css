@@ -8431,6 +8431,7 @@
           border: 1px solid var(--line);
           border-radius: 9px;
           background: rgba(255, 255, 255, 0.72);
+          font-size: clamp(0.88rem, calc(0.62rem + 1.3vw), 1rem);
         }
 
         body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger::before {
