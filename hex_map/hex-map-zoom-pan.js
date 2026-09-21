@@ -11,9 +11,16 @@ function initHexMapZoomPan(root) {
   const mobileLayoutQuery = typeof root.matchMedia === "function"
     ? root.matchMedia("(max-width: 767px)")
     : null;
+  const touchInteractionQuery = typeof root.matchMedia === "function"
+    ? root.matchMedia("(hover: none) and (pointer: coarse)")
+    : null;
 
   function isNarrowScreen() {
     return Boolean(mobileLayoutQuery?.matches);
+  }
+
+  function usesTouchGestures() {
+    return isNarrowScreen() || Boolean(touchInteractionQuery?.matches);
   }
 
   function createHexMapZoomPanController() {
@@ -193,7 +200,7 @@ function initHexMapZoomPan(root) {
         if (event.button !== 0) {
           return;
         }
-        if (event.pointerType === "touch" && isNarrowScreen()) {
+        if (event.pointerType === "touch" && usesTouchGestures()) {
           return;
         }
         const current = getState(svg.id);
@@ -229,7 +236,7 @@ function initHexMapZoomPan(root) {
 
       let gestureStartScale = 1;
       viewport.addEventListener("gesturestart", (event) => {
-        if (isNarrowScreen()) {
+        if (usesTouchGestures()) {
           return;
         }
         gestureStartScale = getState(svg.id).scale;
@@ -237,7 +244,7 @@ function initHexMapZoomPan(root) {
       }, { passive: false });
 
       viewport.addEventListener("gesturechange", (event) => {
-        if (isNarrowScreen()) {
+        if (usesTouchGestures()) {
           return;
         }
         const rect = viewport.getBoundingClientRect();
@@ -254,7 +261,7 @@ function initHexMapZoomPan(root) {
       }, { passive: false });
 
       viewport.addEventListener("touchstart", (event) => {
-        if (!isNarrowScreen()) {
+        if (!usesTouchGestures()) {
           return;
         }
         if (event.touches.length >= 2) {
@@ -276,7 +283,7 @@ function initHexMapZoomPan(root) {
       }, { passive: false });
 
       viewport.addEventListener("touchmove", (event) => {
-        if (!isNarrowScreen()) {
+        if (!usesTouchGestures()) {
           return;
         }
         if (event.touches.length >= 2) {
@@ -328,7 +335,7 @@ function initHexMapZoomPan(root) {
       }, { passive: false });
 
       function endTouch(event) {
-        if (!isNarrowScreen()) {
+        if (!usesTouchGestures()) {
           return;
         }
         if (touchGesture && event.touches.length < 2) {
