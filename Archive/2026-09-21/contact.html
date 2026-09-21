@@ -89,67 +89,154 @@
       margin: 0 0 0.65rem;
     }
 
-    /* ── Contact / social mini cards ── */
-    .contact-links {
-      container-type: inline-size;
-    }
-
-    .contact-links-heading {
-      margin: 0;
-      color: #3C78AC;
-      font-size: 1.35rem;
-      font-weight: 800;
-      line-height: 1.2;
-      text-align: left;
-    }
-
-    .contact-links-intro {
-      max-width: 980px;
-      margin: 0.55rem 0 1rem;
-      color: #374151;
-      font-size: 0.9rem;
-      line-height: 1.45;
-      text-align: left;
-    }
-
-    .contact-mini-grid {
+    /* ── Card grid ── */
+    .contact-card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 0.8rem;
-    }
-
-    .contact-mini-grid:has(.contact-mini-card:nth-child(4)) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
     }
 
-    .contact-mini-card {
+    /* ── Standard contact card ── */
+    .contact-card {
       display: flex;
+      flex-direction: column;
       box-sizing: border-box;
-      min-width: 0;
-      min-height: 92px;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.8rem 0.9rem;
+      min-height: 190px;
+      padding: 1rem 1.25rem 1.2rem;
       border: 2px solid rgba(60, 120, 172, 0.35);
-      border-radius: 18px;
+      border-radius: 22px;
       background: #fff;
-      color: #101822;
       text-decoration: none;
+      color: #101822;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }
 
-    .contact-mini-card:hover {
+    .contact-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(60, 120, 172, 0.12);
       border-color: rgba(60, 120, 172, 0.6);
     }
 
-    .contact-mini-card:focus-visible {
+    .contact-card:focus-visible {
       outline: 3px solid rgba(60, 120, 172, 0.45);
-      outline-offset: 3px;
+      outline-offset: 4px;
     }
 
-    .contact-mini-icon-box {
+    .contact-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 52px;
+      margin-bottom: 0.25rem;
+      min-width: 0;
+    }
+
+    .contact-card-icon-box {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-card-icon {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .contact-card-icon--bluesky {
+      width: 44px;
+      height: 39px;
+    }
+
+    .contact-card-title {
+      display: block;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #3C78AC;
+      line-height: 1.2;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    .contact-card-desc {
+      display: block;
+      font-size: 0.88rem;
+      color: #374151;
+      line-height: 1.4;
+      margin-top: 0.25rem;
+    }
+
+    .contact-card-address {
+      display: block;
+      margin-top: auto;
+      padding-top: 0.8rem;
+      color: #175283;
+      font-size: 1rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .contact-card--social {
+      cursor: default;
+    }
+
+    .contact-card--social:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: rgba(60, 120, 172, 0.35);
+    }
+
+    .contact-social-title {
+      display: block;
+      margin: 0;
+      color: #3C78AC;
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .contact-social-desc {
+      margin-top: 0.45rem;
+    }
+
+    .contact-social-links {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      justify-content: space-evenly;
+      min-height: 0;
+      margin-top: 0.35rem;
+    }
+
+    .contact-social-link {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.1rem 0;
+      border-radius: 10px;
+      color: #3C78AC;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-decoration: none;
+    }
+
+    .contact-social-link:hover {
+      text-decoration: underline;
+    }
+
+    .contact-social-link:focus-visible {
+      outline: 3px solid rgba(60, 120, 172, 0.45);
+      outline-offset: 2px;
+    }
+
+    .contact-social-icon-box {
       width: 44px;
       height: 44px;
       flex: 0 0 44px;
@@ -158,61 +245,31 @@
       justify-content: center;
     }
 
-    .contact-mini-icon {
-      display: block;
-      width: 38px;
-      height: 38px;
+    .contact-social-icon {
+      width: 36px;
+      height: 36px;
       object-fit: contain;
+      display: block;
     }
 
-    .contact-mini-icon--bluesky {
-      width: 38px;
-      height: 34px;
+    .contact-social-icon--bluesky {
+      width: 36px;
+      height: 32px;
     }
 
-    .contact-mini-icon--facebook {
-      width: 38px;
-      height: 38px;
+    .contact-social-icon--facebook {
+      width: 36px;
+      height: 36px;
     }
 
-    .contact-mini-icon--substack {
-      width: 32px;
-      height: 38px;
+    .contact-social-icon--substack {
+      width: 34px;
+      height: 40px;
     }
 
-    .contact-mini-copy {
-      display: flex;
+    .contact-social-label {
       min-width: 0;
-      flex-direction: column;
-      gap: 0.22rem;
-    }
-
-    .contact-mini-title {
-      color: #3C78AC;
-      font-size: 1rem;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .contact-mini-value {
-      color: #175283;
-      font-size: 0.9rem;
-      font-weight: 700;
-      line-height: 1.25;
       overflow-wrap: anywhere;
-      user-select: text;
-    }
-
-    @container (min-width: 621px) and (max-width: 926px) {
-      .contact-mini-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .contact-mini-grid > .contact-mini-card:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        width: calc((100% - 0.8rem) / 2);
-        justify-self: center;
-      }
     }
 
     .about-copy {
@@ -240,15 +297,6 @@
       }
     }
 
-    @media (min-width: 768px) and (max-width: 1100px) {
-      .contact-tools-wide .ukaq-bottom-nav-grid--three > .ukaq-bottom-nav-card:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        width: 100%;
-        max-width: var(--ukaq-bottom-nav-card-max);
-        justify-self: center;
-      }
-    }
-
     @media (max-width: 767px) {
       .contact-tools-wide .ukaq-bottom-nav-grid--three {
         grid-template-columns: minmax(0, var(--ukaq-bottom-nav-card-max));
@@ -271,7 +319,7 @@
         padding: 18px;
       }
 
-      .contact-mini-grid {
+      .contact-card-grid {
         grid-template-columns: 1fr;
       }
 
@@ -310,54 +358,47 @@
       </h1>
 
       <div class="contact-content">
-        <section class="contact-links" aria-labelledby="contact-links-heading">
-          <h2 id="contact-links-heading" class="contact-links-heading">Contact and Follow</h2>
-          <p class="contact-links-intro">Questions, feedback, data issues, corrections or ideas? Email UK AQ, or follow for air quality data, pollution updates and news articles.</p>
+        <div class="contact-card-grid">
+          <a class="contact-card" href="mailto:info@ukaq.co.uk" aria-label="Email UK AQ at info@ukaq.co.uk">
+            <span class="contact-card-header">
+              <span class="contact-card-icon-box">
+                <img class="contact-card-icon" src="./sidebar-images/uk-aq-contact-blue-200h.svg" alt="">
+              </span>
+              <span class="contact-card-title">Email UK AQ</span>
+            </span>
+            <span class="contact-card-desc">Questions, feedback, data issues, corrections, or ideas?</span>
+            <span class="contact-card-address">info@ukaq.co.uk</span>
+          </a>
 
-          <div class="contact-mini-grid">
-            <a class="contact-mini-card" href="mailto:info@ukaq.co.uk" aria-label="Email UK AQ at info@ukaq.co.uk">
-              <span class="contact-mini-icon-box">
-                <img class="contact-mini-icon" src="./sidebar-images/uk-aq-contact-blue-200h.svg" alt="">
-              </span>
-              <span class="contact-mini-copy">
-                <span class="contact-mini-title">Email UK AQ</span>
-                <span class="contact-mini-value">info@ukaq.co.uk</span>
-              </span>
-            </a>
+          <section class="contact-card contact-card--social" aria-labelledby="contact-social-heading">
+            <h2 id="contact-social-heading" class="contact-social-title">Follow and Subscribe</h2>
+            <span class="contact-card-desc contact-social-desc">Follow UK AQ for air quality data, pollution updates and news articles.</span>
+            <div class="contact-social-links">
+              <a class="contact-social-link" href="https://bsky.app/profile/ukaq.co.uk" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Bluesky at @ukaq.co.uk (opens in a new tab)">
+                <span class="contact-social-icon-box">
+                  <img class="contact-social-icon contact-social-icon--bluesky" src="./images/Bluesky_Logo.svg" alt="">
+                </span>
+                <span class="contact-social-label">Bluesky: @ukaq.co.uk</span>
+              </a>
 
-            <a class="contact-mini-card" href="https://bsky.app/profile/ukaq.co.uk" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Bluesky at @ukaq.co.uk (opens in a new tab)">
-              <span class="contact-mini-icon-box">
-                <img class="contact-mini-icon contact-mini-icon--bluesky" src="./images/Bluesky_Logo.svg" alt="">
-              </span>
-              <span class="contact-mini-copy">
-                <span class="contact-mini-title">Bluesky</span>
-                <span class="contact-mini-value">@ukaq.co.uk</span>
-              </span>
-            </a>
+              <a class="contact-social-link" href="https://www.facebook.com/UKAirQuality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Facebook at facebook.com/UKAirQuality (opens in a new tab)">
+                <span class="contact-social-icon-box">
+                  <img class="contact-social-icon contact-social-icon--facebook" src="./images/facebook.svg" alt="">
+                </span>
+                <span class="contact-social-label">Facebook: facebook.com/UKAirQuality</span>
+              </a>
 
-            <a class="contact-mini-card" href="https://www.facebook.com/UKAirQuality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Facebook at facebook.com/UKAirQuality (opens in a new tab)">
-              <span class="contact-mini-icon-box">
-                <img class="contact-mini-icon contact-mini-icon--facebook" src="./images/facebook.svg" alt="">
-              </span>
-              <span class="contact-mini-copy">
-                <span class="contact-mini-title">Facebook</span>
-                <span class="contact-mini-value">facebook.com/UKAirQuality</span>
-              </span>
-            </a>
 
-            <!-- Substack: uncomment this mini card when the UK AQ Substack is live.
-            <a class="contact-mini-card" href="https://substack.com/@ukairquality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Substack at substack.com/@ukairquality (opens in a new tab)">
-              <span class="contact-mini-icon-box">
-                <img class="contact-mini-icon contact-mini-icon--substack" src="./images/substack-icon.svg" alt="">
-              </span>
-              <span class="contact-mini-copy">
-                <span class="contact-mini-title">Substack</span>
-                <span class="contact-mini-value">substack.com/@ukairquality</span>
-              </span>
-            </a>
-            -->
-          </div>
-        </section>
+              <a class="contact-social-link" href="https://substack.com/@ukairquality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Substack at substack.com/@ukairquality (opens in a new tab)">
+                <span class="contact-social-icon-box">
+                  <img class="contact-social-icon contact-social-icon--substack" src="./images/substack-icon.svg" alt="">
+                </span>
+                <span class="contact-social-label">Substack: substack.com/@ukairquality</span>
+              </a>
+
+            </div>
+          </section>
+        </div>
 
         <section class="contact-section" aria-labelledby="about-ukaq-heading">
           <h2 id="about-ukaq-heading" class="contact-section-heading">About UK AQ</h2>
