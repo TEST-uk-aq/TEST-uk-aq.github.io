@@ -76,20 +76,28 @@ The catalogue's public eligibility is ultimately controlled by canonical `uk_aq_
 
 For footer matching, `network_code` is the stable identity. Numeric `network_id` MUST NOT be used as the primary mapping key between catalogue rows and attribution definitions.
 
-## Render and filter behaviour
+## Resolve-before-reveal behaviour
 
-The footer MAY render its explicit attribution definitions before the public catalogue result is available.
+The shared footer MUST NOT visibly render an unfiltered attribution state and then remove network attributions after the public catalogue arrives.
+
+The footer MAY build/mount its DOM before the catalogue is available, but the complete footer MUST remain visually hidden from the user until attribution resolution reaches a terminal state.
+
+A terminal state is either:
+
+- a valid contract-v2 public network catalogue has been applied successfully; or
+- catalogue resolution has definitively failed/been rejected and the fail-open attribution state has been selected.
 
 After a valid contract-v2 public network catalogue is available, the footer MUST:
 
 1. collect the returned public `network_code` values;
-2. compare them with the explicit network attribution definitions already rendered;
+2. compare them with the explicit network attribution definitions already mounted;
 3. hide/remove a network-specific mark, pill or standalone attribution section when its `network_code` is absent from the public catalogue;
 4. retain a network-specific mark, pill or standalone attribution section when its `network_code` is present;
 5. for a grouped provider box, retain the box and its shared provider/licence copy while at least one of its defined child network codes remains applicable;
 6. hide/remove a grouped provider box when none of its defined child network codes remains applicable;
 7. avoid creating a new attribution definition for an unknown public `network_code`;
-8. hide the attribution-source container if no defined attribution boxes/sections remain visible.
+8. hide the attribution-source container if no defined attribution boxes/sections remain visible;
+9. only after the final attribution state is established, reveal the footer atomically.
 
 For the grouped Defra/UK-AIR attribution box specifically:
 
@@ -98,6 +106,10 @@ For the grouped Defra/UK-AIR attribution box specifically:
 - the common Defra/UK-AIR Crown copyright / OGL copy MUST appear only once in the grouped box;
 - the common copy remains while either pill is applicable;
 - the complete grouped box disappears only when neither pill is applicable after valid catalogue filtering.
+
+This means a network whose `public_display_enabled` state excludes it MUST never flash briefly in the footer during normal page loading.
+
+The footer SHOULD publish one explicit readiness signal when attribution resolution is complete, regardless of whether completion used a valid catalogue or the fail-open state. Consumers such as the first-paint loader MAY use that signal to avoid revealing the page before the final footer state is ready.
 
 This means the footer follows the same public-network switch used by the rest of the website while preserving manually controlled provider/licence content and allowing related networks to share one attribution box without sharing visibility state.
 
@@ -127,7 +139,9 @@ If the footer cannot establish a valid public network catalogue because of condi
 - unexpected contract version;
 - missing/empty `network_code` in a returned row;
 
-then the footer MUST retain the explicit attribution definitions rather than removing them based on uncertain data.
+then the footer MUST select the explicit full-attribution state rather than removing definitions based on uncertain data.
+
+The fail-open state MUST still obey resolve-before-reveal behaviour: all explicit attributions are revealed only after the catalogue attempt has reached this definitive failure state. They MUST NOT be exposed speculatively while catalogue resolution is still pending.
 
 This fail-open rule is deliberate. A temporary metadata/API problem MUST NOT cause source/licence attribution that may still be legally or operationally relevant to disappear from the website.
 
@@ -180,6 +194,6 @@ TEST-uk-aq/TEST-uk-aq.github.io/shared/data/network-catalog.js
 
 ## Validation rule
 
-Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, and fail-open handling cannot remove attribution on an invalid result.
+Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, pending catalogue state keeps the footer visually hidden, both success and fail-open paths reach one terminal ready state, and fail-open handling cannot remove attribution on an invalid result.
 
 Functional and visual acceptance occurs through real TEST operation after deployment. A useful operational check is to change or inspect a known network's public visibility and confirm the corresponding footer attribution follows the public catalogue on both a normal data page and a lightweight/static page without introducing a Turnstile/session flow solely for the footer.
