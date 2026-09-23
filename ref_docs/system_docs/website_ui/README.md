@@ -38,6 +38,19 @@ Use it for shared data-source/licence attribution blocks, `network_code` mapping
 
 If the task changes `/api/aq/networks`, public-network eligibility, origin/session behaviour or network catalogue response semantics, also read [`../cache_proxy/public-network-catalog-contract.md`](../cache_proxy/public-network-catalog-contract.md). The cache-proxy contract owns those data/API rules; the footer contract owns presentation only.
 
+### Wood Burning page
+
+Read:
+
+1. [`contract.md`](contract.md)
+2. [`wood-burning-page-contract.md`](wood-burning-page-contract.md)
+
+Use the Wood Burning page contract for the initial `/wood-burning/` Black Carbon presentation: the three summary cards, mobile summary relocation, simple geographical sensor map, canonical `black_carbon` network identity and the current decision to keep Black Carbon out of the Hex Map.
+
+If the task changes the shared Defra/UK-AIR footer presentation, also read [`site-footer-attribution-contract.md`](site-footer-attribution-contract.md).
+
+The Wood Burning contract deliberately leaves the main explanatory content, detailed charts, Clean Air Night-specific content, map popup behaviour and any future Hex Map Black Carbon mode for later explicit decisions.
+
 ### Hex Map internal frontend architecture
 
 Read [`hex-map-modularisation-contract.md`](hex-map-modularisation-contract.md).
@@ -259,6 +272,7 @@ Important current owners include:
 /homepage-media-carousel.js         homepage Media carousel/teaser behaviour
 /dashboard.js                       homepage dashboard/network/Refresh behaviour
 /hex_map/                           Hex application and Hex-specific presentation
+/wood-burning/                       Wood Burning page shell and future contracted Black Carbon presentation
 /shared/station-chart/              sole shared Hex/Sensors chart subsystem
 /shared/domain/ and /shared/data/   genuine cross-page domain/data ownership
 ```
