@@ -2,6 +2,62 @@
  * These rules must remain when the beta notice is retired.
  */
 
+/* Shared artwork-backed page titles.
+ * One-line artwork is used at tablet/desktop widths. Pages with an available
+ * two-line variant switch to it at the shared below-768px mobile boundary.
+ */
+.ukaq-page-title-heading {
+  min-width: 0;
+  margin: 0;
+}
+
+.ukaq-page-title-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ukaq-page-title-picture {
+  display: block;
+  width: max-content;
+  max-width: calc(100% - 132px);
+}
+
+.ukaq-page-title-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 50.4px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 767px) {
+  .ukaq-page-title-picture {
+    max-width: 100%;
+  }
+
+  .ukaq-page-title-image {
+    height: 42px;
+  }
+
+  .ukaq-page-title-picture--responsive .ukaq-page-title-image {
+    height: 56px;
+  }
+
+  /* The WHO page title starts higher than the simple route shells, while the
+     shared UK AQ home logo still occupies the top-right of the viewport. */
+  body[data-page-slug="who-guidelines"] .ukaq-page-title-picture {
+    max-width: calc(100% - 120px);
+  }
+}
+
 /* Keep the existing Hex Map coverage animation but round the visible fill end. */
 .hex-map-page .map-summary-coverage-fill {
   border-radius: inherit;
