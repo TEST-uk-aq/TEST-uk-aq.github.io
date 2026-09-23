@@ -19,9 +19,9 @@
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
         { label: 'WHO Guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
-        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', pending: true },
-        { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', pending: true },
-        { label: 'Research', iconImg: 'uk-aq-research-icon.png', pending: true },
+        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', href: '/wood-burning/' },
+        { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', href: '/naei-data/' },
+        { label: 'Research', iconImg: 'uk-aq-research-icon.png', href: '/research/' },
         { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--news' },
       ],
     },
@@ -564,9 +564,6 @@
     .uk-aq-nav-item--pending:hover {
       background: transparent;
       color: var(--uk-aq-ink-2);
-    }
-    .uk-aq-nav-section--quick-links {
-      margin-top: auto;
     }
     .uk-aq-visually-hidden {
       position: absolute;
