@@ -63,8 +63,6 @@
   const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
   const SIDEBAR_PINNED_KEY = 'uk_aq_sidebar_pinned_v1';
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
-  const PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS = 1500;
-  const PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS = 10000;
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
   const SIDEBAR_ICON_ON = '/sidebar-images/uk-aq-sidebar-on.svg';
@@ -184,7 +182,12 @@
       }
     });
 
-    finaliseFooterAttributionLayout();
+    const sources = footer.querySelector('.ukaq-site-footer-sources');
+    const visibleCount = sources?.querySelectorAll('.ukaq-site-footer-source').length || 0;
+    if (sources) {
+      sources.dataset.sourceCount = String(visibleCount);
+      sources.hidden = visibleCount === 0;
+    }
 
     const missingDefinitions = [...publicNetworkCodes]
       .filter((networkCode) => !definedNetworkCodes.has(networkCode));
@@ -193,18 +196,6 @@
         'UK AQ footer has no attribution definition for public network codes',
         missingDefinitions,
       );
-    }
-  }
-
-  function finaliseFooterAttributionLayout() {
-    const footer = document.getElementById('ukaq-site-footer');
-    if (!footer) return;
-
-    const sources = footer.querySelector('.ukaq-site-footer-sources');
-    const visibleCount = sources?.querySelectorAll('.ukaq-site-footer-source').length || 0;
-    if (sources) {
-      sources.dataset.sourceCount = String(visibleCount);
-      sources.hidden = visibleCount === 0;
     }
   }
 
@@ -217,28 +208,20 @@
       }
 
       if (window.UkAqNetworkCatalog?.load) {
-        const eventSnapshot = await waitForPublicNetworkCatalogEvent();
-        if (eventSnapshot) {
-          applyFooterAttributions(eventSnapshot.rows, eventSnapshot.contractVersion);
-          return;
-        }
+        window.addEventListener('ukaq:public-network-catalog', (event) => {
+          try {
+            applyFooterAttributions(event.detail?.rows, event.detail?.contractVersion);
+          } catch (error) {
+            console.warn('UK AQ footer received an invalid network catalogue; retaining all attributions', error);
+          }
+        }, { once: true });
+        return;
       }
 
-      const controller = new AbortController();
-      const timeout = window.setTimeout(
-        () => controller.abort(),
-        PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS,
-      );
-      let response;
-      try {
-        response = await fetch(PUBLIC_NETWORK_CATALOG_URL, {
-          credentials: 'same-origin',
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
-      } finally {
-        window.clearTimeout(timeout);
-      }
+      const response = await fetch(PUBLIC_NETWORK_CATALOG_URL, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
       if (!response.ok) {
         throw new Error(`network catalogue request failed (${response.status})`);
       }
@@ -247,30 +230,7 @@
       applyFooterAttributions(payload?.data, payload?.contract_version);
     } catch (error) {
       console.warn('UK AQ footer network catalogue failed to load; retaining all attributions', error);
-      finaliseFooterAttributionLayout();
     }
-  }
-
-  function waitForPublicNetworkCatalogEvent() {
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = (snapshot) => {
-        if (settled) return;
-        settled = true;
-        window.removeEventListener('ukaq:public-network-catalog', onCatalog);
-        window.clearTimeout(timeout);
-        resolve(snapshot);
-      };
-      const onCatalog = (event) => finish(event.detail);
-      const timeout = window.setTimeout(
-        () => finish(null),
-        PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS,
-      );
-      window.addEventListener('ukaq:public-network-catalog', onCatalog, { once: true });
-
-      const snapshot = window.UkAqPublicNetworkCatalogSnapshot;
-      if (snapshot) finish(snapshot);
-    });
   }
 
   // ─── Preload default sidebar button image; lazy-warm the alternate icon ─────
@@ -866,15 +826,13 @@
   }
 
   function mountSiteFooter() {
-    const existing = document.getElementById('ukaq-site-footer');
-    if (existing) return existing;
+    if (document.getElementById('ukaq-site-footer')) return;
 
     const oldHomeFooter = document.querySelector('.home-footer');
     if (oldHomeFooter) oldHomeFooter.remove();
 
     const footer = document.createElement('footer');
     footer.id = 'ukaq-site-footer';
-    footer.hidden = true;
     footer.setAttribute('aria-label', 'UK AQ site information and data licences');
     footer.innerHTML = buildSiteFooter();
 
@@ -883,7 +841,6 @@
     }
 
     document.body.appendChild(footer);
-    return footer;
   }
 
   function ensureSiteFooterStyles() {
@@ -993,10 +950,13 @@
     updateHamburgerIcon(btn);
 
     bindEvents(btn, overlay);
-    void completeSharedChrome();
+    window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
+
+    // Metadata, web fonts and the page footer are non-critical to shared chrome.
+    void mountNonCritical();
   }
 
-  async function completeSharedChrome() {
+  async function mountNonCritical() {
     if (!document.getElementById('uk-aq-inter-font')) {
       const link = document.createElement('link');
       link.id = 'uk-aq-inter-font';
@@ -1007,10 +967,18 @@
 
     siteVersionReady = loadSiteVersion();
     await ensureSiteFooterStyles();
-    const footer = mountSiteFooter();
-    await filterFooterAttributions();
-    footer.hidden = false;
-    window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
+
+    const finishFooter = () => {
+      mountSiteFooter();
+      void filterFooterAttributions();
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', finishFooter, { once: true });
+    } else {
+      finishFooter();
+    }
+
+    await siteVersionReady;
   }
 
   // ─── Events ───────────────────────────────────────────────────────────────────
