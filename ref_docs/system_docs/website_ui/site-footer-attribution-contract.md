@@ -109,7 +109,24 @@ For the grouped Defra/UK-AIR attribution box specifically:
 
 This means a network whose `public_display_enabled` state excludes it MUST never flash briefly in the footer during normal page loading.
 
-The footer SHOULD publish one explicit readiness signal when attribution resolution is complete, regardless of whether completion used a valid catalogue or the fail-open state. Consumers such as the first-paint loader MAY use that signal to avoid revealing the page before the final footer state is ready.
+The existing shared `ukaq:sidebar-ready` event is the first-paint readiness signal for the complete shared sidebar/footer chrome.
+
+`ukaq:sidebar-ready` MUST NOT fire merely because the sidebar DOM has been mounted.
+
+For pages that use the shared footer, it MUST fire only after all of the following are complete:
+
+1. the sidebar/navigation DOM is mounted;
+2. the shared footer stylesheet has finished its load attempt;
+3. the footer DOM is mounted while still hidden by the initial loading presentation;
+4. public-network catalogue resolution reaches a terminal success or definitive fail-open state;
+5. the applicable attribution pills/sections have been filtered or the explicit fail-open state has been selected;
+6. `data-source-count`, grouped Defra/UK-AIR visibility and other final footer layout state have been established.
+
+Only after that final shared-chrome state exists may `ukaq:sidebar-ready` be dispatched.
+
+The initial first-paint loader may therefore remain visible for longer while the public-network catalogue is resolved. That delay is intentional. The page MUST prefer a stable first paint over revealing the page early and then visibly adding/removing or reflowing footer attribution.
+
+The final footer may already be present in the DOM behind the loading overlay before `ukaq:sidebar-ready`, but the user MUST NOT see an intermediate footer state.
 
 This means the footer follows the same public-network switch used by the rest of the website while preserving manually controlled provider/licence content and allowing related networks to share one attribution box without sharing visibility state.
 
@@ -194,6 +211,6 @@ TEST-uk-aq/TEST-uk-aq.github.io/shared/data/network-catalog.js
 
 ## Validation rule
 
-Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, pending catalogue state keeps the footer visually hidden, both success and fail-open paths reach one terminal ready state, and fail-open handling cannot remove attribution on an invalid result.
+Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, pending catalogue state remains behind the initial loading presentation, both success and fail-open paths reach one terminal footer state, and `ukaq:sidebar-ready` cannot fire before that terminal footer state has been established.
 
 Functional and visual acceptance occurs through real TEST operation after deployment. A useful operational check is to change or inspect a known network's public visibility and confirm the corresponding footer attribution follows the public catalogue on both a normal data page and a lightweight/static page without introducing a Turnstile/session flow solely for the footer.
