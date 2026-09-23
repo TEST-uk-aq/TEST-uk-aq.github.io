@@ -26,7 +26,15 @@ The existing divider MUST then separate the utility links:
 
 No additional section heading or divider MUST be inserted between the main navigation items unless this contract is intentionally updated.
 
-A menu item whose destination is not yet active MAY be rendered in an accessible disabled or pending state. It MUST NOT link to a nonexistent route merely to satisfy the ordering contract.
+The three newly introduced data/content destinations are active navigation routes:
+
+- Wood Burning: `/wood-burning/`
+- NAEI Data: `/naei-data/`
+- Research: `/research/`
+
+These three menu items MUST be normal clickable navigation links and MUST participate in the same active-page highlighting and keyboard-accessible link behaviour as other enabled internal destinations.
+
+A different menu item whose destination is not yet active MAY be rendered in an accessible disabled or pending state. It MUST NOT link to a nonexistent route merely to satisfy the ordering contract.
 
 ## Width and icon geometry
 
@@ -64,11 +72,11 @@ If the full navigation does not fit vertically, the sidebar MUST remain vertical
 
 ## Resources and Contact placement
 
-Resources and Contact MUST remain together, in that order, after the existing divider.
+Resources and Contact MUST remain together, in that order, directly after the main navigation and its existing divider.
 
-When available sidebar height permits, the Resources/Contact section SHOULD sit at the bottom of the navigation area.
+The divider provides the visual separation. The Resources/Contact section MUST follow the other navigation items in normal document flow, without bottom anchoring or extra flexible vertical space between the main items and this section.
 
-On shorter viewports, bottom positioning MUST NOT make either item unreachable. Vertical sidebar scrolling MUST keep the complete navigation accessible.
+On shorter viewports, vertical sidebar scrolling MUST keep the complete navigation accessible without compressing the established item spacing.
 
 The shared website footer is outside this contract and MUST NOT be changed merely to accommodate sidebar navigation.
 
@@ -100,7 +108,17 @@ TEST-uk-aq/TEST-uk-aq.github.io/sidebar.js
 
 Sidebar icon assets are owned by the website repository's `/sidebar-images/` directory.
 
-This contract does not authorise page implementation for Wood Burning, NAEI Data or Research. It governs their shared-navigation presentation and ordering only.
+Initial route shells for Wood Burning, NAEI Data and Research are authorised so the enabled sidebar links resolve without 404s.
+
+Until their full page contracts or implementations are agreed, each route MAY consist of a minimal valid UK AQ page shell with:
+
+- the shared sidebar;
+- a visible page heading identifying the route;
+- an otherwise empty main content area;
+- no backend/API dependency introduced solely for the shell;
+- `noindex, nofollow` metadata while the page remains an incomplete shell.
+
+The shell MUST NOT invent placeholder data, controls or explanatory content that could be mistaken for the eventual feature.
 
 ## Validation
 
