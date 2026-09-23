@@ -47,7 +47,7 @@ body {
   width: min(100%, 1620px);
   min-width: 0;
   margin: 0 auto;
-  padding: 92px 28px 72px;
+  padding: 34px 28px 72px;
 }
 
 .who-intro {
@@ -65,10 +65,7 @@ body {
 }
 
 .who-intro h1 {
-  margin-bottom: 12px;
-  font-size: clamp(2rem, 4.6vw, 3.4rem);
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  margin-bottom: 0;
 }
 
 .who-intro p {
@@ -543,11 +540,11 @@ body {
 
 @media (max-width: 767px) {
   .who-main {
-    padding: 76px 12px 48px;
+    padding: 16px 12px 48px;
   }
 
-  .who-intro h1 {
-    font-size: clamp(1.85rem, 10vw, 2.55rem);
+  .who-intro p {
+    margin-top: 10px;
   }
 
   .who-context {

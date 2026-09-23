@@ -2,13 +2,15 @@
  * These rules must remain when the beta notice is retired.
  */
 
-/* Shared artwork-backed page titles.
- * One-line artwork is used at tablet/desktop widths. Pages with an available
- * two-line variant switch to it at the shared below-768px mobile boundary.
- */
+/* Shared artwork-backed page titles, aligned with the Hex Map/News title area. */
 .ukaq-page-title-heading {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
   min-width: 0;
+  min-height: 92px;
   margin: 0;
+  padding-right: 132px;
 }
 
 .ukaq-page-title-text {
@@ -25,8 +27,7 @@
 
 .ukaq-page-title-picture {
   display: block;
-  width: max-content;
-  max-width: calc(100% - 132px);
+  max-width: 100%;
 }
 
 .ukaq-page-title-image {
@@ -39,22 +40,31 @@
 }
 
 @media (max-width: 767px) {
-  .ukaq-page-title-picture {
-    max-width: 100%;
+  .ukaq-page-title-heading {
+    min-height: 44px;
+    padding: 0 60px 0 52px;
   }
 
   .ukaq-page-title-image {
-    height: 42px;
+    width: auto;
+    height: auto;
+    max-height: 42px;
   }
 
-  .ukaq-page-title-picture--responsive .ukaq-page-title-image {
-    height: 56px;
+  body[data-page-slug="who-guidelines"] #ukaq-home-logo,
+  body[data-page-slug="naei-data"] #ukaq-home-logo,
+  body[data-page-slug="wood-burning"] #ukaq-home-logo,
+  body[data-page-slug="research"] #ukaq-home-logo {
+    top: 16px;
+    right: 12px;
   }
 
-  /* The WHO page title starts higher than the simple route shells, while the
-     shared UK AQ home logo still occupies the top-right of the viewport. */
-  body[data-page-slug="who-guidelines"] .ukaq-page-title-picture {
-    max-width: calc(100% - 120px);
+  body[data-page-slug="who-guidelines"] #ukaq-home-logo img,
+  body[data-page-slug="naei-data"] #ukaq-home-logo img,
+  body[data-page-slug="wood-burning"] #ukaq-home-logo img,
+  body[data-page-slug="research"] #ukaq-home-logo img {
+    width: clamp(44px, 13.333vw, 52px);
+    height: auto;
   }
 }
 
