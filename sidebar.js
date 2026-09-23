@@ -19,9 +19,9 @@
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
         { label: 'WHO Guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
-        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', href: '/wood-burning/' },
+        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', href: '/wood-burning/', className: 'uk-aq-nav-item--stove' },
         { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', href: '/naei-data/' },
-        { label: 'Research', iconImg: 'uk-aq-research-icon.png', href: '/research/' },
+        { label: 'Research', iconImg: 'uk-aq-research-icon.png', href: '/research/', className: 'uk-aq-nav-item--research' },
         { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--news' },
       ],
     },
@@ -601,6 +601,15 @@
       max-width: none !important;
       object-fit: contain;
       display: block;
+    }
+    /* Enlarge the artwork only; the existing 40px icon box and row spacing stay unchanged. */
+    .uk-aq-nav-item--stove .uk-aq-nav-icon-img {
+      transform: scale(1.25);
+      transform-origin: center;
+    }
+    .uk-aq-nav-item--research .uk-aq-nav-icon-img {
+      transform: scale(1.12);
+      transform-origin: center;
     }
 	.uk-aq-nav-item--wordmark {
 	  overflow: visible;
