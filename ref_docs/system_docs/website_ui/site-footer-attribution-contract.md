@@ -1,6 +1,6 @@
 # Shared site-footer attribution contract
 
-Status: authoritative for current UK AQ shared footer attribution behaviour and the authorised next Black Carbon attribution phase. The grouped `black_carbon` pill is future runtime until implemented and accepted on TEST.
+Status: authoritative for current UK AQ shared footer attribution behaviour. The grouped `black_carbon` pill is implemented on TEST and follows the same public-network catalogue visibility rules as the other supported network attributions.
 
 ## Scope
 
@@ -78,20 +78,23 @@ For footer matching, `network_code` is the stable identity. Numeric `network_id`
 
 ## Resolve-before-reveal behaviour
 
-The shared footer MUST NOT visibly render an unfiltered attribution state and then remove network attributions after the public catalogue arrives.
+The shared footer MUST NOT visibly render an attribution state that is unresolved and then add or remove network attributions after the page becomes visible.
 
-The footer MAY build/mount its DOM before the catalogue is available, but the complete footer MUST remain visually hidden from the user until attribution resolution reaches a terminal state.
+For a browser tab/session with no reusable validated footer catalogue state, the footer MAY build/mount its DOM before the catalogue is available, but the complete footer MUST remain behind the initial loading presentation until attribution resolution reaches a terminal state.
 
 A terminal state is either:
 
-- a valid contract-v2 public network catalogue has been applied successfully; or
-- catalogue resolution has definitively failed/been rejected and the fail-open attribution state has been selected.
+- a valid contract-v2 public network catalogue has been applied successfully;
+- a previously validated same-tab/session footer catalogue snapshot has been applied successfully; or
+- catalogue resolution has definitively failed or been rejected and the fail-open attribution state has been selected.
 
-After a valid contract-v2 public network catalogue is available, the footer MUST:
+For later full-page navigations in the same tab/session, a previously validated cached catalogue state MAY be treated as the immediately available terminal state for footer presentation. In that case the footer MUST apply the cached network set before it is shown and MUST NOT force the initial page spinner merely to re-fetch `/api/aq/networks`.
 
-1. collect the returned public `network_code` values;
+After a valid contract-v2 public network catalogue or validated same-tab/session snapshot is available, the footer MUST:
+
+1. collect the returned or cached public `network_code` values;
 2. compare them with the explicit network attribution definitions already mounted;
-3. hide/remove a network-specific mark, pill or standalone attribution section when its `network_code` is absent from the public catalogue;
+3. hide/remove a network-specific mark, pill or standalone attribution section when its `network_code` is absent from the public catalogue state;
 4. retain a network-specific mark, pill or standalone attribution section when its `network_code` is present;
 5. for a grouped provider box, retain the box and its shared provider/licence copy while at least one of its defined child network codes remains applicable;
 6. hide/remove a grouped provider box when none of its defined child network codes remains applicable;
@@ -109,7 +112,7 @@ For the grouped Defra/UK-AIR attribution box specifically:
 
 This means a network whose `public_display_enabled` state excludes it MUST never flash briefly in the footer during normal page loading.
 
-The existing shared `ukaq:sidebar-ready` event is the first-paint readiness signal for the complete shared sidebar/footer chrome.
+The existing shared `ukaq:sidebar-ready` event is the readiness signal for the complete shared sidebar/footer chrome.
 
 `ukaq:sidebar-ready` MUST NOT fire merely because the sidebar DOM has been mounted.
 
@@ -117,28 +120,46 @@ For pages that use the shared footer, it MUST fire only after all of the followi
 
 1. the sidebar/navigation DOM is mounted;
 2. the shared footer stylesheet has finished its load attempt;
-3. the footer DOM is mounted while still hidden by the initial loading presentation;
-4. public-network catalogue resolution reaches a terminal success or definitive fail-open state;
+3. the footer DOM is mounted;
+4. one usable attribution state is available from the current page's valid catalogue, a validated same-tab/session footer catalogue snapshot, or a definitive fail-open result when no valid catalogue state can be established;
 5. the applicable attribution pills/sections have been filtered or the explicit fail-open state has been selected;
 6. `data-source-count`, grouped Defra/UK-AIR visibility and other final footer layout state have been established.
 
 Only after that final shared-chrome state exists may `ukaq:sidebar-ready` be dispatched.
 
-The initial first-paint loader may therefore remain visible for longer while the public-network catalogue is resolved. That delay is intentional. The page MUST prefer a stable first paint over revealing the page early and then visibly adding/removing or reflowing footer attribution.
+On the first qualifying load in a tab/session, or when no valid reusable cache exists, the initial first-paint loader may remain visible while the catalogue is resolved. That delay is intentional.
+
+On later normal full-page navigations in the same tab/session, a valid cached catalogue state SHOULD allow the shared chrome to become ready without showing the initial spinner again. The user MUST get a stable footer from validated cached state rather than a repeated blocking catalogue fetch.
+
+A manual reload MAY deliberately refresh the public catalogue before first paint so recent `public_display_enabled` changes can be picked up immediately.
 
 The final footer may already be present in the DOM behind the loading overlay before `ukaq:sidebar-ready`, but the user MUST NOT see an intermediate footer state.
 
 This means the footer follows the same public-network switch used by the rest of the website while preserving manually controlled provider/licence content and allowing related networks to share one attribution box without sharing visibility state.
 
-## Catalogue reuse
+## Catalogue reuse and same-tab/session cache
 
-The footer SHOULD avoid unnecessary duplicate catalogue work where the page has already obtained the same public network catalogue.
+The footer SHOULD avoid unnecessary duplicate catalogue work where the page or current browser tab has already obtained the same valid public network catalogue.
 
 It MAY reuse the shared `window.UkAqPublicNetworkCatalogSnapshot` when available.
 
-Where the shared network-catalogue client is already loaded and will publish the current catalogue, the footer MAY consume that shared result/event instead of issuing its own request.
+It MAY also persist a minimal validated footer catalogue snapshot in same-tab/session browser storage so a later full-page navigation can reconstruct the correct footer immediately without another blocking network-catalogue request.
 
-A lightweight/static page that does not load the protected cache-auth/network-catalogue stack MAY fetch `/api/aq/networks` directly with browser credentials omitted.
+A persisted footer snapshot MUST:
+
+- record the catalogue contract version;
+- record the validated public `network_code` set needed for attribution filtering;
+- be written only after a valid catalogue has passed the footer's contract checks;
+- never persist a fail-open/error result as though it were validated catalogue state;
+- remain scoped to the browser tab/session rather than becoming durable long-term website state.
+
+When such a validated same-tab/session snapshot exists, the footer SHOULD apply it synchronously or as early as practical on the next page and SHOULD NOT re-fetch `/api/aq/networks` solely for footer presentation during that normal navigation.
+
+A manual reload MAY refresh the catalogue instead of relying solely on the cached footer snapshot, so recent public-network visibility changes can be reflected promptly.
+
+Where the shared network-catalogue client is already loaded and publishes a newer valid catalogue, that newer valid result MAY replace the same-tab/session footer snapshot for subsequent navigations. Updating the cache MUST NOT cause an already-visible footer to jump between attribution states mid-page.
+
+A lightweight/static page that does not load the protected cache-auth/network-catalogue stack MAY fetch `/api/aq/networks` directly with browser credentials omitted when no reusable validated footer snapshot exists.
 
 A static page MUST NOT initialise Turnstile or create a protected data session solely to decide which shared footer attributions are applicable.
 
@@ -158,7 +179,9 @@ If the footer cannot establish a valid public network catalogue because of condi
 
 then the footer MUST select the explicit full-attribution state rather than removing definitions based on uncertain data.
 
-The fail-open state MUST still obey resolve-before-reveal behaviour: all explicit attributions are revealed only after the catalogue attempt has reached this definitive failure state. They MUST NOT be exposed speculatively while catalogue resolution is still pending.
+The fail-open state MUST still obey resolve-before-reveal behaviour when no valid reusable cached catalogue exists: all explicit attributions are revealed only after the catalogue attempt has reached this definitive failure state. They MUST NOT be exposed speculatively while catalogue resolution is still pending.
+
+If a valid same-tab/session footer snapshot already exists, a later transient catalogue failure MUST NOT replace that validated cache with a fail-open/error state for subsequent navigation.
 
 This fail-open rule is deliberate. A temporary metadata/API problem MUST NOT cause source/licence attribution that may still be legally or operationally relevant to disappear from the website.
 
@@ -211,6 +234,6 @@ TEST-uk-aq/TEST-uk-aq.github.io/shared/data/network-catalog.js
 
 ## Validation rule
 
-Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, pending catalogue state remains behind the initial loading presentation, both success and fail-open paths reach one terminal footer state, and `ukaq:sidebar-ready` cannot fire before that terminal footer state has been established.
+Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, a first-load cache miss remains behind the initial loading presentation, a valid same-tab/session snapshot can produce the final footer state without another blocking fetch, fail-open/error states are not persisted as validated cache, and `ukaq:sidebar-ready` cannot fire before a terminal footer state has been established.
 
 Functional and visual acceptance occurs through real TEST operation after deployment. A useful operational check is to change or inspect a known network's public visibility and confirm the corresponding footer attribution follows the public catalogue on both a normal data page and a lightweight/static page without introducing a Turnstile/session flow solely for the footer.
