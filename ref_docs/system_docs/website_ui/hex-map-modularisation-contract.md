@@ -122,6 +122,19 @@ uk-aq-hex-map-network-selection-v1
 The page has one shared network-catalogue request/in-flight owner. Failed loads
 must not create a second catalogue owner.
 
+Public network-catalogue eligibility does not automatically make every public
+network eligible for the Hex Map product.
+
+The canonical `black_carbon` network is explicitly excluded from Hex Map
+network selection in the current Wood Burning / Black Carbon phase, even when
+it is returned by the public network catalogue. The network controller MUST
+exclude it before constructing the selectable/persisted Hex network set. Select
+All MUST exclude it, and stale persisted selection MUST NOT reintroduce it.
+
+This is a product-specific exclusion, not a change to
+`public_display_enabled`. The narrower rationale and future-decision boundary
+are defined by [wood-burning-page-contract.md](wood-burning-page-contract.md).
+
 UK, C&R, toolbar and chart integration consume selected-network snapshots or
 the network-controller interface. They must not reconstruct authoritative
 network state from checkbox DOM.
