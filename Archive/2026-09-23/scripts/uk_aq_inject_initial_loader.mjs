@@ -145,7 +145,7 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
       const navigationType = navigation?.type || "navigate";
       let seenInTab = false;
       try { seenInTab = sessionStorage.getItem(SESSION_KEY) === "1"; } catch (_) {}
-      const active = EXPECTS_SIDEBAR || navigationType === "reload" || !seenInTab;
+      const active = navigationType === "reload" || !seenInTab;
       window.__UKAQ_INITIAL_LOAD_ACTIVE__ = active;
 
       if (active) document.documentElement.classList.add("ukaq-initial-loading");
@@ -154,6 +154,7 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
       let windowLoaded = document.readyState === "complete";
       let sidebarReady = !EXPECTS_SIDEBAR;
       let revealed = false;
+      let fallbackTimer = 0;
 
       const dispatchRevealed = () => {
         if (window.__UKAQ_INITIAL_VISUAL_REVEALED__) return;
@@ -205,6 +206,7 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
       const reveal = () => {
         if (revealed) return;
         revealed = true;
+        if (fallbackTimer) window.clearTimeout(fallbackTimer);
         try { sessionStorage.setItem(SESSION_KEY, "1"); } catch (_) {}
 
         const loader = document.getElementById("ukaq-initial-loader");
@@ -245,6 +247,9 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
       window.addEventListener("load", () => {
         windowLoaded = true;
         maybeReveal();
+        if (!revealed) {
+          fallbackTimer = window.setTimeout(reveal, 1500);
+        }
       }, { once: true });
 
       window.addEventListener("ukaq:sidebar-ready", () => {
@@ -254,6 +259,7 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
 
       if (windowLoaded) {
         maybeReveal();
+        if (!revealed) fallbackTimer = window.setTimeout(reveal, 1500);
       }
     })();
   </script>
