@@ -18,7 +18,10 @@
         { label: 'Hex Map',     iconImg: 'uk-aq-hex-map-sidebar.svg', href: '/hex_map/' },
         //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
         { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
-        { label: 'WHO guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
+        { label: 'WHO Guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
+        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', pending: true },
+        { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', pending: true },
+        { label: 'Research', iconImg: 'uk-aq-research-icon.png', pending: true },
         { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--news' },
       ],
     },
@@ -527,7 +530,9 @@
 	  align-items: center;
 	  justify-content: flex-start;
 	  gap: 10px;
-	  padding: 9px 10px 9px 14px;
+	  min-height: 48px;
+	  box-sizing: border-box;
+	  padding: 3px 10px 3px 14px;
 	  border-radius: 7px;
 	  color: var(--uk-aq-ink-2);
 	  font-size: 15px;
@@ -553,6 +558,28 @@
       background: #FBFAF7;
       color: var(--uk-aq-accent-deep);
       border-color: #d6d0c8;
+    }
+    .uk-aq-nav-item--pending {
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
+    .uk-aq-nav-item--pending:hover {
+      background: transparent;
+      color: var(--uk-aq-ink-2);
+    }
+    .uk-aq-nav-section--quick-links {
+      margin-top: auto;
+    }
+    .uk-aq-visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
     .uk-aq-nav-icon {
       width: 20px; flex-shrink: 0;
@@ -648,7 +675,7 @@
 	  pointer-events: none;
 	}
 	body[data-sidebar-state="mini"] .uk-aq-nav-item {
-	  padding: 9px 4px;
+	  padding: 3px 4px;
 	  gap: 0;
 	  justify-content: flex-start;
 	}
@@ -674,13 +701,13 @@
   function buildNavItem(item) {
     const path = location.pathname;
     const pathWithSearch = location.pathname + location.search;
-    const href = item.href;
-    const isActive = href !== '#' && (
+    const href = item.href || '';
+    const isActive = Boolean(href) && (
       href === '/' || href === '/index.html'
         ? isHomePage()
         : (href.includes('?') ? pathWithSearch.includes(href) : path.includes(href))
     );
-    const className = item.className ? ` ${item.className}` : '';
+    const className = `${item.className ? ` ${item.className}` : ''}${item.pending ? ' uk-aq-nav-item--pending' : ''}`;
   const usesCentredIconSlot =
     item.className?.includes('uk-aq-home-nav-item')
     || item.className?.includes('uk-aq-nav-item--wordmark');
@@ -700,11 +727,16 @@
       ? `<img class="uk-aq-nav-label-img" src="${location.origin}/sidebar-images/${item.labelImg}" alt="${item.label}">`
       : item.label;
     const targetAttrs = item.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const openTag = item.pending
+      ? `<span class="uk-aq-nav-item${className}" role="link" aria-disabled="true" title="Coming soon">`
+      : `<a class="uk-aq-nav-item${className}${isActive ? ' active' : ''}" href="${href}"${targetAttrs}>`;
+    const closeTag = item.pending ? '</span>' : '</a>';
+    const pendingText = item.pending ? '<span class="uk-aq-visually-hidden"> (coming soon)</span>' : '';
     return `
-      <a class="uk-aq-nav-item${className}${isActive ? ' active' : ''}" href="${href}"${targetAttrs}>
+      ${openTag}
         ${iconHtml}
-        <span class="uk-aq-nav-label">${labelHtml}</span>
-      </a>`;
+        <span class="uk-aq-nav-label">${labelHtml}${pendingText}</span>
+      ${closeTag}`;
   }
 
   function buildSection(section) {
@@ -714,7 +746,7 @@
       : `<div class="uk-aq-section-label">${section.label}</div>`;
     const divider = section.dividerBefore ? '<div class="uk-aq-section-divider" aria-hidden="true"></div>' : '';
     return `
-      <div class="uk-aq-nav-section">
+      <div class="uk-aq-nav-section uk-aq-nav-section--${section.id}">
         ${divider}
         ${sectionLabel}
         ${childrenHtml}
