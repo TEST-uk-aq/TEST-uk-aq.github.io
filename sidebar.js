@@ -530,9 +530,7 @@
 	  align-items: center;
 	  justify-content: flex-start;
 	  gap: 10px;
-	  min-height: 48px;
-	  box-sizing: border-box;
-	  padding: 3px 10px 3px 14px;
+	  padding: 9px 10px 9px 14px;
 	  border-radius: 7px;
 	  color: var(--uk-aq-ink-2);
 	  font-size: 15px;
@@ -675,7 +673,7 @@
 	  pointer-events: none;
 	}
 	body[data-sidebar-state="mini"] .uk-aq-nav-item {
-	  padding: 3px 4px;
+	  padding: 9px 4px;
 	  gap: 0;
 	  justify-content: flex-start;
 	}
