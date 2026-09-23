@@ -140,12 +140,24 @@ function buildHeadBlock({ expectsSidebar, loaderUrl }) {
   <script ${INJECT_MARKER}>
     (() => {
       const SESSION_KEY = "uk_aq_initial_visual_loaded_v1";
+      const FOOTER_NETWORK_CATALOG_CACHE_KEY = "uk_aq_footer_network_catalog_v1";
       const EXPECTS_SIDEBAR = ${expectsSidebar ? "true" : "false"};
       const navigation = performance.getEntriesByType?.("navigation")?.[0];
       const navigationType = navigation?.type || "navigate";
       let seenInTab = false;
       try { seenInTab = sessionStorage.getItem(SESSION_KEY) === "1"; } catch (_) {}
-      const active = EXPECTS_SIDEBAR || navigationType === "reload" || !seenInTab;
+      let hasValidFooterNetworkCache = false;
+      try {
+        const cached = JSON.parse(sessionStorage.getItem(FOOTER_NETWORK_CATALOG_CACHE_KEY) || "null");
+        hasValidFooterNetworkCache = cached?.contractVersion === 2
+          && Array.isArray(cached.networkCodes)
+          && cached.networkCodes.every((networkCode) => (
+            typeof networkCode === "string" && Boolean(networkCode.trim())
+          ));
+      } catch (_) {}
+      const active = navigationType === "reload"
+        || !seenInTab
+        || (EXPECTS_SIDEBAR && !hasValidFooterNetworkCache);
       window.__UKAQ_INITIAL_LOAD_ACTIVE__ = active;
 
       if (active) document.documentElement.classList.add("ukaq-initial-loading");

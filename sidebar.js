@@ -62,6 +62,8 @@
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
   const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
   const SIDEBAR_PINNED_KEY = 'uk_aq_sidebar_pinned_v1';
+  const FOOTER_NETWORK_CATALOG_CACHE_KEY = 'uk_aq_footer_network_catalog_v1';
+  const FOOTER_NETWORK_CATALOG_CONTRACT_VERSION = 2;
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
   const PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS = 1500;
   const PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS = 10000;
@@ -100,6 +102,51 @@
     } catch (_) {
       // Sidebar pin persistence is session-scoped and non-critical.
     }
+  }
+
+  function normaliseFooterNetworkCodes(rows, contractVersion) {
+    if (contractVersion !== FOOTER_NETWORK_CATALOG_CONTRACT_VERSION || !Array.isArray(rows)) {
+      throw new Error('network catalogue response does not match contract v2');
+    }
+
+    const networkCodes = rows.map((row) => String(row?.code || row?.network_code || '').trim());
+    if (networkCodes.some((networkCode) => !networkCode)) {
+      throw new Error('network catalogue response contains a missing network_code');
+    }
+    return [...new Set(networkCodes)];
+  }
+
+  function readCachedFooterNetworkCatalog() {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(FOOTER_NETWORK_CATALOG_CACHE_KEY) || 'null');
+      if (
+        cached?.contractVersion !== FOOTER_NETWORK_CATALOG_CONTRACT_VERSION
+        || !Array.isArray(cached.networkCodes)
+        || cached.networkCodes.some((networkCode) => (
+          typeof networkCode !== 'string' || !networkCode.trim()
+        ))
+      ) {
+        return null;
+      }
+      return [...new Set(cached.networkCodes.map((networkCode) => networkCode.trim()))];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeCachedFooterNetworkCatalog(networkCodes) {
+    try {
+      sessionStorage.setItem(FOOTER_NETWORK_CATALOG_CACHE_KEY, JSON.stringify({
+        contractVersion: FOOTER_NETWORK_CATALOG_CONTRACT_VERSION,
+        networkCodes,
+      }));
+    } catch (_) {
+      // Session storage is an optimisation only.
+    }
+  }
+
+  function isManualReload() {
+    return performance.getEntriesByType?.('navigation')?.[0]?.type === 'reload';
   }
 
   function rememberSidebarNavHandoff() {
@@ -149,20 +196,10 @@
     }
   }
 
-  function applyFooterAttributions(rows, contractVersion) {
+  function applyFooterAttributions(networkCodes) {
     const footer = document.getElementById('ukaq-site-footer');
     if (!footer) return;
-
-    if (contractVersion !== 2 || !Array.isArray(rows)) {
-      throw new Error('network catalogue response does not match contract v2');
-    }
-
-    const returnedNetworkCodes = rows
-      .map((row) => String(row?.code || row?.network_code || '').trim());
-    if (returnedNetworkCodes.some((networkCode) => !networkCode)) {
-      throw new Error('network catalogue response contains a missing network_code');
-    }
-    const publicNetworkCodes = new Set(returnedNetworkCodes);
+    const publicNetworkCodes = new Set(networkCodes);
     const attributionDefinitions = Array.from(
       footer.querySelectorAll('.ukaq-site-footer-source [data-network-code], .ukaq-site-footer-source[data-network-code]'),
     );
@@ -210,16 +247,34 @@
 
   async function filterFooterAttributions() {
     try {
+      if (!isManualReload()) {
+        const cachedNetworkCodes = readCachedFooterNetworkCatalog();
+        if (cachedNetworkCodes) {
+          applyFooterAttributions(cachedNetworkCodes);
+          return;
+        }
+      }
+
       const existingSnapshot = window.UkAqPublicNetworkCatalogSnapshot;
       if (existingSnapshot) {
-        applyFooterAttributions(existingSnapshot.rows, existingSnapshot.contractVersion);
+        const networkCodes = normaliseFooterNetworkCodes(
+          existingSnapshot.rows,
+          existingSnapshot.contractVersion,
+        );
+        applyFooterAttributions(networkCodes);
+        writeCachedFooterNetworkCatalog(networkCodes);
         return;
       }
 
       if (window.UkAqNetworkCatalog?.load) {
         const eventSnapshot = await waitForPublicNetworkCatalogEvent();
         if (eventSnapshot) {
-          applyFooterAttributions(eventSnapshot.rows, eventSnapshot.contractVersion);
+          const networkCodes = normaliseFooterNetworkCodes(
+            eventSnapshot.rows,
+            eventSnapshot.contractVersion,
+          );
+          applyFooterAttributions(networkCodes);
+          writeCachedFooterNetworkCatalog(networkCodes);
           return;
         }
       }
@@ -244,7 +299,9 @@
       }
 
       const payload = await response.json();
-      applyFooterAttributions(payload?.data, payload?.contract_version);
+      const networkCodes = normaliseFooterNetworkCodes(payload?.data, payload?.contract_version);
+      applyFooterAttributions(networkCodes);
+      writeCachedFooterNetworkCatalog(networkCodes);
     } catch (error) {
       console.warn('UK AQ footer network catalogue failed to load; retaining all attributions', error);
       finaliseFooterAttributionLayout();
@@ -272,6 +329,18 @@
       if (snapshot) finish(snapshot);
     });
   }
+
+  // A valid catalogue published after the footer is visible may prepare the next
+  // navigation, but must not mutate the already-finalised footer on this page.
+  window.addEventListener('ukaq:public-network-catalog', (event) => {
+    try {
+      const snapshot = event.detail;
+      const networkCodes = normaliseFooterNetworkCodes(snapshot?.rows, snapshot?.contractVersion);
+      writeCachedFooterNetworkCatalog(networkCodes);
+    } catch (_) {
+      // Rejected catalogue state must never replace a previously validated cache.
+    }
+  });
 
   // ─── Preload default sidebar button image; lazy-warm the alternate icon ─────
   const sidebarIconOffHref = location.origin + SIDEBAR_ICON_OFF;
