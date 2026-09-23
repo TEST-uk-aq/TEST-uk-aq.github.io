@@ -108,9 +108,11 @@ TEST-uk-aq/TEST-uk-aq.github.io/sidebar.js
 
 Sidebar icon assets are owned by the website repository's `/sidebar-images/` directory.
 
-Initial route shells for Wood Burning, NAEI Data and Research are authorised so the enabled sidebar links resolve without 404s.
+The Wood Burning route now has narrower future implementation authority in [wood-burning-page-contract.md](wood-burning-page-contract.md).
 
-Until their full page contracts or implementations are agreed, each route MAY consist of a minimal valid UK AQ page shell with:
+Until that first contracted Wood Burning phase is implemented, the existing route MAY remain a minimal valid shell. Any implementation beyond the shell MUST follow the Wood Burning page contract rather than inventing placeholder production content.
+
+NAEI Data and Research remain authorised to use minimal valid route shells until their own full page contracts or implementations are agreed. Such a shell MAY contain:
 
 - the shared sidebar;
 - a visible page heading identifying the route;
@@ -118,7 +120,7 @@ Until their full page contracts or implementations are agreed, each route MAY co
 - no backend/API dependency introduced solely for the shell;
 - `noindex, nofollow` metadata while the page remains an incomplete shell.
 
-The shell MUST NOT invent placeholder data, controls or explanatory content that could be mistaken for the eventual feature.
+These shells MUST NOT invent placeholder data, controls or explanatory content that could be mistaken for the eventual feature.
 
 ## Validation
 
