@@ -161,15 +161,25 @@
       throw new Error('network catalogue response contains a missing network_code');
     }
     const publicNetworkCodes = new Set(returnedNetworkCodes);
-    const attributionSections = Array.from(
-      footer.querySelectorAll('.ukaq-site-footer-source[data-network-code]'),
+    const attributionDefinitions = Array.from(
+      footer.querySelectorAll('.ukaq-site-footer-source [data-network-code], .ukaq-site-footer-source[data-network-code]'),
     );
     const definedNetworkCodes = new Set(
-      attributionSections.map((section) => section.dataset.networkCode),
+      attributionDefinitions.map((definition) => definition.dataset.networkCode),
     );
 
-    attributionSections.forEach((section) => {
+    footer.querySelectorAll('.ukaq-site-footer-source[data-network-code]').forEach((section) => {
       if (!publicNetworkCodes.has(section.dataset.networkCode)) section.remove();
+    });
+
+    footer.querySelectorAll('.ukaq-site-footer-source[data-network-group]').forEach((section) => {
+      const networkMarks = Array.from(section.querySelectorAll('[data-network-code]'));
+      networkMarks.forEach((mark) => {
+        if (!publicNetworkCodes.has(mark.dataset.networkCode)) mark.remove();
+      });
+      if (!networkMarks.some((mark) => publicNetworkCodes.has(mark.dataset.networkCode))) {
+        section.remove();
+      }
     });
 
     const sources = footer.querySelector('.ukaq-site-footer-sources');
@@ -777,9 +787,10 @@
     return `
       <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
       <div class="ukaq-site-footer-sources" aria-label="Air quality data sources and licences">
-        <section class="ukaq-site-footer-source" data-network-code="gov_uk_aurn" aria-label="GOV.UK and UK-AIR attribution">
+        <section class="ukaq-site-footer-source" data-network-group="defra-uk-air" aria-label="Defra and UK-AIR attribution">
           <div class="ukaq-site-footer-mark">
-            <a class="ukaq-site-footer-gov-pill" href="https://uk-air.defra.gov.uk/" aria-label="GOV.UK AURN">GOV.UK AURN</a>
+            <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="https://uk-air.defra.gov.uk/" aria-label="GOV.UK AURN">GOV.UK AURN</a>
+            <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="https://uk-air.defra.gov.uk/" aria-label="Black Carbon">Black Carbon</a>
           </div>
           <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a>, licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
         </section>
