@@ -18,6 +18,18 @@ Use it for the shared `<768px` responsive boundary, single-application rule, tou
 
 Add [`validation.md`](validation.md) only when planning or reviewing deployment acceptance for shared responsive behaviour.
 
+
+### Shared sidebar navigation
+
+Read:
+
+1. [`contract.md`](contract.md)
+2. [`sidebar-navigation-contract.md`](sidebar-navigation-contract.md)
+
+Use the sidebar contract for shared `/sidebar.js` menu ordering, icon geometry, vertical item spacing, overflow/scroll behaviour, Resources/Contact placement and preservation of existing hover, pin, drawer and navigation-handoff behaviour.
+
+The sidebar contract is the narrower authority for navigation presentation. The broad responsive contract remains authoritative for the shared mobile boundary and page-specific constrained-width sidebar occupancy rules.
+
 ### Shared site-footer attribution
 
 Read [`site-footer-attribution-contract.md`](site-footer-attribution-contract.md).

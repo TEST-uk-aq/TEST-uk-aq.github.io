@@ -64,31 +64,39 @@ Its mobile drawer behaviour MUST preserve:
 - viewport widths below `768px` use the drawer state;
 - the hamburger opens and closes the drawer;
 - the overlay closes an open drawer;
-- desktop hover and pin behaviour remains desktop-only except for the explicitly authorised Hex Map `768px` through `919px` hover-only navigation exception below;
 - responsive work MUST NOT create a second navigation implementation.
 
-### Hex Map constrained-width navigation exception
+At all non-mobile widths (`>=768px`), an unpinned Mini sidebar MUST remain hover-expandable so users can reveal the navigation labels. On ordinary pages, hover expansion uses the normal expanded `212px` layout reservation and therefore narrows the page while expanded. Leaving the combined sidebar/hamburger hover region MUST return an unpinned sidebar to Mini.
 
-The Hex Map has one intentional page-specific navigation exception at viewport widths from `768px` through `919px`.
+Same-tab navigation from a hover-expanded sidebar MUST preserve that expanded presentation on the destination while the pointer remains within the sidebar area. The destination MUST NOT visibly collapse and re-expand merely because a navigation occurred.
 
-This is **not** a second mobile boundary and MUST NOT switch the Hex Map into its below-`768px` mobile controls. It changes only how the existing shared sidebar occupies space while the Hex Map remains in its normal `>=768px` presentation.
+### Constrained-width navigation exception for Hex Map and homepage
 
-For `body.hex-map-page` only:
+The Hex Map and homepage have intentional page-specific navigation-occupancy exceptions above the shared mobile boundary. The Hex Map exception runs from `768px` through `919px`; the homepage exception runs from `768px` through `1099px`.
 
-- below `768px`, retain the existing mobile drawer behaviour;
-- from `768px` through `919px`, the sidebar MUST rest in its normal `64px` Mini presentation and the page MAY reserve only that Mini width;
+This is **not** a second mobile boundary. Both pages remain in their normal `>=768px` page presentations.
+
+For both pages below `768px`, retain the existing mobile drawer behaviour.
+
+For `body.hex-map-page`, the constrained range is `768px` through `919px`. For `body.home-page`, the constrained range is `768px` through `1099px`.
+
+Within the applicable constrained range for each page:
+
+- the sidebar MUST rest in its normal `64px` Mini presentation and the page MAY reserve only that Mini width;
 - in that constrained range, the sidebar MUST NOT be pinnable or left permanently expanded;
-- if the sidebar is pinned when the Hex Map enters that constrained range, the pinned state MUST be turned off and the persisted pinned preference MUST be updated to off;
+- if the sidebar is pinned when either page enters that constrained range, the pinned state MUST be turned off and the persisted pinned preference MUST be updated to off;
 - the hamburger remains visibly off in that constrained range and MUST NOT toggle pin state or expanded state;
 - the hamburger MUST NOT use its interactive hover lift or shadow treatment while it is disabled in that constrained range;
 - the user MUST still be able to reveal the full sidebar labels by hover;
-- hover expansion from Mini to the full `212px` sidebar MUST overlay the Hex Map rather than increasing body/page left padding beyond the Mini `64px` reservation;
-- therefore opening the hover-expanded sidebar MUST NOT reduce the Hex Map's available page or toolbar width;
+- hover expansion from Mini to the full `212px` sidebar MUST overlay the page rather than increasing body/page left padding beyond the Mini `64px` reservation;
+- therefore opening the hover-expanded sidebar MUST NOT reduce the Hex Map, homepage or their child-component available widths;
 - when the pointer leaves the hover-expanded sidebar/navigation hover region, it MUST collapse back to Mini and reveal the unobscured page again;
-- at `920px` and above, the existing normal tablet/desktop sidebar pin and layout-width behaviour applies again;
-- other public pages keep their existing sidebar behaviour at all `>=768px` widths.
+- on the Hex Map, normal tablet/desktop sidebar pin and layout-width behaviour applies again at `920px` and above;
+- on the homepage, normal desktop sidebar pin and layout-width behaviour applies again at `1100px` and above.
 
-This exception MUST reuse `/sidebar.js` and the existing sidebar DOM/state ownership. It MUST NOT create a second Hex Map navigation implementation or reuse the mobile drawer state for the `768px` through `919px` presentation.
+All other public pages retain normal non-mobile hover expansion at `>=768px`; from `768px` through `1099px` that expansion MUST still narrow the main page in the normal way.
+
+These exceptions MUST reuse `/sidebar.js` and the existing sidebar DOM/state ownership. They MUST NOT create page-specific duplicate navigation or reuse the mobile drawer state for either constrained presentation.
 
 The hamburger's approximately `44px × 44px` effective control remains the reference minimum interaction size for mobile controls.
 
