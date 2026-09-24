@@ -25,7 +25,7 @@ const element = (name, attrs = {}) => {
 function mountMap() {
   const svg = document.querySelector("#monitoring-map-svg");
   // This local SVG and the station markers share the same projected coordinate
-  // space. The asset records its Natural Earth Map Units source and derivation.
+  // space. The asset records its ONS Countries BGC source and derivation.
   svg.append(element("image", {
     href: "./uk-monitoring-map.svg",
     x: "0",
