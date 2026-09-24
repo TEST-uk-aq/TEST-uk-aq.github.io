@@ -30,6 +30,14 @@ Use the sidebar contract for shared `/sidebar.js` menu ordering, icon geometry, 
 
 The sidebar contract is the narrower authority for navigation presentation. The broad responsive contract remains authoritative for the shared mobile boundary and page-specific constrained-width sidebar occupancy rules.
 
+### Shared line-chart presentation
+
+Read [`shared-line-chart-presentation-contract.md`](shared-line-chart-presentation-contract.md).
+
+Use it for cross-page line-chart visual conventions including subtle horizontal dotted/short-dash Y-grid lines, solid data-line priority, deterministic multi-series colour treatment and accessible interactive legend behaviour where a page provides a series legend.
+
+For existing Hex Map/Sensors station-chart rendering, also read [`../station_charts/README.md`](../station_charts/README.md); the station-chart subsystem remains the sole renderer/controller owner. For Wood Burning monthly-profile specifics, also read [`wood-burning-page-contract.md`](wood-burning-page-contract.md).
+
 ### Shared site-footer attribution
 
 Read [`site-footer-attribution-contract.md`](site-footer-attribution-contract.md).
@@ -43,13 +51,14 @@ If the task changes `/api/aq/networks`, public-network eligibility, origin/sessi
 Read:
 
 1. [`contract.md`](contract.md)
-2. [`wood-burning-page-contract.md`](wood-burning-page-contract.md)
+2. [`shared-line-chart-presentation-contract.md`](shared-line-chart-presentation-contract.md)
+3. [`wood-burning-page-contract.md`](wood-burning-page-contract.md)
 
-Use the Wood Burning page contract for the initial `/wood-burning/` Black Carbon presentation: the three summary cards, mobile summary relocation, simple geographical sensor map, canonical `black_carbon` network identity and the current decision to keep Black Carbon out of the Hex Map.
+Use the Wood Burning page contract for the `/wood-burning/` presentation: the three summary cards, mobile summary relocation, simple geographical sensor map, paired Summer/Winter BC/UV charts and their monthly legend interaction, canonical `black_carbon` network identity and the current decision to keep Black Carbon out of the Hex Map.
 
 If the task changes the shared Defra/UK-AIR footer presentation, also read [`site-footer-attribution-contract.md`](site-footer-attribution-contract.md).
 
-The Wood Burning contract deliberately leaves the main explanatory content, detailed charts, Clean Air Night-specific content, map popup behaviour and any future Hex Map Black Carbon mode for later explicit decisions.
+The Wood Burning contract still leaves final editorial copy, the exact BC/UV/UVPM property-switching control, Clean Air Night-specific content, richer map popup behaviour and any future Hex Map Black Carbon mode for later explicit decisions.
 
 ### Hex Map internal frontend architecture
 
