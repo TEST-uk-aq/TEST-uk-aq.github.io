@@ -17,13 +17,6 @@
   font-size: 0.75rem;
 }
 
-.chart-y-grid line {
-  stroke: #d7dde2;
-  stroke-width: 1px;
-  stroke-dasharray: 2 5;
-  pointer-events: none;
-}
-
 .chart-y-axis-label,
 .aqi-band-label {
   fill: var(--ink-soft);

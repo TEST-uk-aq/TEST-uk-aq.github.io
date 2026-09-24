@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="t d">
+  <title id="t">Wood burning explainer placeholder</title><desc id="d">A quiet blue and cream draft poster with a simple line illustration of a stove and rising air.</desc>
+  <rect width="1600" height="900" fill="#e9f2f7"/><circle cx="1220" cy="185" r="260" fill="#d8e9f2"/><circle cx="250" cy="790" r="370" fill="#f7efe0"/>
+  <g fill="none" stroke="#33424d" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"><path d="M650 282h300v390H650z"/><path d="M700 338h200v194H700z"/><path d="M720 672v60m160-60v60M758 282V170h84v112"/><path d="M800 480c-54-38-49-94 0-126 49 32 54 88 0 126Z" stroke="#3C78AC"/><path d="M800 168c-48-51 48-78 0-130m80 130c-48-51 48-78 0-130" stroke="#6f8798"/></g>
+  <text x="800" y="822" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="40" font-weight="600" fill="#33424d">Draft explanatory visual</text>
+</svg>
