@@ -231,8 +231,22 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
             ).stdout
             html = rendered.decode("utf-8")
         except (OSError, UnicodeDecodeError, subprocess.CalledProcessError) as error:
-            print(f"  [loader] unable to transform {target} ({type(error).__name__})")
-            return False
+            diagnostic = f"{type(error).__name__}: {error}"
+            if isinstance(error, subprocess.CalledProcessError) and error.stderr:
+                stderr = error.stderr.decode("utf-8", errors="replace").strip()
+                if stderr:
+                    diagnostic = f"{diagnostic}\n{stderr}"
+            print(f"  [loader] unable to transform {target}\n{diagnostic}")
+
+            payload = b"Local HTML loader transformation failed. See the server console.\n"
+            self.send_response(500)
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(payload)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            if self.command != "HEAD":
+                self.wfile.write(payload)
+            return True
 
         if TURNSTILE_SITE_KEY:
             html = html.replace(TURNSTILE_PLACEHOLDER, TURNSTILE_SITE_KEY)
