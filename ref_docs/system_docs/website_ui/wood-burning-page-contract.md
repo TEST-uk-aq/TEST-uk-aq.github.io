@@ -6,7 +6,7 @@
 
 The existing `/wood-burning/` route shell may remain while the fuller page is designed and implemented on TEST.
 
-This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, historical chart design and campaign-specific content may still be refined later within these boundaries.
+This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, paired Summer/Winter diurnal charts, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, later chart extensions and campaign-specific content may still be refined later within these boundaries.
 
 ## Scope
 
@@ -27,6 +27,9 @@ It defines:
 - responsive relocation of those summary cards on mobile;
 - the compact UK-outline Black Carbon sensor map;
 - map marker colour, expansion and labelling behaviour;
+- paired six-month Summer/Winter Black Carbon diurnal charts for each sensor;
+- shared Y-axis behaviour within each sensor's chart pair;
+- six-sensor pagination and mobile chart stacking;
 - the page's use of the canonical `black_carbon` network identity;
 - the shared-footer Black Carbon attribution dependency;
 - the current exclusion of Black Carbon from the Hex Map;
@@ -35,7 +38,8 @@ It defines:
 It does not yet define:
 
 - final production wording for every explanatory section;
-- historical Black Carbon chart types, controls or comparison periods;
+- chart types beyond the paired Summer/Winter diurnal comparison defined here;
+- user-selectable historical chart windows or comparison controls;
 - Clean Air Night-specific analysis or campaign calls to action;
 - a public Black Carbon historical-series API;
 - Black Carbon inclusion in Hex Map views;
@@ -188,6 +192,7 @@ Page title
 Opening 16:9 animation/video
 Short introduction
 Black Carbon monitoring / UK location-map section
+Summer/Winter Black Carbon sensor charts
 What is Black Carbon?
 Wood burning and air pollution
 What does the evidence show?
@@ -323,7 +328,154 @@ The map MUST NOT unexpectedly expand merely because the user scrolls across it.
 
 Keyboard and assistive-technology operation MUST remain possible.
 
-Detailed measurement popups, historical charts and map-to-chart interaction remain deferred.
+Detailed measurement popups, historical values inside the map and map-to-chart interaction remain deferred.
+
+## Summer/Winter Black Carbon sensor charts
+
+Immediately below the Black Carbon monitoring/location-map section, the page MUST provide paired diurnal line charts for the current public Black Carbon sensors.
+
+The purpose of this section is to show how the typical Black Carbon concentration profile through the day differs across the warmer and colder halves of the year at each monitoring site.
+
+### Seasonal presentation
+
+For page presentation, the two six-month halves are labelled:
+
+- **Summer** = April through September;
+- **Winter** = October through March.
+
+These labels are deliberate presentation shorthand and MUST NOT be described as formal meteorological-season definitions.
+
+The chart headings SHOULD make the covered months/years explicit, for example:
+
+```text
+Summer · Apr–Sep 2026
+Winter · Oct 2025–Mar 2026
+```
+
+The Winter period therefore normally spans two calendar years.
+
+The implementation MUST select coherent six-month periods from available Black Carbon history rather than mixing arbitrary months from different seasonal halves.
+
+### Per-sensor chart pair
+
+Each sensor is presented as one chart group/row containing:
+
+1. a Summer chart;
+2. a Winter chart.
+
+At viewport widths of `768px` and above, the two charts SHOULD appear side by side in one sensor row where the available width permits.
+
+Below `768px`, the two charts MUST stack vertically within the same sensor group:
+
+```text
+Sensor name
+
+Summer
+[ chart ]
+
+Winter
+[ chart ]
+```
+
+The sensor identity MUST remain visually associated with both charts so users do not mistake adjacent chart pairs for different monitoring sites.
+
+### Monthly lines
+
+Each Summer chart MAY contain up to six monthly lines:
+
+```text
+Apr, May, Jun, Jul, Aug, Sep
+```
+
+Each Winter chart MAY contain up to six monthly lines:
+
+```text
+Oct, Nov, Dec, Jan, Feb, Mar
+```
+
+A monthly line represents the mean of the accepted Black Carbon readings available for each **GMT hour-ending** slot within that month.
+
+The X axis MUST use the same 24 hourly positions for both charts:
+
+```text
+01:00 through 24:00 GMT hour ending
+```
+
+The chart MUST NOT silently shift hourly buckets for British Summer Time. Using GMT hour-ending slots is intentional so the Summer and Winter profiles remain directly comparable.
+
+If a month lacks accepted observations for a particular GMT hour-ending slot, the chart MUST preserve that absence rather than fabricate or interpolate a monthly mean.
+
+The chart legend SHOULD use concise month labels because the chart heading already establishes the relevant year or year pair.
+
+### Shared Y-axis within each sensor pair
+
+The Summer and Winter charts for the **same sensor** MUST use exactly the same Y-axis minimum, maximum and tick positions.
+
+The shared scale MUST be resolved from the combined Summer + Winter values for that sensor pair so differences between the two halves of the year are visually comparable.
+
+The Y-axis minimum SHOULD remain zero unless a later scientific/presentation contract explicitly authorises otherwise.
+
+The Y-axis maximum SHOULD use a sensible rounded ceiling above the highest plotted value in either chart of that sensor pair.
+
+The page MUST NOT independently auto-scale the Summer and Winter charts for the same sensor.
+
+A single global Y-axis scale across every sensor on the page is **not required**. Different sensors MAY use different pair-specific Y-axis ranges so a high-concentration site does not flatten meaningful variation at lower-concentration sites.
+
+The Y axis MUST clearly identify Black Carbon concentration and the canonical unit supplied by the source/data contract.
+
+### Chart explanation and completeness note
+
+The chart section MUST include a concise explanation that each line shows the mean Black Carbon concentration for each GMT hour-ending period during that month.
+
+It MUST also state that:
+
+- Summer and Winter charts for the same monitoring site share one vertical scale;
+- missing source observations can reduce the amount of data contributing to a monthly/hourly mean;
+- differing data completeness between months can affect visual comparisons;
+- the charts describe measured Black Carbon patterns at the monitoring site and do not by themselves attribute those patterns to domestic wood burning.
+
+The UI SHOULD avoid presenting provisional or incomplete months as equally complete without an appropriate data-completeness indication.
+
+### Sensor pagination
+
+The chart section MUST show a maximum of **six sensors per page**.
+
+Each sensor consumes one Summer/Winter chart pair, so a full desktop page contains at most:
+
+```text
+6 sensor groups
+12 charts
+```
+
+The sensor order MUST be deterministic. Alphabetical station/location name ordering is acceptable unless the canonical network/data product supplies an explicit presentation order.
+
+Pagination MUST allow the user to move to the next and previous sensor page where applicable.
+
+The UI SHOULD expose the current page and total number of sensor pages, for example:
+
+```text
+Previous    Page 1 of 3    Next
+```
+
+It MAY additionally show a sensor range such as:
+
+```text
+Showing sensors 1–6 of 14
+```
+
+Pagination controls SHOULD be available at both the top and bottom of the chart collection when there is more than one page, so users do not need to scroll through all charts merely to move to another sensor page.
+
+Pagination MUST change only the displayed sensor groups. It MUST NOT change the seasonal definitions or aggregation semantics.
+
+### Data/API boundary
+
+The website MUST NOT derive these charts from ad-hoc scraped source material.
+
+The chart data MUST come from canonical accepted Black Carbon observation history or a derived backend product owned by the relevant UK AQ data/API contracts.
+
+If a dedicated derived endpoint/product is introduced, it SHOULD return the month/hour aggregates needed by the page rather than requiring every browser to download and aggregate large raw observation histories independently.
+
+The exact backend publication/API shape remains a separate data/API contract decision and MUST be defined before implementation if no existing canonical product can efficiently supply the required aggregates.
 
 ## Initial summary cards
 
@@ -378,6 +530,7 @@ Title
 16:9 animation
 Introduction
 Black Carbon map / monitoring section
+Summer/Winter sensor charts
 What is Black Carbon?
 Wood burning and air pollution
 What does the evidence show?
@@ -519,7 +672,7 @@ TEST-uk-aq/TEST-uk-aq.github.io/sidebar.js
 TEST-uk-aq/TEST-uk-aq.github.io/site-footer.css
 ```
 
-A page-specific Wood Burning JavaScript/CSS module MAY be introduced for the video controls, responsive ordering and SVG map interaction.
+A page-specific Wood Burning JavaScript/CSS module MAY be introduced for the video controls, responsive ordering, SVG map interaction, chart rendering and chart pagination.
 
 The shared sidebar/footer logic MUST remain shared.
 
@@ -538,9 +691,14 @@ Before implementation, validate only the load-bearing structure:
 - sensor coordinates can be projected into the chosen SVG geometry;
 - the website can obtain the required current station population without treating the complete historical Black Carbon catalogue as current;
 - the custom video controls can independently manage mute state and the WebVTT caption track using native browser video APIs;
+- canonical accepted Black Carbon history can support six-month Summer/Winter GMT hour-ending aggregates without browser-side download of impractically large raw histories;
+- a pair-specific shared Y-axis can be derived from the combined Summer/Winter aggregate values for each sensor;
+- the current public sensor population can be deterministically paginated at a maximum of six sensor groups per page;
 - product-specific Hex Map filtering can exclude `black_carbon` even when it is public elsewhere.
 
 The exact "Locations covered" grouping rule is a genuinely required targeted decision/check before that numerical card is implemented.
+
+A second targeted pre-implementation check is required for the chart data boundary: confirm whether an existing canonical Black Carbon history/API product can efficiently supply the required month-by-GMT-hour aggregates. If not, define the owning derived backend/API contract before implementing browser chart aggregation.
 
 No broad speculative pre-deployment functional test suite should be created.
 
@@ -565,6 +723,15 @@ Acceptance SHOULD confirm:
 - marker colour does not encode concentration or AQI;
 - desktop pointer hover and keyboard focus can expose the enlarged map/labels;
 - mobile provides an explicit tap-based expansion/dismiss interaction;
+- each displayed sensor has one Summer and one Winter diurnal chart;
+- Summer represents April–September and Winter represents October–March, with the covered months/years visible to the user;
+- monthly lines use GMT hour-ending slots from 01:00 through 24:00;
+- Summer and Winter charts for the same sensor use the same Y-axis range and tick positions;
+- different sensors may use different pair-specific Y-axis ranges;
+- missing source observations are not fabricated/interpolated into monthly hourly means;
+- no more than six sensor groups are displayed per chart page;
+- chart pagination moves deterministically between sensor groups and provides previous/next navigation when required;
+- mobile stacks Summer and Winter charts vertically within each sensor group;
 - desktop/tablet places the three-card summary relatively high in the page;
 - mobile places the three summary cards after the main explanatory/limitations content;
 - no fourth network-median/latest-concentration card is present;
