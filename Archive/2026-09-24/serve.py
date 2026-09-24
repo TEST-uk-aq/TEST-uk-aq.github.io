@@ -10,7 +10,6 @@ import functools
 import http.server
 import json
 import os
-import subprocess
 import urllib.error
 import urllib.request
 from urllib.parse import unquote, urlsplit
@@ -95,7 +94,6 @@ else:
 AQ_CACHE_BYPASS_SECRET = _ENV.get("UK_AQ_CACHE_BYPASS_SECRET", "")
 TURNSTILE_SITE_KEY = _ENV.get("UK_AQ_TURNSTILE_SITE_KEY", "")
 TURNSTILE_PLACEHOLDER = "__UK_AQ_TURNSTILE_SITE_KEY__"
-INITIAL_LOADER_SCRIPT = os.path.join(SITE_ROOT, "scripts", "uk_aq_inject_initial_loader.mjs")
 
 
 class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
@@ -215,7 +213,7 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
             headers,
         )
 
-    def _maybe_serve_html(self):
+    def _maybe_serve_html_with_local_config(self):
         target = self.translate_path(self.path)
         if os.path.isdir(target):
             target = os.path.join(target, "index.html")
@@ -223,20 +221,16 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
             return False
 
         try:
-            rendered = subprocess.run(
-                ["node", INITIAL_LOADER_SCRIPT, "--render-html", SITE_ROOT, target],
-                cwd=SITE_ROOT,
-                check=True,
-                capture_output=True,
-            ).stdout
-            html = rendered.decode("utf-8")
-        except (OSError, UnicodeDecodeError, subprocess.CalledProcessError) as error:
-            print(f"  [loader] unable to transform {target} ({type(error).__name__})")
+            with open(target, "rb") as source_file:
+                source = source_file.read()
+            html = source.decode("utf-8")
+        except (OSError, UnicodeDecodeError):
             return False
 
-        if TURNSTILE_SITE_KEY:
-            html = html.replace(TURNSTILE_PLACEHOLDER, TURNSTILE_SITE_KEY)
-        rendered = html.encode("utf-8")
+        if not TURNSTILE_SITE_KEY or TURNSTILE_PLACEHOLDER not in html:
+            return False
+
+        rendered = html.replace(TURNSTILE_PLACEHOLDER, TURNSTILE_SITE_KEY).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(rendered)))
@@ -253,7 +247,7 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
         if self._is_aq_api_route():
             self._proxy_aq_api()
             return
-        if self._maybe_serve_html():
+        if self._maybe_serve_html_with_local_config():
             return
         super().do_GET()
 
@@ -261,7 +255,7 @@ class UkAqLocalHandler(http.server.SimpleHTTPRequestHandler):
         if self._is_media_api_route() or self._is_aq_api_route():
             self._send_json_error(405, "method_not_allowed")
             return
-        if self._maybe_serve_html():
+        if self._maybe_serve_html_with_local_config():
             return
         super().do_HEAD()
 
