@@ -5,6 +5,14 @@ const PAGE_SIZE = 6;
 const COLOURS = ["#3C78AC", "#D17C2F", "#667A2E", "#8A5CA8", "#C54B63", "#168C8C"];
 const PROPERTY_LABELS = { bc: "Black Carbon", uv370: "UV 370 nm", uvpm: "UVPM" };
 const WINTER = new Set([10, 11, 12, 1, 2, 3]);
+const MAP_PROJECTION = Object.freeze({
+  minimumLongitude: -8.7,
+  maximumLatitude: 60.95,
+  cosineStandardLatitude: 0.5682028519825839,
+  scale: 44.12556053811657,
+  offsetX: 47.11697248163364,
+  offsetY: 14,
+});
 let page = 0;
 let property = "bc";
 
@@ -16,21 +24,21 @@ const element = (name, attrs = {}) => {
 
 function mountMap() {
   const svg = document.querySelector("#monitoring-map-svg");
-  // Simplified from Natural Earth 1:10m Admin 0 UK geometry (public domain):
-  // https://www.naturalearthdata.com/downloads/10m-cultural-vectors/
-  // The separate land shapes intentionally include Great Britain and Northern
-  // Ireland only; the Republic of Ireland is not drawn.
-  const outline = element("g", { fill: "#e3e5e5", stroke: "#4b555c", "stroke-width": "2.1", "stroke-linejoin": "round" });
-  outline.append(
-    element("path", { d: "M183 34 205 48 199 65 219 72 210 90 226 103 214 122 226 137 211 150 216 171 199 185 205 204 193 219 203 238 195 257 207 276 198 297 207 313 198 331 205 348 193 363 191 383 178 399 169 420 152 436 132 444 118 437 124 419 112 407 126 389 125 370 139 358 132 342 148 326 145 305 157 289 154 270 167 252 160 233 172 216 166 196 177 180 167 160 178 145 166 126 178 111 164 94 174 78 164 61Z" }),
-    element("path", { d: "M102 276 116 283 114 301 126 313 118 329 101 326 92 341 76 335 70 318 78 300 91 298Z" }),
-    element("path", { d: "M136 444 151 450 146 463 128 468 113 461 100 466 88 456 98 444 116 449Z" }),
-    element("path", { d: "M80 221 95 225 99 239 91 253 75 249 64 260 51 251 55 234 67 225Z" }),
-    element("path", { d: "M195 19 204 25 199 34 190 32Z" })
-  );
-  svg.append(outline);
-  const project = (lat, lon) => ({ x: 58 + ((lon + 8.2) / 10.4) * 170, y: 448 - ((lat - 49.8) / 9.2) * 405 });
-  const labelOffsets = [[10,-9],[10,-5],[10,-4],[-117,2],[10,5],[-118,9],[10,8],[-115,-8]];
+  // This local SVG and the station markers share the same projected coordinate
+  // space. The asset records its Natural Earth Map Units source and derivation.
+  svg.append(element("image", {
+    href: "./uk-monitoring-map.svg",
+    x: "0",
+    y: "0",
+    width: "360",
+    height: "520",
+    preserveAspectRatio: "xMidYMid meet",
+  }));
+  const project = (lat, lon) => ({
+    x: MAP_PROJECTION.offsetX + (lon - MAP_PROJECTION.minimumLongitude) * MAP_PROJECTION.cosineStandardLatitude * MAP_PROJECTION.scale,
+    y: MAP_PROJECTION.offsetY + (MAP_PROJECTION.maximumLatitude - lat) * MAP_PROJECTION.scale,
+  });
+  const labelOffsets = [[10,-9],[10,-5],[10,-7],[-10,9],[10,5],[-10,9],[-10,-8],[-10,-8]];
   data.stations.forEach((station, index) => {
     const { x, y } = project(station.latitude, station.longitude);
     const [dx, dy] = labelOffsets[index];
@@ -53,7 +61,11 @@ function mountMap() {
     toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
   };
   toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
-  shell.addEventListener("keydown", (event) => { if (event.key === "Escape") { setExpanded(false); toggle.focus(); } });
+  shell.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setExpanded(false);
+    (toggle.offsetParent ? toggle : document.querySelector("#property-select")).focus();
+  });
 }
 
 function niceScale(station) {

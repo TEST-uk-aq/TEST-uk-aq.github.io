@@ -51,22 +51,6 @@
       </section>
     </section>
 
-    <section class="wb-monitoring" aria-labelledby="monitoring-title">
-      <div class="wb-monitoring-copy">
-        <p class="wb-demo-notice"><strong>Draft preview</strong> — monitoring locations and chart values are illustrative.</p>
-        <h2 id="monitoring-title">Black Carbon monitoring</h2>
-        <p>The dots show example monitoring locations only. They do not represent concentration, risk, AQI or conditions across a wider area.</p>
-        <p class="wb-source-day">Illustrative source-through day: <time datetime="2026-03-31">31 March 2026</time></p>
-      </div>
-      <div class="wb-map-shell" id="monitoring-map-shell">
-        <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
-        <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
-          <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Illustrative monitoring locations on a geographic outline of the United Kingdom"></svg>
-          <figcaption id="map-caption">Illustrative locations · labels appear when expanded</figcaption>
-        </figure>
-      </div>
-    </section>
-
     <div id="summary-high-anchor"></div>
     <section class="wb-summary" id="wb-summary" aria-label="Illustrative Black Carbon monitoring summary">
       <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Illustrative fixture</p></article>
@@ -75,13 +59,26 @@
     </section>
 
     <section class="wb-charts" aria-labelledby="charts-title">
-      <div class="wb-section-heading">
-        <div><p class="wb-kicker">Illustrative diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
-        <label class="wb-property-label" for="property-select">Property
-          <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
-        </label>
+      <div class="wb-chart-intro-band">
+        <div class="wb-chart-intro-copy">
+          <p class="wb-demo-notice"><strong>Draft preview</strong> — monitoring locations and chart values are illustrative.</p>
+          <div class="wb-section-heading">
+            <div><p class="wb-kicker">Illustrative diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
+            <label class="wb-property-label" for="property-select">Property
+              <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
+            </label>
+          </div>
+          <p class="wb-chart-explanation">Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
+          <p class="wb-monitoring-note">Map dots show example monitoring locations only—not concentration, AQI, risk or conditions across a wider area. <span class="wb-source-day">Illustrative source-through day: <time datetime="2026-03-31">31 March 2026</time>.</span></p>
+        </div>
+        <div class="wb-map-shell" id="monitoring-map-shell">
+          <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
+          <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
+            <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Illustrative monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland"></svg>
+            <figcaption id="map-caption">Illustrative locations · labels appear when expanded</figcaption>
+          </figure>
+        </div>
       </div>
-      <p>Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
       <div class="wb-pagination" data-pagination></div>
       <div id="sensor-charts" class="wb-sensor-charts"></div>
       <div class="wb-pagination" data-pagination></div>
