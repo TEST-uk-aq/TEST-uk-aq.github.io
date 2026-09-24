@@ -67,7 +67,6 @@
   const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
   const PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS = 1500;
   const PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS = 10000;
-  const FOOTER_STYLESHEET_TIMEOUT_MS = 15000;
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
   const SIDEBAR_ICON_ON = '/sidebar-images/uk-aq-sidebar-on.svg';
@@ -957,42 +956,28 @@
   }
 
   function ensureSiteFooterStyles() {
-    const waitForStylesheet = (link) => new Promise((resolve) => {
-      let settled = false;
-      const finish = (loaded, reason) => {
-        if (settled) return;
-        settled = true;
-        window.clearTimeout(timeout);
-        link.removeEventListener('load', onLoad);
-        link.removeEventListener('error', onError);
-        if (!loaded) {
-          console.warn(`UK AQ footer stylesheet failed to load (${reason}); footer will remain hidden`);
-        }
-        resolve(loaded);
-      };
-      const onLoad = () => finish(true, 'load');
-      const onError = () => finish(false, 'error');
-      const timeout = window.setTimeout(
-        () => finish(false, 'timeout'),
-        FOOTER_STYLESHEET_TIMEOUT_MS,
-      );
-      link.addEventListener('load', onLoad, { once: true });
-      link.addEventListener('error', onError, { once: true });
-    });
-
     const existing = document.getElementById('ukaq-site-footer-styles');
     if (existing) {
-      if (existing.sheet) return Promise.resolve(true);
-      return waitForStylesheet(existing);
+      if (existing.sheet) return Promise.resolve();
+      return new Promise((resolve) => {
+        const done = () => resolve();
+        existing.addEventListener('load', done, { once: true });
+        existing.addEventListener('error', done, { once: true });
+        window.setTimeout(done, 1500);
+      });
     }
 
-    const link = document.createElement('link');
-    link.id = 'ukaq-site-footer-styles';
-    link.rel = 'stylesheet';
-    link.href = `${location.origin}/site-footer.css`;
-    const stylesheetReady = waitForStylesheet(link);
-    document.head.appendChild(link);
-    return stylesheetReady;
+    return new Promise((resolve) => {
+      const link = document.createElement('link');
+      link.id = 'ukaq-site-footer-styles';
+      link.rel = 'stylesheet';
+      link.href = `${location.origin}/site-footer.css`;
+      const done = () => resolve();
+      link.addEventListener('load', done, { once: true });
+      link.addEventListener('error', done, { once: true });
+      document.head.appendChild(link);
+      window.setTimeout(done, 1500);
+    });
   }
 
   // ─── Mount ────────────────────────────────────────────────────────────────────
@@ -1090,10 +1075,10 @@
     }
 
     siteVersionReady = loadSiteVersion();
-    const footerStylesReady = await ensureSiteFooterStyles();
+    await ensureSiteFooterStyles();
     const footer = mountSiteFooter();
     await filterFooterAttributions();
-    if (footerStylesReady) footer.hidden = false;
+    footer.hidden = false;
     window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
   }
 
