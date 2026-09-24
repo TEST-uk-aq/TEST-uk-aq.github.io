@@ -6,7 +6,7 @@
 
 The existing `/wood-burning/` route shell may remain while the fuller page is designed and implemented on TEST.
 
-This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, paired Summer/Winter diurnal charts, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, later chart extensions and campaign-specific content may still be refined later within these boundaries.
+This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, paired Summer/Winter BC/UV diurnal charts, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, later chart extensions and campaign-specific content may still be refined later within these boundaries.
 
 ## Scope
 
@@ -27,7 +27,8 @@ It defines:
 - responsive relocation of those summary cards on mobile;
 - the compact UK-outline Black Carbon sensor map;
 - map marker colour, expansion and labelling behaviour;
-- paired six-month Summer/Winter Black Carbon diurnal charts for each sensor;
+- paired six-month Summer/Winter diurnal charts for each sensor, initially centred on Black Carbon and backed by the BC/UV derived product;
+- support in the chart data boundary for `bc`, `uv370` and derived `uvpm`;
 - shared Y-axis behaviour within each sensor's chart pair;
 - six-sensor pagination and mobile chart stacking;
 - the page's use of the canonical `black_carbon` network identity;
@@ -41,9 +42,9 @@ It does not yet define:
 - chart types beyond the paired Summer/Winter diurnal comparison defined here;
 - user-selectable historical chart windows or comparison controls;
 - Clean Air Night-specific analysis or campaign calls to action;
-- a public Black Carbon historical-series API;
+- a general-purpose public raw Black Carbon historical-series API;
 - Black Carbon inclusion in Hex Map views;
-- UV 370 nm public presentation.
+- the exact UI/control for switching the paired charts between `bc`, `uv370` and `uvpm`.
 
 ## Route and shared navigation
 
@@ -192,7 +193,7 @@ Page title
 Opening 16:9 animation/video
 Short introduction
 Black Carbon monitoring / UK location-map section
-Summer/Winter Black Carbon sensor charts
+Summer/Winter BC/UV sensor charts
 What is Black Carbon?
 Wood burning and air pollution
 What does the evidence show?
@@ -330,11 +331,23 @@ Keyboard and assistive-technology operation MUST remain possible.
 
 Detailed measurement popups, historical values inside the map and map-to-chart interaction remain deferred.
 
-## Summer/Winter Black Carbon sensor charts
+## Summer/Winter BC/UV sensor charts
 
 Immediately below the Black Carbon monitoring/location-map section, the page MUST provide paired diurnal line charts for the current public Black Carbon sensors.
 
-The purpose of this section is to show how the typical Black Carbon concentration profile through the day differs across the warmer and colder halves of the year at each monitoring site.
+The initial presentation may centre on Black Carbon, but the chart data boundary MUST support the three profile properties supplied by the dedicated derived product:
+
+```text
+bc
+uv370
+uvpm
+```
+
+`uvpm` is not a stored canonical observation series. It is the derived exact-timestamp difference `uv370 - bc` defined by [../cache_proxy/bc-uv-diurnal-contract.md](../cache_proxy/bc-uv-diurnal-contract.md).
+
+The exact first-release control for switching between these properties remains a presentation decision. The page MUST NOT implement a separate browser-side derivation path for `uvpm`.
+
+The purpose of this section is to show how the typical selected BC/UV concentration profile through the day differs across the warmer and colder halves of the year at each monitoring site.
 
 ### Seasonal presentation
 
@@ -411,9 +424,9 @@ The chart legend SHOULD use concise month labels because the chart heading alrea
 
 The Summer and Winter charts for the **same sensor** MUST use exactly the same Y-axis minimum, maximum and tick positions.
 
-The shared scale MUST be resolved from the combined Summer + Winter values for that sensor pair so differences between the two halves of the year are visually comparable.
+The shared scale MUST be resolved from the combined Summer + Winter values for that sensor pair and the currently displayed property so differences between the two halves of the year are visually comparable.
 
-The Y-axis minimum SHOULD remain zero unless a later scientific/presentation contract explicitly authorises otherwise.
+For `bc` and `uv370`, the Y-axis minimum SHOULD normally remain zero. For derived `uvpm`, finite negative values are valid and MUST remain visible; its pair-specific Y-axis minimum MUST extend below zero when required by the displayed data.
 
 The Y-axis maximum SHOULD use a sensible rounded ceiling above the highest plotted value in either chart of that sensor pair.
 
@@ -421,11 +434,11 @@ The page MUST NOT independently auto-scale the Summer and Winter charts for the 
 
 A single global Y-axis scale across every sensor on the page is **not required**. Different sensors MAY use different pair-specific Y-axis ranges so a high-concentration site does not flatten meaningful variation at lower-concentration sites.
 
-The Y axis MUST clearly identify Black Carbon concentration and the canonical unit supplied by the source/data contract.
+The Y axis MUST clearly identify the currently displayed property and use `ug/m3` as supplied by the BC/UV product contract.
 
 ### Chart explanation and completeness note
 
-The chart section MUST include a concise explanation that each line shows the mean Black Carbon concentration for each GMT hour-ending period during that month.
+The chart section MUST include a concise explanation that each line shows the mean concentration for the selected BC/UV property for each GMT hour-ending period during that month.
 
 It MUST also state that:
 
@@ -469,13 +482,27 @@ Pagination MUST change only the displayed sensor groups. It MUST NOT change the 
 
 ### Data/API boundary
 
-The website MUST NOT derive these charts from ad-hoc scraped source material.
+The targeted pre-implementation check has established that the existing station-history/observation-history browser path is not an efficient or currently compatible boundary for this page's twelve-month profile aggregation.
 
-The chart data MUST come from canonical accepted Black Carbon observation history or a derived backend product owned by the relevant UK AQ data/API contracts.
+The owning derived product is therefore:
 
-If a dedicated derived endpoint/product is introduced, it SHOULD return the month/hour aggregates needed by the page rather than requiring every browser to download and aggregate large raw observation histories independently.
+```text
+GET /api/aq/bc-uv/diurnal
+```
 
-The exact backend publication/API shape remains a separate data/API contract decision and MUST be defined before implementation if no existing canonical product can efficiently supply the required aggregates.
+defined by [../cache_proxy/bc-uv-diurnal-contract.md](../cache_proxy/bc-uv-diurnal-contract.md).
+
+The website MUST consume that compact derived product rather than:
+
+- scraping UK-AIR source files;
+- extending the general AQI/station-history browser machinery merely for this page;
+- downloading a year of raw hourly observations per sensor;
+- calculating monthly GMT-hour means in the browser;
+- deriving `uvpm` in the browser.
+
+The product supplies `bc`, `uv370` and derived `uvpm` monthly/hour-ending aggregates plus completeness/provenance counts.
+
+The page MAY paginate the returned sensor population client-side in groups of six. Pagination MUST NOT cause a raw-history request per sensor.
 
 ## Initial summary cards
 
@@ -691,14 +718,14 @@ Before implementation, validate only the load-bearing structure:
 - sensor coordinates can be projected into the chosen SVG geometry;
 - the website can obtain the required current station population without treating the complete historical Black Carbon catalogue as current;
 - the custom video controls can independently manage mute state and the WebVTT caption track using native browser video APIs;
-- canonical accepted Black Carbon history can support six-month Summer/Winter GMT hour-ending aggregates without browser-side download of impractically large raw histories;
+- the dedicated `/api/aq/bc-uv/diurnal` product can supply six-month Summer/Winter GMT hour-ending aggregates for `bc`, `uv370` and derived `uvpm` without browser-side raw-history aggregation;
 - a pair-specific shared Y-axis can be derived from the combined Summer/Winter aggregate values for each sensor;
 - the current public sensor population can be deterministically paginated at a maximum of six sensor groups per page;
 - product-specific Hex Map filtering can exclude `black_carbon` even when it is public elsewhere.
 
 The exact "Locations covered" grouping rule is a genuinely required targeted decision/check before that numerical card is implemented.
 
-A second targeted pre-implementation check is required for the chart data boundary: confirm whether an existing canonical Black Carbon history/API product can efficiently supply the required month-by-GMT-hour aggregates. If not, define the owning derived backend/API contract before implementing browser chart aggregation.
+The chart-data pre-implementation check is complete. It established that a dedicated compact derived product is required; that boundary is now defined by [../cache_proxy/bc-uv-diurnal-contract.md](../cache_proxy/bc-uv-diurnal-contract.md).
 
 No broad speculative pre-deployment functional test suite should be created.
 
@@ -726,6 +753,8 @@ Acceptance SHOULD confirm:
 - each displayed sensor has one Summer and one Winter diurnal chart;
 - Summer represents April–September and Winter represents October–March, with the covered months/years visible to the user;
 - monthly lines use GMT hour-ending slots from 01:00 through 24:00;
+- chart data is supplied by `/api/aq/bc-uv/diurnal`, not browser-side raw-history aggregation;
+- the page data layer can consume `bc`, `uv370` and derived `uvpm` without inventing a `uvpm` timeseries identity;
 - Summer and Winter charts for the same sensor use the same Y-axis range and tick positions;
 - different sensors may use different pair-specific Y-axis ranges;
 - missing source observations are not fabricated/interpolated into monthly hourly means;
