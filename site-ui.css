@@ -39,6 +39,17 @@
   object-position: left center;
 }
 
+/* These one-line PNGs include the standard transparent export margin. Match
+   their painted height to the edge-to-edge Hex Map title and the 56px News
+   title canvas without changing the shared mobile fit behaviour. */
+@media (min-width: 768px) {
+  body[data-page-slug="wood-burning"] .ukaq-page-title-image,
+  body[data-page-slug="naei-data"] .ukaq-page-title-image,
+  body[data-page-slug="research"] .ukaq-page-title-image {
+    height: 56px;
+  }
+}
+
 @media (max-width: 767px) {
   .ukaq-page-title-heading {
     min-height: 44px;
