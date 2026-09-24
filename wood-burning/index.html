@@ -4,31 +4,95 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="A draft UK AQ guide to wood burning and illustrative Black Carbon monitoring profiles.">
   <title>Wood Burning | UK AQ</title>
   <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/site-ui.css">
-  <style>
-    body { margin: 0; background: #FBFAF7; color: #101822; font-family: Inter, system-ui, sans-serif; }
-    .page-shell { box-sizing: border-box; min-height: 100vh; padding: 34px 28px 64px; }
-    .page-shell h1 { margin: 0; font-size: clamp(1.9rem, 3.2vw, 2.4rem); line-height: 1.2; }
-    @media (max-width: 767px) { .page-shell { padding: 16px 12px 48px; } }
-  </style>
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <link rel="stylesheet" href="wood-burning.css">
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <script type="module" src="wood-burning.js"></script>
 </head>
-<body data-page-slug="wood-burning">
+<body class="wood-burning-page" data-page-slug="wood-burning">
   <div id="uk-aq-sidebar-mount"></div>
   <script src="/sidebar.js"></script>
-  <main class="page-shell" id="mainContent">
+  <main class="wood-main" id="mainContent">
     <h1 class="ukaq-page-title-heading">
       <span class="ukaq-page-title-text">Wood Burning</span>
-      <picture class="ukaq-page-title-picture">
-        <img
-          class="ukaq-page-title-image"
-          src="/images/UK-AQ-wood-burning-1line.png"
-          alt=""
-          aria-hidden="true"
-        >
-      </picture>
+      <picture class="ukaq-page-title-picture"><img class="ukaq-page-title-image" src="/images/UK-AQ-wood-burning-1line.png" alt="" aria-hidden="true"></picture>
     </h1>
+
+    <section class="wb-video" aria-labelledby="video-title">
+      <h2 class="visually-hidden" id="video-title">Wood burning explainer</h2>
+      <div class="wb-video-frame">
+        <video id="wood-video" muted loop playsinline preload="none" poster="wood-burning-poster.svg" aria-describedby="video-placeholder">
+          <!-- Production: add HEVC, then H.264 sources and a separate WebVTT track here. -->
+        </video>
+        <p id="video-placeholder" class="wb-video-placeholder"><strong>Explanatory video coming soon</strong><span>Draft static preview</span></p>
+        <div class="wb-video-controls" aria-label="Video controls">
+          <button type="button" disabled aria-label="Sound control unavailable until video is added">Sound off</button>
+          <button type="button" disabled aria-label="Captions control unavailable until captions are added">CC on</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wb-intro" aria-labelledby="intro-title">
+      <p class="wb-kicker">Draft page preview</p>
+      <h2 id="intro-title">Wood burning, particles and monitoring</h2>
+      <p>Wood combustion can contribute to particulate pollution. Black Carbon monitoring can help describe patterns at individual sites, but a concentration alone cannot identify its source.</p>
+    </section>
+
+    <section class="wb-monitoring" aria-labelledby="monitoring-title">
+      <div class="wb-monitoring-copy">
+        <p class="wb-demo-notice"><strong>Draft preview</strong> — monitoring locations and chart values are illustrative.</p>
+        <h2 id="monitoring-title">Black Carbon monitoring</h2>
+        <p>The dots show example monitoring locations only. They do not represent concentration, risk, AQI or conditions across a wider area.</p>
+        <p class="wb-source-day">Illustrative source-through day: <time datetime="2026-03-31">31 March 2026</time></p>
+      </div>
+      <div class="wb-map-shell" id="monitoring-map-shell">
+        <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
+        <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
+          <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Illustrative monitoring locations on a geographic outline of the United Kingdom"></svg>
+          <figcaption id="map-caption">Illustrative locations · labels appear when expanded</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <div id="summary-high-anchor"></div>
+    <section class="wb-summary" id="wb-summary" aria-label="Illustrative Black Carbon monitoring summary">
+      <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Illustrative fixture</p></article>
+      <article><span id="summary-reporting">—</span><h2>Reporting on latest day</h2><p>Illustrative fixture</p></article>
+      <article><span>—</span><h2>Locations covered</h2><p>Definition pending</p></article>
+    </section>
+
+    <section class="wb-charts" aria-labelledby="charts-title">
+      <div class="wb-section-heading">
+        <div><p class="wb-kicker">Illustrative diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
+        <label class="wb-property-label" for="property-select">Property
+          <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
+        </label>
+      </div>
+      <p>Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
+      <div class="wb-pagination" data-pagination></div>
+      <div id="sensor-charts" class="wb-sensor-charts"></div>
+      <div class="wb-pagination" data-pagination></div>
+    </section>
+
+    <div class="wb-reading">
+      <section><h2>What is Black Carbon?</h2><p>Black Carbon is a component of particulate pollution produced by incomplete combustion. It is not specific to domestic wood burning; road transport and other fuel combustion may also contribute.</p></section>
+      <section><h2>Wood burning and air pollution</h2><p>Smoke from wood combustion contains particles and can affect indoor and outdoor air. The amount measured at a monitor varies with local conditions, combustion sources and weather.</p></section>
+      <section><h2>What does the evidence show?</h2><p>This draft reserves space for carefully sourced UK evidence and peer-reviewed research. Final editorial copy and references are still being prepared.</p></section>
+      <section><h2>Monitoring and limitations</h2><p>Black Carbon monitoring is sparse compared with common pollutants. A monitor describes its own location, not a whole town, authority, region or the UK. Concentration alone does not establish source attribution, and the latest source day may lag the browser date.</p></section>
+    </div>
+
+    <div id="summary-low-anchor"></div>
+    <section class="wb-related" aria-labelledby="related-title">
+      <h2 id="related-title">Related UK AQ pages</h2>
+      <div class="wb-related-links"><a href="/hex_map/">Hex Map</a><a href="/sensor_map/">Sensor Map</a><a href="/who-guidelines/">WHO Guidelines</a><a href="/naei-data/">NAEI Data</a><a href="/research/">Research</a><a href="/news/">AQ in the News</a></div>
+    </section>
   </main>
 </body>
 </html>

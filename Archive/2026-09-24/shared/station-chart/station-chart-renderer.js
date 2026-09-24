@@ -229,7 +229,6 @@
         .domain([state.range.startDate, state.range.endDate])
         .range([margin.left, size.width - margin.right]);
       const yScale = d3.scaleLinear().domain([0, 1]).range([size.height - margin.bottom, margin.top]);
-      const yGrid = svg.append("g").attr("class", "chart-y-grid");
       const aqi = svg.append("g").attr("class", "aqi-bands");
       const xAxis = svg.append("g").attr("class", "chart-axis")
         .attr("transform", `translate(0, ${size.height - margin.bottom})`);
@@ -244,7 +243,7 @@
       const empty = svg.append("g").attr("class", "chart-empty-state");
       const overlay = svg.append("rect").attr("class", "chart-overlay")
         .attr("fill", "transparent").style("pointer-events", "all");
-      frame = { ...size, margin, clipId, symbolClipId, svg, xScale, yScale, yGrid, aqi, xAxis, yAxis, yLabel, guideline, guidelineLabel, series, symbols, empty, overlay };
+      frame = { ...size, margin, clipId, symbolClipId, svg, xScale, yScale, aqi, xAxis, yAxis, yLabel, guideline, guidelineLabel, series, symbols, empty, overlay };
       layoutFrame(state);
       installTooltip();
       return frame;
@@ -358,13 +357,7 @@
       }
       const plotWidth = Math.max(0, current.width - current.margin.left - current.margin.right);
       current.xAxis.call(buildXAxis(d3, current.xScale, state.range.endMs - state.range.startMs, plotWidth));
-      const yTicks = current.yScale.ticks(5);
-      current.yAxis.call(d3.axisLeft(current.yScale).tickValues(yTicks).tickSizeOuter(0));
-      current.yGrid.selectAll("line").data(yTicks).join("line")
-        .attr("x1", current.margin.left)
-        .attr("x2", current.width - current.margin.right)
-        .attr("y1", function (tick) { return current.yScale(tick); })
-        .attr("y2", function (tick) { return current.yScale(tick); });
+      current.yAxis.call(d3.axisLeft(current.yScale).ticks(5).tickSizeOuter(0));
       const guideline = Number(state.guideline?.limit_value);
       if (Number.isFinite(guideline)) {
         const y = current.yScale(guideline);
