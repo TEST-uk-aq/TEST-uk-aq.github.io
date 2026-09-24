@@ -2,15 +2,15 @@
 
 ## Status
 
-**Authoritative future implementation contract for the initial Wood Burning page phase.**
+**Authoritative future implementation contract for the Wood Burning page.**
 
-The existing `/wood-burning/` route shell may remain until this phase is implemented and accepted on TEST.
+The existing `/wood-burning/` route shell may remain while the fuller page is designed and implemented on TEST.
 
-This contract intentionally fixes only the decisions already agreed for the initial page structure and Black Carbon presentation. The main explanatory content, detailed chart design and later campaign-specific content remain deferred.
+This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, historical chart design and campaign-specific content may still be refined later within these boundaries.
 
 ## Scope
 
-This contract governs the initial public presentation for:
+This contract governs the public presentation for:
 
 ```text
 /wood-burning/
@@ -18,20 +18,25 @@ This contract governs the initial public presentation for:
 
 It defines:
 
-- the initial Black Carbon summary-card set;
-- responsive placement of those summary cards;
-- the initial geographical Black Carbon sensor map;
+- the standard UK AQ page-title treatment;
+- the opening 16:9 explanatory animation/video;
+- video hosting/delivery and fallback formats;
+- video autoplay, mute, captions and reduced-motion behaviour;
+- the initial page content hierarchy;
+- the three Black Carbon summary cards;
+- responsive relocation of those summary cards on mobile;
+- the compact UK-outline Black Carbon sensor map;
+- map marker colour, expansion and labelling behaviour;
 - the page's use of the canonical `black_carbon` network identity;
 - the shared-footer Black Carbon attribution dependency;
 - the current exclusion of Black Carbon from the Hex Map;
-- the boundary between the initial page shell and later Wood Burning / Clean Air Night content decisions.
+- scientific boundaries around what the map and Black Carbon observations may imply.
 
 It does not yet define:
 
-- the full explanatory/editorial content of the page;
-- detailed chart types, controls, comparison periods or annotations;
-- Clean Air Night campaign-specific sections;
-- map popup/detail-card content;
+- final production wording for every explanatory section;
+- historical Black Carbon chart types, controls or comparison periods;
+- Clean Air Night-specific analysis or campaign calls to action;
 - a public Black Carbon historical-series API;
 - Black Carbon inclusion in Hex Map views;
 - UV 370 nm public presentation.
@@ -54,6 +59,156 @@ Shared navigation ordering, icon geometry, drawer behaviour and route highlighti
 
 The Wood Burning page MUST use the normal shared UK AQ shell and MUST NOT introduce a page-specific duplicate sidebar or footer.
 
+## Page title
+
+The visible page title MUST use the supplied one-line artwork:
+
+```text
+/images/UK-AQ-wood-burning-1line.png
+```
+
+The page MUST NOT switch to the two-line artwork at narrower widths.
+
+The title MUST follow the established Hex Map / AQ in the News title treatment:
+
+- occupy the standard UK AQ top-of-page title position;
+- preserve a semantic accessible `<h1>` for "Wood Burning";
+- shrink responsively to fit available horizontal space;
+- preserve image aspect ratio;
+- avoid overlap with the hamburger/menu control;
+- avoid overlap with the shared UK AQ home logo;
+- avoid clipping or viewport overflow.
+
+The shared UK AQ logo and hamburger MUST NOT be moved merely to accommodate this title.
+
+## Opening animation/video
+
+The opening explanatory visual MUST be a **16:9** video/animation placed prominently near the top of the page immediately below the standard page-title area.
+
+The video is an explanatory enhancement rather than the only source of essential information. Important claims or concepts shown in the animation MUST also be available in page text or captions.
+
+### Hosting and delivery
+
+Production video files SHOULD be served from Cloudflare R2 through a UK AQ custom media hostname rather than committed as large binary assets in the GitHub Pages repository.
+
+The intended delivery pattern is conceptually:
+
+```text
+GitHub Pages HTML/CSS/JS
+        |
+        v
+native <video>
+        |
+        v
+UK AQ media hostname
+        |
+        v
+Cloudflare cache / R2
+```
+
+The exact R2 bucket and hostname configuration is an infrastructure decision, but the page implementation MUST consume a stable HTTPS media URL and MUST NOT depend on YouTube/Vimeo for this opening animation.
+
+### Video formats
+
+The page SHOULD provide:
+
+1. H.265 / HEVC MP4 as the preferred higher-efficiency source where the browser/platform can play it;
+2. H.264 MP4 as the broad-compatibility fallback.
+
+The H.264 source MUST remain available so playback does not depend on HEVC support.
+
+Additional formats such as WebM/AV1 are not required for the initial phase.
+
+### Default playback behaviour
+
+The video MUST:
+
+- use a 16:9 presentation area;
+- autoplay where browser policy permits;
+- start muted;
+- loop;
+- use `playsinline`;
+- use a static poster image before video playback is ready;
+- avoid browser-default controls if custom controls are provided;
+- remain usable if autoplay is blocked.
+
+### Sound control
+
+A visible custom sound/mute control MUST be provided.
+
+Initial state:
+
+```text
+Muted
+```
+
+The control MUST clearly communicate the current sound state and be keyboard accessible.
+
+Toggling sound MUST affect audio only. It MUST NOT implicitly force captions on or off because captions have their own independent CC control.
+
+### Captions / subtitles
+
+The animation SHOULD use a separate WebVTT subtitle/caption track rather than permanently burning captions into the video.
+
+A visible custom **CC** control MUST allow the user to independently turn captions on and off.
+
+Initial caption state SHOULD be:
+
+```text
+On
+```
+
+because the video autoplays muted.
+
+The CC control MUST remain independent from the sound/mute control:
+
+- users may have sound off + captions on;
+- sound on + captions on;
+- sound on + captions off;
+- sound off + captions off.
+
+The user's interaction should not cause unrelated video controls to reset.
+
+### Reduced motion
+
+When `prefers-reduced-motion: reduce` applies, the page MUST NOT automatically run the looping animation.
+
+The static poster/first-frame presentation SHOULD remain visible instead. Explicit user-initiated playback MAY still be supported.
+
+Reduced-motion behaviour MUST NOT remove access to the explanatory information supplied elsewhere in the page.
+
+## Agreed page hierarchy
+
+The initial fuller page SHOULD progress from explanation to measurements/evidence rather than present itself as a dashboard first.
+
+The agreed conceptual order is:
+
+```text
+Page title
+Opening 16:9 animation/video
+Short introduction
+Black Carbon monitoring / UK location-map section
+What is Black Carbon?
+Wood burning and air pollution
+What does the evidence show?
+Monitoring and limitations
+Summary cards on mobile
+Related UK AQ pages / further information
+Shared footer
+```
+
+At desktop/tablet widths the summary cards may appear much higher, as defined below.
+
+The final written copy for the explanatory sections may be refined later, but implementation MUST preserve the basic information architecture unless this contract is updated.
+
+## Short introduction
+
+Immediately following the opening animation/video, the page SHOULD provide a concise introduction explaining why wood burning, particulate pollution and Black Carbon are being discussed together.
+
+The introduction MUST NOT imply that every Black Carbon observation is caused by domestic wood burning.
+
+Detailed wording remains editorially open.
+
 ## Black Carbon network identity
 
 The canonical monitoring-network code for this page is:
@@ -74,9 +229,105 @@ Public display of Black Carbon data on this page is conditional on the network b
 
 The page MUST NOT treat `public_display_enabled` as meaning that Black Carbon is automatically eligible for every UK AQ product. Product-specific eligibility remains explicit, including the Hex Map exclusion below.
 
+## Black Carbon monitoring section
+
+The page MUST include a dedicated monitoring section that combines concise explanatory information with the compact Black Carbon location map.
+
+At desktop/tablet widths this section SHOULD support a two-column presentation, with explanatory/monitoring information occupying the larger content area and the compact UK map positioned on the right-hand side.
+
+The map is intentionally a small supporting visual in its resting state rather than a dominant full-width map.
+
+## Black Carbon sensor map
+
+The initial map MUST be a simplified **geographical UK outline**, not a normal tiled web basemap.
+
+### Geographic outline
+
+The map MUST:
+
+- show the United Kingdom outline in a restrained dark-grey stroke;
+- include England, Scotland, Wales and Northern Ireland;
+- not present the Republic of Ireland as part of the map;
+- avoid roads, terrain, administrative shading, place-name clutter and conventional basemap tiles;
+- preserve real geographical relationships between eligible Black Carbon monitoring locations.
+
+If map geometry includes surrounding context for technical clipping/projection purposes, the Republic of Ireland MUST NOT be drawn as a normal visible land outline comparable with the UK.
+
+SVG is the preferred presentation technology for this initial map because the requirement is a lightweight outline, sensor points and labels rather than pan/zoom mapping.
+
+### Sensor markers
+
+The map MUST render one marker per eligible current public Black Carbon sensor location.
+
+Sensor dots MUST use the standard UK AQ blue:
+
+```text
+#3C78AC
+```
+
+Marker colour MUST indicate "UK AQ monitoring location" only.
+
+The marker colour MUST NOT encode:
+
+- concentration;
+- health risk;
+- AQI;
+- completeness;
+- source attribution;
+- administrative-area status.
+
+The map is a **monitoring-location map**, not a pollution heat map.
+
+### Resting size
+
+On desktop/tablet the map SHOULD remain relatively compact while at rest so it supports, rather than dominates, the surrounding explanation.
+
+It SHOULD sit on the right-hand side of the monitoring section where practical.
+
+### Expansion on desktop
+
+On pointer-capable desktop/tablet layouts, hovering the map MAY smoothly enlarge it so sensor geography is easier to inspect.
+
+Keyboard focus MUST provide an equivalent expanded state. Expansion MUST NOT be hover-only.
+
+The expansion MUST:
+
+- remain visually stable;
+- avoid forcing disruptive page reflow where practical;
+- preserve the UK outline and marker geometry;
+- provide enough space for location labels to become legible;
+- remain dismissible simply by leaving hover/focus state.
+
+The implementation SHOULD prefer a CSS/SVG expansion treatment rather than introducing a full interactive mapping library solely for this behaviour.
+
+### Labels
+
+In the expanded state, monitoring locations SHOULD be labelled with their user-facing station/location names.
+
+Where labels would collide, short leader lines and/or sensible label offsets MAY be used.
+
+Individual markers MAY also expose their location name on hover/focus.
+
+Labels MUST describe the monitoring location only. They MUST NOT imply the measured value represents the surrounding town, region or administrative area.
+
+### Mobile interaction
+
+Below `768px`, hover cannot be assumed.
+
+The mobile map SHOULD therefore use an explicit tap interaction:
+
+- tap/activate to expand;
+- tap a close/dismiss affordance or activate again to return to the compact state.
+
+The map MUST NOT unexpectedly expand merely because the user scrolls across it.
+
+Keyboard and assistive-technology operation MUST remain possible.
+
+Detailed measurement popups, historical charts and map-to-chart interaction remain deferred.
+
 ## Initial summary cards
 
-The initial Wood Burning page has **three** summary cards.
+The Wood Burning page has **three** summary cards.
 
 The agreed card labels/concepts are:
 
@@ -116,32 +367,95 @@ The exact canonical grouping rule for a "location" MUST be defined by the page's
 
 ## Summary-card responsive placement
 
-At viewport widths of `768px` and above, the three-card summary section SHOULD appear near the top of the Wood Burning page, following the page heading/introductory shell and before the main detailed page content.
+At viewport widths of `768px` and above, the three-card summary section SHOULD appear relatively high on the page, associated with the introductory/monitoring portion of the page and before the deeper explanatory/evidence sections.
 
-Below `768px`, the summary section MUST move after the primary Wood Burning page content and before the shared site footer.
+Below `768px`, the summary-card section MUST move towards the bottom of the page, following the same broad mobile-priority principle used by the Hex Map rather than forcing dashboard-style statistics ahead of primary content.
 
-This mobile relocation is intentional. Mobile users should reach the primary page content without first having to scroll through the summary-card set.
+The intended mobile order is:
+
+```text
+Title
+16:9 animation
+Introduction
+Black Carbon map / monitoring section
+What is Black Carbon?
+Wood burning and air pollution
+What does the evidence show?
+Monitoring and limitations
+Three summary cards
+Related UK AQ pages / further information
+Footer
+```
 
 The same underlying card values MUST be used at all responsive widths. Responsive presentation MUST NOT introduce separate mobile calculations or APIs.
 
-## Black Carbon sensor map
+## What is Black Carbon?
 
-The initial page MUST include a compact real geographical map showing where the current public Black Carbon sensors are located.
+The page SHOULD include a compact explanatory section describing Black Carbon as a component of particulate pollution produced by incomplete combustion.
 
-The initial map presentation MUST:
+This section MUST make clear that Black Carbon is **not specific to domestic wood burning**.
 
-- use geographical coordinates rather than a schematic or administrative-area diagram;
-- render one simple point/marker per eligible Black Carbon sensor location;
-- use a restrained basemap and marker treatment so sensor geography is the primary purpose;
-- avoid implying a Black Carbon health threshold or AQI band through marker colour;
-- avoid Local Authority, constituency or hex-area shading;
-- avoid presenting the network as a continuous spatial surface.
+Other combustion sources, including road transport and other fuel combustion, may contribute to Black Carbon observations.
 
-The initial map is a **location map**, not a pollution heat map.
+The page MUST NOT attribute a measured Black Carbon concentration to wood burning merely because it appears on the Wood Burning page.
 
-Detailed popup content, selected-marker behaviour, historical values inside the map and map-to-chart interaction remain deferred.
+## Wood burning and air pollution
 
-Implementation SHOULD reuse established website mapping technology and shared data identities where practical rather than create a separate incompatible mapping stack.
+The page SHOULD include an educational section explaining the relationship between wood burning and air pollution.
+
+The structure may use short visual/text blocks rather than one long uninterrupted article.
+
+Topics may include:
+
+- particulate emissions from wood combustion;
+- PM2.5;
+- Black Carbon;
+- incomplete combustion;
+- indoor and outdoor pollution pathways;
+- how smoke can affect neighbouring properties and the wider outdoor environment.
+
+Final wording and supporting illustrations remain editorial decisions, but claims MUST remain evidence-based and appropriately qualified.
+
+## What does the evidence show?
+
+The page SHOULD reserve a distinct evidence/research section rather than mixing research claims invisibly into general explanatory copy.
+
+This section may later surface:
+
+- UK evidence;
+- emissions-inventory evidence;
+- peer-reviewed research;
+- relevant UK AQ Research-page links.
+
+The detailed source set and final research presentation remain deferred.
+
+## Monitoring and limitations
+
+The page MUST include a clear limitations section.
+
+It SHOULD explain in plain language that:
+
+- Black Carbon monitoring is sparse compared with common regulated pollutants such as PM2.5;
+- a monitoring site measures conditions at its own location;
+- a site reading does not represent an entire town, authority, region or the whole UK;
+- source attribution generally cannot be inferred from concentration alone;
+- weather and other combustion sources affect measured concentrations;
+- the latest available Black Carbon day may lag the browser's current date.
+
+This section is important to prevent the map and current observations from being interpreted as broader spatial/source claims than the data supports.
+
+## Related UK AQ pages / further information
+
+The lower page MAY provide links/cards to relevant UK AQ sections such as:
+
+- Hex Map;
+- Sensor Map;
+- WHO Guidelines;
+- NAEI Data;
+- Research;
+- AQ in the News.
+
+Exact ordering and card styling remain presentation decisions and SHOULD reuse existing UK AQ link/card conventions where practical.
 
 ## Shared footer attribution
 
@@ -176,32 +490,7 @@ This exclusion is deliberate because the Black Carbon source has daily rather th
 
 Public-network catalogue membership therefore MUST NOT by itself force Black Carbon into the Hex Map's product-specific network set.
 
-A later decision MAY add Black Carbon to some Hex Map surface, but that requires a separate explicit contract update covering at minimum:
-
-- which Hex Map views are appropriate;
-- how non-live/latest-available dates are communicated;
-- whether charts anchor to yesterday or another latest-available date;
-- what happens when the latest source day is delayed;
-- whether any area aggregation is scientifically and visually appropriate.
-
-This contract does **not** authorise a yesterday-anchored Black Carbon Hex Map chart mode because Black Carbon is currently excluded from the Hex Map.
-
-## Main page content boundary
-
-The following decisions remain intentionally open for a later Wood Burning page contract update:
-
-- the full text/content hierarchy;
-- Wood Burning versus Clean Air Night branding balance;
-- historical Black Carbon charts;
-- chart date-window controls;
-- comparison/baseline methodology;
-- explanatory sections on wood burning and Black Carbon;
-- event/night-specific analysis;
-- annotations and calls to action;
-- UV 370 nm presentation;
-- map popup and drill-down content.
-
-Implementation MUST NOT fill these undecided areas with invented production content merely to complete the initial structural phase.
+A later decision MAY add Black Carbon to some Hex Map surface, but that requires a separate explicit contract update.
 
 ## Data and scientific boundaries
 
@@ -214,6 +503,8 @@ The page MUST NOT:
 - infer live/current status from the browser clock;
 - fabricate missing observations;
 - use retired historical stations to inflate the current network summary;
+- attribute a Black Carbon observation to domestic wood burning without source-attribution evidence;
+- turn the UK outline map into a heat map or spatial interpolation;
 - treat a null compact-ingest latest-value field as proof that Black Carbon R2 history is absent.
 
 The Black Carbon ingest identity contract and R2 history contracts remain authoritative for source identity, station/timeseries identity, observation history and verification status.
@@ -228,9 +519,13 @@ TEST-uk-aq/TEST-uk-aq.github.io/sidebar.js
 TEST-uk-aq/TEST-uk-aq.github.io/site-footer.css
 ```
 
-A future page-specific JavaScript/CSS module MAY be introduced where needed, but shared sidebar/footer logic MUST remain shared.
+A page-specific Wood Burning JavaScript/CSS module MAY be introduced for the video controls, responsive ordering and SVG map interaction.
 
-Any backend/API work required to supply summary counts, locations or historical Black Carbon observations belongs to the owning cache/data/API area and requires its own contract update rather than being embedded as ad-hoc website data logic.
+The shared sidebar/footer logic MUST remain shared.
+
+Large video binaries SHOULD remain outside the website Git repository and be served from the agreed R2/media delivery path.
+
+Any backend/API work required to supply summary counts, current locations or historical Black Carbon observations belongs to the owning cache/data/API area and requires its own contract update rather than being embedded as ad-hoc website data logic.
 
 ## Structural validation before implementation
 
@@ -239,12 +534,15 @@ Before implementation, validate only the load-bearing structure:
 - `black_carbon` can be distinguished from `gov_uk_aurn` in the public network catalogue;
 - the shared footer can support two independently gated pills in one Defra/UK-AIR attribution box;
 - current public Black Carbon stations have usable geographical coordinates for the location map;
+- the selected UK outline geometry can represent England, Scotland, Wales and Northern Ireland without visually including the Republic of Ireland as part of the UK map;
+- sensor coordinates can be projected into the chosen SVG geometry;
 - the website can obtain the required current station population without treating the complete historical Black Carbon catalogue as current;
+- the custom video controls can independently manage mute state and the WebVTT caption track using native browser video APIs;
 - product-specific Hex Map filtering can exclude `black_carbon` even when it is public elsewhere.
 
 The exact "Locations covered" grouping rule is a genuinely required targeted decision/check before that numerical card is implemented.
 
-Do not create a broad speculative pre-deployment test suite.
+No broad speculative pre-deployment functional test suite should be created.
 
 ## TEST functional acceptance
 
@@ -253,13 +551,24 @@ After implementation/deployment, functional and visual acceptance MUST use the r
 Acceptance SHOULD confirm:
 
 - the page uses the normal shared shell and `/wood-burning/` route;
-- desktop/tablet shows the three-card summary near the top;
-- mobile places the summary after the primary page content;
+- the one-line Wood Burning title uses the normal UK AQ title position and shrinks without overlapping shared chrome;
+- the opening visual maintains a 16:9 presentation;
+- supported browsers select/play an appropriate HEVC or H.264 source;
+- autoplay begins muted where browser policy permits;
+- sound/mute and CC controls work independently;
+- captions come from the separate track and default on for muted autoplay;
+- reduced-motion users do not receive automatic looping animation;
+- the compact UK map is on the right at desktop/tablet widths where layout permits;
+- the map shows the UK outline without presenting the Republic of Ireland as part of the map;
+- eligible Black Carbon sensors are positioned geographically;
+- sensor dots use UK AQ blue `#3C78AC`;
+- marker colour does not encode concentration or AQI;
+- desktop pointer hover and keyboard focus can expose the enlarged map/labels;
+- mobile provides an explicit tap-based expansion/dismiss interaction;
+- desktop/tablet places the three-card summary relatively high in the page;
+- mobile places the three summary cards after the main explanatory/limitations content;
 - no fourth network-median/latest-concentration card is present;
-- the geographical map plots the intended current public Black Carbon sensors as points;
-- markers do not use an invented concentration/AQI colour scale;
 - retired historical stations are not accidentally presented as the current network;
-- `black_carbon` public visibility enables the shared Black Carbon footer pill;
-- the AURN and Black Carbon footer pills respond independently to catalogue membership;
-- the shared Defra/OGL wording remains correct when either pill is visible;
-- Black Carbon does not appear in the Hex Map network/product surfaces in this phase.
+- limitations text prevents source/spatial over-interpretation;
+- Black Carbon remains excluded from Hex Map product surfaces;
+- the shared Black Carbon footer attribution continues to follow the public-network catalogue.
