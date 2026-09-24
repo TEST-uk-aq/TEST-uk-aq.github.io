@@ -5,8 +5,8 @@
   <defs>
     <linearGradient id="ukaqTitleGradient"
                     gradientUnits="userSpaceOnUse"
-                    x1="0" y1="0"
-                    x2="2106.25" y2="200.00">
+                    x1="1004.27" y1="-177.08"
+                    x2="1101.98" y2="377.08">
       <stop offset="0" stop-color="#6dc4ff"/>
       <stop offset="1" stop-color="#194c81"/>
     </linearGradient>
