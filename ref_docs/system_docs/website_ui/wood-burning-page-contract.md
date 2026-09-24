@@ -6,7 +6,7 @@
 
 The existing `/wood-burning/` route shell may remain while the fuller page is designed and implemented on TEST.
 
-This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, paired Summer/Winter BC/UV diurnal charts, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, later chart extensions and campaign-specific content may still be refined later within these boundaries.
+This contract fixes the agreed page hierarchy, Black Carbon summary presentation, opening animation/video treatment, Black Carbon location map, paired Summer/Winter BC/UV diurnal charts, monthly-series colour/legend interaction, responsive ordering and scientific/presentation boundaries. Detailed editorial copy, later chart extensions and campaign-specific content may still be refined later within these boundaries.
 
 ## Scope
 
@@ -30,6 +30,8 @@ It defines:
 - paired six-month Summer/Winter diurnal charts for each sensor, initially centred on Black Carbon and backed by the BC/UV derived product;
 - support in the chart data boundary for `bc`, `uv370` and derived `uvpm`;
 - shared Y-axis behaviour within each sensor's chart pair;
+- shared horizontal Y-grid presentation;
+- six solid-colour monthly series with an interactive legend and no series symbols in the initial implementation;
 - six-sensor pagination and mobile chart stacking;
 - the page's use of the canonical `black_carbon` network identity;
 - the shared-footer Black Carbon attribution dependency;
@@ -420,6 +422,45 @@ If a month lacks accepted observations for a particular GMT hour-ending slot, th
 
 The chart legend SHOULD use concise month labels because the chart heading already establishes the relevant year or year pair.
 
+### Monthly series styling and legend interaction
+
+The Wood Burning charts MUST follow the shared line-chart presentation rules in [`shared-line-chart-presentation-contract.md`](shared-line-chart-presentation-contract.md), including subtle horizontal dotted/short-dash grid lines aligned with visible Y-axis ticks and no general vertical grid.
+
+The six monthly series within each Summer or Winter chart MUST initially be distinguished by **colour only**.
+
+For the initial implementation:
+
+- all monthly data lines MUST be solid;
+- use six visually distinguishable colours;
+- do not add point symbols/markers merely to identify the six months;
+- do not assign six different dash patterns;
+- the ordered colour sequence MUST be deterministic from the first through sixth month of each half-year;
+- Summer and Winter MAY reuse the same six-position colour sequence because each chart has its own explicit month legend.
+
+The compact legend labels SHOULD remain:
+
+```text
+Summer: Apr May Jun Jul Aug Sep
+Winter: Oct Nov Dec Jan Feb Mar
+```
+
+The year/year-pair remains in the chart heading rather than being repeated on every legend item.
+
+Each month legend item MUST be an interactive control with useful mouse, keyboard and touch operation.
+
+Selecting a month MUST:
+
+- keep that month's line at full prominence;
+- visually subdue the other five monthly lines without removing them;
+- show the selected legend control using the same established **light-blue selected-control treatment used by Hex Map controls**;
+- expose selected state accessibly, for example with `aria-pressed` or equivalent semantics.
+
+At mobile widths, the legend item itself MUST provide the practical touch target. The user MUST NOT be expected to accurately tap a thin chart line to select a month.
+
+Pointer hover/focus over a legend item or eligible plotted line MAY provide the same temporary emphasis on desktop, but the persistent selection action MUST remain available by click/tap and keyboard.
+
+The initial implementation MUST NOT add month symbols. Symbols or an additional line-pattern distinction may be reconsidered only if real TEST use demonstrates that the colour-plus-interactive-legend treatment is insufficient.
+
 ### Shared Y-axis within each sensor pair
 
 The Summer and Winter charts for the **same sensor** MUST use exactly the same Y-axis minimum, maximum and tick positions.
@@ -753,6 +794,10 @@ Acceptance SHOULD confirm:
 - each displayed sensor has one Summer and one Winter diurnal chart;
 - Summer represents April–September and Winter represents October–March, with the covered months/years visible to the user;
 - monthly lines use GMT hour-ending slots from 01:00 through 24:00;
+- horizontal dotted/short-dash grid lines align with visible Y-axis ticks and no general vertical grid is added;
+- each six-month chart uses six solid colour-distinguished monthly lines with no symbols in the initial implementation;
+- selecting a month via the legend highlights it, subdues the other five, and uses the established Hex Map light-blue selected-control treatment;
+- the legend selection works by mouse, keyboard and touch, with a practical mobile touch target;
 - chart data is supplied by `/api/aq/bc-uv/diurnal`, not browser-side raw-history aggregation;
 - the page data layer can consume `bc`, `uv370` and derived `uvpm` without inventing a `uvpm` timeseries identity;
 - Summer and Winter charts for the same sensor use the same Y-axis range and tick positions;
