@@ -19,7 +19,7 @@ function initHexMapCrController() {
   if (!root) {
     return;
   }
-  if (!pollutantDomain?.definitions || !networkDomain?.resolveCode || !networkController?.loadCatalog || !coordinator?.registerMap || !urlState?.getInitialCrRegion) {
+  if (!pollutantDomain?.definitions || !networkDomain?.resolveCode || !networkController?.loadCatalog || !networkController?.filterEligibleRows || !coordinator?.registerMap || !urlState?.getInitialCrRegion) {
     throw new Error("UK AQ shared domain/data modules must load before the C&R Hex Map.");
   }
   const ID_PREFIX = "cr-";
@@ -1480,7 +1480,7 @@ function initHexMapCrController() {
       }
 
       function getNetworkRowsForWindow() {
-        const windowed = filterRowsByWindow(baseLatestRows);
+        const windowed = filterRowsByWindow(networkController.filterEligibleRows(baseLatestRows));
         return getRowsForActivePollutant(windowed);
       }
 
@@ -3434,7 +3434,7 @@ function initHexMapCrController() {
           return [];
         }
         const groups = new Map();
-        const scopedRows = getRowsForActivePollutant(rows);
+        const scopedRows = getRowsForActivePollutant(networkController.filterEligibleRows(rows));
         scopedRows.forEach((row, index) => {
           const areaCode = resolveAreaCode(row);
           if (!areaCode) {
@@ -3512,17 +3512,19 @@ function initHexMapCrController() {
           return;
         }
         const networkCodes = getActiveNetworkCodes();
+        const eligibleLatest = networkController.filterEligibleRows(baseLatestRows);
+        const eligibleLatestAllWindow = networkController.filterEligibleRows(baseLatestRowsAllWindow);
         let filteredLatest = [];
         if (networkCodes === null) {
-          filteredLatest = baseLatestRows;
+          filteredLatest = eligibleLatest;
         } else if (networkCodes.size > 0) {
-          filteredLatest = filterLatestRowsByNetwork(baseLatestRows, networkCodes);
+          filteredLatest = filterLatestRowsByNetwork(eligibleLatest, networkCodes);
         }
         let filteredLatestAllWindow = [];
         if (networkCodes === null) {
-          filteredLatestAllWindow = baseLatestRowsAllWindow;
+          filteredLatestAllWindow = eligibleLatestAllWindow;
         } else if (networkCodes.size > 0) {
-          filteredLatestAllWindow = filterLatestRowsByNetwork(baseLatestRowsAllWindow, networkCodes);
+          filteredLatestAllWindow = filterLatestRowsByNetwork(eligibleLatestAllWindow, networkCodes);
         }
         scopedLatestRows = filteredLatest;
         scopedLatestRowsAllWindow = filteredLatestAllWindow;
@@ -4519,9 +4521,10 @@ function initHexMapCrController() {
       }
 
       function buildSensorSearchRecords() {
-        const rowsForSearch = scopedLatestRowsAllWindow.length
+        const candidateRows = scopedLatestRowsAllWindow.length
           ? scopedLatestRowsAllWindow
           : (scopedLatestRows.length ? scopedLatestRows : baseLatestRowsAllWindow.length ? baseLatestRowsAllWindow : baseLatestRows);
+        const rowsForSearch = networkController.filterEligibleRows(candidateRows);
         const recordsByKey = new Map();
         rowsForSearch.forEach((row, index) => {
           const stationId = String(resolveStationKey(row) || `cr:${index}`);
@@ -4730,7 +4733,7 @@ function initHexMapCrController() {
         getPollutantLabel: () => getPollutantLabel(activePollutant),
         getColorForLaCode: (laCode) => {
           if (!colorScale) return null;
-          const row = pconLookup.get(laCode) || basePconLookup.get(laCode);
+          const row = pconLookup.get(laCode);
           const value = getMetricValue(row);
           if (!Number.isFinite(value)) return null;
           return colorScale(value);
@@ -4746,7 +4749,9 @@ function initHexMapCrController() {
         applyColorScale: (value) => colorScale ? colorScale(value) : null,
         getSensorCurrentColor: (stationId) => {
           if (!colorScale) return null;
-          const allRows = scopedLatestRows.length ? scopedLatestRows : baseLatestRows;
+          const allRows = networkController.filterEligibleRows(
+            scopedLatestRows.length ? scopedLatestRows : baseLatestRows,
+          );
           const pollutantRows = getRowsForActivePollutant(allRows);
           const targetStationId = String(stationId || "");
           const candidates = pollutantRows.filter((r) => String(resolveStationKey(r) || "") === targetStationId);

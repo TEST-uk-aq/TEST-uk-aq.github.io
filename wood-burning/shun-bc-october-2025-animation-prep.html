@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Local-only animation preparation charts for real October 2025 Shrewsbury Underdale Black Carbon data.">
+  <title>SHUN Black Carbon animation preparation | UK AQ</title>
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="wood-burning.css">
+  <style>
+    .animation-prep-page{margin:0;background:#fbfaf7;color:var(--wb-ink);font-family:Inter,system-ui,sans-serif}
+    .animation-prep-main{width:100%;margin:0;padding:34px 28px 72px}
+    .animation-prep-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}
+    .animation-prep-header h1{margin:0 0 5px;font-size:clamp(1.65rem,3.2vw,2.5rem);line-height:1.12}
+    .animation-prep-subtitle{margin:0;color:#344654;font-size:1.05rem}
+    .animation-prep-kicker{margin:0 0 7px;color:var(--wb-accent);font-size:.78rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+    .animation-prep-actions,.chart-downloads{display:flex;flex-wrap:wrap;gap:8px}
+    .animation-prep-actions{justify-content:flex-end;max-width:720px}
+    .animation-prep-scale{display:block;flex-basis:100%;color:#344654;font-size:.8rem;font-weight:700;text-align:right}
+    .animation-prep-button{min-height:44px;padding:0 15px;border:1px solid var(--wb-selected-border);border-radius:9px;background:#fff;color:#285a84;font:700 .82rem Inter,sans-serif;cursor:pointer}
+    .animation-prep-button:hover,.animation-prep-button:focus-visible{background:var(--wb-selected-bg);outline:none}
+    .animation-prep-button:disabled{cursor:wait;opacity:.55}
+    .animation-prep-note{margin:0 0 24px;padding:14px 16px;border-left:4px solid var(--wb-accent);border-radius:5px;background:#fff;color:#344654;font-size:.88rem;line-height:1.55}
+    .animation-prep-status{display:flex;flex-wrap:wrap;gap:7px 18px;margin:0 0 30px;padding:16px 18px;border:1px solid #dfe4e7;border-radius:12px;background:#f0f4f5;color:#344654;font-size:.8rem}
+    .animation-prep-status strong{color:var(--wb-ink)}
+    .development-info{margin:0 0 30px;padding:18px;border:1px solid #dfe4e7;border-radius:12px;background:#fff}
+    .development-info h2{margin:0 0 14px;font-size:1rem}
+    .development-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 20px;margin:0;font-size:.8rem}
+    .development-info-grid div{display:grid;grid-template-columns:minmax(105px,.75fr) minmax(0,1.25fr);gap:10px;padding-bottom:5px;border-bottom:1px solid #eef1f3}
+    .development-info-grid .source-file{grid-column:1/-1;grid-template-columns:120px minmax(0,1fr)}
+    .development-info-grid dt{font-weight:700}.development-info-grid dd{margin:0;overflow-wrap:anywhere}
+    .development-info details{margin-top:15px}.development-info summary{cursor:pointer;color:#285a84;font-size:.82rem;font-weight:700}
+    .average-table{width:100%;margin-top:12px;border-collapse:collapse;font-size:.76rem}
+    .average-table th,.average-table td{padding:6px 9px;border-bottom:1px solid #e7ebee;text-align:right}
+    .average-table th:first-child,.average-table td:first-child{text-align:left}
+    .chart-list{display:grid;gap:22px}
+    .animation-chart-card{padding:22px;border:1px solid #dfe4e7;border-radius:18px;background:#fff;box-shadow:0 5px 18px rgba(19,39,55,.055)}
+    .animation-chart-card.master{border-color:rgba(60,120,172,.42);box-shadow:0 7px 22px rgba(19,39,55,.09)}
+    .animation-chart-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:14px}
+    .animation-chart-heading h2{margin:0 0 3px;font-size:1.12rem}
+    .animation-chart-heading p{margin:0;color:var(--wb-muted);font-size:.78rem}
+    .animation-chart-art{width:100%;margin:0}
+    .animation-chart-art .wb-chart-svg{width:100%;height:auto}
+    .chart-downloads{justify-content:flex-end;margin-top:12px}
+    .chart-downloads .animation-prep-button{min-height:38px;font-size:.74rem}
+    .animation-prep-output{min-height:1.4em;margin:14px 0 0;color:#344654;font-size:.82rem}
+    @media(max-width:767px){.animation-prep-main{padding:20px 12px 48px}.animation-prep-header,.animation-chart-heading{align-items:flex-start;flex-direction:column}.animation-prep-actions{width:100%}.animation-prep-actions .animation-prep-button{flex:1 1 145px}.animation-chart-card{padding:16px 10px}.chart-downloads{justify-content:flex-start}}
+  </style>
+</head>
+<body class="animation-prep-page">
+  <main class="animation-prep-main">
+    <header class="animation-prep-header">
+      <div>
+        <p class="animation-prep-kicker">Animation preparation · real UK-AIR data</p>
+        <h1>Shrewsbury Underdale</h1>
+        <p class="animation-prep-subtitle">Black Carbon (880 nm) · October 2025</p>
+      </div>
+      <div class="animation-prep-actions" aria-label="Bulk chart downloads">
+        <span class="animation-prep-scale">PNG export: 6× resolution</span>
+        <button class="animation-prep-button" type="button" data-download-all="svg">Download all normal SVGs</button>
+        <button class="animation-prep-button" type="button" data-download-all="png">Download all normal PNGs</button>
+        <button class="animation-prep-button" type="button" data-download-all="line-svg">Download all line-only SVGs</button>
+        <button class="animation-prep-button" type="button" data-download-all="line-png">Download all line-only PNGs</button>
+      </div>
+    </header>
+
+    <p class="animation-prep-note">The master and 31 daily timeline charts use the same 1040 × 270 artwork, plot margins, full-month GMT time scale and 0–4 µg/m³ vertical scale. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
+
+    <section class="animation-prep-status" aria-label="Dataset and validation summary">
+      <span><strong>Source:</strong> UK-AIR SHUN</span>
+      <span><strong>UK-AIR ID:</strong> UKA01055</span>
+      <span><strong>Valid:</strong> <span id="valid-count">—</span></span>
+      <span><strong>Missing:</strong> <span id="missing-count">—</span></span>
+      <span><strong>Domain:</strong> 01 Oct 01:00–01 Nov 00:00 GMT</span>
+      <span><strong>Checks:</strong> <span id="check-status">running…</span></span>
+    </section>
+
+    <section class="development-info" aria-labelledby="development-info-title">
+      <h2 id="development-info-title">Development information</h2>
+      <dl class="development-info-grid">
+        <div class="source-file"><dt>Source file</dt><dd>/Users/mikehinford/Dropbox/Projects/UK-AQ Website &amp; Network/Resources/Wood Burning - Clean Air Night - UK AQ/SHUN_BC_2025.csv</dd></div>
+        <div><dt>Sensor</dt><dd>Shrewsbury Underdale</dd></div>
+        <div><dt>UK-AIR ID</dt><dd>UKA01055</dd></div>
+        <div><dt>Property</dt><dd>Black Carbon (880 nm)</dd></div>
+        <div><dt>Month</dt><dd>October 2025</dd></div>
+        <div><dt>Valid observations</dt><dd id="info-valid">—</dd></div>
+        <div><dt>Missing observations</dt><dd id="info-missing">—</dd></div>
+        <div><dt>Timeline Y domain</dt><dd id="info-y-domain">—</dd></div>
+        <div><dt>Base dimensions</dt><dd id="info-base-size">—</dd></div>
+        <div><dt>High-resolution PNG</dt><dd id="info-export-size">—</dd></div>
+        <div><dt>Export scale</dt><dd id="info-export-scale">—</dd></div>
+        <div><dt>Source days</dt><dd id="info-days">—</dd></div>
+      </dl>
+      <details>
+        <summary>October hourly-average contributors and calculated means</summary>
+        <table class="average-table">
+          <thead><tr><th>GMT hour ending</th><th>Valid values</th><th>Mean (µg/m³)</th></tr></thead>
+          <tbody id="average-details-body"></tbody>
+        </table>
+      </details>
+    </section>
+
+    <div id="chart-list" class="chart-list"></div>
+    <p id="download-status" class="animation-prep-output" role="status" aria-live="polite"></p>
+  </main>
+
+  <script>
+    "use strict";
+
+    /*
+     * Embedded October 2025 values were generated directly from:
+     * /Users/mikehinford/Dropbox/Projects/UK-AQ Website & Network/Resources/Wood Burning - Clean Air Night - UK AQ/SHUN_BC_2025.csv
+     *
+     * A CSV parser selected the 31 October source rows and converted blank cells
+     * to null. No values were manually transcribed, smoothed or interpolated.
+     */
+    const SOURCE_DAYS = Object.freeze([
+      ["2025-10-01",[0.3,0.2,0.2,0.2,0.2,0.4,0.4,0.6,0.4,0.3,0.3,0.3,0.3,0.4,0.4,0.4,0.6,0.6,0.4,0.6,0.3,0.2,0.3,0.2]],
+      ["2025-10-02",[0.2,0.2,0.2,0.3,0.3,0.4,0.8,0.6,0.6,null,0.4,0.5,0.4,0.3,0.4,0.5,0.7,0.7,null,0.6,0.6,0.5,0.5,0.5]],
+      ["2025-10-03",[0.4,0.2,0.1,0.1,0.1,0.2,0.2,0.5,0.3,0.1,0.6,0.2,0.2,0.2,0.2,0.2,0.1,0.1,0.1,0.0,0.3,0.1,0.1,0.1]],
+      ["2025-10-04",[0.1,0.0,0.0,0.0,null,0.0,0.1,0.1,0.1,0.1,0.1,0.5,0.2,0.8,0.2,0.3,0.5,null,0.3,0.3,0.2,0.2,0.1,0.1]],
+      ["2025-10-05",[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.2,0.5,0.5,0.3,0.3,0.2,0.1]],
+      ["2025-10-06",[0.1,0.1,0.1,0.1,0.2,0.1,0.2,null,null,null,0.2,0.1,0.1,0.1,0.2,0.2,0.3,0.4,0.5,0.4,0.2,0.2,0.2,0.1]],
+      ["2025-10-07",[0.1,0.1,0.0,0.0,0.1,0.1,0.3,0.6,0.3,0.1,1.0,0.2,0.1,0.2,0.4,0.2,0.3,0.4,0.5,0.4,0.2,0.1,0.1,0.1]],
+      ["2025-10-08",[0.1,null,null,0.0,0.1,0.1,0.3,0.4,0.4,0.4,0.3,0.2,0.2,null,null,0.3,0.3,0.4,0.7,1.0,0.8,0.4,0.3,0.2]],
+      ["2025-10-09",[0.2,0.2,0.2,0.2,0.3,0.4,1.2,0.7,0.5,0.4,0.2,0.1,0.2,0.2,0.2,0.2,0.4,0.6,0.6,0.5,0.5,0.4,0.3,0.2]],
+      ["2025-10-10",[0.2,0.2,0.2,0.2,0.2,0.4,0.7,1.1,0.8,0.3,0.2,0.2,0.2,0.2,0.2,0.3,0.8,1.0,1.0,1.1,0.7,0.8,0.4,0.6]],
+      ["2025-10-11",[0.4,0.4,0.5,0.3,0.3,0.3,0.4,0.4,0.4,0.2,0.3,0.3,0.3,0.3,0.4,0.5,0.5,2.3,1.9,0.9,1.7,2.4,2.8,2.7]],
+      ["2025-10-12",[2.9,2.4,1.8,1.2,1.1,0.8,0.9,1.1,0.8,0.7,0.7,0.7,0.8,1.3,1.1,1.4,1.2,1.5,1.5,1.3,1.2,1.0,1.2,1.5]],
+      ["2025-10-13",[null,null,1.1,1.0,1.0,1.0,1.5,1.3,1.2,1.1,0.8,0.5,0.4,0.2,0.3,0.3,0.4,0.5,0.7,0.8,0.7,0.8,0.8,0.4]],
+      ["2025-10-14",[0.7,0.4,0.2,0.1,0.1,0.2,0.3,0.7,0.7,0.5,0.5,0.6,0.9,0.6,0.8,0.9,1.0,1.2,1.1,1.3,1.2,1.2,1.0,1.0]],
+      ["2025-10-15",[0.9,0.8,0.7,0.6,0.6,0.6,0.7,0.7,0.6,0.4,0.3,0.3,0.5,0.3,0.2,0.4,0.5,0.7,0.8,0.6,0.5,0.6,0.6,0.5]],
+      ["2025-10-16",[0.5,0.4,0.4,0.4,0.4,0.6,0.9,1.2,1.1,0.6,0.2,0.0,0.1,0.1,0.1,0.3,0.5,1.3,1.2,1.8,2.5,1.9,1.1,0.8]],
+      ["2025-10-17",[1.1,1.0,0.8,0.9,1.0,1.3,1.8,1.4,0.9,0.9,1.1,1.3,1.2,0.4,0.4,0.7,1.2,1.7,1.6,1.8,1.6,1.6,1.8,1.6]],
+      ["2025-10-18",[1.2,1.0,0.8,0.8,1.8,1.5,0.6,0.5,0.5,0.4,0.5,0.6,0.6,0.6,0.7,0.7,1.1,0.7,0.8,0.5,0.5,0.5,0.5,0.5]],
+      ["2025-10-19",[0.5,0.5,0.5,0.5,0.5,0.5,0.8,0.5,0.6,0.6,0.7,0.8,0.8,0.4,0.2,0.2,0.3,0.2,0.2,0.2,0.8,0.6,0.3,0.1]],
+      ["2025-10-20",[0.1,0.1,0.1,0.1,0.2,0.2,0.2,0.3,0.3,0.2,0.2,0.2,0.2,0.1,0.2,1.0,0.8,1.0,3.5,2.7,1.3,0.7,0.5,0.3]],
+      ["2025-10-21",[0.2,0.2,0.1,0.1,0.1,0.2,0.6,0.8,0.4,0.2,0.2,0.2,0.2,0.1,0.2,0.3,0.4,0.7,1.0,0.6,0.5,0.6,0.3,0.2]],
+      ["2025-10-22",[0.2,0.1,0.1,0.2,0.3,0.3,1.0,1.7,1.0,0.3,0.2,0.1,0.1,0.1,0.4,0.4,0.7,1.1,1.0,0.9,1.1,1.4,1.4,0.9]],
+      ["2025-10-23",[0.5,0.5,0.4,0.3,0.4,0.6,0.8,0.5,0.6,0.5,0.2,0.0,0.1,0.2,0.1,0.3,0.2,0.3,0.4,0.5,0.2,0.2,0.3,0.2]],
+      ["2025-10-24",[0.2,0.1,0.1,0.1,0.2,0.2,0.3,1.0,0.4,0.2,0.1,0.2,0.3,0.3,0.3,0.4,0.8,1.0,1.5,1.7,0.9,0.4,0.2,0.3]],
+      ["2025-10-25",[0.2,0.1,0.0,0.0,0.0,0.1,0.1,0.1,0.1,0.1,0.1,null,0.1,0.1,0.1,0.2,0.3,0.3,0.4,0.3,0.1,0.1,0.1,0.1]],
+      ["2025-10-26",[0.1,0.0,0.1,0.1,0.0,0.0,0.1,0.3,0.3,0.1,0.1,0.1,0.2,0.2,0.3,0.3,0.4,0.3,0.3,0.2,0.1,0.1,0.1,0.1]],
+      ["2025-10-27",[0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.2,0.2,0.3,0.5,0.5,0.6,0.4,0.4,0.3,0.1,0.0]],
+      ["2025-10-28",[0.0,0.0,0.0,0.0,0.1,0.1,0.1,null,null,0.2,0.1,0.1,0.1,0.1,0.1,0.2,0.3,0.6,0.4,1.9,2.6,2.3,2.2,null]],
+      ["2025-10-29",[null,null,null,0.0,0.0,0.0,0.1,0.2,0.2,2.2,0.5,0.1,0.1,0.2,0.2,0.2,0.6,1.2,1.3,0.8,0.6,0.4,0.2,0.1]],
+      ["2025-10-30",[0.1,0.1,0.1,0.2,0.1,0.3,0.3,0.5,0.3,0.2,0.2,0.4,0.4,0.4,0.6,0.9,0.6,0.3,0.4,0.3,0.2,0.2,0.2,null]],
+      ["2025-10-31",[0.1,0.0,0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.1,0.2,0.2,0.2,0.4,0.2,0.3,0.3,0.5,0.4,0.4,0.3,0.3,0.2,0.1]]
+    ]);
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const WIDTH = 1040;
+    const HEIGHT = 270;
+    const HIGH_RES_EXPORT_SCALE = 6;
+    const EXPORT_WIDTH = WIDTH * HIGH_RES_EXPORT_SCALE;
+    const EXPORT_HEIGHT = HEIGHT * HIGH_RES_EXPORT_SCALE;
+    const MARGIN = Object.freeze({ top: 12, right: 14, bottom: 39, left: 52 });
+    const PLOT_RECT = Object.freeze({
+      x: MARGIN.left,
+      y: MARGIN.top,
+      width: WIDTH - MARGIN.left - MARGIN.right,
+      height: HEIGHT - MARGIN.top - MARGIN.bottom
+    });
+    const START_MS = Date.UTC(2025, 9, 1, 1);
+    const END_MS = Date.UTC(2025, 10, 1, 0);
+    const SVG_STYLE = `
+      .chart-background{fill:#fcfcfb}
+      .wb-grid-line{stroke:#d7dde2;stroke-width:1;stroke-dasharray:2 5}
+      .wb-axis-line,.wb-axis-tick{stroke:#8996a0;stroke-width:1}
+      .wb-axis-label{fill:#61717e;font:10px Inter,system-ui,sans-serif}
+      .wb-axis-title{fill:#4d5e6a;font:600 10px Inter,system-ui,sans-serif}
+      .wb-month-line{fill:none;stroke:#3C78AC;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    `;
+    const chartRecords = [];
+
+    const svgElement = (name, attrs = {}) => {
+      const node = document.createElementNS(SVG_NS, name);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+      return node;
+    };
+
+    const observations = SOURCE_DAYS.flatMap(([date, values], dayIndex) => values.map((value, hourIndex) => ({
+      sourceDate: date,
+      sourceHour: hourIndex + 1,
+      timestamp: Date.UTC(2025, 9, dayIndex + 1, hourIndex + 1),
+      value,
+      index: dayIndex * 24 + hourIndex
+    })));
+
+    const averagePoints = Object.freeze(Array.from({ length: 24 }, (_, hourIndex) => {
+      const values = SOURCE_DAYS.map(([, dayValues]) => dayValues[hourIndex]).filter(Number.isFinite);
+      return Object.freeze({
+        hourEnding: hourIndex + 1,
+        value: values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null,
+        count: values.length,
+        index: hourIndex
+      });
+    }));
+
+    function niceScale(values) {
+      const finiteValues = values.filter(Number.isFinite);
+      const rawMax = Math.max(0.1, ...finiteValues);
+      const rough = rawMax / 4;
+      const power = 10 ** Math.floor(Math.log10(rough));
+      const fraction = rough / power;
+      const step = (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10) * power;
+      const max = Math.ceil(rawMax / step) * step;
+      const ticks = [];
+      for (let value = 0; value <= max + step / 10; value += step) ticks.push(Number(value.toFixed(8)));
+      return Object.freeze({ min: 0, max, ticks: Object.freeze(ticks) });
+    }
+
+    const TIMELINE_SCALE = niceScale(observations.map((point) => point.value));
+    const AVERAGE_SCALE = niceScale(averagePoints.map((point) => point.value));
+    const timelineX = (timestamp) => MARGIN.left + ((timestamp - START_MS) / (END_MS - START_MS)) * PLOT_RECT.width;
+    const timelineY = (value) => HEIGHT - MARGIN.bottom - ((value - TIMELINE_SCALE.min) / (TIMELINE_SCALE.max - TIMELINE_SCALE.min)) * PLOT_RECT.height;
+    const averageX = (hourEnding) => MARGIN.left + ((hourEnding - 1) / 23) * PLOT_RECT.width;
+    const averageY = (value) => HEIGHT - MARGIN.bottom - ((value - AVERAGE_SCALE.min) / (AVERAGE_SCALE.max - AVERAGE_SCALE.min)) * PLOT_RECT.height;
+
+    function linePath(points, getX, getY, getDomainValue) {
+      let path = "";
+      let open = false;
+      points.forEach((point) => {
+        if (!Number.isFinite(point.value)) {
+          open = false;
+          return;
+        }
+        path += `${open ? "L" : "M"}${getX(getDomainValue(point)).toFixed(2)},${getY(point.value).toFixed(2)}`;
+        open = true;
+      });
+      return path;
+    }
+
+    function pointCoordinates(points, getX, getY, getDomainValue) {
+      return new Map(points.filter((point) => Number.isFinite(point.value)).map((point) => [point.index, [getX(getDomainValue(point)), getY(point.value)]]));
+    }
+
+    function appendClipPath(svg, clipId) {
+      const defs = svgElement("defs");
+      const clipPath = svgElement("clipPath", { id: clipId });
+      clipPath.append(svgElement("rect", PLOT_RECT));
+      defs.append(clipPath);
+      svg.append(defs);
+    }
+
+    function buildSvg({ id, label, points, scale, getX, getY, getDomainValue, xTicks, xTitle, xDomain }) {
+      const clipId = `${id}-plot-clip`;
+      const pathD = linePath(points, getX, getY, getDomainValue);
+      const svg = svgElement("svg", {
+        class: "wb-chart-svg",
+        width: WIDTH,
+        height: HEIGHT,
+        viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
+        role: "img",
+        "aria-label": label,
+        "data-x-domain": xDomain.join(","),
+        "data-y-domain": `${scale.min},${scale.max}`
+      });
+      const style = svgElement("style");
+      style.textContent = SVG_STYLE;
+      svg.append(style);
+      appendClipPath(svg, clipId);
+      svg.append(svgElement("rect", { class: "chart-background", x: 0, y: 0, width: WIDTH, height: HEIGHT }));
+
+      scale.ticks.forEach((tick) => {
+        svg.append(svgElement("line", { class: "wb-grid-line", x1: MARGIN.left, x2: WIDTH - MARGIN.right, y1: getY(tick), y2: getY(tick) }));
+        const tickLabel = svgElement("text", { class: "wb-axis-label", x: MARGIN.left - 8, y: getY(tick) + 3, "text-anchor": "end" });
+        tickLabel.textContent = Number(tick.toFixed(2));
+        svg.append(tickLabel);
+      });
+
+      svg.append(
+        svgElement("line", { class: "wb-axis-line", x1: MARGIN.left, x2: MARGIN.left, y1: MARGIN.top, y2: HEIGHT - MARGIN.bottom }),
+        svgElement("line", { class: "wb-axis-line", x1: MARGIN.left, x2: WIDTH - MARGIN.right, y1: HEIGHT - MARGIN.bottom, y2: HEIGHT - MARGIN.bottom })
+      );
+
+      xTicks.forEach(({ value, label: tickText }) => {
+        const tickX = getX(value);
+        svg.append(svgElement("line", { class: "wb-axis-tick", x1: tickX, x2: tickX, y1: HEIGHT - MARGIN.bottom, y2: HEIGHT - MARGIN.bottom + 4 }));
+        const tickLabel = svgElement("text", { class: "wb-axis-label", x: tickX, y: HEIGHT - 18, "text-anchor": "middle" });
+        tickLabel.textContent = tickText;
+        svg.append(tickLabel);
+      });
+
+      const unit = svgElement("text", { class: "wb-axis-title", x: 12, y: 10 });
+      unit.textContent = "µg/m³";
+      const horizontalTitle = svgElement("text", { class: "wb-axis-title", x: (MARGIN.left + WIDTH - MARGIN.right) / 2, y: HEIGHT - 3, "text-anchor": "middle" });
+      horizontalTitle.textContent = xTitle;
+      const path = svgElement("path", { class: "wb-month-line", d: pathD, "clip-path": `url(#${clipId})`, "data-observation-path": "true" });
+      svg.append(unit, horizontalTitle, path);
+      return { svg, pathD };
+    }
+
+    const TIMELINE_CONFIG = Object.freeze({
+      scale: TIMELINE_SCALE,
+      getX: timelineX,
+      getY: timelineY,
+      getDomainValue: (point) => point.timestamp,
+      xDomain: Object.freeze([START_MS, END_MS]),
+      xTitle: "GMT",
+      xTicks: Object.freeze([
+        Object.freeze({ value: START_MS, label: "1 Oct" }),
+        Object.freeze({ value: Date.UTC(2025, 9, 8), label: "8 Oct" }),
+        Object.freeze({ value: Date.UTC(2025, 9, 15), label: "15 Oct" }),
+        Object.freeze({ value: Date.UTC(2025, 9, 22), label: "22 Oct" }),
+        Object.freeze({ value: Date.UTC(2025, 9, 29), label: "29 Oct" }),
+        Object.freeze({ value: END_MS, label: "1 Nov" })
+      ])
+    });
+
+    const AVERAGE_CONFIG = Object.freeze({
+      scale: AVERAGE_SCALE,
+      getX: averageX,
+      getY: averageY,
+      getDomainValue: (point) => point.hourEnding,
+      xDomain: Object.freeze([1, 24]),
+      xTitle: "GMT hour ending",
+      xTicks: Object.freeze([1, 6, 12, 18, 24].map((hour) => Object.freeze({ value: hour, label: `${String(hour).padStart(2, "0")}:00` })))
+    });
+
+    function addChart({ id, heading, subheading, points, filename, lineFilename, kind, config, master = false }) {
+      const card = document.createElement("article");
+      card.className = `animation-chart-card${master ? " master" : ""}`;
+      card.id = id;
+      const headingRow = document.createElement("header");
+      headingRow.className = "animation-chart-heading";
+      const copy = document.createElement("div");
+      const title = document.createElement("h2");
+      title.textContent = heading;
+      const detail = document.createElement("p");
+      detail.textContent = subheading;
+      copy.append(title, detail);
+      headingRow.append(copy);
+
+      const { svg, pathD } = buildSvg({ id, label: `${heading}. ${subheading}`, points, ...config });
+      const art = document.createElement("div");
+      art.className = "animation-chart-art";
+      art.append(svg);
+
+      const actions = document.createElement("div");
+      actions.className = "chart-downloads";
+      actions.innerHTML = `
+        <button class="animation-prep-button" type="button" data-chart-download="svg">Download SVG</button>
+        <button class="animation-prep-button" type="button" data-chart-download="png">Download PNG</button>
+        <button class="animation-prep-button" type="button" data-chart-download="line-svg">Download line-only SVG</button>
+        <button class="animation-prep-button" type="button" data-chart-download="line-png">Download line-only PNG</button>`;
+      card.append(headingRow, art, actions);
+      document.querySelector("#chart-list").append(card);
+
+      const record = Object.freeze({
+        id,
+        kind,
+        filename,
+        lineFilename,
+        points,
+        svg,
+        pathD,
+        coordinates: pointCoordinates(points, config.getX, config.getY, config.getDomainValue),
+        xDomain: config.xDomain,
+        yDomain: Object.freeze([config.scale.min, config.scale.max]),
+        plotRect: PLOT_RECT,
+        pngDimensions: Object.freeze([EXPORT_WIDTH, EXPORT_HEIGHT])
+      });
+      chartRecords.push(record);
+      actions.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => downloadRecord(record, button.dataset.chartDownload)));
+    }
+
+    function longDate(isoDate) {
+      return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${isoDate}T12:00:00Z`));
+    }
+
+    addChart({
+      id: "chart-full",
+      kind: "timeline-master",
+      heading: "Shrewsbury Underdale",
+      subheading: "Black Carbon (880 nm) · October 2025 · 01 Oct 01:00 to 01 Nov 00:00 GMT",
+      points: observations,
+      filename: "SHUN_BC_October_2025_full",
+      lineFilename: "SHUN_BC_October_2025_full_line_only",
+      config: TIMELINE_CONFIG,
+      master: true
+    });
+
+    addChart({
+      id: "chart-average-day",
+      kind: "average-day",
+      heading: "Shrewsbury Underdale",
+      subheading: "Black Carbon (880 nm) · October 2025 average day · GMT hour ending",
+      points: averagePoints,
+      filename: "SHUN_BC_October_2025_average_day",
+      lineFilename: "SHUN_BC_October_2025_average_day_line_only",
+      config: AVERAGE_CONFIG
+    });
+
+    SOURCE_DAYS.forEach(([date], dayIndex) => addChart({
+      id: `chart-${date}`,
+      kind: "timeline-day",
+      heading: longDate(date),
+      subheading: "Source-day observations in their full-month positions · GMT hour ending",
+      points: observations.slice(dayIndex * 24, dayIndex * 24 + 24),
+      filename: `SHUN_BC_${date}`,
+      lineFilename: `SHUN_BC_${date}_line_only`,
+      config: TIMELINE_CONFIG
+    }));
+
+    function serialiseNormalSvg(record, scale = 1) {
+      const clone = record.svg.cloneNode(true);
+      clone.setAttribute("xmlns", SVG_NS);
+      clone.setAttribute("width", WIDTH * scale);
+      clone.setAttribute("height", HEIGHT * scale);
+      return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+    }
+
+    function serialiseLineOnlySvg(record, scale = 1) {
+      const svg = svgElement("svg", {
+        xmlns: SVG_NS,
+        width: WIDTH * scale,
+        height: HEIGHT * scale,
+        viewBox: `0 0 ${WIDTH} ${HEIGHT}`
+      });
+      const clipId = "line-only-plot-clip";
+      appendClipPath(svg, clipId);
+      svg.append(svgElement("path", {
+        d: record.pathD,
+        fill: "none",
+        stroke: "#3C78AC",
+        "stroke-width": 2,
+        "stroke-linecap": "round",
+        "stroke-linejoin": "round",
+        "clip-path": `url(#${clipId})`
+      }));
+      return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(svg)}`;
+    }
+
+    function svgBlob(record, lineOnly = false, scale = 1) {
+      const source = lineOnly ? serialiseLineOnlySvg(record, scale) : serialiseNormalSvg(record, scale);
+      return new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+    }
+
+    async function loadSvgImage(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      try {
+        const image = new Image();
+        image.decoding = "sync";
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = () => reject(new Error(`Could not rasterise ${filename}`));
+          image.src = url;
+        });
+        return image;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    async function pngBlob(record, lineOnly = false) {
+      await document.fonts?.ready;
+      const image = await loadSvgImage(svgBlob(record, lineOnly, HIGH_RES_EXPORT_SCALE), lineOnly ? record.lineFilename : record.filename);
+      const canvas = document.createElement("canvas");
+      canvas.width = EXPORT_WIDTH;
+      canvas.height = EXPORT_HEIGHT;
+      const context = canvas.getContext("2d", { alpha: true });
+      context.clearRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+      context.drawImage(image, 0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
+      return await new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error(`Could not encode ${record.filename}`)), "image/png"));
+    }
+
+    function exportSpec(record, format) {
+      const lineOnly = format.startsWith("line-");
+      const extension = format.endsWith("svg") ? "svg" : "png";
+      return Object.freeze({ lineOnly, extension, filename: `${lineOnly ? record.lineFilename : record.filename}.${extension}` });
+    }
+
+    async function recordBlob(record, format) {
+      const spec = exportSpec(record, format);
+      return spec.extension === "svg" ? svgBlob(record, spec.lineOnly) : pngBlob(record, spec.lineOnly);
+    }
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function downloadRecord(record, format) {
+      const status = document.querySelector("#download-status");
+      const spec = exportSpec(record, format);
+      try {
+        status.textContent = `Preparing ${spec.filename}…`;
+        triggerDownload(await recordBlob(record, format), spec.filename);
+        status.textContent = `Downloaded ${spec.filename}`;
+      } catch (error) {
+        console.error(error);
+        status.textContent = `Download failed: ${error.message}`;
+      }
+    }
+
+    async function saveAll(format, button) {
+      const status = document.querySelector("#download-status");
+      document.querySelectorAll("[data-download-all]").forEach((control) => { control.disabled = true; });
+      try {
+        let directory = null;
+        if ("showDirectoryPicker" in window) directory = await window.showDirectoryPicker({ mode: "readwrite" });
+        for (let index = 0; index < chartRecords.length; index += 1) {
+          const record = chartRecords[index];
+          const spec = exportSpec(record, format);
+          status.textContent = `Preparing ${index + 1} of ${chartRecords.length}: ${spec.filename}`;
+          const blob = await recordBlob(record, format);
+          if (directory) {
+            const handle = await directory.getFileHandle(spec.filename, { create: true });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } else {
+            triggerDownload(blob, spec.filename);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+        }
+        const message = `${chartRecords.length} ${format.includes("line") ? "line-only " : "normal "}${format.endsWith("svg") ? "SVG" : "PNG"} files`;
+        status.textContent = directory ? `Saved all ${message} to the selected folder.` : `Started all ${message}. Check the browser's multiple-download prompt if files are missing.`;
+      } catch (error) {
+        if (error.name === "AbortError") status.textContent = "Bulk download cancelled.";
+        else {
+          console.error(error);
+          status.textContent = `Bulk download failed: ${error.message}`;
+        }
+      } finally {
+        document.querySelectorAll("[data-download-all]").forEach((control) => { control.disabled = false; });
+        button.focus();
+      }
+    }
+
+    document.querySelectorAll("[data-download-all]").forEach((button) => button.addEventListener("click", () => saveAll(button.dataset.downloadAll, button)));
+
+    function populateDevelopmentInformation() {
+      const finiteCount = observations.filter((point) => Number.isFinite(point.value)).length;
+      const missingCount = observations.length - finiteCount;
+      document.querySelector("#valid-count").textContent = finiteCount;
+      document.querySelector("#missing-count").textContent = missingCount;
+      document.querySelector("#info-valid").textContent = finiteCount;
+      document.querySelector("#info-missing").textContent = missingCount;
+      document.querySelector("#info-y-domain").textContent = `${TIMELINE_SCALE.min}–${TIMELINE_SCALE.max} µg/m³`;
+      document.querySelector("#info-base-size").textContent = `${WIDTH} × ${HEIGHT}`;
+      document.querySelector("#info-export-size").textContent = `${EXPORT_WIDTH} × ${EXPORT_HEIGHT} px`;
+      document.querySelector("#info-export-scale").textContent = `${HIGH_RES_EXPORT_SCALE}×`;
+      document.querySelector("#info-days").textContent = SOURCE_DAYS.length;
+      const body = document.querySelector("#average-details-body");
+      averagePoints.forEach((point) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${String(point.hourEnding).padStart(2, "0")}:00</td><td>${point.count}</td><td>${Number.isFinite(point.value) ? point.value.toFixed(6) : "Missing"}</td>`;
+        body.append(row);
+      });
+    }
+
+    function countRuns(points) {
+      let runs = 0;
+      let open = false;
+      points.forEach((point) => {
+        if (!Number.isFinite(point.value)) open = false;
+        else if (!open) {
+          runs += 1;
+          open = true;
+        }
+      });
+      return runs;
+    }
+
+    async function inspectPng(blob, record) {
+      const image = await loadSvgImage(blob, `${record.lineFilename}.png validation`);
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d", { alpha: true, willReadFrequently: true });
+      context.drawImage(image, 0, 0);
+      const backgroundAlpha = context.getImageData(0, 0, 1, 1).data[3];
+      const firstCoordinate = record.coordinates.values().next().value;
+      const sampleX = Math.round(firstCoordinate[0] * HIGH_RES_EXPORT_SCALE);
+      const sampleY = Math.round(firstCoordinate[1] * HIGH_RES_EXPORT_SCALE);
+      const sample = context.getImageData(Math.max(0, sampleX - 4), Math.max(0, sampleY - 4), 9, 9).data;
+      let visibleAlpha = 0;
+      for (let index = 3; index < sample.length; index += 4) visibleAlpha = Math.max(visibleAlpha, sample[index]);
+      return Object.freeze({ width: image.naturalWidth, height: image.naturalHeight, backgroundAlpha, visibleAlpha });
+    }
+
+    async function runChecks() {
+      const failures = [];
+      const finiteCount = observations.filter((point) => Number.isFinite(point.value)).length;
+      const missingCount = observations.length - finiteCount;
+      const expectedDates = Array.from({ length: 31 }, (_, index) => `2025-10-${String(index + 1).padStart(2, "0")}`);
+      const timelineRecords = chartRecords.filter((record) => record.kind.startsWith("timeline"));
+      const dailyRecords = chartRecords.filter((record) => record.kind === "timeline-day");
+      const master = chartRecords.find((record) => record.kind === "timeline-master");
+      const average = chartRecords.find((record) => record.kind === "average-day");
+
+      if (SOURCE_DAYS.length !== 31 || SOURCE_DAYS.some(([date], index) => date !== expectedDates[index])) failures.push("October source dates");
+      if (finiteCount !== 723 || missingCount !== 21) failures.push("valid/missing counts");
+      if (dailyRecords.length !== 31 || timelineRecords.length !== 32 || chartRecords.length !== 33) failures.push("chart count");
+      if (averagePoints.length !== 24 || average.points.length !== 24) failures.push("average slots");
+      averagePoints.forEach((point, hourIndex) => {
+        const sourceValues = SOURCE_DAYS.map(([, values]) => values[hourIndex]).filter(Number.isFinite);
+        const expectedMean = sourceValues.reduce((sum, value) => sum + value, 0) / sourceValues.length;
+        if (point.count !== sourceValues.length || Math.abs(point.value - expectedMean) > 1e-12) failures.push("average derivation");
+      });
+
+      const geometry = new Set(timelineRecords.map(({ svg }) => `${svg.getAttribute("width")}|${svg.getAttribute("height")}|${svg.getAttribute("viewBox")}`));
+      if (geometry.size !== 1 || !geometry.has("1040|270|0 0 1040 270")) failures.push("timeline SVG geometry");
+      const domains = new Set(timelineRecords.map((record) => `${record.xDomain.join(",")}|${record.yDomain.join(",")}`));
+      if (domains.size !== 1 || TIMELINE_SCALE.min !== 0 || TIMELINE_SCALE.max !== 4) failures.push("timeline domains");
+      const pngDimensions = new Set(timelineRecords.map((record) => record.pngDimensions.join("×")));
+      if (pngDimensions.size !== 1 || !pngDimensions.has(`${EXPORT_WIDTH}×${EXPORT_HEIGHT}`)) failures.push("timeline PNG geometry");
+
+      ["2025-10-01", "2025-10-15", "2025-10-31"].forEach((date) => {
+        const daily = chartRecords.find((record) => record.id === `chart-${date}`);
+        daily.coordinates.forEach(([dailyX, dailyY], index) => {
+          const [masterX, masterY] = master.coordinates.get(index) || [];
+          if (Math.abs(dailyX - masterX) > 1e-9 || Math.abs(dailyY - masterY) > 1e-9) failures.push(`${date} coordinate alignment`);
+        });
+        if (daily.pathD !== daily.svg.querySelector("[data-observation-path]").getAttribute("d")) failures.push(`${date} export path alignment`);
+      });
+
+      timelineRecords.forEach((record) => {
+        const path = record.svg.querySelector("[data-observation-path]");
+        const renderedRuns = (path.getAttribute("d").match(/M/g) || []).length;
+        if (renderedRuns !== countRuns(record.points)) failures.push(`${record.id} gap preservation`);
+        if (!path.getAttribute("clip-path") || JSON.stringify(record.plotRect) !== JSON.stringify(PLOT_RECT)) failures.push(`${record.id} clipping`);
+      });
+
+      document.querySelector("#check-status").textContent = "checking transparent PNG pixels…";
+      try {
+        const lineInspection = await inspectPng(await pngBlob(master, true), master);
+        if (lineInspection.width !== EXPORT_WIDTH || lineInspection.height !== EXPORT_HEIGHT) failures.push("high-resolution PNG dimensions");
+        if (lineInspection.backgroundAlpha !== 0) failures.push("transparent PNG alpha");
+        if (lineInspection.visibleAlpha === 0) failures.push("transparent PNG line visibility");
+        const normalInspection = await inspectPng(await pngBlob(master, false), master);
+        if (normalInspection.width !== EXPORT_WIDTH || normalInspection.height !== EXPORT_HEIGHT) failures.push("normal high-resolution PNG dimensions");
+      } catch (error) {
+        console.error(error);
+        failures.push("transparent PNG raster validation");
+      }
+
+      const uniqueFailures = [...new Set(failures)];
+      document.querySelector("#check-status").textContent = uniqueFailures.length ? `failed (${uniqueFailures.join(", ")})` : "all automated checks passed";
+      document.querySelector("#check-status").style.color = uniqueFailures.length ? "#a2372e" : "#285a55";
+      return Object.freeze({
+        passed: uniqueFailures.length === 0,
+        failures: Object.freeze(uniqueFailures),
+        finiteCount,
+        missingCount,
+        timelineChartCount: timelineRecords.length,
+        dailyChartCount: dailyRecords.length,
+        chartCount: chartRecords.length,
+        baseDimensions: Object.freeze([WIDTH, HEIGHT]),
+        pngDimensions: Object.freeze([EXPORT_WIDTH, EXPORT_HEIGHT]),
+        exportScale: HIGH_RES_EXPORT_SCALE,
+        viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
+        xDomain: Object.freeze([START_MS, END_MS]),
+        yDomain: Object.freeze([TIMELINE_SCALE.min, TIMELINE_SCALE.max])
+      });
+    }
+
+    populateDevelopmentInformation();
+    const publicState = {
+      sourceDays: SOURCE_DAYS,
+      observations: Object.freeze(observations),
+      averagePoints,
+      charts: Object.freeze(chartRecords),
+      checks: null,
+      validationPromise: null
+    };
+    window.__SHUN_BC_ANIMATION_PREP__ = publicState;
+    publicState.validationPromise = runChecks().then((checks) => {
+      publicState.checks = checks;
+      return checks;
+    });
+  </script>
+</body>
+</html>

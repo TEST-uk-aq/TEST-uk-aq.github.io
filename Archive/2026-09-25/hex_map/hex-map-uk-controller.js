@@ -14,7 +14,7 @@ function initHexMapUkController(root) {
 
       if (!root?.document || !document.body.classList.contains("hex-map-page")) return;
 
-      if (!pollutantDomain?.definitions || !networkDomain?.resolveCode || !networkController?.loadCatalog || !networkController?.filterEligibleRows || !coordinator?.registerMap) {
+      if (!pollutantDomain?.definitions || !networkDomain?.resolveCode || !networkController?.loadCatalog || !coordinator?.registerMap) {
         throw new Error("UK AQ shared domain/data modules must load before the Hex Map.");
       }
       const PROJECT_REF_PLACEHOLDER = "zztjgmdiftqtdcrlfpvc";
@@ -1722,7 +1722,7 @@ function initHexMapUkController(root) {
       }
 
       function getNetworkRowsForWindow() {
-        const windowed = filterRowsByWindow(networkController.filterEligibleRows(baseLatestRows));
+        const windowed = filterRowsByWindow(baseLatestRows);
         return getRowsForActivePollutant(windowed);
       }
 
@@ -3215,7 +3215,7 @@ function initHexMapUkController(root) {
           return [];
         }
         const groups = new Map();
-        const scopedRows = getRowsForActivePollutant(networkController.filterEligibleRows(rows));
+        const scopedRows = getRowsForActivePollutant(rows);
         scopedRows.forEach((row, index) => {
           const pconCode = resolvePconCode(row);
           if (!pconCode) {
@@ -3292,19 +3292,17 @@ function initHexMapUkController(root) {
           return;
         }
         const networkCodes = getActiveNetworkCodes();
-        const eligibleLatest = networkController.filterEligibleRows(baseLatestRows);
-        const eligibleLatestAllWindow = networkController.filterEligibleRows(baseLatestRowsAllWindow);
         let filteredLatest = [];
         if (networkCodes === null) {
-          filteredLatest = eligibleLatest;
+          filteredLatest = baseLatestRows;
         } else if (networkCodes.size > 0) {
-          filteredLatest = filterLatestRowsByNetwork(eligibleLatest, networkCodes);
+          filteredLatest = filterLatestRowsByNetwork(baseLatestRows, networkCodes);
         }
         let filteredLatestAllWindow = [];
         if (networkCodes === null) {
-          filteredLatestAllWindow = eligibleLatestAllWindow;
+          filteredLatestAllWindow = baseLatestRowsAllWindow;
         } else if (networkCodes.size > 0) {
-          filteredLatestAllWindow = filterLatestRowsByNetwork(eligibleLatestAllWindow, networkCodes);
+          filteredLatestAllWindow = filterLatestRowsByNetwork(baseLatestRowsAllWindow, networkCodes);
         }
         scopedLatestRows = filteredLatest;
         scopedLatestRowsAllWindow = filteredLatestAllWindow;
@@ -4144,10 +4142,9 @@ function initHexMapUkController(root) {
       }
 
       function buildSensorSearchRecords() {
-        const candidateRows = scopedLatestRowsAllWindow.length
+        const rowsForSearch = scopedLatestRowsAllWindow.length
           ? scopedLatestRowsAllWindow
           : (scopedLatestRows.length ? scopedLatestRows : baseLatestRowsAllWindow.length ? baseLatestRowsAllWindow : baseLatestRows);
-        const rowsForSearch = networkController.filterEligibleRows(candidateRows);
         const recordsByKey = new Map();
         rowsForSearch.forEach((row, index) => {
           const stationId = String(resolveStationKey(row) || `uk:${index}`);
@@ -4328,13 +4325,11 @@ function initHexMapUkController(root) {
           if (!Number.isFinite(value)) return null;
           return colorScale(value);
         },
-        getPconMetricValue: (pconCode) => getMetricValue(pconLookup.get(pconCode)),
+        getPconMetricValue: (pconCode) => getMetricValue(basePconLookup.get(pconCode)),
         applyColorScale: (value) => colorScale ? colorScale(value) : null,
         getSensorCurrentColor: (stationId) => {
           if (!colorScale) return null;
-          const allRows = networkController.filterEligibleRows(
-            scopedLatestRows.length ? scopedLatestRows : baseLatestRows,
-          );
+          const allRows = scopedLatestRows.length ? scopedLatestRows : baseLatestRows;
           const pollutantRows = getRowsForActivePollutant(allRows);
           const targetStationId = String(stationId || "");
           const candidates = pollutantRows.filter((r) => String(resolveStationKey(r) || "") === targetStationId);

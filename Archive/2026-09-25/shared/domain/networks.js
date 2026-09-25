@@ -41,7 +41,6 @@
         code: normalizeCode(row?.network_code),
         label: normalizeLabel(row?.network_label),
         network_type: row?.network_type || null,
-        live_map_enabled: row?.live_map_enabled === true,
       }))
       .filter((row) => row.code && row.label);
   }

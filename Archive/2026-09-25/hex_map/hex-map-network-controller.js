@@ -31,7 +31,6 @@ function initHexMapNetworkController(root) {
 
   let catalog = null;
   let catalogByCode = new Map();
-  let liveMapEligibleCodes = new Set();
   let catalogLoad = null;
   let selectedCodes = initialSelection;
   let activeScope = "uk";
@@ -148,9 +147,8 @@ function initHexMapNetworkController(root) {
       fetchApi: options.fetchApi,
       init: options.init,
     }).then((rows) => {
-      catalog = rows.filter((definition) => definition.live_map_enabled === true);
-      catalogByCode = new Map(catalog.map((definition) => [normalizeCode(definition.code), definition]));
-      liveMapEligibleCodes = new Set(catalogByCode.keys());
+      catalog = rows;
+      catalogByCode = new Map(rows.map((definition) => [normalizeCode(definition.code), definition]));
       reconcileSelection();
       renderActiveScope({ force: true });
       return catalog;
@@ -165,15 +163,6 @@ function initHexMapNetworkController(root) {
 
   function selectionSnapshot() {
     return selectedCodes === null ? null : new Set(selectedCodes);
-  }
-
-  function eligibleCodesSnapshot() {
-    return new Set(liveMapEligibleCodes);
-  }
-
-  function filterEligibleRows(rows) {
-    if (!Array.isArray(rows) || !rows.length) return [];
-    return rows.filter((row) => liveMapEligibleCodes.has(normalizeCode(networkDomain.resolveCode(row))));
   }
 
   function capabilitySnapshot(pollutant = activePollutant) {
@@ -195,7 +184,7 @@ function initHexMapNetworkController(root) {
   function updatePollutantCapability(pollutant, rows) {
     const key = pollutantDomain.normalize(pollutant);
     if (!key || !Array.isArray(rows)) return false;
-    const supportedCodes = new Set(filterEligibleRows(rows)
+    const supportedCodes = new Set(rows
       .map((row) => normalizeCode(networkDomain.resolveCode(row)))
       .filter(Boolean));
     const fingerprint = Array.from(supportedCodes).sort().join("|");
@@ -244,12 +233,7 @@ function initHexMapNetworkController(root) {
   }
 
   function reconcileSelection() {
-    if (!catalog?.length) {
-      selectedCodes = null;
-      persistSelection();
-      return;
-    }
-    if (selectedCodes === null) {
+    if (!catalog?.length || selectedCodes === null) {
       persistSelection();
       return;
     }
@@ -886,8 +870,6 @@ function initHexMapNetworkController(root) {
     getCatalog,
     getCatalogByCode,
     getCatalogByCodeMap,
-    getEligibleCodes: eligibleCodesSnapshot,
-    filterEligibleRows,
     getSelection: selectionSnapshot,
     getSelectedEntries: selectedEntries,
     getEffectiveSelectedEntries: effectiveSelectedEntries,
