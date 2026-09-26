@@ -68,7 +68,7 @@
       </div>
     </header>
 
-    <p class="animation-prep-note">The master chart retains the full-month October GMT time scale. The 31 daily charts and the average-day chart use the same 1040 × 270 artwork and plot margins, a full calendar-day 00:00–24:00 GMT scale, and the same 0–4 µg/m³ vertical scale as the master. The 24 hourly readings remain plotted at their UK-AIR hour-ending positions, so the 01:00 reading is one hour into the chart and the 24:00 reading is at the right-hand midnight boundary. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
+    <p class="animation-prep-note">The master chart retains the full-month October GMT time scale. The 31 daily charts and the average-day chart use the same 1040 × 270 artwork and plot margins, a full calendar-day 00:00–24:00 GMT scale, and the same 0–4 µg/m³ vertical scale as the master. Each daily line includes the previous day's 24:00 reading at the left-hand 00:00 boundary, then the source day's 01:00–24:00 hour-ending readings. This preserves the continuous line segment from midnight to 01:00 as well as the exact calendar-day geometry. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
 
     <section class="animation-prep-status" aria-label="Dataset and validation summary">
       <span><strong>Source:</strong> UK-AIR SHUN</span>
@@ -116,7 +116,8 @@
      * /Users/mikehinford/Dropbox/Projects/UK-AQ Website & Network/Resources/Wood Burning - Clean Air Night - UK AQ/SHUN_BC_2025.csv
      *
      * A CSV parser selected the 31 October source rows and converted blank cells
-     * to null. No values were manually transcribed, smoothed or interpolated.
+     * to null. The 30 September 24:00 value (0.40 µg/m³) is also retained as the
+     * left-hand midnight boundary for 1 October. No values were smoothed or interpolated.
      */
     const SOURCE_DAYS = Object.freeze([
       ["2025-10-01",[0.3,0.2,0.2,0.2,0.2,0.4,0.4,0.6,0.4,0.3,0.3,0.3,0.3,0.4,0.4,0.4,0.6,0.6,0.4,0.6,0.3,0.2,0.3,0.2]],
@@ -151,6 +152,8 @@
       ["2025-10-30",[0.1,0.1,0.1,0.2,0.1,0.3,0.3,0.5,0.3,0.2,0.2,0.4,0.4,0.4,0.6,0.9,0.6,0.3,0.4,0.3,0.2,0.2,0.2,null]],
       ["2025-10-31",[0.1,0.0,0.0,0.0,0.0,0.1,0.1,0.1,0.2,0.1,0.2,0.2,0.2,0.4,0.2,0.3,0.3,0.5,0.4,0.4,0.3,0.3,0.2,0.1]]
     ]);
+
+    const PRIOR_MIDNIGHT_VALUE = 0.4; // 30 Sep 2025, 24:00 GMT hour ending
 
     const SVG_NS = "http://www.w3.org/2000/svg";
     const WIDTH = 1040;
@@ -200,6 +203,32 @@
         index: hourIndex
       });
     }));
+
+    const startMidnightValues = Object.freeze([
+      PRIOR_MIDNIGHT_VALUE,
+      ...SOURCE_DAYS.slice(0, -1).map(([, dayValues]) => dayValues[23])
+    ]);
+    const finiteStartMidnightValues = startMidnightValues.filter(Number.isFinite);
+    const averageStartMidnight = Object.freeze({
+      hourEnding: 0,
+      value: finiteStartMidnightValues.length ? finiteStartMidnightValues.reduce((sum, value) => sum + value, 0) / finiteStartMidnightValues.length : null,
+      count: finiteStartMidnightValues.length,
+      index: "average-midnight-start"
+    });
+    const averageChartPoints = Object.freeze([averageStartMidnight, ...averagePoints]);
+
+    function dailyChartPoints(dayIndex) {
+      const sourcePoints = observations.slice(dayIndex * 24, dayIndex * 24 + 24);
+      const previousMidnightValue = dayIndex === 0 ? PRIOR_MIDNIGHT_VALUE : SOURCE_DAYS[dayIndex - 1][1][23];
+      const midnightPoint = Object.freeze({
+        sourceDate: SOURCE_DAYS[dayIndex][0],
+        sourceHour: 0,
+        timestamp: Date.UTC(2025, 9, dayIndex + 1, 0),
+        value: previousMidnightValue,
+        index: `day-${dayIndex + 1}-midnight-start`
+      });
+      return Object.freeze([midnightPoint, ...sourcePoints]);
+    }
 
     function niceScale(values) {
       const finiteValues = values.filter(Number.isFinite);
@@ -388,7 +417,7 @@
       kind: "average-day",
       heading: "Shrewsbury Underdale",
       subheading: "Black Carbon (880 nm) · October 2025 average day · 00:00–24:00 GMT",
-      points: averagePoints,
+      points: averageChartPoints,
       filename: "SHUN_BC_October_2025_average_day",
       lineFilename: "SHUN_BC_October_2025_average_day_line_only",
       config: DAY_CONFIG
@@ -399,7 +428,7 @@
       kind: "timeline-day",
       heading: longDate(date),
       subheading: "Source-day observations positioned within a full 00:00–24:00 GMT calendar day",
-      points: observations.slice(dayIndex * 24, dayIndex * 24 + 24),
+      points: dailyChartPoints(dayIndex),
       filename: `SHUN_BC_${date}`,
       lineFilename: `SHUN_BC_${date}_line_only`,
       config: DAY_CONFIG
@@ -603,12 +632,16 @@
       if (SOURCE_DAYS.length !== 31 || SOURCE_DAYS.some(([date], index) => date !== expectedDates[index])) failures.push("October source dates");
       if (finiteCount !== 723 || missingCount !== 21) failures.push("valid/missing counts");
       if (dailyRecords.length !== 31 || timelineRecords.length !== 32 || chartRecords.length !== 33) failures.push("chart count");
-      if (averagePoints.length !== 24 || average.points.length !== 24) failures.push("average slots");
+      if (averagePoints.length !== 24 || average.points.length !== 25) failures.push("average slots");
+      if (dailyRecords.some((record) => record.points.length !== 25)) failures.push("daily boundary points");
       averagePoints.forEach((point, hourIndex) => {
         const sourceValues = SOURCE_DAYS.map(([, values]) => values[hourIndex]).filter(Number.isFinite);
         const expectedMean = sourceValues.reduce((sum, value) => sum + value, 0) / sourceValues.length;
         if (point.count !== sourceValues.length || Math.abs(point.value - expectedMean) > 1e-12) failures.push("average derivation");
       });
+      const expectedStartMidnightValues = [PRIOR_MIDNIGHT_VALUE, ...SOURCE_DAYS.slice(0, -1).map(([, values]) => values[23])].filter(Number.isFinite);
+      const expectedStartMidnightMean = expectedStartMidnightValues.reduce((sum, value) => sum + value, 0) / expectedStartMidnightValues.length;
+      if (averageStartMidnight.count !== expectedStartMidnightValues.length || Math.abs(averageStartMidnight.value - expectedStartMidnightMean) > 1e-12) failures.push("average midnight boundary derivation");
 
       const geometry = new Set(chartRecords.map(({ svg }) => `${svg.getAttribute("width")}|${svg.getAttribute("height")}|${svg.getAttribute("viewBox")}`));
       if (geometry.size !== 1 || !geometry.has("1040|270|0 0 1040 270")) failures.push("SVG geometry");
