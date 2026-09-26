@@ -68,7 +68,7 @@
       </div>
     </header>
 
-    <p class="animation-prep-note">The master chart retains the full-month October GMT time scale. The 31 daily charts and the average-day chart use the same 1040 × 270 artwork and plot margins, a full-width 01:00–24:00 GMT hour-ending scale, and the same 0–4 µg/m³ vertical scale as the master. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
+    <p class="animation-prep-note">The master chart retains the full-month October GMT time scale. The 31 daily charts and the average-day chart use the same 1040 × 270 artwork and plot margins, a full calendar-day 00:00–24:00 GMT scale, and the same 0–4 µg/m³ vertical scale as the master. The 24 hourly readings remain plotted at their UK-AIR hour-ending positions, so the 01:00 reading is one hour into the chart and the 24:00 reading is at the right-hand midnight boundary. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
 
     <section class="animation-prep-status" aria-label="Dataset and validation summary">
       <span><strong>Source:</strong> UK-AIR SHUN</span>
@@ -217,7 +217,7 @@
     const TIMELINE_SCALE = niceScale(observations.map((point) => point.value));
     const timelineX = (timestamp) => MARGIN.left + ((timestamp - START_MS) / (END_MS - START_MS)) * PLOT_RECT.width;
     const timelineY = (value) => HEIGHT - MARGIN.bottom - ((value - TIMELINE_SCALE.min) / (TIMELINE_SCALE.max - TIMELINE_SCALE.min)) * PLOT_RECT.height;
-    const dayX = (hourEnding) => MARGIN.left + ((hourEnding - 1) / 23) * PLOT_RECT.width;
+    const dayX = (hourEnding) => MARGIN.left + (hourEnding / 24) * PLOT_RECT.width;
 
     function linePath(points, getX, getY, getDomainValue) {
       let path = "";
@@ -315,9 +315,9 @@
       getX: dayX,
       getY: timelineY,
       getDomainValue: (point) => point.hourEnding ?? point.sourceHour,
-      xDomain: Object.freeze([1, 24]),
-      xTitle: "GMT hour ending",
-      xTicks: Object.freeze([1, 6, 12, 18, 24].map((hour) => Object.freeze({ value: hour, label: `${String(hour).padStart(2, "0")}:00` })))
+      xDomain: Object.freeze([0, 24]),
+      xTitle: "GMT",
+      xTicks: Object.freeze([0, 6, 12, 18, 24].map((hour) => Object.freeze({ value: hour, label: `${String(hour).padStart(2, "0")}:00` })))
     });
 
     function addChart({ id, heading, subheading, points, filename, lineFilename, kind, config, master = false }) {
@@ -387,7 +387,7 @@
       id: "chart-average-day",
       kind: "average-day",
       heading: "Shrewsbury Underdale",
-      subheading: "Black Carbon (880 nm) · October 2025 average day · GMT hour ending",
+      subheading: "Black Carbon (880 nm) · October 2025 average day · 00:00–24:00 GMT",
       points: averagePoints,
       filename: "SHUN_BC_October_2025_average_day",
       lineFilename: "SHUN_BC_October_2025_average_day_line_only",
@@ -398,7 +398,7 @@
       id: `chart-${date}`,
       kind: "timeline-day",
       heading: longDate(date),
-      subheading: "Source-day observations expanded to the full 24-hour chart width · GMT hour ending",
+      subheading: "Source-day observations positioned within a full 00:00–24:00 GMT calendar day",
       points: observations.slice(dayIndex * 24, dayIndex * 24 + 24),
       filename: `SHUN_BC_${date}`,
       lineFilename: `SHUN_BC_${date}_line_only`,
@@ -615,7 +615,7 @@
       if (TIMELINE_SCALE.min !== 0 || TIMELINE_SCALE.max !== 4) failures.push("vertical scale");
       if (master.xDomain[0] !== START_MS || master.xDomain[1] !== END_MS || master.yDomain[0] !== 0 || master.yDomain[1] !== 4) failures.push("master domains");
       const fullWidthDomains = new Set(fullWidthRecords.map((record) => `${record.xDomain.join(",")}|${record.yDomain.join(",")}`));
-      if (fullWidthDomains.size !== 1 || !fullWidthDomains.has("1,24|0,4")) failures.push("daily/average domains");
+      if (fullWidthDomains.size !== 1 || !fullWidthDomains.has("0,24|0,4")) failures.push("daily/average domains");
       const pngDimensions = new Set(chartRecords.map((record) => record.pngDimensions.join("×")));
       if (pngDimensions.size !== 1 || !pngDimensions.has(`${EXPORT_WIDTH}×${EXPORT_HEIGHT}`)) failures.push("PNG geometry");
 
@@ -667,7 +667,7 @@
         exportScale: HIGH_RES_EXPORT_SCALE,
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         xDomain: Object.freeze([START_MS, END_MS]),
-        dailyXDomain: Object.freeze([1, 24]),
+        dailyXDomain: Object.freeze([0, 24]),
         yDomain: Object.freeze([TIMELINE_SCALE.min, TIMELINE_SCALE.max])
       });
     }
