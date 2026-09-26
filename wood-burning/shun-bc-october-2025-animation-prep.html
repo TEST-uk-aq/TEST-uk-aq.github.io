@@ -68,7 +68,7 @@
       </div>
     </header>
 
-    <p class="animation-prep-note">The master and 31 daily timeline charts use the same 1040 × 270 artwork, plot margins, full-month GMT time scale and 0–4 µg/m³ vertical scale. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
+    <p class="animation-prep-note">The master chart retains the full-month October GMT time scale. The 31 daily charts and the average-day chart use the same 1040 × 270 artwork and plot margins, a full-width 01:00–24:00 GMT hour-ending scale, and the same 0–4 µg/m³ vertical scale as the master. PNGs are rendered directly from vector artwork at 6240 × 1620 pixels. Line-only exports retain the full canvas and plotting geometry on a genuine transparent background. In browsers with folder access, a bulk button saves all files to a chosen folder; otherwise the browser may ask you to allow multiple downloads.</p>
 
     <section class="animation-prep-status" aria-label="Dataset and validation summary">
       <span><strong>Source:</strong> UK-AIR SHUN</span>
@@ -215,11 +215,9 @@
     }
 
     const TIMELINE_SCALE = niceScale(observations.map((point) => point.value));
-    const AVERAGE_SCALE = niceScale(averagePoints.map((point) => point.value));
     const timelineX = (timestamp) => MARGIN.left + ((timestamp - START_MS) / (END_MS - START_MS)) * PLOT_RECT.width;
     const timelineY = (value) => HEIGHT - MARGIN.bottom - ((value - TIMELINE_SCALE.min) / (TIMELINE_SCALE.max - TIMELINE_SCALE.min)) * PLOT_RECT.height;
-    const averageX = (hourEnding) => MARGIN.left + ((hourEnding - 1) / 23) * PLOT_RECT.width;
-    const averageY = (value) => HEIGHT - MARGIN.bottom - ((value - AVERAGE_SCALE.min) / (AVERAGE_SCALE.max - AVERAGE_SCALE.min)) * PLOT_RECT.height;
+    const dayX = (hourEnding) => MARGIN.left + ((hourEnding - 1) / 23) * PLOT_RECT.width;
 
     function linePath(points, getX, getY, getDomainValue) {
       let path = "";
@@ -312,11 +310,11 @@
       ])
     });
 
-    const AVERAGE_CONFIG = Object.freeze({
-      scale: AVERAGE_SCALE,
-      getX: averageX,
-      getY: averageY,
-      getDomainValue: (point) => point.hourEnding,
+    const DAY_CONFIG = Object.freeze({
+      scale: TIMELINE_SCALE,
+      getX: dayX,
+      getY: timelineY,
+      getDomainValue: (point) => point.hourEnding ?? point.sourceHour,
       xDomain: Object.freeze([1, 24]),
       xTitle: "GMT hour ending",
       xTicks: Object.freeze([1, 6, 12, 18, 24].map((hour) => Object.freeze({ value: hour, label: `${String(hour).padStart(2, "0")}:00` })))
@@ -393,18 +391,18 @@
       points: averagePoints,
       filename: "SHUN_BC_October_2025_average_day",
       lineFilename: "SHUN_BC_October_2025_average_day_line_only",
-      config: AVERAGE_CONFIG
+      config: DAY_CONFIG
     });
 
     SOURCE_DAYS.forEach(([date], dayIndex) => addChart({
       id: `chart-${date}`,
       kind: "timeline-day",
       heading: longDate(date),
-      subheading: "Source-day observations in their full-month positions · GMT hour ending",
+      subheading: "Source-day observations expanded to the full 24-hour chart width · GMT hour ending",
       points: observations.slice(dayIndex * 24, dayIndex * 24 + 24),
       filename: `SHUN_BC_${date}`,
       lineFilename: `SHUN_BC_${date}_line_only`,
-      config: TIMELINE_CONFIG
+      config: DAY_CONFIG
     }));
 
     function serialiseNormalSvg(record, scale = 1) {
@@ -600,6 +598,7 @@
       const dailyRecords = chartRecords.filter((record) => record.kind === "timeline-day");
       const master = chartRecords.find((record) => record.kind === "timeline-master");
       const average = chartRecords.find((record) => record.kind === "average-day");
+      const fullWidthRecords = [...dailyRecords, average];
 
       if (SOURCE_DAYS.length !== 31 || SOURCE_DAYS.some(([date], index) => date !== expectedDates[index])) failures.push("October source dates");
       if (finiteCount !== 723 || missingCount !== 21) failures.push("valid/missing counts");
@@ -611,23 +610,28 @@
         if (point.count !== sourceValues.length || Math.abs(point.value - expectedMean) > 1e-12) failures.push("average derivation");
       });
 
-      const geometry = new Set(timelineRecords.map(({ svg }) => `${svg.getAttribute("width")}|${svg.getAttribute("height")}|${svg.getAttribute("viewBox")}`));
-      if (geometry.size !== 1 || !geometry.has("1040|270|0 0 1040 270")) failures.push("timeline SVG geometry");
-      const domains = new Set(timelineRecords.map((record) => `${record.xDomain.join(",")}|${record.yDomain.join(",")}`));
-      if (domains.size !== 1 || TIMELINE_SCALE.min !== 0 || TIMELINE_SCALE.max !== 4) failures.push("timeline domains");
-      const pngDimensions = new Set(timelineRecords.map((record) => record.pngDimensions.join("×")));
-      if (pngDimensions.size !== 1 || !pngDimensions.has(`${EXPORT_WIDTH}×${EXPORT_HEIGHT}`)) failures.push("timeline PNG geometry");
+      const geometry = new Set(chartRecords.map(({ svg }) => `${svg.getAttribute("width")}|${svg.getAttribute("height")}|${svg.getAttribute("viewBox")}`));
+      if (geometry.size !== 1 || !geometry.has("1040|270|0 0 1040 270")) failures.push("SVG geometry");
+      if (TIMELINE_SCALE.min !== 0 || TIMELINE_SCALE.max !== 4) failures.push("vertical scale");
+      if (master.xDomain[0] !== START_MS || master.xDomain[1] !== END_MS || master.yDomain[0] !== 0 || master.yDomain[1] !== 4) failures.push("master domains");
+      const fullWidthDomains = new Set(fullWidthRecords.map((record) => `${record.xDomain.join(",")}|${record.yDomain.join(",")}`));
+      if (fullWidthDomains.size !== 1 || !fullWidthDomains.has("1,24|0,4")) failures.push("daily/average domains");
+      const pngDimensions = new Set(chartRecords.map((record) => record.pngDimensions.join("×")));
+      if (pngDimensions.size !== 1 || !pngDimensions.has(`${EXPORT_WIDTH}×${EXPORT_HEIGHT}`)) failures.push("PNG geometry");
 
       ["2025-10-01", "2025-10-15", "2025-10-31"].forEach((date) => {
         const daily = chartRecords.find((record) => record.id === `chart-${date}`);
-        daily.coordinates.forEach(([dailyX, dailyY], index) => {
-          const [masterX, masterY] = master.coordinates.get(index) || [];
-          if (Math.abs(dailyX - masterX) > 1e-9 || Math.abs(dailyY - masterY) > 1e-9) failures.push(`${date} coordinate alignment`);
+        daily.points.forEach((point) => {
+          if (!Number.isFinite(point.value)) return;
+          const [dailyX, dailyY] = daily.coordinates.get(point.index) || [];
+          const expectedX = dayX(point.sourceHour);
+          const expectedY = timelineY(point.value);
+          if (Math.abs(dailyX - expectedX) > 1e-9 || Math.abs(dailyY - expectedY) > 1e-9) failures.push(`${date} full-width coordinate alignment`);
         });
         if (daily.pathD !== daily.svg.querySelector("[data-observation-path]").getAttribute("d")) failures.push(`${date} export path alignment`);
       });
 
-      timelineRecords.forEach((record) => {
+      chartRecords.forEach((record) => {
         const path = record.svg.querySelector("[data-observation-path]");
         const renderedRuns = (path.getAttribute("d").match(/M/g) || []).length;
         if (renderedRuns !== countRuns(record.points)) failures.push(`${record.id} gap preservation`);
@@ -663,6 +667,7 @@
         exportScale: HIGH_RES_EXPORT_SCALE,
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         xDomain: Object.freeze([START_MS, END_MS]),
+        dailyXDomain: Object.freeze([1, 24]),
         yDomain: Object.freeze([TIMELINE_SCALE.min, TIMELINE_SCALE.max])
       });
     }
