@@ -52,6 +52,16 @@
     .resolve-animation-panel h2{margin:0 0 7px;font-size:1rem}
     .resolve-animation-panel p{margin:0 0 13px;color:#344654;font-size:.84rem;line-height:1.5}
     .resolve-animation-actions{display:flex;flex-wrap:wrap;gap:8px}
+    .winter-series-panel{margin:0 0 30px;padding:18px;border:1px solid #dfe4e7;border-radius:12px;background:#fff}
+    .winter-series-panel h2{margin:0 0 7px;font-size:1rem}
+    .winter-series-panel>p{margin:0 0 14px;color:#344654;font-size:.84rem;line-height:1.5}
+    .winter-series-preview{margin:0 0 14px;padding:10px;border:1px solid #eef1f3;border-radius:9px;background:#fcfcfb;overflow:hidden}
+    .winter-series-preview svg{display:block;width:100%;height:auto}
+    .winter-series-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px 12px;margin:0 0 12px}
+    .winter-series-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid #e7ebee;border-radius:8px}
+    .winter-series-label{display:flex;align-items:center;gap:8px;min-width:0;font-size:.8rem;font-weight:700}
+    .winter-series-swatch{width:22px;height:4px;border-radius:999px;flex:0 0 auto}
+    .winter-series-status{color:#61717e;font-size:.7rem;font-weight:600}
     @media(max-width:767px){.animation-prep-main{padding:20px 12px 48px}.animation-prep-header,.animation-chart-heading{align-items:flex-start;flex-direction:column}.animation-prep-actions{width:100%}.animation-prep-actions .animation-prep-button{flex:1 1 145px}.animation-chart-card{padding:16px 10px}.chart-downloads{justify-content:flex-start}}
   </style>
 </head>
@@ -81,6 +91,16 @@
         <button class="animation-prep-button" type="button" data-animation-download="oct1-sequence">Download Oct 1 60-frame PNG sequence</button>
         <button class="animation-prep-button" type="button" data-animation-download="expanded-days">Download 31 expanded daily PNGs</button>
         <button class="animation-prep-button" type="button" data-animation-download="expanded-average">Download expanded average PNG</button>
+      </div>
+    </section>
+
+    <section class="winter-series-panel" aria-labelledby="winter-series-title">
+      <h2 id="winter-series-title">SHUN Winter monthly average line assets</h2>
+      <p>October 2025 to March 2026. Each transparent line uses the same enlarged animation geometry and 0–4 µg/m³ vertical scale. The right edge is a sizing reference only: it matches the current animation span that happens to align with 16 October on the master month chart. The six colours are reused as the Winter-series legend colours.</p>
+      <div id="winter-series-preview" class="winter-series-preview" aria-label="Preview of all six Winter monthly average lines"></div>
+      <div id="winter-series-list" class="winter-series-list"></div>
+      <div class="resolve-animation-actions">
+        <button class="animation-prep-button" type="button" data-animation-download="winter-months">Download all 6 Winter PNGs</button>
       </div>
     </section>
 
@@ -268,10 +288,68 @@
     const ANIMATION_FPS = 30;
     const ANIMATION_FRAME_COUNT = 60;
     const EXPANDED_START_X = MARGIN.left;
-    const EXPANDED_END_MS = Date.UTC(2025, 9, 16, 0);
-    const EXPANDED_END_X = timelineX(EXPANDED_END_MS);
+    const EXPANDED_REFERENCE_END_MS = Date.UTC(2025, 9, 16, 0);
+    const EXPANDED_END_X = timelineX(EXPANDED_REFERENCE_END_MS);
     const expandedDayX = (hourEnding) => EXPANDED_START_X + (hourEnding / 24) * (EXPANDED_END_X - EXPANDED_START_X);
     const smoothstep = (value) => value * value * (3 - 2 * value);
+
+    const WINTER_LINE_STROKE_WIDTH = 3;
+    const WINTER_MONTHS = Object.freeze([
+      Object.freeze({
+        key: "2025-10",
+        label: "October 2025",
+        shortLabel: "Oct",
+        colourName: "Blue",
+        colour: "#3C78AC",
+        status: "Final",
+        values: Object.freeze([0.4793103448275862,0.40689655172413774,0.33928571428571414,0.31034482758620685,0.264516129032258,0.3299999999999999,0.3612903225806451,0.5161290322580645,0.6241379310344828,0.48965517241379314,0.39999999999999997,0.34516129032258047,0.3066666666666666,0.3129032258064515,0.30333333333333334,0.3133333333333333,0.4161290322580646,0.5419354838709679,0.7433333333333334,0.8533333333333332,0.8161290322580644,0.7451612903225808,0.6709677419354838,0.5935483870967742,0.4689655172413793])
+      }),
+      Object.freeze({
+        key: "2025-11",
+        label: "November 2025",
+        shortLabel: "Nov",
+        colourName: "Red",
+        colour: "#C55454",
+        status: "Final",
+        values: Object.freeze([0.5966666666666666,0.4566666666666666,0.35357142857142854,0.2962962962962963,0.2689655172413793,0.23103448275862062,0.2172413793103448,0.25333333333333335,0.5379310344827587,0.6,0.47142857142857136,0.3033333333333334,0.2827586206896551,0.31034482758620685,0.3642857142857144,0.39285714285714285,0.5827586206896551,0.9700000000000001,1.4310344827586206,1.5310344827586206,1.4933333333333334,1.38,1.1433333333333333,0.7799999999999999,0.6033333333333333])
+      }),
+      Object.freeze({
+        key: "2025-12",
+        label: "December 2025",
+        shortLabel: "Dec",
+        colourName: "Green",
+        colour: "#4F8A63",
+        status: "Final",
+        values: Object.freeze([0.49354838709677423,0.41,0.38666666666666666,0.3551724137931035,0.32903225806451614,0.3193548387096775,0.31333333333333335,0.3620689655172413,0.5172413793103448,0.5633333333333334,0.4769230769230769,0.5666666666666667,0.4724137931034484,0.48275862068965514,0.73,0.5933333333333335,0.8300000000000001,0.9034482758620691,1.3700000000000003,1.1733333333333333,0.8800000000000002,0.9533333333333331,0.7241379310344828,0.6064516129032256,0.5032258064516129])
+      }),
+      Object.freeze({
+        key: "2026-01",
+        label: "January 2026",
+        shortLabel: "Jan",
+        colourName: "Orange",
+        colour: "#D1873F",
+        status: "Provisional",
+        values: Object.freeze([0.6523809523809523,0.4761904761904761,0.6166666666666666,0.28823529411764703,0.23888888888888887,0.18947368421052632,0.1944444444444445,0.2722222222222222,0.5545454545454546,0.5944444444444446,0.5947368421052631,1.06,0.4714285714285714,0.5333333333333334,0.4952380952380951,0.41666666666666674,0.5526315789473684,0.9904761904761905,1.1578947368421053,2.0190476190476185,1.7549999999999997,1.261904761904762,1.0142857142857142,0.9636363636363636,0.6333333333333333])
+      }),
+      Object.freeze({
+        key: "2026-02",
+        label: "February 2026",
+        shortLabel: "Feb",
+        colourName: "Purple",
+        colour: "#8065A3",
+        status: "Provisional",
+        values: Object.freeze([0.4923076923076922,0.45769230769230757,0.38461538461538447,0.3333333333333332,0.2884615384615384,0.2923076923076922,0.32307692307692293,0.3759999999999999,0.6041666666666666,0.5304347826086956,0.45217391304347804,0.39565217391304347,0.38799999999999985,0.3909090909090908,0.4319999999999999,0.4708333333333332,0.528,0.6625000000000002,0.8346153846153848,0.9519999999999998,0.9076923076923078,0.8423076923076924,0.7208333333333333,0.6479999999999998,0.4999999999999999])
+      }),
+      Object.freeze({
+        key: "2026-03",
+        label: "March 2026",
+        shortLabel: "Mar",
+        colourName: "Rust",
+        colour: "#9B5A45",
+        status: "Provisional",
+        values: Object.freeze([0.5799999999999998,0.4769230769230769,0.4653846153846152,0.43199999999999983,0.4239999999999998,0.38461538461538447,0.40416666666666656,0.4923076923076922,0.6791666666666666,0.7000000000000001,0.6304347826086956,0.4045454545454545,0.3714285714285714,0.39523809523809517,0.33749999999999986,0.3428571428571428,0.3999999999999999,0.45833333333333326,0.5399999999999999,0.591304347826087,0.7958333333333334,0.8320000000000002,0.892,0.6833333333333331,0.5874999999999998])
+      })
+    ]);
 
     function linePath(points, getX, getY, getDomainValue) {
       let path = "";
@@ -316,6 +394,22 @@
     function expandedAveragePath() {
       return linePathByPoint(
         averageChartPoints,
+        (point) => expandedDayX(point.hourEnding),
+        (point) => timelineY(point.value)
+      );
+    }
+
+    function winterMonthPoints(month) {
+      return month.values.map((value, hourEnding) => Object.freeze({
+        hourEnding,
+        value,
+        index: `${month.key}-${hourEnding}`
+      }));
+    }
+
+    function winterMonthPath(month) {
+      return linePathByPoint(
+        winterMonthPoints(month),
         (point) => expandedDayX(point.hourEnding),
         (point) => timelineY(point.value)
       );
@@ -511,7 +605,7 @@
       return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
     }
 
-    function serialisePathOnlySvg(pathD, scale = 1) {
+    function serialisePathOnlySvg(pathD, scale = 1, { stroke = "#3C78AC", strokeWidth = 2 } = {}) {
       const svg = svgElement("svg", {
         xmlns: SVG_NS,
         width: WIDTH * scale,
@@ -523,8 +617,8 @@
       svg.append(svgElement("path", {
         d: pathD,
         fill: "none",
-        stroke: "#3C78AC",
-        "stroke-width": 2,
+        stroke,
+        "stroke-width": strokeWidth,
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
         "clip-path": `url(#${clipId})`
@@ -557,9 +651,9 @@
       }
     }
 
-    async function pathPngBlob(pathD, filename) {
+    async function pathPngBlob(pathD, filename, style = {}) {
       await document.fonts?.ready;
-      const source = new Blob([serialisePathOnlySvg(pathD, HIGH_RES_EXPORT_SCALE)], { type: "image/svg+xml;charset=utf-8" });
+      const source = new Blob([serialisePathOnlySvg(pathD, HIGH_RES_EXPORT_SCALE, style)], { type: "image/svg+xml;charset=utf-8" });
       const image = await loadSvgImage(source, filename);
       const canvas = document.createElement("canvas");
       canvas.width = EXPORT_WIDTH;
@@ -654,7 +748,7 @@
 
     document.querySelectorAll("[data-download-all]").forEach((button) => button.addEventListener("click", () => saveAll(button.dataset.downloadAll, button)));
 
-    async function saveGeneratedPngSet({ count, filenameForIndex, pathForIndex, description, button }) {
+    async function saveGeneratedPngSet({ count, filenameForIndex, pathForIndex, styleForIndex = () => ({}), description, button }) {
       const status = document.querySelector("#download-status");
       document.querySelectorAll("[data-animation-download], [data-download-all]").forEach((control) => { control.disabled = true; });
       try {
@@ -663,7 +757,7 @@
         for (let index = 0; index < count; index += 1) {
           const filename = filenameForIndex(index);
           status.textContent = `Preparing ${index + 1} of ${count}: ${filename}`;
-          const blob = await pathPngBlob(pathForIndex(index), filename);
+          const blob = await pathPngBlob(pathForIndex(index), filename, styleForIndex(index));
           if (directory) {
             const handle = await directory.getFileHandle(filename, { create: true });
             const writable = await handle.createWritable();
@@ -718,8 +812,87 @@
           console.error(error);
           status.textContent = `Animation asset download failed: ${error.message}`;
         }
+      } else if (kind === "winter-months") {
+        await saveGeneratedPngSet({
+          count: WINTER_MONTHS.length,
+          filenameForIndex: (index) => `SHUN_BC_${WINTER_MONTHS[index].key}_monthly_average_winter.png`,
+          pathForIndex: (index) => winterMonthPath(WINTER_MONTHS[index]),
+          styleForIndex: (index) => ({ stroke: WINTER_MONTHS[index].colour, strokeWidth: WINTER_LINE_STROKE_WIDTH }),
+          description: "6 SHUN Winter monthly average PNGs",
+          button
+        });
       }
     }));
+
+    function renderWinterSeriesPanel() {
+      const previewHost = document.querySelector("#winter-series-preview");
+      const listHost = document.querySelector("#winter-series-list");
+      const svg = svgElement("svg", {
+        viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
+        role: "img",
+        "aria-label": "SHUN Winter monthly average Black Carbon lines, October 2025 to March 2026"
+      });
+      svg.append(svgElement("rect", { x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: "#fcfcfb" }));
+      [0,1,2,3,4].forEach((tick) => {
+        svg.append(svgElement("line", {
+          x1: MARGIN.left,
+          x2: EXPANDED_END_X,
+          y1: timelineY(tick),
+          y2: timelineY(tick),
+          stroke: "#d7dde2",
+          "stroke-width": 1,
+          "stroke-dasharray": "2 5"
+        }));
+      });
+      WINTER_MONTHS.forEach((month) => {
+        svg.append(svgElement("path", {
+          d: winterMonthPath(month),
+          fill: "none",
+          stroke: month.colour,
+          "stroke-width": WINTER_LINE_STROKE_WIDTH,
+          "stroke-linecap": "round",
+          "stroke-linejoin": "round"
+        }));
+
+        const item = document.createElement("div");
+        item.className = "winter-series-item";
+        const label = document.createElement("div");
+        label.className = "winter-series-label";
+        const swatch = document.createElement("span");
+        swatch.className = "winter-series-swatch";
+        swatch.style.background = month.colour;
+        const copy = document.createElement("span");
+        copy.textContent = `${month.label} · ${month.colourName} ${month.colour}`;
+        const status = document.createElement("span");
+        status.className = "winter-series-status";
+        status.textContent = month.status;
+        label.append(swatch, copy, status);
+
+        const button = document.createElement("button");
+        button.className = "animation-prep-button";
+        button.type = "button";
+        button.textContent = "Download PNG";
+        button.addEventListener("click", async () => {
+          const filename = `SHUN_BC_${month.key}_monthly_average_winter.png`;
+          const output = document.querySelector("#download-status");
+          try {
+            output.textContent = `Preparing ${filename}…`;
+            triggerDownload(await pathPngBlob(
+              winterMonthPath(month),
+              filename,
+              { stroke: month.colour, strokeWidth: WINTER_LINE_STROKE_WIDTH }
+            ), filename);
+            output.textContent = `Downloaded ${filename}`;
+          } catch (error) {
+            console.error(error);
+            output.textContent = `Winter asset download failed: ${error.message}`;
+          }
+        });
+        item.append(label, button);
+        listHost.append(item);
+      });
+      previewHost.append(svg);
+    }
 
     function populateDevelopmentInformation() {
       const finiteCount = observations.filter((point) => Number.isFinite(point.value)).length;
@@ -735,7 +908,7 @@
       document.querySelector("#info-days").textContent = SOURCE_DAYS.length;
       document.querySelector("#info-animation-sequence").textContent = `${ANIMATION_FRAME_COUNT} frames at ${ANIMATION_FPS} fps (${(ANIMATION_FRAME_COUNT / ANIMATION_FPS).toFixed(2)} s)`;
       document.querySelector("#info-expanded-start").textContent = `x ${(EXPANDED_START_X * HIGH_RES_EXPORT_SCALE).toFixed(2)} px (00:00)`;
-      document.querySelector("#info-expanded-end").textContent = `x ${(EXPANDED_END_X * HIGH_RES_EXPORT_SCALE).toFixed(2)} px (16 Oct 00:00 on master)`;
+      document.querySelector("#info-expanded-end").textContent = `x ${(EXPANDED_END_X * HIGH_RES_EXPORT_SCALE).toFixed(2)} px (animation target right edge; 16 Oct is reference only)`;
       const body = document.querySelector("#average-details-body");
       averagePoints.forEach((point) => {
         const row = document.createElement("tr");
@@ -806,7 +979,9 @@
       const fullWidthDomains = new Set(fullWidthRecords.map((record) => `${record.xDomain.join(",")}|${record.yDomain.join(",")}`));
       if (fullWidthDomains.size !== 1 || !fullWidthDomains.has("0,24|0,4")) failures.push("daily/average domains");
       if (ANIMATION_FRAME_COUNT !== 60 || ANIMATION_FPS !== 30) failures.push("animation sequence configuration");
-      if (Math.abs(EXPANDED_START_X - MARGIN.left) > 1e-9 || Math.abs(EXPANDED_END_X - timelineX(Date.UTC(2025, 9, 16, 0))) > 1e-9) failures.push("expanded animation geometry");
+      if (Math.abs(EXPANDED_START_X - MARGIN.left) > 1e-9 || Math.abs(EXPANDED_END_X - timelineX(EXPANDED_REFERENCE_END_MS)) > 1e-9) failures.push("expanded animation geometry");
+      if (WINTER_MONTHS.length !== 6 || WINTER_MONTHS.some((month) => month.values.length !== 25)) failures.push("winter month profiles");
+      if (new Set(WINTER_MONTHS.map((month) => month.colour)).size !== 6) failures.push("winter month colours");
       if (oct1AnimationFramePath(0) === oct1AnimationFramePath(ANIMATION_FRAME_COUNT - 1)) failures.push("animation frame geometry");
       const pngDimensions = new Set(chartRecords.map((record) => record.pngDimensions.join("×")));
       if (pngDimensions.size !== 1 || !pngDimensions.has(`${EXPORT_WIDTH}×${EXPORT_HEIGHT}`)) failures.push("PNG geometry");
@@ -864,6 +1039,7 @@
       });
     }
 
+    renderWinterSeriesPanel();
     populateDevelopmentInformation();
     const publicState = {
       sourceDays: SOURCE_DAYS,
@@ -874,8 +1050,10 @@
         frameCount: ANIMATION_FRAME_COUNT,
         expandedStartX: EXPANDED_START_X,
         expandedEndX: EXPANDED_END_X,
-        expandedEndMs: EXPANDED_END_MS
+        expandedReferenceEndMs: EXPANDED_REFERENCE_END_MS,
+        winterLineStrokeWidth: WINTER_LINE_STROKE_WIDTH
       }),
+      winterMonths: WINTER_MONTHS,
       charts: Object.freeze(chartRecords),
       checks: null,
       validationPromise: null
