@@ -22,7 +22,7 @@
         { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', href: '/wood-burning/', className: 'uk-aq-nav-item--stove' },
         { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', href: '/naei-data/' },
         { label: 'Research', iconImg: 'uk-aq-research-icon.png', href: '/research/', className: 'uk-aq-nav-item--research' },
-        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--news' },
+        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--wordmark-spaced' },
       ],
     },
 /*    {
@@ -48,7 +48,7 @@
           href: 'https://youtube.com/@chronicillnesschannel',
           external: true,
         },
-*/        { label: 'Blog', iconImg: 'uk-aq-blog-sidebar-button.svg', href: '/blog/', className: 'uk-aq-nav-item--wordmark' },
+*/        { label: 'Blog', iconImg: 'uk-aq-blog-sidebar-button.svg', href: '/blog/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--wordmark-spaced' },
         { label: 'Resources', iconImg: 'chain-link-icon-ukaqblue-200h.svg', href: '/resources/' },
         { label: 'Contact', iconImg: 'uk-aq-contact-blue-200h.svg', href: '/contact.html' },
       ],
@@ -459,6 +459,11 @@
       --uk-aq-font:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
+    #uk-aq-sidebar,
+    #uk-aq-sidebar * {
+      box-sizing: content-box;
+    }
+
     /* ── Body shift ── */
     body {
       transition: padding-left var(--uk-aq-ease);
@@ -751,7 +756,7 @@
       max-height: 24px !important;
       object-fit: contain;
     }
-    .uk-aq-nav-item--news .uk-aq-nav-label {
+    .uk-aq-nav-item--wordmark-spaced .uk-aq-nav-label {
       margin-left: 3px;
     }
     .uk-aq-nav-icon-placeholder {
