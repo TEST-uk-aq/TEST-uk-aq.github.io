@@ -79,39 +79,6 @@ def nrs(source, codes):
         workbook.close()
 
 
-def nrs_pcon(source, codes):
-    expected = {code for code in codes if code.startswith("S140")}
-    if len(expected) != 57:
-        raise ValueError("Expected 57 current Scottish Hex constituencies")
-    workbook = openpyxl.load_workbook(source, read_only=True, data_only=True)
-    try:
-        sheet = workbook["UKPC"]
-        if sheet["A1"].value != (
-                "Population estimates by UK Parliamentary Constituency (UKPC), sex and "
-                "single year of age, mid-2011 to mid-2024 [note 7]"):
-            raise ValueError("NRS UKPC geography/reference period changed; review the source")
-        rows = sheet.iter_rows(min_row=4, max_col=5, values_only=True)
-        if next(rows) != ("UKPC (2024) Name", "UKPC (2024) Code", "Sex", "Year", "All ages"):
-            raise ValueError("NRS UKPC dimensions changed")
-        selected = {}
-        for name, code, sex, year, value in rows:
-            if (name, code, sex, year, value) == (None,) * 5:
-                continue
-            if (code not in expected or sex not in {"Persons", "Males", "Females"}
-                    or type(year) is not int or not 2011 <= year <= 2024):
-                raise ValueError(f"Unexpected NRS UKPC dimensions: {code}, {sex}, {year}")
-            if sex != "Persons" or year != 2024:
-                continue
-            if code in selected:
-                raise ValueError(f"Duplicate NRS UKPC total: {code}")
-            selected[code] = row(code, value, year)
-        if selected.keys() != expected:
-            raise ValueError(f"NRS UKPC coverage mismatch: missing {sorted(expected - selected.keys())}")
-        return list(selected.values())
-    finally:
-        workbook.close()
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source_directory", type=Path)
@@ -123,7 +90,6 @@ def main():
     pcon_rows = nomis(source / "pcon.csv", pcon, 2024, "172")
     pcon_rows += nisra(source / "ni-pcon.xlsx", pcon,
                        "2. Parliamentary Constituencies (2024)", 2024)
-    pcon_rows += nrs_pcon(source / "nrs-pcon.xlsx", pcon)
     lad_rows = nomis(source / "lad-current.csv", {c for c in lad if c[0] in "EW"}, 2025)
     lad_rows += nrs(source / "nrs.xlsx", lad)
     lad_rows += nisra(source / "ni-lad.xlsx", lad,
@@ -131,7 +97,7 @@ def main():
 
     # Fail closed if coverage changes: review sources/boundaries before updating these gaps.
     expected_missing = {
-        "PCON": set(),
+        "PCON": {c for c in pcon if c.startswith("S")},
         "LAD": {"E08000038", "E08000039"},
     }
     payloads = {}
@@ -151,7 +117,7 @@ def main():
         entries = ",\n".join("    " + json.dumps(r, separators=(",", ":")) for r in payload["data"])
         text = f'{{\n  "geo_type":"{geo}",\n  "count":{payload["count"]},\n  "data":[\n{entries}\n  ]\n}}\n'
         (destination / f"{geo.lower()}-latest.json").write_text(text)
-    for name in ["pcon.csv", "lad-current.csv", "ni-pcon.xlsx", "ni-lad.xlsx", "nrs.xlsx", "nrs-pcon.xlsx"]:
+    for name in ["pcon.csv", "lad-current.csv", "ni-pcon.xlsx", "ni-lad.xlsx", "nrs.xlsx"]:
         print(f"{name}: SHA-256 {hashlib.sha256((source / name).read_bytes()).hexdigest()}")
 
 
