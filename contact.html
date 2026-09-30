@@ -232,29 +232,6 @@
       font-size: 0.9rem;
     }
 
-    /* Preserve Contact's earlier 3/2/1 breakpoints; bottom-nav.css owns the
-       shared UK AQ card presentation. */
-    @media (max-width: 1100px) {
-      .contact-tools-wide .ukaq-bottom-nav-grid--three {
-        grid-template-columns: repeat(2, minmax(0, var(--ukaq-bottom-nav-card-max)));
-      }
-    }
-
-    @media (min-width: 768px) and (max-width: 1100px) {
-      .contact-tools-wide .ukaq-bottom-nav-grid--three > .ukaq-bottom-nav-card:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        width: 100%;
-        max-width: var(--ukaq-bottom-nav-card-max);
-        justify-self: center;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .contact-tools-wide .ukaq-bottom-nav-grid--three {
-        grid-template-columns: minmax(0, var(--ukaq-bottom-nav-card-max));
-      }
-    }
-
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .resources-shell {
