@@ -142,6 +142,15 @@
   }
 }
 
+@media (min-width: 641px) and (max-width: 980px) {
+  .ukaq-bottom-nav-grid--three > .ukaq-bottom-nav-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: var(--ukaq-bottom-nav-card-max);
+    justify-self: center;
+  }
+}
+
 @media (max-width: 640px) {
   .ukaq-bottom-nav-grid--three,
   .ukaq-bottom-nav-grid--two {

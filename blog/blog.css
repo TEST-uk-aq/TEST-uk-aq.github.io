@@ -23,17 +23,15 @@ body.blog-page {
   min-width: 0;
   min-height: 100vh;
   margin-inline: auto;
-  padding: 34px 28px 72px;
+  padding: 34px 28px 28px;
 }
 
 .blog-intro {
-  width: min(100%, 780px);
   min-width: 0;
   margin-bottom: 32px;
 }
 
 .blog-intro p {
-  max-width: 680px;
   margin: 14px 0 0;
   color: var(--blog-muted);
   font-size: 1rem;
@@ -88,6 +86,10 @@ body.blog-page {
 @media (max-width: 767px) {
   .blog-main {
     padding: 16px 12px 48px;
+  }
+
+  .blog-article-entry {
+    margin-inline: auto;
   }
 
   .blog-intro {
