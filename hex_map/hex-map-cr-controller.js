@@ -58,20 +58,13 @@ function initHexMapCrController() {
   }
 
 		      const params = new URLSearchParams(window.location.search);
-		      const projectRefParam = params.get("project_ref");
-		      const anonKeyParam = params.get("anon_key");
+
 		      const cacheBaseParam = params.get("cache_base");
 		      const cacheBaseUrl = resolveCacheBaseUrl(cacheBaseParam);
 		      const cacheSessionParam = params.get("cache_session_url");
 	      const mapDateParam = params.get("map_date");
 	      const laVersionParam = params.get("la_version");
-      const inferredProjectRef = inferProjectRefFromHost();
-      const projectRef = PROJECT_REF_PLACEHOLDER.includes("__SUPABASE_PROJECT_REF__")
-        ? (projectRefParam || inferredProjectRef || "")
-        : PROJECT_REF_PLACEHOLDER;
-	      const anonKey = ANON_KEY_PLACEHOLDER.includes("__SB_PUBLISHABLE_DEFAULT_KEY__")
-	        ? (anonKeyParam || "")
-	        : ANON_KEY_PLACEHOLDER;
+
 	      const cacheOrigin = cacheBaseUrl ? new URL(cacheBaseUrl).origin : "";
 	      const defaultCacheSessionUrl = cacheOrigin ? `${cacheOrigin}/api/aq/session/start` : "";
 	      const cacheSessionUrl = (cacheSessionParam || defaultCacheSessionUrl || "").trim();
@@ -89,9 +82,6 @@ function initHexMapCrController() {
         }
         return "";
       }
-      const POPULATION_URL = projectRef
-        ? `https://${projectRef}.supabase.co/functions/v1/uk_aq_population`
-        : "";
       let activePollutant = coordinator.getPollutant();
       const POLLUTANT_CACHE_TTL = 60 * 1000;
       const pollutantCache = new Map();
@@ -583,6 +573,32 @@ function initHexMapCrController() {
       let crWasHidden = true;
       let crBootstrapReady = false;
       let populationLookup = new Map();
+
+      // Supplementary static data: never await this from geometry, AQ or Refresh.
+      // Called once at controller initialisation; failures stay unavailable this page lifetime.
+      async function loadPopulation() {
+        try {
+          const response = await fetch("/data/population/lad-latest.json");
+          if (!response.ok) return;
+          const payload = await response.json();
+          if (payload?.geo_type !== "LAD" || !Array.isArray(payload.data)
+              || payload.count !== payload.data.length) return;
+          const lookup = new Map();
+          for (const row of payload.data) {
+            const date = row?.reference_date;
+            if (typeof row?.geo_code !== "string" || !/^[EWSN]\d{8}$/.test(row.geo_code)
+                || lookup.has(row.geo_code)
+                || !Number.isSafeInteger(row.population_value) || row.population_value <= 0
+                || typeof date !== "string" || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(date)) return;
+            const parsed = new Date(`${date}T00:00:00Z`);
+            if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) return;
+            lookup.set(row.geo_code, row);
+          }
+          populationLookup = lookup;
+        } catch {
+          // Missing/malformed population must not affect normal map operation.
+        }
+      }
 	      let selectedAreaCode = null;
 	      let selectedCell = null;
 	      let pendingSelectedAreaCode = null;
@@ -766,14 +782,6 @@ function initHexMapCrController() {
           }
           setActiveRegion(nextRegion, { updateUrl: true });
         });
-      }
-
-      function inferProjectRefFromHost() {
-        const host = window.location.hostname || "";
-        if (host.endsWith(".supabase.co")) {
-          return host.split(".")[0];
-        }
-        return null;
       }
 
       function normalizeDateKey(value) {
@@ -3654,11 +3662,10 @@ function initHexMapCrController() {
             const pollutantUnits = getPollutantUnits(activePollutant);
             const populationEntry = areaCode ? populationLookup.get(areaCode) : null;
             const populationValue = normalizeNumber(populationEntry?.population_value);
-            const populationDate = parseDate(populationEntry?.reference_date);
-            const populationYear = populationDate ? populationDate.getFullYear() : null;
-            const populationLabel = populationValue === null
+            const populationYear = populationEntry?.reference_date.slice(0, 4);
+            const populationLabel = populationValue === null || !populationYear
               ? "Population: n/a"
-              : `Population${populationYear ? ` (${populationYear})` : ""}: ${formatNumber(populationValue)}`;
+              : `Population: ${formatNumber(populationValue)} (${populationYear})`;
             const valueLabel = Number.isFinite(metricValue)
               ? `${formatValue(metricValue)} ${pollutantUnits}`
               : `No ${pollutantLabel} data`;
@@ -3770,7 +3777,6 @@ function initHexMapCrController() {
           errorEl.textContent = "";
           errorEl.hidden = true;
         }
-        populationLookup = new Map();
 	        const hasCredentials = Boolean(REST_URL) && Boolean(cacheSessionUrl);
 	        const canLoadData = hasCredentials;
 	        if (!hasCredentials) {
@@ -3793,7 +3799,7 @@ function initHexMapCrController() {
           let hasMatchingLaState = false;
           let laRequestSince = null;
           let latestPromise = Promise.resolve(null);
-          let populationPromise = Promise.resolve(null);
+
           if (canLoadData) {
             const laUrl = new URL(REST_URL);
             if (activeLaVersion) {
@@ -3845,14 +3851,7 @@ function initHexMapCrController() {
 	            if (latestEtag) {
 	              latestHeaders["If-None-Match"] = latestEtag;
 	            }
-            // const populationUrl = POPULATION_URL ? new URL(POPULATION_URL) : null;
-            // if (populationUrl) {
-            //   populationUrl.searchParams.set("geo_type", "LAD");
-            //   if (mapDateKey) {
-            //     populationUrl.searchParams.set("reference_date", mapDateKey);
-            //   }
-            //   populationUrl.searchParams.set("limit", "2000");
-            // }
+
 	            laPromise = fetchCacheApi(laUrl.toString(), {
 	              headers: laHeaders,
 	            }).catch(() => null);
@@ -3878,14 +3877,7 @@ function initHexMapCrController() {
               }).catch(() => null);
             }
             latestPromise = Promise.all([latestPromise, latestAllPromise]).then(([latest, latestAll]) => ({ latest, latestAll }));
-            // populationPromise = populationUrl
-            //   ? fetch(populationUrl.toString(), {
-            //     headers: {
-            //       Authorization: `Bearer ${anonKey}`,
-            //       apikey: anonKey,
-            //     },
-            //   }).catch(() => null)
-            //   : Promise.resolve(null);
+
           }
           const hexResponse = await hexPromise;
           if (isStale()) {
@@ -3904,10 +3896,9 @@ function initHexMapCrController() {
               renderMapIfReady();
             }
           });
-          const [laResponse, latestResult, populationResponse] = await Promise.all([
+          const [laResponse, latestResult] = await Promise.all([
             laPromise,
             latestPromise,
-            populationPromise,
           ]);
           const latestResponse = latestResult?.latest || null;
           const latestAllResponse = latestResult?.latestAll || null;
@@ -4209,23 +4200,6 @@ function initHexMapCrController() {
             pconCodes.size || 0,
             AREA_LABEL_PLURAL,
           );
-          if (populationResponse && populationResponse.ok) {
-            const populationPayload = await populationResponse.json();
-            const populationRows = Array.isArray(populationPayload)
-              ? populationPayload
-              : populationPayload?.data || [];
-            const lookup = new Map();
-            populationRows.forEach((row) => {
-              const code = row?.geo_code;
-              if (!code || lookup.has(code)) {
-                return;
-              }
-              lookup.set(code, row);
-            });
-            populationLookup = lookup;
-          } else {
-            populationLookup = new Map();
-          }
           markHexMapTiming(timingId, "colored-ready");
           measureHexMapTiming(timingId, "load-to-colored-ready", "load:start", "colored-ready");
           if (isStale()) {
@@ -4787,6 +4761,7 @@ function initHexMapCrController() {
         },
       });
       networkController.registerScope("cr", () => applyNetworkFilters());
+      void loadPopulation();
       return crController;
 }
 

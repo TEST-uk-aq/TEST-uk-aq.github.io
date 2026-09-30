@@ -17,16 +17,24 @@ function initHexMapUkController(root) {
       if (!pollutantDomain?.definitions || !networkDomain?.resolveCode || !networkController?.loadCatalog || !networkController?.filterEligibleRows || !coordinator?.registerMap) {
         throw new Error("UK AQ shared domain/data modules must load before the Hex Map.");
       }
-
+      const PROJECT_REF_PLACEHOLDER = "zztjgmdiftqtdcrlfpvc";
+      const ANON_KEY_PLACEHOLDER = "sb_publishable_Cru7ACLoK8kKQdID5jPaDw_3RHvQNxO";
       const params = new URLSearchParams(window.location.search);
-
+      const projectRefParam = params.get("project_ref");
+      const anonKeyParam = params.get("anon_key");
       const cacheBaseParam = params.get("cache_base");
       const cacheBaseUrl = resolveCacheBaseUrl(cacheBaseParam);
       const cacheSessionParam = params.get("cache_session_url");
       const mapDateParam = params.get("map_date");
       const pconVersionParam = params.get("pcon_version");
       const initialMapSettings = coordinator.getMapSettings();
-
+      const inferredProjectRef = inferProjectRefFromHost();
+      const projectRef = PROJECT_REF_PLACEHOLDER.includes("__SUPABASE_PROJECT_REF__")
+        ? (projectRefParam || inferredProjectRef || "")
+        : PROJECT_REF_PLACEHOLDER;
+      const anonKey = ANON_KEY_PLACEHOLDER.includes("__SB_PUBLISHABLE_DEFAULT_KEY__")
+        ? (anonKeyParam || "")
+        : ANON_KEY_PLACEHOLDER;
       const cacheOrigin = cacheBaseUrl ? new URL(cacheBaseUrl).origin : "";
       const defaultCacheSessionUrl = cacheOrigin ? `${cacheOrigin}/api/aq/session/start` : "";
       const cacheSessionUrl = (cacheSessionParam || defaultCacheSessionUrl || "").trim();
@@ -44,6 +52,9 @@ function initHexMapUkController(root) {
         }
         return "";
       }
+      const POPULATION_URL = projectRef
+        ? `https://${projectRef}.supabase.co/functions/v1/uk_aq_population`
+        : "";
       let activePollutant = coordinator.getPollutant();
       const POLLUTANT_CACHE_TTL = 60 * 1000;
       const pollutantCache = new Map();
@@ -491,33 +502,6 @@ function initHexMapUkController(root) {
       let ukWasHidden = true;
       let ukBootstrapReady = false;
       let populationLookup = new Map();
-
-      // Supplementary static data: never await this from geometry, AQ or Refresh.
-      // Called once at controller initialisation; failures stay unavailable this page lifetime.
-      async function loadPopulation() {
-        try {
-          const response = await fetch("/data/population/pcon-latest.json");
-          if (!response.ok) return;
-          const payload = await response.json();
-          if (payload?.geo_type !== "PCON" || !Array.isArray(payload.data)
-              || payload.count !== payload.data.length) return;
-          const lookup = new Map();
-          for (const row of payload.data) {
-            const date = row?.reference_date;
-            if (typeof row?.geo_code !== "string" || !/^[EWSN]\d{8}$/.test(row.geo_code)
-                || lookup.has(row.geo_code)
-                || !Number.isSafeInteger(row.population_value) || row.population_value <= 0
-                || typeof date !== "string" || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(date)) return;
-            const parsed = new Date(`${date}T00:00:00Z`);
-            if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) return;
-            lookup.set(row.geo_code, row);
-          }
-          populationLookup = lookup;
-          if (pinnedTooltipCell) refreshPinnedTooltip();
-        } catch {
-          // Missing/malformed population must not affect normal map operation.
-        }
-      }
       let selectedPconCode = null;
       let selectedCell = null;
       let areaRegionLookup = new Map();
@@ -685,6 +669,14 @@ function initHexMapUkController(root) {
         }
         window.location.assign(loginUrl);
         return true;
+      }
+
+      function inferProjectRefFromHost() {
+        const host = window.location.hostname || "";
+        if (host.endsWith(".supabase.co")) {
+          return host.split(".")[0];
+        }
+        return null;
       }
 
       function normalizeDateKey(value) {
@@ -3335,13 +3327,13 @@ function initHexMapUkController(root) {
         const regionLabel = cell.region_name || cell.region_code || "Unknown region";
         const pollutantLabel = getPollutantLabel(activePollutant);
         const pollutantUnits = getPollutantUnits(activePollutant);
-        const populationEntry = activeMap.version === "2024"
-          ? populationLookup.get(cell.pcon_code) : null;
+        const populationEntry = populationLookup.get(cell.pcon_code);
         const populationValue = normalizeNumber(populationEntry?.population_value);
-        const populationYear = populationEntry?.reference_date.slice(0, 4);
-        const populationLabel = populationValue === null || !populationYear
+        const populationDate = parseDate(populationEntry?.reference_date);
+        const populationYear = populationDate ? populationDate.getFullYear() : null;
+        const populationLabel = populationValue === null
           ? "Population: n/a"
-          : `Population: ${formatNumber(populationValue)} (${populationYear})`;
+          : `Population${populationYear ? ` (${populationYear})` : ""}: ${formatNumber(populationValue)}`;
         const valueLabel = Number.isFinite(metricValue)
           ? `${formatValue(metricValue)} ${pollutantUnits}`
           : `No ${pollutantLabel} data`;
@@ -3556,6 +3548,7 @@ function initHexMapUkController(root) {
           errorEl.hidden = true;
         }
         latestPollutant = null;
+        populationLookup = new Map();
         if (!REST_URL) {
           chartDataStatus = "failed";
           if (errorEl) {
@@ -3622,7 +3615,14 @@ function initHexMapUkController(root) {
           if (latestEtag) {
             latestHeaders["If-None-Match"] = latestEtag;
           }
-
+          // const populationUrl = POPULATION_URL ? new URL(POPULATION_URL) : null;
+          // if (populationUrl) {
+          //   populationUrl.searchParams.set("geo_type", "PCON");
+          //   if (mapDateKey) {
+          //     populationUrl.searchParams.set("reference_date", mapDateKey);
+          //   }
+          //   populationUrl.searchParams.set("limit", "2000");
+          // }
           const hexRequest = fetch(HEX_DATA_URL);
           const pconRequest = fetchCacheApi(pconUrl.toString(), {
             headers: pconHeaders,
@@ -3648,7 +3648,15 @@ function initHexMapUkController(root) {
               headers: latestAllHeaders,
             }).catch(() => null);
           }
-
+          // const populationRequest = populationUrl
+          //   ? fetch(populationUrl.toString(), {
+          //     headers: {
+          //       Authorization: `Bearer ${anonKey}`,
+          //       apikey: anonKey,
+          //     },
+          //   }).catch(() => null)
+          //   : Promise.resolve(null);
+          const populationRequest = Promise.resolve(null);
           const hexResponse = await hexRequest;
           if (isStale()) {
             return;
@@ -3669,10 +3677,11 @@ function initHexMapUkController(root) {
               renderMapIfReady();
             }
           });
-          const [pconResponse, latestResponse, latestAllResponse] = await Promise.all([
+          const [pconResponse, latestResponse, latestAllResponse, populationResponse] = await Promise.all([
             pconRequest,
             latestRequest,
             latestAllRequest,
+            populationRequest,
           ]);
           if (isStale()) {
             return;
@@ -3822,6 +3831,23 @@ function initHexMapUkController(root) {
             TOTAL_PCON_COUNT,
             "constituencies",
           );
+          if (populationResponse && populationResponse.ok) {
+            const populationPayload = await populationResponse.json();
+            const populationRows = Array.isArray(populationPayload)
+              ? populationPayload
+              : populationPayload?.data || [];
+            const lookup = new Map();
+            populationRows.forEach((row) => {
+              const code = row?.geo_code;
+              if (!code || lookup.has(code)) {
+                return;
+              }
+              lookup.set(code, row);
+            });
+            populationLookup = lookup;
+          } else {
+            populationLookup = new Map();
+          }
           chartDataStatus = latestPollutant === requestPollutant ? "ready" : "failed";
           applyNetworkFilters();
           markHexMapTiming(timingId, "colored-ready");
@@ -4346,7 +4372,6 @@ function initHexMapUkController(root) {
         },
       });
       networkController.registerScope("uk", () => applyNetworkFilters());
-      if (activeMap.version === "2024") void loadPopulation();
       return ukController;
 }
 
