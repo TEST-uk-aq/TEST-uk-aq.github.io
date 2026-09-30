@@ -308,6 +308,43 @@ function initHexMapMobileMapLayout(root) {
     return rect.width > 0 && rect.height > 0 ? rect : null;
   }
 
+  function measureSelectedAreaFrame(mapKey) {
+    if (document.body.classList.contains("hex-chart-mode")) return null;
+    const panel = document.getElementById(mapKey === "cr"
+      ? "cr-map-inline-sensor-panel"
+      : "map-inline-sensor-panel");
+    const tableBody = document.getElementById(mapKey === "cr"
+      ? "cr-sensor-table-body"
+      : "sensor-table-body");
+    const canvasWrap = panel?.closest(".map-canvas-wrap") || null;
+    const selectedHex = canvasWrap?.querySelector(".hex.is-selected") || null;
+    const firstSensor = tableBody?.querySelector("tr:not(.sensor-row-divider)") || null;
+    const emptyMessage = document.getElementById(mapKey === "cr" ? "cr-details-empty" : "details-empty");
+    if (!canvasWrap?.classList.contains("hex-selected")) return null;
+
+    const panelRect = measurableRect(panel);
+    const hexRect = measurableRect(selectedHex);
+    const sensorTargetRect = measurableRect(firstSensor) || measurableRect(emptyMessage);
+    const viewport = visualViewportBounds();
+    if (!panelRect || !hexRect || !sensorTargetRect || !viewport) return null;
+
+    return {
+      start: hexRect.top,
+      end: sensorTargetRect.bottom,
+      viewport,
+      signature: [
+        panelRect.top,
+        panelRect.height,
+        hexRect.top,
+        hexRect.height,
+        sensorTargetRect.top,
+        sensorTargetRect.height,
+        viewport.top,
+        viewport.height,
+      ],
+    };
+  }
+
   function measureChartFrame(mapKey) {
     if (!document.body.classList.contains("hex-chart-mode")) return null;
     const panel = document.getElementById(`${mapKey}-hex-chart-mode`);
@@ -379,7 +416,9 @@ function initHexMapMobileMapLayout(root) {
       return;
     }
 
-    const measurement = measureChartFrame(request.mapKey);
+    const measurement = request.kind === "chart"
+      ? measureChartFrame(request.mapKey)
+      : measureSelectedAreaFrame(request.mapKey);
     request.attempt += 1;
 
     if (!measurement) {
@@ -412,19 +451,28 @@ function initHexMapMobileMapLayout(root) {
     });
   }
 
-  function frameChart(mapKeyValue) {
+  function scheduleViewportFrame(kind, mapKeyValue) {
     const mapKey = normalizeMapKey(mapKeyValue);
     cancelViewportFrame();
     if (!mapKey || !mobileLayoutQuery?.matches) return false;
     const request = {
       attempt: 0,
       generation: viewportFrameGeneration,
+      kind,
       mapKey,
       previousSignature: null,
       stableSamples: 0,
     };
     queueViewportFrameAttempt(request);
     return true;
+  }
+
+  function frameSelectedArea(mapKey) {
+    return scheduleViewportFrame("area", mapKey);
+  }
+
+  function frameChart(mapKey) {
+    return scheduleViewportFrame("chart", mapKey);
   }
 
   function handleLayoutChange() {
@@ -465,15 +513,12 @@ function initHexMapMobileMapLayout(root) {
   return Object.freeze({
     mount,
     rearrangeMobileRows,
+    frameSelectedArea,
     frameChart,
     cancelViewportFrame,
   });
 }
 
 const mobileMapLayout = initHexMapMobileMapLayout(globalThis);
-// Late-bound classic station-chart adapter needs only the mobile chart surface.
-globalThis.UkAqHexMapMobileMapLayout = mobileMapLayout && Object.freeze({
-  frameChart: mobileMapLayout.frameChart,
-  cancelViewportFrame: mobileMapLayout.cancelViewportFrame,
-});
+globalThis.UkAqHexMapMobileMapLayout = mobileMapLayout;
 export default mobileMapLayout;

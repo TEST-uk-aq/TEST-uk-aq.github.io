@@ -5,7 +5,7 @@ import networkController from "./hex-map-network-controller.js";
 import summaryPresenter from "./hex-map-summary.js";
 import scrollAffordances from "./hex-map-scroll-affordances.js";
 import truncation from "./hex-map-truncation.js";
-import mobileMapLayout from "./hex-map-mobile-map-layout.js";
+import viewportFraming from "./hex-map-viewport-framing.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
 
@@ -2302,9 +2302,9 @@ function initHexMapUkController(root) {
         updateDetailsPanel();
         updateSelectedHexViewportShift();
         if (cell) {
-          mobileMapLayout?.frameSelectedArea?.("uk");
+          viewportFraming?.frameSelectedArea?.("uk");
         } else {
-          mobileMapLayout?.cancelViewportFrame?.();
+          viewportFraming?.cancelViewportFrame?.("uk");
         }
       }
 
@@ -4338,7 +4338,8 @@ function initHexMapUkController(root) {
           setColorScale(settings.colorScale, { coordinated: true });
           setWindow(settings.window, { coordinated: true });
         },
-        activate: () => {
+        activate: ({ changed }) => {
+          if (changed) viewportFraming?.cancelViewportFrame?.();
           ukController.render();
           ukController.restoreNetworks();
           search?.preloadInactiveMap?.("uk");

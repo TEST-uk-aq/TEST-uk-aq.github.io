@@ -6,7 +6,7 @@ import urlState from "./hex-map-url-state.js";
 import summary from "./hex-map-summary.js";
 import scrollAffordances from "./hex-map-scroll-affordances.js";
 import truncation from "./hex-map-truncation.js";
-import mobileMapLayout from "./hex-map-mobile-map-layout.js";
+import viewportFraming from "./hex-map-viewport-framing.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
 import ukController from "./hex-map-uk-controller.js";
@@ -2083,9 +2083,9 @@ function initHexMapCrController() {
         updateDetailsPanel();
         updateSelectedHexViewportShift();
         if (cell) {
-          mobileMapLayout?.frameSelectedArea?.("cr");
+          viewportFraming?.frameSelectedArea?.("cr");
         } else {
-          mobileMapLayout?.cancelViewportFrame?.();
+          viewportFraming?.cancelViewportFrame?.("cr");
         }
       }
 
@@ -3735,6 +3735,7 @@ function initHexMapCrController() {
           }
           return;
         }
+        viewportFraming?.cancelViewportFrame?.("cr");
         activeRegion = normalized;
         urlState.noteCrRegion(normalized);
         const crSvgNode = svg.node();
@@ -4753,7 +4754,8 @@ function initHexMapCrController() {
           setColorScale(settings.colorScale, { coordinated: true });
           setWindow(settings.window, { coordinated: true });
         },
-        activate: () => {
+        activate: ({ changed }) => {
+          if (changed) viewportFraming?.cancelViewportFrame?.();
           crController.render();
           crController.restoreNetworks();
           search?.preloadInactiveMap?.("cr");
