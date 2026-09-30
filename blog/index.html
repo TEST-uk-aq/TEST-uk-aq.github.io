@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta
     name="description"
-    content="Articles and updates about UK AQ, air quality data and the development of the website."
+    content="Updates from UK AQ about air pollution, monitoring data and the development of the website."
   >
   <title>UK AQ Blog | UK AQ</title>
 
@@ -19,6 +19,7 @@
   >
   <link rel="stylesheet" href="/site-ui.css">
   <link rel="stylesheet" href="/blog/blog.css">
+  <link rel="stylesheet" href="/bottom-nav.css">
 </head>
 <body class="blog-page" data-page-slug="blog">
   <div id="uk-aq-sidebar-mount"></div>
@@ -37,36 +38,54 @@
           >
         </picture>
       </h1>
-      <p>Articles and updates about UK AQ, air quality data and the development of the website.</p>
-
-      <a
-        class="blog-substack-link"
-        href="https://ukairquality.substack.com"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img src="/images/substack-icon.svg" alt="" aria-hidden="true">
-        <span>Visit UK Air Quality on Substack</span>
-      </a>
+      <p>Updates from UK AQ about air pollution, monitoring data and the development of the website.</p>
     </header>
 
     <section class="blog-latest" aria-labelledby="blog-latest-heading">
-      <h2 id="blog-latest-heading">Latest articles</h2>
+      <h2 id="blog-latest-heading">Latest blog posts</h2>
 
-      <div class="blog-article-entry">
-        <div class="blog-embed-slot">
-          <div class="substack-post-embed"><p lang="en">Introducing UK AQ by UK Air Quality</p><p>Bringing UK air quality data together in one place. With the latest global news on air pollution, clean air and health. </p><a data-post-link href="https://ukairquality.substack.com/p/introducing-uk-aq">Read on Substack</a></div><script async src="https://substack.com/embedjs/embed.js" charset="utf-8"></script>
-        </div>
-
-        <div class="blog-article-fallback">
-          <a
-            href="https://ukairquality.substack.com/p/introducing-uk-aq"
-            target="_blank"
-            rel="noopener noreferrer"
-          >Read Introducing UK AQ on Substack</a>
+      <div class="blog-post-grid">
+        <div class="blog-article-entry">
+          <div class="blog-embed-slot">
+            <div class="substack-post-embed"><p lang="en">Introducing UK AQ by UK Air Quality</p><p>Bringing UK air quality data together in one place. With the latest global news on air pollution, clean air and health. </p><a data-post-link href="https://ukairquality.substack.com/p/introducing-uk-aq">Read on Substack</a></div><script async src="https://substack.com/embedjs/embed.js" charset="utf-8"></script>
+          </div>
         </div>
       </div>
     </section>
+
+    <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">
+      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
+        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">View sensor locations and readings on an interactive UK map.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-NEWS-1line.svg" alt="AQ in the News">
+          </div>
+          <p class="ukaq-bottom-nav-description">Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
+        </a>
+      </div>
+    </nav>
   </main>
 </body>
 </html>
