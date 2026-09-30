@@ -3,10 +3,7 @@
   --blog-text: #101822;
   --blog-muted: #5f6872;
   --blog-border: #d8dadd;
-  --blog-blue: #3c78ac;
   --blog-blue-deep: #285b88;
-  --blog-note-bg: #fff8dc;
-  --blog-note-border: #e4cf72;
 }
 
 * {
@@ -75,7 +72,8 @@ body.blog-page {
   color: #174b78;
 }
 
-.blog-substack-link:focus-visible {
+.blog-substack-link:focus-visible,
+.blog-article-fallback a:focus-visible {
   outline: 3px solid rgb(60 120 172 / 30%);
   outline-offset: 3px;
 }
@@ -98,147 +96,33 @@ body.blog-page {
   min-width: 0;
 }
 
-.blog-test-note {
-  margin: 0 0 12px;
-  padding: 10px 13px;
-  border-left: 4px solid var(--blog-note-border);
-  border-radius: 4px 9px 9px 4px;
-  background: var(--blog-note-bg);
-  color: #554918;
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
-
-.blog-test-note strong {
-  color: #433700;
-}
-
 .blog-embed-slot {
-  overflow: hidden;
-  border-radius: 16px;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
-.substack-mock {
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  border: 1px solid var(--blog-border);
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgb(16 24 34 / 8%);
-}
-
-.substack-mock-media {
-  position: relative;
-  display: grid;
-  min-height: 250px;
-  place-items: start center;
-  padding: 36px 26px;
-  overflow: hidden;
-  background:
-    linear-gradient(30deg, rgb(57 162 92 / 18%) 12%, transparent 12.5%, transparent 87%, rgb(57 162 92 / 18%) 87.5%),
-    linear-gradient(150deg, rgb(91 183 89 / 20%) 12%, transparent 12.5%, transparent 87%, rgb(91 183 89 / 20%) 87.5%),
-    linear-gradient(30deg, rgb(226 190 67 / 16%) 12%, transparent 12.5%, transparent 87%, rgb(226 190 67 / 16%) 87.5%),
-    #f4f1e7;
-  background-size: 86px 150px, 86px 150px, 86px 150px, auto;
-  background-position: 0 0, 0 0, 43px 75px, 0 0;
-}
-
-.substack-mock-media-title {
-  display: inline-block;
-  padding: 9px 15px 10px;
-  border-radius: 12px;
-  background: rgb(255 255 255 / 90%);
-  box-shadow: 0 2px 6px rgb(16 24 34 / 16%);
-  color: #2f76b3;
-  font-size: clamp(1.7rem, 5vw, 2.55rem);
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1;
-  text-align: center;
-  text-shadow: 0 1px 0 #fff;
-}
-
-.substack-mock-media-logo {
-  position: absolute;
-  right: 22px;
-  bottom: 18px;
-  display: grid;
-  width: 76px;
-  height: 76px;
-  place-items: center;
-  border: 2px solid #263746;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 92%);
-  color: #3c78ac;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 0.9;
-  text-align: center;
-}
-
-.substack-mock-body {
-  padding: 20px 22px 18px;
-}
-
-.substack-mock h3 {
-  margin: 0 0 8px;
-  font-size: 1.55rem;
-  line-height: 1.2;
-}
-
-.substack-mock-summary {
-  margin: 0 0 20px;
-  color: #42484f;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.02rem;
-  line-height: 1.5;
-}
-
-.substack-mock-source {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.substack-mock-source img {
-  width: 28px;
-  height: 32px;
-  flex: 0 0 auto;
-}
-
-.substack-mock-source div {
-  min-width: 0;
-}
-
-.substack-mock-source strong,
-.substack-mock-source span {
-  display: block;
-}
-
-.substack-mock-source strong {
-  margin-bottom: 2px;
-  font-size: 0.95rem;
-}
-
-.substack-mock-source span {
-  color: #5b6167;
-  font-size: 0.83rem;
+.blog-embed-slot iframe {
+  max-width: 100%;
 }
 
 .blog-article-fallback {
   margin-top: 12px;
-  padding: 12px 14px;
+  padding: 8px 14px;
   border: 1px solid var(--blog-border);
   border-radius: 10px;
   background: rgb(255 255 255 / 72%);
-  color: var(--blog-muted);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
-.blog-article-fallback p {
-  margin: 0;
+.blog-article-fallback a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--blog-blue-deep);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 @media (max-width: 767px) {
@@ -271,37 +155,8 @@ body.blog-page {
     text-align: center;
   }
 
-  .substack-mock {
-    border-radius: 13px;
-  }
-
-  .substack-mock-media {
-    min-height: 230px;
-    padding: 28px 18px;
-  }
-
-  .substack-mock-media-logo {
-    right: 14px;
-    bottom: 14px;
-    width: 62px;
-    height: 62px;
-    font-size: 1rem;
-  }
-
-  .substack-mock-body {
-    padding: 17px 17px 16px;
-  }
-
-  .substack-mock h3 {
-    font-size: 1.35rem;
-  }
-
-  .substack-mock-summary {
-    font-size: 0.98rem;
-  }
-
   .blog-article-fallback {
-    padding: 11px 13px;
+    padding: 6px 13px;
   }
 }
 
