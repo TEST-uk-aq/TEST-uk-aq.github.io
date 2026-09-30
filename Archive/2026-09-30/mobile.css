@@ -329,7 +329,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .home-page .readings-header-controls {
+  .home-page .readings-header-controls,
+  .home-page .readings-controls,
+  .home-page .home-network-picker {
     width: 100%;
   }
 
@@ -343,8 +345,40 @@
   }
 
   .home-page .btn-refresh,
+  .home-page .home-network-picker-button,
   .home-page .who-toggle button {
     min-height: 44px;
+  }
+
+  .home-page .home-network-picker-button {
+    width: 100%;
+  }
+
+  .home-page .home-network-picker-panel {
+    right: auto;
+    left: 0;
+    width: min(350px, calc(100vw - 32px));
+    min-width: 0;
+    max-height: min(70dvh, 520px);
+  }
+
+  .home-page .home-network-picker-action {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .home-page .home-network-picker-row {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .home-page .home-network-picker-row input {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
   }
 
   .home-page .dashboard-table-wrap {

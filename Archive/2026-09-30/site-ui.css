@@ -95,6 +95,7 @@
 
 /* Match the Hex Map chart selector's centred 1 glyph while preserving the
    existing rounded-square network action shape. */
+.home-page .home-network-picker-action-icon--clear-all::before,
 .hex-map-page .network-dropdown-action-icon--clear-all::before {
   content: "1";
   position: absolute;
@@ -107,8 +108,16 @@
   line-height: 1;
 }
 
+.home-page .home-network-picker-action-icon--clear-all::before {
+  color: #3C78AC;
+}
+
 .hex-map-page .network-dropdown-action-icon--clear-all::before {
   color: var(--accent);
+}
+
+.home-page .home-network-picker-action:disabled .home-network-picker-action-icon--clear-all::before {
+  color: #9aa2a9;
 }
 
 .hex-map-page .network-dropdown-action:disabled .network-dropdown-action-icon--clear-all::before {

@@ -11,17 +11,32 @@
     label: definition.typographicLabel,
     html: definition.htmlLabel,
   }));
+  const FALLBACK_NETWORKS = [
+    { code: "gov_uk_aurn", label: "GOV.UK AURN" },
+    { code: "breathelondon", label: "Breathe London" },
+    { code: "sensorcommunity", label: "Sensor.Community" },
+  ];
+  const PREFERRED_INITIAL_NETWORK_CODES = new Set(["gov_uk_aurn", "breathelondon"]);
   const DASHBOARD_ACTIVE_WINDOW_HOURS = 6;
   const DASHBOARD_ACTIVE_WINDOW = `${DASHBOARD_ACTIVE_WINDOW_HOURS}h`;
   const DASHBOARD_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-  let networkCatalog = [];
-  let publicNetworkCodes = new Set();
-  let hasEstablishedNetworkCatalog = false;
-  const networkLabels = new Map();
+  let networkCatalog = [...FALLBACK_NETWORKS];
+  const selectedNetworks = new Set(FALLBACK_NETWORKS.map(({ code }) => code));
+  let hasInitializedNetworkSelection = false;
+  const networkLabels = new Map(FALLBACK_NETWORKS.map(({ code, label }) => [code, label]));
   const areaNames = { pcon: new Map(), la: new Map() };
   const dashboard = document.querySelector(".readings-dashboard");
   const areaReadingsTable = document.querySelector(".dashboard-table--areas");
+  const networkPicker = document.getElementById("home-network-picker");
+  const networkPickerButton = document.getElementById("network-picker-button");
+  const networkPickerButtonText = document.getElementById("network-picker-button-text");
+  const networkPickerPanel = document.getElementById("network-picker-panel");
+  const networkPickerCount = document.getElementById("network-picker-count");
+  const networkPickerList = document.getElementById("network-picker-list");
+  const networkPickerSelectAll = document.getElementById("network-picker-select-all");
+  const networkPickerClearAll = document.getElementById("network-picker-clear-all");
   const dashboardWindowSubtitle = document.getElementById("dashboard-window-subtitle");
+  const networkPickerFooter = document.getElementById("network-picker-footer");
   const activeSensorsCaption = document.getElementById("active-sensors-caption");
   const statusEl = document.getElementById("dashboard-status");
   const updatedEl = document.getElementById("dashboard-updated");
@@ -45,6 +60,11 @@
   let areaLayoutFrame = null;
   let lastAreaTableObservedWidth = null;
 
+  if (networkPickerClearAll) {
+    networkPickerClearAll.setAttribute("aria-label", "Keep one network selected");
+    networkPickerClearAll.title = "Keep one network selected";
+  }
+
   function parseBooleanFlag(value) {
     return /^(1|true|yes|on)$/i.test(String(value || "").trim());
   }
@@ -56,6 +76,8 @@
   function applyDashboardWindowCopy() {
     dashboardWindowSubtitle.textContent =
       `Latest readings from sensors active in the last ${DASHBOARD_ACTIVE_WINDOW_HOURS} hours.`;
+    networkPickerFooter.textContent =
+      `Counts are active sensors in the last ${DASHBOARD_ACTIVE_WINDOW_HOURS} hours.`;
     activeSensorsCaption.textContent =
       `Active sensor counts by network and pollutant in the last ${DASHBOARD_ACTIVE_WINDOW_HOURS} hours`;
   }
@@ -689,23 +711,31 @@
     return [...latest.values()];
   }
 
-  function publicNetworkRows(pollutant) {
+  function selectedRows(pollutant) {
     const rows = rowsByPollutant.get(pollutant) || [];
-    return rows.filter((row) => publicNetworkCodes.has(networkCode(row)));
+    return rows.filter((row) => selectedNetworks.has(networkCode(row)));
   }
 
   function highestReportingRow(pollutant) {
-    return latestByStation(publicNetworkRows(pollutant))
+    return latestByStation(selectedRows(pollutant))
       .filter((candidate) => Number.isFinite(numberValue(candidate)))
       .sort((a, b) => numberValue(b) - numberValue(a))[0] || null;
   }
 
-  function publicNetworksHavePollutant(pollutant) {
+  function selectedNetworksHavePollutant(pollutant) {
     const rows = capabilityRowsByPollutant.get(pollutant);
     // If the capability request failed, use the safer recent-data wording instead
-    // of claiming that the public networks do not provide the pollutant.
+    // of claiming that the selected networks do not provide the pollutant.
     if (!Array.isArray(rows)) return true;
-    return rows.some((row) => publicNetworkCodes.has(networkCode(row)));
+    return rows.some((row) => selectedNetworks.has(networkCode(row)));
+  }
+
+  function selectedNetworkScopeLabel() {
+    if (selectedNetworks.size === 1) {
+      return networkLabels.get([...selectedNetworks][0]) || "Selected network";
+    }
+    if (selectedNetworks.size === networkCatalog.length) return "All networks";
+    return "Selected networks";
   }
 
   function severityColour(value, pollutant) {
@@ -732,7 +762,7 @@
       const item = document.querySelector(`.pollutant-item[data-pollutant="${pollutant.key}"]`);
       if (!item) return;
       const row = highestReportingRow(pollutant.key);
-      const hasPollutant = publicNetworksHavePollutant(pollutant.key);
+      const hasPollutant = selectedNetworksHavePollutant(pollutant.key);
       const value = row ? numberValue(row) : null;
       const circle = item.querySelector(".pollutant-circle");
       const unavailable = item.querySelector(".pollutant-unavailable");
@@ -760,20 +790,26 @@
         valueElement.textContent =
           `No active readings in the last ${DASHBOARD_ACTIVE_WINDOW_HOURS} hours`;
         item.querySelector(".pollutant-station").textContent = "";
-        item.querySelector(".pollutant-network").textContent = "All public networks";
+        item.querySelector(".pollutant-network").textContent = selectedNetworkScopeLabel();
         renderObservedDateTime(observedElement, null);
         circle.style.background = "#C8CDD1";
       } else {
         renderObservedDateTime(observedElement, null);
-        unavailable.querySelector(".pollutant-unavailable-copy").textContent =
-          `No public network currently reports ${pollutant.label}.`;
+        let message = `Selected networks do not currently report ${pollutant.label}.`;
+        if (selectedNetworks.size === 1) {
+          const label = networkLabels.get([...selectedNetworks][0]) || "Selected network";
+          message = `${label} does not currently report ${pollutant.label}.`;
+        } else if (selectedNetworks.size === networkCatalog.length) {
+          message = `No network currently reports ${pollutant.label}.`;
+        }
+        unavailable.querySelector(".pollutant-unavailable-copy").textContent = message;
       }
       const observedLabel = row ? formatObservedDateTime(observedTimestampValue(row)) : null;
       item.setAttribute("aria-label", row
         ? `${pollutant.label}: ${formatValue(value)} micrograms per cubic metre at ${stationName(row)}, ${networkLabel(row)}${observedLabel ? `, observed ${observedLabel.dateTime} ${observedLabel.zone}` : ""}`
         : (showInactiveCircle
           ? `${pollutant.label}: No active readings in the last ${DASHBOARD_ACTIVE_WINDOW_HOURS} hours`
-          : `${pollutant.label}: Not provided by any public network`));
+          : `${pollutant.label}: Not provided by the selected networks`));
       const actions = item.querySelectorAll(".pollutant-action");
       actions[0]?.setAttribute("href", `/hex_map/?pollutant=${pollutant.key}`);
       // Sensor Map currently has no station-focus query parameter, so its plain link is retained.
@@ -821,7 +857,7 @@
       POLLUTANTS.forEach((pollutant, index) => {
         const cell = rowEl?.cells[index + 1];
         if (!cell) return;
-        const highest = aggregateAreas(publicNetworkRows(pollutant.key), type)
+        const highest = aggregateAreas(selectedRows(pollutant.key), type)
           .sort((a, b) => b.value - a.value)[0] || null;
         const reading = cell.querySelector(".area-reading");
         const name = cell.querySelector(".area-reading-name");
@@ -847,7 +883,7 @@
     const totals = { pm25: 0, pm10: 0, no2: 0 };
     const body = document.getElementById("network-summary-body");
     body.replaceChildren();
-    networkCatalog.forEach(({ code, label }) => {
+    networkCatalog.filter(({ code }) => selectedNetworks.has(code)).forEach(({ code, label }) => {
       const rowEl = document.createElement("tr");
       rowEl.dataset.network = code;
       const heading = document.createElement("th");
@@ -883,6 +919,85 @@
     body.append(totalRow);
   }
 
+  function activeSensorCountForNetwork(code) {
+    const stations = new Set();
+    POLLUTANTS.forEach(({ key }) => {
+      latestByStation((rowsByPollutant.get(key) || []).filter((row) =>
+        networkCode(row) === code && Number.isFinite(numberValue(row))
+      )).forEach((row) => stations.add(stationKey(row)));
+    });
+    return stations.size;
+  }
+
+  function renderNetworkPicker() {
+    const selectedCount = selectedNetworks.size;
+    const totalCount = networkCatalog.length;
+    networkPickerButtonText.textContent = selectedCount === totalCount && totalCount > 0
+      ? "Networks: All"
+      : `Networks: ${selectedCount} / ${totalCount}`;
+    networkPickerButton.setAttribute(
+      "aria-label",
+      `Choose dashboard networks. ${selectedCount} of ${totalCount} selected.`,
+    );
+    networkPickerCount.textContent = `${selectedCount} / ${totalCount}`;
+    networkPickerSelectAll.disabled = selectedCount === totalCount;
+    networkPickerClearAll.disabled = selectedCount <= 1;
+    networkPickerList.replaceChildren();
+    networkCatalog.forEach(({ code, label }) => {
+      const row = document.createElement("label");
+      row.className = "home-network-picker-row";
+      row.classList.toggle("is-unselected", !selectedNetworks.has(code));
+      const main = document.createElement("span");
+      main.className = "home-network-picker-row-main";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.value = code;
+      input.checked = selectedNetworks.has(code);
+      input.addEventListener("change", () => {
+        if (input.checked) {
+          selectedNetworks.add(code);
+        } else if (selectedNetworks.size > 1) {
+          selectedNetworks.delete(code);
+        } else {
+          input.checked = true;
+        }
+        render();
+      });
+      const name = document.createElement("span");
+      name.textContent = label;
+      const count = document.createElement("span");
+      count.className = "home-network-picker-sensor-count";
+      count.textContent = activeSensorCountForNetwork(code).toLocaleString("en-GB");
+      main.append(input, name);
+      row.append(main, count);
+      networkPickerList.append(row);
+    });
+  }
+
+  function setNetworkPickerOpen(open) {
+    networkPickerPanel.hidden = !open;
+    networkPickerButton.setAttribute("aria-expanded", String(open));
+    if (open) networkPickerList.querySelector("input")?.focus();
+  }
+
+  function reconcileSelectedNetworks() {
+    const availableCodes = new Set(networkCatalog.map(({ code }) => code));
+    if (!hasInitializedNetworkSelection) {
+      selectedNetworks.clear();
+      const preferredNetworks = networkCatalog.filter(({ code }) =>
+        PREFERRED_INITIAL_NETWORK_CODES.has(code)
+      );
+      const initialNetworks = preferredNetworks.length ? preferredNetworks : networkCatalog;
+      initialNetworks.forEach(({ code }) => selectedNetworks.add(code));
+      hasInitializedNetworkSelection = true;
+      return;
+    }
+    [...selectedNetworks].forEach((code) => {
+      if (!availableCodes.has(code)) selectedNetworks.delete(code);
+    });
+    if (!selectedNetworks.size && networkCatalog[0]) selectedNetworks.add(networkCatalog[0].code);
+  }
+
   function renderUpdated() {
     const displayedAt = dashboardLoadedAt;
     updatedEl.textContent = displayedAt ? `Updated ${formatDate(displayedAt)}` : "Updated —";
@@ -901,6 +1016,7 @@
     renderAreas();
     renderNetworks();
     renderUpdated();
+    renderNetworkPicker();
     schedulePollutantValueFit();
     scheduleAreaTableLayout();
   }
@@ -933,21 +1049,17 @@
             (reason) => ({ status: "rejected", reason }),
           ),
         ]);
-        if (catalogResult.status === "fulfilled") {
+        if (catalogResult.status === "fulfilled" && catalogResult.value.length) {
           networkCatalog = catalogResult.value;
-          publicNetworkCodes = new Set(networkCatalog.map(({ code }) => code));
           networkLabels.clear();
           networkCatalog.forEach(({ code, label }) => networkLabels.set(code, label));
-          hasEstablishedNetworkCatalog = true;
         } else if (catalogResult.status === "rejected") {
           debugLog("Unable to load network catalog", catalogResult.reason);
-          if (!hasEstablishedNetworkCatalog) {
-            throw new Error("Public network catalog is unavailable.");
-          }
         }
         if (areaNamesResult.status === "rejected") {
           debugLog("Unable to load area names", areaNamesResult.reason);
         }
+        reconcileSelectedNetworks();
         let loaded = 0;
         results.forEach((result, index) => {
           const key = POLLUTANTS[index].key;
@@ -1046,6 +1158,28 @@
     })
     : null;
 
+  networkPickerButton?.addEventListener("click", () => {
+    setNetworkPickerOpen(networkPickerPanel.hidden);
+  });
+  networkPickerSelectAll?.addEventListener("click", () => {
+    networkCatalog.forEach(({ code }) => selectedNetworks.add(code));
+    render();
+  });
+  networkPickerClearAll?.addEventListener("click", () => {
+    const keep = networkCatalog.find(({ code }) => selectedNetworks.has(code)) || networkCatalog[0];
+    selectedNetworks.clear();
+    if (keep) selectedNetworks.add(keep.code);
+    render();
+  });
+  document.addEventListener("click", (event) => {
+    if (!networkPicker?.contains(event.target)) setNetworkPickerOpen(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !networkPickerPanel.hidden) {
+      setNetworkPickerOpen(false);
+      networkPickerButton.focus();
+    }
+  });
   window.addEventListener("resize", () => {
     window.clearTimeout(fitValuesTimer);
     fitValuesTimer = window.setTimeout(() => {
