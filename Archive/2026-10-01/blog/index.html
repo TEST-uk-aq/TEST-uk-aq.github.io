@@ -20,7 +20,6 @@
   <link rel="stylesheet" href="/site-ui.css">
   <link rel="stylesheet" href="/blog/blog.css">
   <link rel="stylesheet" href="/bottom-nav.css">
-  <script src="/blog/blog.js" defer></script>
 </head>
 <body class="blog-page" data-page-slug="blog">
   <div id="uk-aq-sidebar-mount"></div>
@@ -45,15 +44,13 @@
     <section class="blog-latest" aria-labelledby="blog-latest-heading">
       <h2 id="blog-latest-heading">Latest blog posts</h2>
 
-      <div class="blog-post-grid" data-blog-post-grid>
-<!-- UK_AQ_BLOG_PHASE2_POSTS -->
+      <div class="blog-post-grid">
+        <div class="blog-article-entry">
+          <div class="blog-embed-slot">
+            <div class="substack-post-embed"><p lang="en">Introducing UK AQ by UK Air Quality</p><p>Bringing UK air quality data together in one place. With the latest global news on air pollution, clean air and health. </p><a data-post-link href="https://ukairquality.substack.com/p/introducing-uk-aq">Read on Substack</a></div><script async src="https://substack.com/embedjs/embed.js" charset="utf-8"></script>
+          </div>
+        </div>
       </div>
-
-      <nav class="blog-pagination" data-blog-pagination aria-label="Blog posts" hidden>
-        <button type="button" data-blog-previous>Previous</button>
-        <span data-blog-page-status aria-live="polite">Page 1 of 1</span>
-        <button type="button" data-blog-next>Next</button>
-      </nav>
     </section>
 
     <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">

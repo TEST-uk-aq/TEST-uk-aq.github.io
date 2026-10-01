@@ -1,0 +1,73 @@
+name: Deploy GH Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Verify AQI history base secret
+        run: test -n "${UK_AQ_AQI_HISTORY_BASE_URL}"
+        env:
+          UK_AQ_AQI_HISTORY_BASE_URL: ${{ secrets.UK_AQ_AQI_HISTORY_BASE_URL }}
+
+      - name: Inject Supabase config
+        run: node scripts/uk_aq_inject_project_ref.mjs
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SB_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.SB_PUBLISHABLE_DEFAULT_KEY }}
+          UK_AQ_TURNSTILE_SITE_KEY: ${{ secrets.UK_AQ_TURNSTILE_SITE_KEY }}
+          UK_AQ_AQI_HISTORY_BASE_URL: ${{ secrets.UK_AQ_AQI_HISTORY_BASE_URL }}
+          UK_AQ_WEBSITE_DEBUG_LOG_ENABLED: ${{ vars.UK_AQ_WEBSITE_DEBUG_LOG_ENABLED || 'false' }}
+          UK_AQ_AQI_MUTABLE_HOURS: ${{ vars.UK_AQ_AQI_MUTABLE_HOURS || '120' }}
+
+      - name: Build content-hashed Pages artifact
+        run: |
+          test ! -e .pages-site
+          mkdir .pages-site
+          rsync -a --exclude='.git/' --exclude='.pages-site/' --exclude='Archive/' ./ .pages-site/
+          node scripts/uk_aq_inject_initial_loader.mjs .pages-site
+          node scripts/uk_aq_content_hash_assets.mjs .pages-site
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .pages-site
+
+  deploy:
+    needs: prepare
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        name: Deploy GitHub Pages
+        uses: actions/deploy-pages@v5

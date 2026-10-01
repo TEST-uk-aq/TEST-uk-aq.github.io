@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      refresh_blog_feed:
+        description: Refresh UK AQ Blog from Substack before deploying
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -29,6 +35,40 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
 
+      - name: Refresh UK AQ Blog feed
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.refresh_blog_feed }}
+        env:
+          UK_AQ_BLOG_FEED_URL: ${{ vars.UK_AQ_BLOG_FEED_URL || '' }}
+          UK_AQ_BLOG_WORKER_HTTP_SECRET: ${{ secrets.UK_AQ_BLOG_WORKER_HTTP_SECRET || '' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${UK_AQ_BLOG_FEED_URL}" ]; then
+            echo "Missing repository variable UK_AQ_BLOG_FEED_URL."
+            exit 1
+          fi
+          if [ -z "${UK_AQ_BLOG_WORKER_HTTP_SECRET}" ]; then
+            echo "Missing repository secret UK_AQ_BLOG_WORKER_HTTP_SECRET."
+            exit 1
+          fi
+          refresh_url="$(node -e '
+            const url = new URL(process.env.UK_AQ_BLOG_FEED_URL);
+            if (url.protocol !== "https:" || url.username || url.password || url.port || url.search || url.hash || !url.pathname.endsWith("/feed")) {
+              throw new Error("UK_AQ_BLOG_FEED_URL must be an HTTPS /feed endpoint without credentials, query or fragment");
+            }
+            url.pathname = `${url.pathname.slice(0, -"/feed".length)}/refresh`;
+            process.stdout.write(url.href);
+          ')"
+          curl --fail-with-body --silent --show-error \
+            --connect-timeout 15 \
+            --max-time 120 \
+            --request POST \
+            --header "x-uk-aq-worker-http-secret: ${UK_AQ_BLOG_WORKER_HTTP_SECRET}" \
+            --output /tmp/uk_aq_blog_refresh.json \
+            "${refresh_url}"
+          jq -e '.ok == true and (.post_count | type == "number") and .post_count > 0' \
+            /tmp/uk_aq_blog_refresh.json >/dev/null
+          echo "UK AQ Blog feed refresh succeeded."
+
       - name: Verify AQI history base secret
         run: test -n "${UK_AQ_AQI_HISTORY_BASE_URL}"
         env:
@@ -44,11 +84,15 @@ jobs:
           UK_AQ_WEBSITE_DEBUG_LOG_ENABLED: ${{ vars.UK_AQ_WEBSITE_DEBUG_LOG_ENABLED || 'false' }}
           UK_AQ_AQI_MUTABLE_HOURS: ${{ vars.UK_AQ_AQI_MUTABLE_HOURS || '120' }}
 
-      - name: Build content-hashed Pages artifact
+      - name: Build Pages artifact
+        env:
+          UK_AQ_BLOG_FEED_URL: ${{ vars.UK_AQ_BLOG_FEED_URL || '' }}
         run: |
+          set -euo pipefail
           test ! -e .pages-site
           mkdir .pages-site
-          rsync -a --exclude='.git/' --exclude='.pages-site/' --exclude='Archive/' ./ .pages-site/
+          rsync -a --exclude='.git/' --exclude='.pages-site/' ./ .pages-site/
+          node scripts/uk_aq_generate_blog_phase2.mjs .pages-site
           node scripts/uk_aq_inject_initial_loader.mjs .pages-site
           node scripts/uk_aq_content_hash_assets.mjs .pages-site
 

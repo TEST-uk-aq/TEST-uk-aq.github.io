@@ -1,0 +1,113 @@
+:root {
+  --blog-bg: #fbfaf7;
+  --blog-text: #101822;
+  --blog-muted: #5f6872;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.blog-page {
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--blog-bg);
+  color: var(--blog-text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.blog-main {
+  width: min(100%, 1620px);
+  min-width: 0;
+  min-height: 100vh;
+  margin-inline: auto;
+  padding: 34px 28px 28px;
+}
+
+.blog-intro {
+  min-width: 0;
+  margin-bottom: 32px;
+}
+
+.blog-intro p {
+  margin: 14px 0 0;
+  color: var(--blog-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.blog-latest {
+  min-width: 0;
+  container: blog-posts / inline-size;
+}
+
+.blog-latest h2 {
+  margin: 0 0 18px;
+  font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+  line-height: 1.3;
+}
+
+.blog-post-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.blog-article-entry {
+  width: 100%;
+  max-width: 420px;
+  min-width: 0;
+}
+
+.blog-embed-slot {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.blog-embed-slot iframe {
+  max-width: 100%;
+}
+
+@container blog-posts (min-width: 760px) {
+  .blog-post-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container blog-posts (min-width: 1160px) {
+  .blog-post-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .blog-main {
+    padding: 16px 12px 48px;
+  }
+
+  .blog-article-entry {
+    margin-inline: auto;
+  }
+
+  .blog-intro {
+    margin-bottom: 26px;
+  }
+
+  .blog-intro p {
+    margin-top: 12px;
+    line-height: 1.55;
+  }
+
+  body.blog-page #ukaq-home-logo {
+    top: 16px;
+    right: 12px;
+  }
+
+  body.blog-page #ukaq-home-logo img {
+    width: clamp(44px, 13.333vw, 52px);
+    height: auto;
+  }
+}
