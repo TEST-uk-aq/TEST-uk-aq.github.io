@@ -34,7 +34,6 @@ function initHexMapNetworkController(root) {
   let liveMapEligibleCodes = new Set();
   let catalogLoad = null;
   let selectedCodes = initialSelection;
-  let pendingUrlSelection = null;
   let activeScope = "uk";
   let activePollutant = null;
   const capabilityByPollutant = new Map();
@@ -152,19 +151,8 @@ function initHexMapNetworkController(root) {
       catalog = rows.filter((definition) => definition.live_map_enabled === true);
       catalogByCode = new Map(catalog.map((definition) => [normalizeCode(definition.code), definition]));
       liveMapEligibleCodes = new Set(catalogByCode.keys());
-      if (pendingUrlSelection) {
-        applyUrlSelectionIntent(pendingUrlSelection, { source: "initial-url", notify: false });
-      } else {
-        reconcileSelection();
-      }
+      reconcileSelection();
       renderActiveScope({ force: true });
-      root.dispatchEvent(new CustomEvent("hexnetworkcatalogready", {
-        detail: {
-          eligibleCodes: eligibleCodesSnapshot(),
-          selectedCodes: selectionSnapshot(),
-          allSelected: selectedCodes === null,
-        },
-      }));
       return catalog;
     });
     catalogLoad = request;
@@ -270,49 +258,6 @@ function initHexMapNetworkController(root) {
     if (!retained.size) retained.add(normalizeCode(catalog[0].code));
     selectedCodes = retained.size === available.size ? null : retained;
     persistSelection();
-  }
-
-  function normalizeUrlSelectionIntent(intent) {
-    const codes = Array.from(new Set(Array.from(intent?.codes || [])
-      .map(normalizeCode)
-      .filter(Boolean)))
-      .sort();
-    return Object.freeze({
-      present: intent?.present === true,
-      allSelected: intent?.allSelected === true,
-      codes: Object.freeze(codes),
-    });
-  }
-
-  function applyUrlSelectionIntent(intent, options = {}) {
-    const normalized = normalizeUrlSelectionIntent(intent);
-    pendingUrlSelection = normalized;
-    if (!catalog) return false;
-
-    const before = selectedCodes === null ? null : Array.from(selectedCodes).sort().join("|");
-    if (!normalized.present) {
-      selectedCodes = readPersistedSelection();
-      reconcileSelection();
-    } else if (normalized.allSelected) {
-      selectedCodes = null;
-      persistSelection();
-    } else {
-      const retained = new Set(normalized.codes.filter((code) => liveMapEligibleCodes.has(code)));
-      selectedCodes = !retained.size || retained.size === liveMapEligibleCodes.size ? null : retained;
-      persistSelection();
-    }
-    const after = selectedCodes === null ? null : Array.from(selectedCodes).sort().join("|");
-    renderActiveScope({ force: true });
-    if (before !== after && options.notify !== false) {
-      notifySelectionChange(options.source || "url");
-    }
-    return before !== after;
-  }
-
-  function getUrlSelectionValue() {
-    return selectedCodes === null
-      ? "all"
-      : Array.from(selectedCodes).map(normalizeCode).filter(Boolean).sort().join(",");
   }
 
   function setSelection(nextSelection, options = {}) {
@@ -942,7 +887,6 @@ function initHexMapNetworkController(root) {
     getCatalogByCode,
     getCatalogByCodeMap,
     getEligibleCodes: eligibleCodesSnapshot,
-    isCatalogReady: () => Array.isArray(catalog),
     filterEligibleRows,
     getSelection: selectionSnapshot,
     getSelectedEntries: selectedEntries,
@@ -952,8 +896,6 @@ function initHexMapNetworkController(root) {
     updatePollutantCapability,
     setActivePollutant,
     setSelection,
-    setUrlSelectionIntent: applyUrlSelectionIntent,
-    getUrlSelectionValue,
     registerScope,
     updateScope,
     setActiveScope,

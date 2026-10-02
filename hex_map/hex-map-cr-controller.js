@@ -602,6 +602,7 @@ function initHexMapCrController() {
 	      let selectedAreaCode = null;
 	      let selectedCell = null;
 	      let pendingSelectedAreaCode = null;
+	      let pendingSelectedAreaOptions = null;
 	      let areaRegionLookup = new Map();
 	      let crSearchPreloadPromise = null;
       let colorScale = null;
@@ -2070,7 +2071,7 @@ function initHexMapCrController() {
           .classed("is-dimmed", (cell) => resolveCellAreaCode(cell) !== selectedAreaCode);
       }
 
-      function setSelectedCell(cell) {
+      function setSelectedCell(cell, options = {}) {
         selectedCell = cell || null;
         selectedAreaCode = resolveCellAreaCode(cell);
         if (mapCanvasWrap) mapCanvasWrap.classList.toggle("hex-selected", !!cell);
@@ -2087,6 +2088,14 @@ function initHexMapCrController() {
         } else {
           viewportFraming?.cancelViewportFrame?.("cr");
         }
+        window.dispatchEvent(new CustomEvent("hexareachange", {
+          detail: {
+            mapKey: "cr",
+            areaCode: selectedAreaCode,
+            updateUrl: options.updateUrl !== false,
+            push: options.push !== false,
+          },
+        }));
       }
 
       function updateSelectedHexViewportShift() {
@@ -2139,7 +2148,7 @@ function initHexMapCrController() {
           return typeof cellCode === "string" && cellCode.trim().toUpperCase() === resolved;
         }) || null;
         if (match) {
-          setSelectedCell(match);
+          setSelectedCell(match, { updateUrl });
           if (tooltip) {
             tooltip.classList.remove("visible");
           }
@@ -2156,11 +2165,13 @@ function initHexMapCrController() {
         const targetRegion = areaRegionLookup.get(resolved) || null;
         if (targetRegion && targetRegion !== activeRegion) {
           pendingSelectedAreaCode = resolved;
+          pendingSelectedAreaOptions = { updateUrl };
           setActiveRegion(targetRegion, { updateUrl });
           return true;
         }
         if (targetRegion && targetRegion === activeRegion && statusEl?.textContent === "Loading...") {
           pendingSelectedAreaCode = resolved;
+          pendingSelectedAreaOptions = { updateUrl };
           return true;
         }
         console.warn(`[uk-aq] selectAreaByCode: no region mapping found for code ${normalized}${resolved !== normalized ? ` (alias: ${resolved})` : ""}`);
@@ -2172,8 +2183,10 @@ function initHexMapCrController() {
           return false;
         }
         const code = pendingSelectedAreaCode;
+        const options = pendingSelectedAreaOptions || { updateUrl: false };
         pendingSelectedAreaCode = null;
-        return selectAreaByCode(code, { allowRegionSwitch: false, updateUrl: false });
+        pendingSelectedAreaOptions = null;
+        return selectAreaByCode(code, { allowRegionSwitch: false, ...options });
       }
 
       function compareTextValues(a, b) {
@@ -4238,8 +4251,22 @@ function initHexMapCrController() {
         } finally {
           if (!isStale()) {
             setMapLoading(false);
+            dispatchUrlRestoreReady();
           }
         }
+      }
+
+      function dispatchUrlRestoreReady() {
+        window.dispatchEvent(new CustomEvent("hexmapdataready", {
+          detail: {
+            mapKey: "cr",
+            map: activeRegion,
+            pollutant: activePollutant,
+            window: currentWindow,
+            dataStatus: chartDataStatus,
+            geometryReady: Boolean(hexCells.length),
+          },
+        }));
       }
 
       metricInputs.forEach((input) => {
@@ -4679,7 +4706,16 @@ function initHexMapCrController() {
 	        },
 	        getRegion: () => activeRegion,
 	        selectAreaByCode: (code, options) => selectAreaByCode(code, options),
+	        clearSelection: (options) => setSelectedCell(null, options),
 	        getActiveAreaCode: () => selectedAreaCode,
+        getUrlRestoreState: () => ({
+          mapKey: "cr",
+          map: activeRegion,
+          pollutant: activePollutant,
+          window: currentWindow,
+          dataStatus: chartDataStatus,
+          geometryReady: Boolean(hexCells.length),
+        }),
         getChartModeContext: () => {
           const row = selectedAreaCode ? pconLookup.get(selectedAreaCode) : null;
           const areaName = resolveCellAreaName(selectedCell) || resolveAreaName(row) || selectedAreaCode || "";

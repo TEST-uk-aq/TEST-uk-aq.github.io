@@ -24,7 +24,7 @@ function initHexMapCoordinator(root) {
     settings: {
       metric: METRICS.has(initialUrlState.mapSettings?.metric) ? initialUrlState.mapSettings.metric : "mean",
       colorScale: COLOR_SCALES.has(initialUrlState.mapSettings?.colorScale) ? initialUrlState.mapSettings.colorScale : "power",
-      window: WINDOWS.has(initialUrlState.mapSettings?.window) ? initialUrlState.mapSettings.window : "6h",
+      window: "6h",
     },
   };
   networkController.setActivePollutant(state.pollutant);
@@ -78,11 +78,8 @@ function initHexMapCoordinator(root) {
       || next.window !== state.settings.window;
     state.settings = next;
 
-    if (options.updateUrl !== false) {
-      if (Object.prototype.hasOwnProperty.call(partial, "metric")) urlState.syncMetric(next.metric);
-      if (Object.prototype.hasOwnProperty.call(partial, "colorScale")) urlState.syncColorScale(next.colorScale);
-      if (Object.prototype.hasOwnProperty.call(partial, "window")) urlState.syncWindow(next.window);
-    }
+    if (partial.metric) urlState.syncMetric(next.metric);
+    if (partial.colorScale) urlState.syncColorScale(next.colorScale);
     if (!changed) return false;
 
     const snapshot = mapSettingsSnapshot();

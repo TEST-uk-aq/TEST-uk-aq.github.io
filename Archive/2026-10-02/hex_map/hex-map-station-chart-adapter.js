@@ -681,13 +681,11 @@
       const context = currentContext(mapKey);
       const identity = contextIdentity(mapKey, context);
       if (!identity) return false;
-      const visibleEntries = (context.entries || []).map((entry) => normalizeEntry(entry, context)).filter(Boolean);
-      if (!visibleEntries.length) return false;
       exit({ refreshSensorPanelGeometry: false });
       state.lifecycleMounted = true;
       state.sessionIdentity = identity;
-      state.rangeLabel = normalizeRangeLabel(options.initialRange || options.chartRange || "24h");
-      state.visibleEntries = visibleEntries;
+      state.rangeLabel = "24h";
+      state.visibleEntries = (context.entries || []).map((entry) => normalizeEntry(entry, context)).filter(Boolean);
       const requested = String(options.initialSensorId ?? options.initialStationId ?? "").trim();
       const initial = state.visibleEntries.find((entry) => entry.station_id === requested) || state.visibleEntries[0] || null;
       state.selectedIds = new Set(initial ? [initial.station_id] : []);
@@ -695,9 +693,6 @@
       state.aqiSourceId = initial?.station_id || null;
       if (rangeSelect) rangeSelect.value = state.rangeLabel;
       pageMode.enterChart(mapKey);
-      root.dispatchEvent(new CustomEvent("hexchartrangechange", {
-        detail: { range: state.rangeLabel, source: options.updateUrl === false ? "url" : "chart-entry" },
-      }));
       syncChartSelectionTables();
       scheduleSensorPanelGeometryRefresh(mapKey);
       createController(mapKey);
@@ -828,9 +823,6 @@
       state.rangeLabel = normalizeRangeLabel(rangeSelect.value);
       rangeSelect.value = state.rangeLabel;
       void state.controller?.setRange(resolveRange(state.rangeLabel, selectedEntries()));
-      root.dispatchEvent(new CustomEvent("hexchartrangechange", {
-        detail: { range: state.rangeLabel, source: "range-control" },
-      }));
     });
     backButtons.forEach((button) => button.addEventListener("click", exit));
     root.addEventListener("resize", () => {
@@ -872,9 +864,7 @@
       isSensorSelected: (mapKey = null, id = "") => Boolean(pageMode.isChartMode(mapKey) && isLifecycleMounted(mapKey) && state.selectedIds.has(String(id))),
       getSelectedSensorIds: (mapKey = null) => pageMode.isChartMode(mapKey) && isLifecycleMounted(mapKey) ? Array.from(state.selectedIds) : [],
       getSelectedSensorIndex: (mapKey = null, id = "") => pageMode.isChartMode(mapKey) && isLifecycleMounted(mapKey) ? Array.from(state.selectedIds).indexOf(String(id)) : -1,
-      getRangeLabel: () => state.rangeLabel,
     });
-    root.dispatchEvent(new CustomEvent("hexchartadapterready"));
     return root.hexChartMode;
   }
 

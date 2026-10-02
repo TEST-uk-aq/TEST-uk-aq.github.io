@@ -2289,7 +2289,7 @@ function initHexMapUkController(root) {
           .classed("is-dimmed", (cell) => cell.pcon_code !== selectedPconCode);
       }
 
-      function setSelectedCell(cell, options = {}) {
+      function setSelectedCell(cell) {
         selectedCell = cell || null;
         selectedPconCode = cell?.pcon_code || null;
         if (mapCanvasWrap) mapCanvasWrap.classList.toggle("hex-selected", !!cell);
@@ -2306,14 +2306,6 @@ function initHexMapUkController(root) {
         } else {
           viewportFraming?.cancelViewportFrame?.("uk");
         }
-        window.dispatchEvent(new CustomEvent("hexareachange", {
-          detail: {
-            mapKey: "uk",
-            areaCode: selectedPconCode,
-            updateUrl: options.updateUrl !== false,
-            push: options.push !== false,
-          },
-        }));
       }
 
       function updateSelectedHexViewportShift() {
@@ -2346,7 +2338,7 @@ function initHexMapUkController(root) {
         });
       }
 
-      function selectPconByCode(code, options = {}) {
+      function selectPconByCode(code) {
         const normalized = typeof code === "string" ? code.trim().toUpperCase() : "";
         if (!normalized) {
           return false;
@@ -2358,7 +2350,7 @@ function initHexMapUkController(root) {
         if (!match) {
           return false;
         }
-        setSelectedCell(match, options);
+        setSelectedCell(match);
         if (tooltip) {
           tooltip.classList.remove("visible");
         }
@@ -3573,7 +3565,6 @@ function initHexMapUkController(root) {
           setStatus("Error");
           setMapLoading(false);
           window.hexChartMode?.syncFromMap?.("uk", { preserveChartMode: true, dataStatus: "failed" });
-          dispatchUrlRestoreReady();
           return;
         }
         if (!cacheSessionUrl) {
@@ -3585,7 +3576,6 @@ function initHexMapUkController(root) {
           setStatus("Error");
           setMapLoading(false);
           window.hexChartMode?.syncFromMap?.("uk", { preserveChartMode: true, dataStatus: "failed" });
-          dispatchUrlRestoreReady();
           return;
         }
         try {
@@ -3863,22 +3853,8 @@ function initHexMapUkController(root) {
         } finally {
           if (!isStale()) {
             setMapLoading(false);
-            dispatchUrlRestoreReady();
           }
         }
-      }
-
-      function dispatchUrlRestoreReady() {
-        window.dispatchEvent(new CustomEvent("hexmapdataready", {
-          detail: {
-            mapKey: "uk",
-            map: "UK",
-            pollutant: activePollutant,
-            window: currentWindow,
-            dataStatus: chartDataStatus,
-            geometryReady: Boolean(hexCells.length),
-          },
-        }));
       }
 
       metricInputs.forEach((input) => {
@@ -4291,17 +4267,8 @@ function initHexMapUkController(root) {
         clearPinnedTooltip: () => {
           pinnedTooltipCell = null;
         },
-        selectPconByCode: (code, options) => selectPconByCode(code, options),
-        clearSelection: (options) => setSelectedCell(null, options),
+        selectPconByCode: (code) => selectPconByCode(code),
         getActivePconCode: () => selectedPconCode,
-        getUrlRestoreState: () => ({
-          mapKey: "uk",
-          map: "UK",
-          pollutant: activePollutant,
-          window: currentWindow,
-          dataStatus: chartDataStatus,
-          geometryReady: Boolean(hexCells.length),
-        }),
         getChartModeContext: () => {
           const row = selectedPconCode ? pconLookup.get(selectedPconCode) : null;
           const areaName = selectedCell?.pcon_name || row?.pcon_name || selectedPconCode || "";
