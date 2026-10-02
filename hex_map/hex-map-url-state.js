@@ -117,13 +117,20 @@ function initHexMapUrlState(root) {
     return root.UkAqHexMapPageMode || null;
   }
 
+  function serializeBrowserUrl(url) {
+    const search = url.search.replace(/([?&]networks=)([^&]*)/i, (_match, prefix, value) => (
+      `${prefix}${value.replace(/%2C/gi, ",")}`
+    ));
+    return `${url.pathname}${search}${url.hash}`;
+  }
+
   function writeUrl(url, options = {}) {
     if (applyingUrlState) return false;
     const current = `${root.location.pathname}${root.location.search}${root.location.hash}`;
-    const next = `${url.pathname}${url.search}${url.hash}`;
+    const next = serializeBrowserUrl(url);
     if (current === next) return false;
-    if (options.push) root.history.pushState({}, "", url);
-    else root.history.replaceState({}, "", url);
+    if (options.push) root.history.pushState({}, "", next);
+    else root.history.replaceState({}, "", next);
     return true;
   }
 

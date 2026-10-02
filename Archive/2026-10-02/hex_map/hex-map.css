@@ -69,7 +69,7 @@
       /*
        * Turnstile controls its own visibility through appearance:
        * interaction-only. Keep the host usable if interaction is required.
-       * Shared auth JavaScript owns runtime visibility and pointer events.
+       * Hidden by default - shown only when user interaction is needed.
        */
       #uk-aq-turnstile-widget-shared {
         position: fixed !important;
@@ -79,6 +79,8 @@
         min-height: 65px !important;
         z-index: 2147483647 !important;
         background: transparent !important;
+        display: none !important;
+        pointer-events: none !important;
       }
 
       main {

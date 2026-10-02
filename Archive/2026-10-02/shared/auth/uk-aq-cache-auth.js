@@ -5,12 +5,6 @@
   "use strict";
 
   const SHARED_TURNSTILE_SITE_KEY_PLACEHOLDER = "0x4AAAAAADvk69amXC9V2nNx";
-  const SESSION_FREE_PUBLIC_READ_PATHS = new Set([
-    "/api/aq/networks",
-    "/api/aq/latest-snapshot",
-    "/api/aq/pcon-hex",
-    "/api/aq/la-hex",
-  ]);
 
   if (window.ukAqSharedAuth?.fetchCacheApi) {
     window.ukAqFetchCacheApi = window.ukAqSharedAuth.fetchCacheApi;
@@ -298,34 +292,7 @@
     return sessionInflight;
   }
 
-  function isSessionFreePublicRead(input, init = {}) {
-    const method = String(
-      init?.method || (input instanceof Request ? input.method : "GET"),
-    ).trim().toUpperCase();
-    if (method !== "GET" && method !== "HEAD") return false;
-
-    let target;
-    try {
-      const inputUrl = input instanceof Request
-        ? input.url
-        : input instanceof URL
-        ? input.href
-        : String(input);
-      target = new URL(inputUrl, window.location.href);
-    } catch (_error) {
-      return false;
-    }
-
-    const pathname = target.pathname.replace(/\/+$/, "") || "/";
-    return target.origin === cacheOrigin
-      && SESSION_FREE_PUBLIC_READ_PATHS.has(pathname);
-  }
-
   async function fetchCacheApi(input, init = {}, retryOnAuthFailure = true) {
-    if (isSessionFreePublicRead(input, init)) {
-      return nativeFetch(input, { ...init, credentials: "include" });
-    }
-
     if (retryOnAuthFailure && !hasFreshSession()) await getCacheAuthToken(false);
     let response = await nativeFetch(input, { ...init, credentials: "include" });
     if (response.status === 401 && retryOnAuthFailure) {
