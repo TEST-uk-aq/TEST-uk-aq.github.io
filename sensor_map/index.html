@@ -723,6 +723,8 @@
             stationName: stationName === "Unknown station" ? stationLabel : stationName,
             stationLabel,
             network: getNetworkLabel(row),
+            stationNameIsCanonical: Boolean(normalizeText(row?.canonical_station_label)),
+            networkIsCanonical: Array.isArray(row?.site_networks),
           };
         }
 
@@ -741,6 +743,8 @@
             stationName: summary.stationName,
             stationLabel: summary.stationLabel,
             network: summary.network,
+            stationNameIsCanonical: summary.stationNameIsCanonical,
+            networkIsCanonical: summary.networkIsCanonical,
             lat: coords ? coords.lat : null,
             lon: coords ? coords.lon : null,
             latestReadings: new Map(),
@@ -750,14 +754,22 @@
         }
 
         function mergeReadingIntoStation(targetStation, sourceStation) {
-          if (targetStation.stationName === "Unknown station" && sourceStation.stationName !== "Unknown station") {
+          if (
+            sourceStation.stationNameIsCanonical
+            || (targetStation.stationName === "Unknown station" && sourceStation.stationName !== "Unknown station")
+          ) {
             targetStation.stationName = sourceStation.stationName;
+            targetStation.stationNameIsCanonical = sourceStation.stationNameIsCanonical;
           }
           if (!targetStation.stationLabel || targetStation.stationLabel === "Unknown station") {
             targetStation.stationLabel = sourceStation.stationLabel;
           }
-          if (targetStation.network === "Unknown" && sourceStation.network !== "Unknown") {
+          if (
+            sourceStation.networkIsCanonical
+            || (targetStation.network === "Unknown" && sourceStation.network !== "Unknown")
+          ) {
             targetStation.network = sourceStation.network;
+            targetStation.networkIsCanonical = sourceStation.networkIsCanonical;
           }
           sourceStation.latestReadings.forEach((reading, pollutant) => {
             const existing = targetStation.latestReadings.get(pollutant);
