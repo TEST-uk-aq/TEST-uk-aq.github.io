@@ -301,13 +301,11 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
     <script src="/shared/domain/pollutants.js"></script>
-    <script src="/shared/domain/canonical-current-rows.js"></script>
     <script src="/shared/auth/uk-aq-cache-auth.js"></script>
     <script>
       (() => {
         const pollutantDomain = window.UkAqPollutants;
-        const canonicalRows = window.UkAqCanonicalCurrentRows;
-        if (!pollutantDomain?.definitions || !canonicalRows?.groupCanonicalRows) {
+        if (!pollutantDomain?.definitions) {
           throw new Error("UK AQ pollutant domain must load before the Sensor Map.");
         }
 
@@ -663,10 +661,6 @@
         }
 
         function getNetworkLabel(row) {
-          const canonicalLabel = canonicalRows.formatCanonicalNetworkLabel(row);
-          if (canonicalLabel || Array.isArray(row?.site_networks)) {
-            return canonicalLabel || "Unknown";
-          }
           const direct = normalizeText(row?.network_name);
           if (direct) {
             return direct;
@@ -693,7 +687,7 @@
         }
 
         function getStationName(row) {
-          return canonicalRows.resolveCanonicalStationName(row, null) || normalizeText(
+          return normalizeText(
             row?.display_name
               || row?.station_name
               || row?.station_label
@@ -787,27 +781,12 @@
         function groupStationRows(rows) {
           const grouped = new Map();
           const safeRows = Array.isArray(rows) ? rows : [];
-          const rowsByPollutant = new Map();
 
           safeRows.forEach((row) => {
-            const pollutant = getPollutantLabel(row);
-            const pollutantRows = rowsByPollutant.get(pollutant) || [];
-            pollutantRows.push(row);
-            rowsByPollutant.set(pollutant, pollutantRows);
-          });
-
-          const representativeRows = [];
-          rowsByPollutant.forEach((pollutantRows) => {
-            canonicalRows.groupCanonicalRows(pollutantRows, {
-              resolveTimestamp: rowObservedAt,
-            }).forEach((entry) => representativeRows.push(entry.row));
-          });
-
-          representativeRows.forEach((row, index) => {
             const summary = getStationSummary(row, false);
             const coords = extractCoordinatesFromRow(row);
             const fallbackKey = `${summary.network}::${summary.stationLabel}::${coords ? `${coords.lat.toFixed(5)},${coords.lon.toFixed(5)}` : "no-coords"}`;
-            const key = canonicalRows.resolveCanonicalSiteKey(row, index) || fallbackKey;
+            const key = summary.stationId ? `id:${summary.stationId}` : fallbackKey;
 
             if (!grouped.has(key)) {
               grouped.set(key, makeStationRecord(summary, coords, "reading"));

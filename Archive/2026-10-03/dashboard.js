@@ -3,8 +3,7 @@
 
   const pollutantDomain = window.UkAqPollutants;
   const networkCatalogClient = window.UkAqNetworkCatalog;
-  const canonicalRows = window.UkAqCanonicalCurrentRows;
-  if (!pollutantDomain?.definitions || !networkCatalogClient?.load || !canonicalRows?.groupCanonicalRows) {
+  if (!pollutantDomain?.definitions || !networkCatalogClient?.load) {
     throw new Error("UK AQ shared domain/data modules must load before the dashboard.");
   }
   const POLLUTANTS = pollutantDomain.definitions.map((definition) => ({
@@ -206,6 +205,11 @@
     time.setAttribute("datetime", formatted.iso);
     container.hidden = false;
     return `${formatted.dateTime} ${formatted.zone}`;
+  }
+
+  function stationKey(row) {
+    return row?.station_id || row?.station?.id || row?.station_ref
+      || row?.station?.station_ref || row?.display_name || row?.station?.display_name || null;
   }
 
   function stationName(row) {
@@ -675,8 +679,14 @@
   }
 
   function latestByStation(rows) {
-    return canonicalRows.groupCanonicalRows(rows, { resolveTimestamp: timestamp })
-      .map((entry) => entry.row);
+    const latest = new Map();
+    rows.forEach((row, index) => {
+      const key = stationKey(row) || `unknown-${index}`;
+      const existing = latest.get(key);
+      const at = timestamp(row);
+      if (!existing || (at && (!timestamp(existing) || at > timestamp(existing)))) latest.set(key, row);
+    });
+    return [...latest.values()];
   }
 
   function publicNetworkRows(pollutant) {
@@ -834,6 +844,7 @@
   }
 
   function renderNetworks() {
+    const totals = { pm25: 0, pm10: 0, no2: 0 };
     const body = document.getElementById("network-summary-body");
     body.replaceChildren();
     networkCatalog.forEach(({ code, label }) => {
@@ -849,6 +860,7 @@
         const rows = latestByStation((rowsByPollutant.get(pollutant.key) || [])
           .filter((row) => networkCode(row) === code && Number.isFinite(numberValue(row))));
         rowEl.cells[index + 2].textContent = rows.length.toLocaleString("en-GB");
+        totals[pollutant.key] += rows.length;
         rows.forEach((row) => {
           const at = timestamp(row);
           if (at && (!newest || at > newest)) newest = at;
@@ -866,10 +878,7 @@
     totalRow.append(totalHeading, document.createElement("td"));
     POLLUTANTS.forEach(() => totalRow.append(document.createElement("td")));
     POLLUTANTS.forEach((pollutant, index) => {
-      const physicalTotal = latestByStation(
-        publicNetworkRows(pollutant.key).filter((row) => Number.isFinite(numberValue(row))),
-      ).length;
-      totalRow.cells[index + 2].textContent = physicalTotal.toLocaleString("en-GB");
+      totalRow.cells[index + 2].textContent = totals[pollutant.key].toLocaleString("en-GB");
     });
     body.append(totalRow);
   }

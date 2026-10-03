@@ -921,27 +921,6 @@
           <p class="ukaq-site-footer-copy">Powered by <a href="https://www.breathelondon-communities.org/">Breathe London Communities</a></p>
         </section>
 
-        <section class="ukaq-site-footer-source" data-network-code="waqn" aria-label="Welsh Air Quality Network attribution">
-          <div class="ukaq-site-footer-mark">
-            <a class="ukaq-site-footer-gov-pill" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
-          </div>
-          <p class="ukaq-site-footer-copy">Air quality data provided by the <a href="https://www.airquality.gov.wales/">Welsh Air Quality Network</a>.</p>
-        </section>
-
-        <section class="ukaq-site-footer-source" data-network-code="saqn" aria-label="Scottish Air Quality Network attribution">
-          <div class="ukaq-site-footer-mark">
-            <a class="ukaq-site-footer-gov-pill" href="https://www.scottishairquality.scot/" aria-label="Scottish Air Quality Network">Scottish AQN</a>
-          </div>
-          <p class="ukaq-site-footer-copy">Air quality data provided by the <a href="https://www.scottishairquality.scot/">Scottish Air Quality Network</a>.</p>
-        </section>
-
-        <section class="ukaq-site-footer-source" data-network-code="ni" aria-label="Northern Ireland Air attribution">
-          <div class="ukaq-site-footer-mark">
-            <a class="ukaq-site-footer-gov-pill" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">Northern Ireland Air</a>
-          </div>
-          <p class="ukaq-site-footer-copy">Air quality data provided by <a href="https://www.airqualityni.co.uk/">Northern Ireland Air</a>.</p>
-        </section>
-
         <section class="ukaq-site-footer-source" data-network-code="openaq" aria-label="OpenAQ attribution">
           <div class="ukaq-site-footer-mark">
             <a href="https://openaq.org/" aria-label="OpenAQ">

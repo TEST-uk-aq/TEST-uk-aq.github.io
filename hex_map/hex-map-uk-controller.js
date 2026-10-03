@@ -8,6 +8,13 @@ import truncation from "./hex-map-truncation.js";
 import viewportFraming from "./hex-map-viewport-framing.js";
 import "./hex-map-station-chart-adapter-module.js";
 import search from "./hex-map-search.js";
+import {
+  collectCanonicalNetworkEntries,
+  formatCanonicalNetworkLabel,
+  groupCanonicalRows,
+  resolveCanonicalSiteKey,
+  resolveCanonicalStationName,
+} from "./hex-map-canonical-sites.js";
 
 function initHexMapUkController(root) {
       "use strict";
@@ -959,30 +966,17 @@ function initHexMapUkController(root) {
       }
 
       function collectSelectedStationEntries(rows) {
-        const stationMap = new Map();
-        rows.forEach((item, index) => {
+        const candidates = rows.filter((item) => {
           const value = resolveLatestValue(item);
-          if (!Number.isFinite(value)) {
-            return;
-          }
-          const stationKey = resolveStationKey(item) || `station-${index}`;
-          const timestamp = resolveLatestTimestamp(item);
-          const existing = stationMap.get(stationKey);
-          if (!existing || (timestamp && (!existing.timestamp || timestamp > existing.timestamp))) {
-            stationMap.set(stationKey, { row: item, value, timestamp });
-          }
+          return Number.isFinite(value);
         });
-        return Array.from(stationMap.values());
+        return groupCanonicalRows(candidates, {
+          resolveValue: resolveLatestValue,
+          resolveTimestamp: resolveLatestTimestamp,
+        });
       }
 
-      function getSelectedNetworkLabel(row, selectedNetworkCodes) {
-        const entries = collectNetworkEntries(row);
-        if (selectedNetworkCodes && selectedNetworkCodes.size) {
-          const match = entries.find((entry) => entry.code && selectedNetworkCodes.has(entry.code));
-          if (match) {
-            return match.label || match.code;
-          }
-        }
+      function getSelectedNetworkLabel(row) {
         return resolvePrimaryNetworkLabel(row) || "Unknown network";
       }
 
@@ -990,7 +984,6 @@ function initHexMapUkController(root) {
         const windowed = filterRowsByWindow(scopedLatestRows);
         const scopedRows = getRowsForActivePollutant(windowed);
         const entries = collectSelectedStationEntries(scopedRows);
-        const selectedNetworkCodes = getActiveNetworkCodes();
         const pconSet = new Set();
         const counts = new Map();
         let newest = null;
@@ -1010,7 +1003,7 @@ function initHexMapUkController(root) {
               oldest = timestamp;
             }
           }
-          const label = getSelectedNetworkLabel(entry.row, selectedNetworkCodes);
+          const label = getSelectedNetworkLabel(entry.row);
           counts.set(label, (counts.get(label) || 0) + 1);
         });
 
@@ -1643,9 +1636,7 @@ function initHexMapUkController(root) {
       }
 
       function resolveStationName(row) {
-        return row?.display_name
-          || row?.station?.display_name
-          || "Unknown sensor";
+        return resolveCanonicalStationName(row);
       }
 
       function resolveConnectorCode(row) {
@@ -1683,6 +1674,10 @@ function initHexMapUkController(root) {
       }
 
       function resolvePrimaryNetworkLabel(row) {
+        const canonicalLabel = formatCanonicalNetworkLabel(row, networkController.getCatalog());
+        if (canonicalLabel || Array.isArray(row?.site_networks)) {
+          return canonicalLabel;
+        }
         return resolveNetworkLabel(row);
       }
 
@@ -1691,16 +1686,7 @@ function initHexMapUkController(root) {
       }
 
       function collectNetworkEntries(row) {
-        const code = resolveNetworkCode(row);
-        const label = resolveNetworkLabel(row);
-        if (!code || !label) {
-          return [];
-        }
-        return [{
-          id: resolveNetworkId(row) || getCatalogNetworkByCode(code)?.id || null,
-          code,
-          label,
-        }];
+        return collectCanonicalNetworkEntries(row, networkController.getCatalog());
       }
 
       function buildNetworkDefs(rows) {
@@ -1714,7 +1700,7 @@ function initHexMapUkController(root) {
         rows.forEach((row) => {
           const entry = resolvePrimaryNetworkEntry(row);
           if (!entry || !byCode.has(entry.code)) return;
-          const stationKey = resolveStationKey(row)
+          const stationKey = resolveCanonicalSiteKey(row)
             || `${resolveStationName(row)}::${resolveCoordinatePair(row).lat ?? ""}::${resolveCoordinatePair(row).lon ?? ""}`;
           if (!seenStationsByCode.has(entry.code)) {
             seenStationsByCode.set(entry.code, new Set());
@@ -1903,29 +1889,14 @@ function initHexMapUkController(root) {
 
 
       function collectStationEntries(rows, pconCode) {
-        const stationMap = new Map();
-        rows.forEach((item, index) => {
-          if (resolvePconCode(item) !== pconCode) {
-            return;
-          }
-          const stationKey = resolveStationKey(item) || `${pconCode}-${index}`;
-          const timestamp = resolveLatestTimestamp(item);
+        const candidates = rows.filter((item) => {
           const value = resolveLatestValue(item);
-          const normalizedValue = Number.isFinite(value) ? value : null;
-          const existing = stationMap.get(stationKey);
-          if (!existing) {
-            stationMap.set(stationKey, { row: item, value: normalizedValue, timestamp });
-            return;
-          }
-          if (timestamp && (!existing.timestamp || timestamp > existing.timestamp)) {
-            stationMap.set(stationKey, { row: item, value: normalizedValue, timestamp });
-            return;
-          }
-          if (!existing.timestamp && !timestamp && existing.value === null && normalizedValue !== null) {
-            stationMap.set(stationKey, { row: item, value: normalizedValue, timestamp });
-          }
+          return Number.isFinite(value);
         });
-        return Array.from(stationMap.values());
+        return groupCanonicalRows(candidates, {
+          resolveValue: resolveLatestValue,
+          resolveTimestamp: resolveLatestTimestamp,
+        }).filter((entry) => resolvePconCode(entry.row) === pconCode);
       }
 
       function countStationsByNetwork(entries) {
@@ -1940,31 +1911,21 @@ function initHexMapUkController(root) {
       }
 
       function rowMatchesNetwork(row, matchers) {
-        const entries = collectNetworkEntries(row);
-        return entries.some((entry) => {
-          const label = `${entry.code || ""} ${entry.label || ""}`.toLowerCase();
-          return matchers.some((token) => label.includes(token));
-        });
+        const entry = resolvePrimaryNetworkEntry(row);
+        const label = `${entry?.code || ""} ${entry?.label || ""}`.toLowerCase();
+        return matchers.some((token) => label.includes(token));
       }
 
       function collectNetworkEntriesByMatcher(rows, matchers) {
-        const stationMap = new Map();
-        rows.forEach((item, index) => {
-          if (!rowMatchesNetwork(item, matchers)) {
-            return;
-          }
+        const candidates = rows.filter((item) => {
+          if (!rowMatchesNetwork(item, matchers)) return false;
           const value = resolveLatestValue(item);
-          if (!Number.isFinite(value)) {
-            return;
-          }
-          const stationKey = resolveStationKey(item) || `network-${index}`;
-          const timestamp = resolveLatestTimestamp(item);
-          const existing = stationMap.get(stationKey);
-          if (!existing || (timestamp && (!existing.timestamp || timestamp > existing.timestamp))) {
-            stationMap.set(stationKey, { row: item, value, timestamp });
-          }
+          return Number.isFinite(value);
         });
-        return Array.from(stationMap.values());
+        return groupCanonicalRows(candidates, {
+          resolveValue: resolveLatestValue,
+          resolveTimestamp: resolveLatestTimestamp,
+        });
       }
 
       function computeNetworkSummary(rows, matchers) {
@@ -2105,15 +2066,7 @@ function initHexMapUkController(root) {
         const summaryBaseRows = filterRowsByWindow(scopedLatestRows);
         const rowsForSummary = getRowsForActivePollutant(summaryBaseRows);
         const rowsWithPcon = rowsForSummary.filter((row) => resolvePconCode(row));
-        let candidates = rowsWithPcon
-          .map((row) => {
-            const value = resolveLatestValue(row);
-            if (!Number.isFinite(value)) {
-              return null;
-            }
-            return { row, value };
-          })
-          .filter(Boolean);
+        const candidates = collectSelectedStationEntries(rowsWithPcon);
 
         if (!candidates.length) {
           summaryLowestValue.textContent = "-";
@@ -2175,9 +2128,7 @@ function initHexMapUkController(root) {
           }, 0);
           const baseRows = filterRowsByWindow(scopedLatestRows);
           const pollutantRows = getRowsForActivePollutant(baseRows);
-          const candidates = pollutantRows
-            .map((row) => { const v = resolveLatestValue(row); return Number.isFinite(v) ? { row, value: v } : null; })
-            .filter(Boolean);
+          const candidates = collectSelectedStationEntries(pollutantRows);
           let highestValue = null, highestColor = null, highestSensor = '—', highestNetwork = '—';
           if (candidates.length) {
             let h = candidates[0];
@@ -3232,17 +3183,16 @@ function initHexMapUkController(root) {
         }
         const groups = new Map();
         const scopedRows = getRowsForActivePollutant(networkController.filterEligibleRows(rows));
-        scopedRows.forEach((row, index) => {
+        const candidates = scopedRows.filter((row) => Number.isFinite(resolveLatestValue(row)));
+        groupCanonicalRows(candidates, {
+          resolveValue: resolveLatestValue,
+          resolveTimestamp: resolveLatestTimestamp,
+        }).forEach(({ key, row, value, timestamp }) => {
           const pconCode = resolvePconCode(row);
           if (!pconCode) {
             return;
           }
-          const value = resolveLatestValue(row);
-          if (!Number.isFinite(value)) {
-            return;
-          }
-          const stationKey = resolveStationKey(row) || `${pconCode}-${index}`;
-          const timestamp = parseDate(row?.last_value_at || row?.observed_at || row?.latest_value_at);
+          const stationKey = key;
           const group = groups.get(pconCode) || { stations: new Map(), latestAt: null };
           const existing = group.stations.get(stationKey);
           if (!existing || (timestamp && (!existing.timestamp || timestamp > existing.timestamp))) {
