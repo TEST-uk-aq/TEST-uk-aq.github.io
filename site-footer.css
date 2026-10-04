@@ -69,8 +69,9 @@ body #ukaq-site-footer {
 }
 
 #ukaq-site-footer .ukaq-site-footer-sources {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -81,22 +82,8 @@ body #ukaq-site-footer {
   display: none;
 }
 
-@media (min-width: 1001px) {
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="1"] {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="2"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="3"] {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 #ukaq-site-footer .ukaq-site-footer-source {
-  position: relative;
+  flex: 1 1 250px;
   min-width: 0;
   padding: 10px 18px 11px;
   display: flex;
@@ -107,20 +94,8 @@ body #ukaq-site-footer {
   box-sizing: border-box;
   text-align: left;
   overflow: hidden;
-}
-
-#ukaq-site-footer .ukaq-site-footer-source + .ukaq-site-footer-source {
-  border-left: 0;
-}
-
-#ukaq-site-footer .ukaq-site-footer-source + .ukaq-site-footer-source::before {
-  content: '';
-  position: absolute;
-  top: 11px;
-  bottom: 11px;
-  left: 0;
-  width: 1px;
-  background: #e1e3e6;
+  border-right: 1px solid #e1e3e6;
+  border-bottom: 1px solid #e1e3e6;
 }
 
 #ukaq-site-footer .ukaq-site-footer-mark {
@@ -206,86 +181,54 @@ body #ukaq-site-footer {
   border-radius: 3px;
 }
 
-/* One official box shares column sizing across its surviving network rows.
- * Intrinsic sizing collapses the second pill lane when either Defra pill is removed. */
+/* The official box is wider than a logo source but participates in the same
+ * wrapping flex layout instead of claiming a dedicated footer row. */
 #ukaq-site-footer .ukaq-site-footer-source--official {
-  grid-column: 1 / -1;
+  flex-basis: 500px;
+  max-width: 720px;
   gap: 10px;
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-rows {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
   min-width: 0;
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-row {
-  display: grid;
-  grid-template-columns: subgrid;
-  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  column-gap: 12px;
+  row-gap: 5px;
   min-width: 0;
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-mark {
+  flex: 0 1 auto;
   width: auto;
   min-height: 0;
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-gov-pill {
+  flex: 0 0 118px;
   box-sizing: border-box;
-  width: 132px;
+  width: 118px;
   max-width: 100%;
   min-height: 30px;
+  white-space: nowrap;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-copy {
+  flex: 1 1 210px;
+  width: auto;
+  min-width: 0;
 }
 
 #ukaq-site-footer .ukaq-site-footer-source--official .ukaq-site-footer-copy a {
   text-decoration-line: underline;
-}
-
-/* With the official box on its own row, the remaining sources share the next row. */
-@media (min-width: 1001px) {
-  #ukaq-site-footer .ukaq-site-footer-sources:has(.ukaq-site-footer-source--official) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="3"]:has(.ukaq-site-footer-source--official) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="2"]:has(.ukaq-site-footer-source--official) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-#ukaq-site-footer .ukaq-site-footer-source--official ~ .ukaq-site-footer-source {
-  border-top: 1px solid #e1e3e6;
-}
-
-#ukaq-site-footer .ukaq-site-footer-source--official + .ukaq-site-footer-source::before {
-  display: none;
-}
-
-@media (min-width: 621px) and (max-width: 1000px) {
-  #ukaq-site-footer .ukaq-site-footer-sources:has(.ukaq-site-footer-source--official) .ukaq-site-footer-source:nth-child(3)::before {
-    display: block;
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources:has(.ukaq-site-footer-source--official) .ukaq-site-footer-source:nth-child(4)::before {
-    display: none;
-  }
-}
-
-@media (max-width: 767px) {
-  #ukaq-site-footer .ukaq-site-footer-official-rows {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-official-row {
-    row-gap: 5px;
-  }
 }
 
 /*
@@ -321,43 +264,18 @@ body.ukaq-site-footer-after-viewport #ukaq-site-footer {
   margin-top: 100vh;
 }
 
-@media (max-width: 1000px) {
-  #ukaq-site-footer .ukaq-site-footer-sources {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-sources[data-source-count="1"] {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-source:nth-child(3)::before {
-    display: none;
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-source:nth-child(n + 3) {
-    border-top: 1px solid #e1e3e6;
-  }
-}
-
 @media (max-width: 620px) {
   #ukaq-site-footer .ukaq-site-footer-meta {
     padding: 8px 14px;
   }
 
-  #ukaq-site-footer .ukaq-site-footer-sources {
-    grid-template-columns: 1fr;
-  }
-
   #ukaq-site-footer .ukaq-site-footer-source {
+    flex-basis: 100%;
     padding: 10px 14px 11px;
   }
 
-  #ukaq-site-footer .ukaq-site-footer-source + .ukaq-site-footer-source::before {
-    display: none;
-  }
-
-  #ukaq-site-footer .ukaq-site-footer-source + .ukaq-site-footer-source {
-    border-top: 1px solid #e1e3e6;
+  #ukaq-site-footer .ukaq-site-footer-source--official {
+    max-width: none;
   }
 }
 
