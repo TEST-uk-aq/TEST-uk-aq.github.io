@@ -921,13 +921,13 @@
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">N Ireland Air</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2014 copyright DAERA via <a href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2014 copyright DAERA · <a href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright the Welsh Government via <a href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright the Welsh Government · <a href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
