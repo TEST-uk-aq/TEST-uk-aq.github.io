@@ -186,13 +186,19 @@ body #ukaq-site-footer {
 #ukaq-site-footer .ukaq-site-footer-source--official {
   flex-basis: 500px;
   max-width: 720px;
-  gap: 10px;
+  padding-top: 8px;
+  padding-bottom: 9px;
+  gap: 6px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-source--official .ukaq-site-footer-copy {
+  font-size: 13px;
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   min-width: 0;
 }
@@ -213,11 +219,12 @@ body #ukaq-site-footer {
 }
 
 #ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-gov-pill {
-  flex: 0 0 118px;
+  flex: 0 0 110px;
   box-sizing: border-box;
-  width: 118px;
+  width: 110px;
   max-width: 100%;
-  min-height: 30px;
+  min-height: 27px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
