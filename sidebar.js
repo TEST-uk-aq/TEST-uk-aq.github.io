@@ -953,25 +953,25 @@
                 <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn" aria-label="GOV.UK AURN">GOV.UK AURN</a>
                 <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn" aria-label="Black Carbon">Black Carbon</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a></p>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a class="ukaq-site-footer-attribution-source" href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">N Ireland Air</a>
               </div>
-              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2014 copyright DAERA</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span><a class="ukaq-site-footer-attribution-source" href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2014 copyright DAERA</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
               </div>
-              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2026 copyright the Welsh Government</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span><a class="ukaq-site-footer-attribution-source" href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2026 copyright the Welsh Government</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="saqn" href="https://www.scottishairquality.scot/" aria-label="Scottish Air Quality Network">Scottish AQN</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Scottish Government via <a href="https://www.scottishairquality.scot/">scottishairquality.co.uk</a></p>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Scottish Government via <a class="ukaq-site-footer-attribution-source" href="https://www.scottishairquality.scot/">scottishairquality.co.uk</a></p>
             </div>
           </div>
         </section>
