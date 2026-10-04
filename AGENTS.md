@@ -30,9 +30,13 @@ Unless explicitly requested, do **not**:
 
 When deployment/external action is required but not authorised, make repository changes only and provide exact manual commands, expected result, rollback notes and real TEST validation steps.
 
-## Commit and push confirmation
+## Git and pull-request authorisation
 
-A prompt or task brief that asks for a commit or push does not, by itself, authorise either operation. After implementation and local validation are ready, stop and ask the user again for explicit confirmation before running `git commit`, `git commit --amend` or `git push`. The confirming reply must separately follow that request and explicitly name each authorised operation (commit, push or both); wording in an initial prompt, attachment, plan or handover does not count. Confirmation from an earlier task does not carry forward. Until the required confirmation is received, leave changes uncommitted and unpushed.
+For TEST work, when the current user request explicitly asks for a pull request, that request authorises creation of the working branch, commits for the completed change, pushing that branch, and opening the PR in this TEST repository.
+
+This does not authorise direct pushes to `main`, merging, deployment, or LIVE changes; each still requires explicit current-task authorisation.
+
+Without an explicit PR or Git-operation request in the current task, leave implementation changes uncommitted for review. When specific Git operations are requested without a PR, perform only those named operations. Earlier-task authorisation does not carry forward.
 
 ## Validation policy
 
