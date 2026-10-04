@@ -8,13 +8,13 @@ This file is the active repository-level agent instruction set. `AGENTS_BASE.md`
 - For website-only implementation, work here after selecting the relevant system contract.
 - Before implementation read:
   1. this file;
-  2. `../TEST-uk-aq-system-docs/system_docs/SYSTEM_OVERVIEW.md`;
+  2. the `TEST-uk-aq/uk-aq-system-docs` repository in the current multi-repository workspace, starting at `system_docs/SYSTEM_OVERVIEW.md`;
   3. the relevant website/data area `README.md`;
   4. only the broad/narrow contracts selected by that router;
   5. the website files actually in scope.
 - Use `website_ui/README.md` for page/presentation behaviour and `website_deployment/README.md` for Pages artefact/cache-busting/deployment-time asset identity. Add data-area contracts only when the task changes their semantics.
 - Active `system_docs/` contracts are authoritative. Report conflicts rather than silently overriding them.
-- Coding agents may read `system_docs/` but MUST NOT edit/move/rename/delete it. Provide a concise Chat-mode documentation handover when implementation requires contract updates.
+- Coding agents may read `system_docs/` in `TEST-uk-aq/uk-aq-system-docs` but MUST NOT edit/move/rename/delete it. Do not create or rely on local `ref_docs/` mirrors. If the system-docs repository is unavailable in the current workspace, report the missing prerequisite. Provide a concise Chat-mode documentation handover when implementation requires contract updates.
 
 ## Default operating mode
 
