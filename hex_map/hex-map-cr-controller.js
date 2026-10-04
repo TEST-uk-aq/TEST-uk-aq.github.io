@@ -1079,12 +1079,8 @@ function initHexMapCrController() {
           return;
         }
         crRefreshTimer = setInterval(() => {
-          if (isCrMapVisible()) {
-            if (window.hexChartMode?.isActive?.("cr")) {
-              window.hexChartMode.refresh?.();
-            } else {
-              loadMapData();
-            }
+          if (isCrMapVisible() && !window.hexChartMode?.isActive?.("cr")) {
+            loadMapData();
           }
         }, 60 * 1000);
       }
@@ -1100,7 +1096,7 @@ function initHexMapCrController() {
         }
         startCrRefreshTimer();
         if (crWasHidden) {
-          loadMapData();
+          if (!window.hexChartMode?.isActive?.("cr")) loadMapData();
           crWasHidden = false;
         }
       }

@@ -1254,12 +1254,8 @@ function initHexMapUkController(root) {
           return;
         }
         ukRefreshTimer = setInterval(() => {
-          if (isUkMapVisible()) {
-            if (window.hexChartMode?.isActive?.("uk")) {
-              window.hexChartMode.refresh?.();
-            } else {
-              loadMapData();
-            }
+          if (isUkMapVisible() && !window.hexChartMode?.isActive?.("uk")) {
+            loadMapData();
           }
         }, 60 * 1000);
       }
@@ -1275,7 +1271,7 @@ function initHexMapUkController(root) {
         }
         startUkRefreshTimer();
         if (ukWasHidden) {
-          loadMapData();
+          if (!window.hexChartMode?.isActive?.("uk")) loadMapData();
           ukWasHidden = false;
         }
       }
