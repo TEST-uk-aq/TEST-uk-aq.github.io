@@ -238,6 +238,20 @@ body #ukaq-site-footer {
   text-decoration-line: underline;
 }
 
+#ukaq-site-footer .ukaq-site-footer-attribution-source {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Last-resort safeguard only for viewports narrower than the longest source URL. */
+@media (max-width: 280px) {
+  #ukaq-site-footer .ukaq-site-footer-attribution-source {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 /*
  * The full-screen Sensor Map occupies exactly one viewport before the footer.
  * flow-root keeps the footer's 100vh spacer inside the body instead of letting
