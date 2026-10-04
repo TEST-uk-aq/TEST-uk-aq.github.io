@@ -218,10 +218,6 @@
       networkMarks.forEach((mark) => {
         if (!publicNetworkCodes.has(mark.dataset.networkCode)) mark.remove();
       });
-      // Each official row owns its copy; remove it when its last pill is gone.
-      section.querySelectorAll('.ukaq-site-footer-official-row').forEach((row) => {
-        if (!row.querySelector('[data-network-code]')) row.remove();
-      });
       if (!networkMarks.some((mark) => publicNetworkCodes.has(mark.dataset.networkCode))) {
         section.remove();
       }
@@ -907,35 +903,12 @@
     return `
       <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
       <div class="ukaq-site-footer-sources" aria-label="Air quality data sources and licences">
-        <section class="ukaq-site-footer-source ukaq-site-footer-source--official" data-network-group="official-government" aria-label="Official government air quality networks attribution">
-          <p class="ukaq-site-footer-copy ukaq-site-footer-licence">Licensed under the <a href="${oglUrl}">Open Government Licence</a> (OGL).</p>
-          <div class="ukaq-site-footer-official-rows">
-            <div class="ukaq-site-footer-official-row">
-              <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn" aria-label="GOV.UK AURN">GOV.UK AURN</a>
-                <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn" aria-label="Black Carbon">Black Carbon</a>
-              </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a></p>
-            </div>
-            <div class="ukaq-site-footer-official-row">
-              <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">N Ireland Air</a>
-              </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2014 copyright DAERA via <a href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
-            </div>
-            <div class="ukaq-site-footer-official-row">
-              <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
-              </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright the Welsh Government via <a href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
-            </div>
-            <div class="ukaq-site-footer-official-row">
-              <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="saqn" href="https://www.scottishairquality.scot/" aria-label="Scottish Air Quality Network">Scottish AQN</a>
-              </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Scottish Government via <a href="https://www.scottishairquality.scot/">scottishairquality.co.uk</a></p>
-            </div>
+        <section class="ukaq-site-footer-source" data-network-group="defra-uk-air" aria-label="Defra and UK-AIR attribution">
+          <div class="ukaq-site-footer-mark">
+            <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="https://uk-air.defra.gov.uk/" aria-label="GOV.UK AURN">GOV.UK AURN</a>
+            <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="https://uk-air.defra.gov.uk/" aria-label="Black Carbon">Black Carbon</a>
           </div>
+          <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a>, licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
         </section>
 
         <section class="ukaq-site-footer-source" data-network-code="breathelondon" aria-label="Breathe London attribution">
@@ -946,6 +919,27 @@
           </div>
           <p class="ukaq-site-footer-copy">Contains <a href="https://www.breathelondon.org/">Breathe London</a> data licensed under the <a href="${oglUrl}">Open Government License v3.0</a></p>
           <p class="ukaq-site-footer-copy">Powered by <a href="https://www.breathelondon-communities.org/">Breathe London Communities</a></p>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="waqn" aria-label="Welsh Air Quality Network attribution">
+          <div class="ukaq-site-footer-mark">
+            <a class="ukaq-site-footer-gov-pill" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
+          </div>
+          <p class="ukaq-site-footer-copy">Air quality data provided by the <a href="https://www.airquality.gov.wales/">Welsh Air Quality Network</a>.</p>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="saqn" aria-label="Scottish Air Quality Network attribution">
+          <div class="ukaq-site-footer-mark">
+            <a class="ukaq-site-footer-gov-pill" href="https://www.scottishairquality.scot/" aria-label="Scottish Air Quality Network">Scottish AQN</a>
+          </div>
+          <p class="ukaq-site-footer-copy">Air quality data provided by the <a href="https://www.scottishairquality.scot/">Scottish Air Quality Network</a>.</p>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="ni" aria-label="Northern Ireland Air attribution">
+          <div class="ukaq-site-footer-mark">
+            <a class="ukaq-site-footer-gov-pill" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">Northern Ireland Air</a>
+          </div>
+          <p class="ukaq-site-footer-copy">Air quality data provided by <a href="https://www.airqualityni.co.uk/">Northern Ireland Air</a>.</p>
         </section>
 
         <section class="ukaq-site-footer-source" data-network-code="openaq" aria-label="OpenAQ attribution">

@@ -1,6 +1,6 @@
 # Shared site-footer attribution contract
 
-Status: authoritative for current UK AQ shared footer attribution behaviour. The grouped `black_carbon` pill is implemented on TEST and follows the same public-network catalogue visibility rules as the other supported network attributions.
+Status: authoritative for current UK AQ shared footer visibility, catalogue caching, resolve-before-reveal and fail-open behaviour. The consolidated official-government presentation below is authorised future TEST implementation authority until the website implementation is deployed and accepted. Repository implementation alone does not establish deployed acceptance.
 
 ## Scope
 
@@ -14,7 +14,7 @@ This contract governs:
 - fail-open behaviour when catalogue filtering cannot be completed;
 - the boundary between database-backed visibility and bespoke licence/attribution wording.
 
-It does not define whether a network is public, the `/api/aq/networks` security/cache contract, network ingestion, station eligibility or the legal wording required by a data provider beyond the currently implemented attribution definitions.
+It does not define whether a network is public, the `/api/aq/networks` security/cache contract, network ingestion, station eligibility or the legal wording required by a data provider beyond the explicit attribution definitions and authorised presentation below.
 
 Public-network eligibility and browser-facing catalogue delivery are owned by [`../cache_proxy/public-network-catalog-contract.md`](../cache_proxy/public-network-catalog-contract.md).
 
@@ -44,19 +44,71 @@ The shared footer has or is authorised to have explicit attribution definitions 
 ```text
 gov_uk_aurn
 black_carbon
+ni
+waqn
+saqn
 breathelondon
 openaq
 sensorcommunity
 ```
 
-`gov_uk_aurn` and `black_carbon` belong to one grouped Defra/UK-AIR attribution box. They share the common Crown copyright / Open Government Licence wording, but each network MUST retain its own independently catalogue-gated pill:
+### Consolidated official-government presentation
+
+All five official-government networks MUST share one attribution box, owned by `/sidebar.js` and `/site-footer.css`. Exact visible pill labels are:
 
 ```text
 gov_uk_aurn  -> GOV.UK AURN
 black_carbon -> Black Carbon
+ni           -> N Ireland Air
+waqn         -> Welsh AQN
+saqn         -> Scottish AQN
 ```
 
-The grouped presentation MUST NOT conflate the two canonical network identities. The AURN pill may be visible without the Black Carbon pill, and the Black Carbon pill may be visible without the AURN pill.
+The box MUST start with one shared heading:
+
+```text
+Licensed under the Open Government Licence (OGL).
+```
+
+Only `Open Government Licence` needs to be linked, to OGL v3.0:
+`https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/`.
+Do not repeat the licence wording on individual official-network rows.
+
+The four attribution rows, in order, MUST be:
+
+| Pills | Attribution copy |
+|---|---|
+| GOV.UK AURN, Black Carbon | © Crown 2026 copyright Defra via uk-air.defra.gov.uk |
+| N Ireland Air | © Crown 2014 copyright DAERA via www.airqualityni.co.uk |
+| Welsh AQN | © Crown 2026 copyright the Welsh Government via www.airquality.gov.wales/data/so |
+| Scottish AQN | © Crown 2026 copyright Scottish Government via scottishairquality.co.uk |
+
+Do not duplicate `© Crown 2026 copyright` within the Scottish row.
+The standalone Welsh, Scottish and Northern Ireland attribution boxes and their
+`Air quality data provided by ...` wording MUST be replaced, without duplicate sections.
+
+Pills MUST be links with these destinations; their button styling means pill text need not be underlined:
+
+| Pill | Destination |
+|---|---|
+| GOV.UK AURN | https://uk-air.defra.gov.uk/networks/network-info?view=aurn |
+| Black Carbon | https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn |
+| N Ireland Air | https://www.airqualityni.co.uk/ |
+| Welsh AQN | https://www.airquality.gov.wales/ |
+| Scottish AQN | https://www.scottishairquality.scot/ |
+
+The OGL link and displayed sources in the attribution copy MUST be visibly underlined ordinary links:
+
+| Displayed source | Destination |
+|---|---|
+| uk-air.defra.gov.uk | https://uk-air.defra.gov.uk/ |
+| www.airqualityni.co.uk | https://www.airqualityni.co.uk/ |
+| www.airquality.gov.wales/data/so | https://www.airquality.gov.wales/data/so (official Welsh spatial-object/source identity; follow its official redirect where applicable) |
+| scottishairquality.co.uk | https://www.scottishairquality.scot/ |
+
+Preserve the displayed Welsh and Scottish source identities even where an official destination redirects or uses a newer hostname. Preserve accessible labels, keyboard and link behaviour.
+
+Breathe London, Sensor.Community, OpenAQ and unrelated source wording/behaviour MUST remain unchanged except for normal layout adaptation. The UK AQ copyright/version line and unrelated sidebar/navigation behaviour MUST remain unchanged.
 
 These definitions record available attribution content only. Their presence in `/sidebar.js` MUST NOT make a network publicly visible when the public network catalogue excludes it.
 
@@ -102,13 +154,16 @@ After a valid contract-v2 public network catalogue or validated same-tab/session
 8. hide the attribution-source container if no defined attribution boxes/sections remain visible;
 9. only after the final attribution state is established, reveal the footer atomically.
 
-For the grouped Defra/UK-AIR attribution box specifically:
+For the consolidated official-government attribution box specifically:
 
-- `GOV.UK AURN` MUST follow `gov_uk_aurn` catalogue presence;
-- `Black Carbon` MUST follow `black_carbon` catalogue presence;
-- the common Defra/UK-AIR Crown copyright / OGL copy MUST appear only once in the grouped box;
-- the common copy remains while either pill is applicable;
-- the complete grouped box disappears only when neither pill is applicable after valid catalogue filtering.
+- `GOV.UK AURN` MUST follow `gov_uk_aurn` catalogue presence independently.
+- `Black Carbon` MUST follow `black_carbon` catalogue presence independently.
+- The Defra row shows both pills when both codes are public, only the surviving pill when one is public, and disappears entirely when neither is public. Its shared Defra attribution appears once while either survives.
+- The `N Ireland Air` pill and DAERA row MUST follow `ni` presence.
+- The `Welsh AQN` pill and Welsh Government row MUST follow `waqn` presence.
+- The `Scottish AQN` pill and Scottish Government row MUST follow `saqn` presence.
+- The consolidated box and its OGL heading survive while any of the five codes survives; neither appears when all five are absent from a valid catalogue.
+- `live_map_enabled` MUST NOT control footer visibility. Catalogue presence governed by `public_display_enabled` remains the sole visibility mechanism; no parallel configuration or network state owner is permitted.
 
 This means a network whose `public_display_enabled` state excludes it MUST never flash briefly in the footer during normal page loading.
 
@@ -123,7 +178,7 @@ For pages that use the shared footer, it MUST fire only after all of the followi
 3. the footer DOM is mounted;
 4. one usable attribution state is available from the current page's valid catalogue, a validated same-tab/session footer catalogue snapshot, or a definitive fail-open result when no valid catalogue state can be established;
 5. the applicable attribution pills/sections have been filtered or the explicit fail-open state has been selected;
-6. `data-source-count`, grouped Defra/UK-AIR visibility and other final footer layout state have been established.
+6. `data-source-count`, consolidated official-government box and row visibility and other final footer layout state have been established.
 
 Only after that final shared-chrome state exists may `ukaq:sidebar-ready` be dispatched.
 
@@ -201,11 +256,11 @@ Adding the new attribution text is a website-content decision and may require pr
 
 The shared footer layout MUST remain usable when filtering changes either the number of attribution boxes or the number of pills inside a grouped provider box.
 
-The Defra/UK-AIR box MUST lay out one or both surviving pills cleanly without reserving an empty slot for a filtered network.
+At normal desktop widths, GOV.UK AURN, N Ireland Air, Welsh AQN and Scottish AQN MUST form an equal-width first pill column. Black Carbon MUST sit beside GOV.UK AURN on the Defra row. All four attribution texts MUST start at one aligned horizontal position beneath the shared licence heading.
 
-Presentation MUST adapt to the actual surviving source count rather than preserving empty positions for removed networks.
+The consolidated box MUST remove filtered rows and pills without reserving empty rows or pill slots. When only Black Carbon survives on the Defra row, it occupies the surviving first pill position. Shared attribution alignment still applies to surviving rows.
 
-Filtering MUST NOT require separate mobile and desktop attribution logic. The same surviving attribution set applies across responsive widths.
+At narrower widths, rows and text MUST wrap naturally without horizontal overflow. Presentation MUST adapt to surviving boxes and pills. Filtering MUST NOT require separate mobile and desktop attribution logic; the same surviving set applies across responsive widths.
 
 ## Data/API boundary
 
@@ -234,6 +289,6 @@ TEST-uk-aq/TEST-uk-aq.github.io/shared/data/network-catalog.js
 
 ## Validation rule
 
-Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, grouped-provider child pills can be filtered independently, the public catalogue interface is compatible, a first-load cache miss remains behind the initial loading presentation, a valid same-tab/session snapshot can produce the final footer state without another blocking fetch, fail-open/error states are not persisted as validated cache, and `ukaq:sidebar-ready` cannot fire before a terminal footer state has been established.
+Before implementation/deployment, only structural viability needs to be established: every explicit attribution mark has the intended `network_code`, the five official pills can be filtered independently, the Defra row survives either of its two codes, each devolved row follows its own code, and the whole official box disappears only when all five codes are absent, the public catalogue interface is compatible, a first-load cache miss remains behind the initial loading presentation, a valid same-tab/session snapshot can produce the final footer state without another blocking fetch, fail-open/error states are not persisted as validated cache, and `ukaq:sidebar-ready` cannot fire before a terminal footer state has been established.
 
 Functional and visual acceptance occurs through real TEST operation after deployment. A useful operational check is to change or inspect a known network's public visibility and confirm the corresponding footer attribution follows the public catalogue on both a normal data page and a lightweight/static page without introducing a Turnstile/session flow solely for the footer.
