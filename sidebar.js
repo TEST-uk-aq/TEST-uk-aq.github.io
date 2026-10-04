@@ -251,6 +251,44 @@
     }
   }
 
+  let footerSeparatorLayoutFrame = 0;
+
+  function updateFooterConditionalSeparators() {
+    const footer = document.getElementById('ukaq-site-footer');
+    if (!footer || footer.hidden) return;
+
+    footer.querySelectorAll('.ukaq-site-footer-copy--conditional-separator').forEach((copy) => {
+      const owner = copy.querySelector('.ukaq-site-footer-attribution-owner');
+      const separator = copy.querySelector('.ukaq-site-footer-conditional-separator');
+      const source = copy.querySelector('.ukaq-site-footer-attribution-source');
+      if (!owner || !separator || !source) return;
+
+      // Measure with the separator present. If the source starts on a new visual
+      // line, the separator is decorative noise and should disappear.
+      separator.hidden = false;
+      const ownerRects = owner.getClientRects();
+      const sourceRects = source.getClientRects();
+      const ownerLast = ownerRects[ownerRects.length - 1];
+      const sourceFirst = sourceRects[0];
+      if (!ownerLast || !sourceFirst) return;
+
+      const lineTolerance = Math.max(2, Math.min(ownerLast.height, sourceFirst.height) * 0.4);
+      separator.hidden = Math.abs(sourceFirst.top - ownerLast.top) > lineTolerance;
+    });
+  }
+
+  function scheduleFooterConditionalSeparators() {
+    if (footerSeparatorLayoutFrame) {
+      window.cancelAnimationFrame(footerSeparatorLayoutFrame);
+    }
+    footerSeparatorLayoutFrame = window.requestAnimationFrame(() => {
+      footerSeparatorLayoutFrame = 0;
+      updateFooterConditionalSeparators();
+    });
+  }
+
+  window.addEventListener('resize', scheduleFooterConditionalSeparators, { passive: true });
+
   async function filterFooterAttributions() {
     try {
       if (!isManualReload()) {
@@ -921,13 +959,13 @@
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">N Ireland Air</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2014 copyright DAERA · <a href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2014 copyright DAERA</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span><a class="ukaq-site-footer-attribution-source" href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
                 <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
               </div>
-              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright the Welsh Government · <a href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2026 copyright the Welsh Government</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span><a class="ukaq-site-footer-attribution-source" href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
@@ -1117,7 +1155,11 @@
     const footerStylesReady = await ensureSiteFooterStyles();
     const footer = mountSiteFooter();
     await filterFooterAttributions();
-    if (footerStylesReady) footer.hidden = false;
+    if (footerStylesReady) {
+      footer.hidden = false;
+      scheduleFooterConditionalSeparators();
+      document.fonts?.ready?.then(scheduleFooterConditionalSeparators);
+    }
     window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
   }
 
