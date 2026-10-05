@@ -414,7 +414,16 @@
           && !hitPageLimit;
         if (!onlyExpectedSourceGaps) {
           const reasonText = partialReasons.length ? ` [${partialReasons.join(", ")}]` : "";
-          throw new Error(`${pollutant} history response was incomplete for ${new Date(chunkStartMs).toISOString().slice(0, 10)}${reasonText}`);
+          const firstR2Error = r2Errors[0];
+          const r2Detail = firstR2Error && typeof firstR2Error === "object"
+            ? [
+                firstR2Error.status ? `HTTP ${firstR2Error.status}` : "",
+                firstR2Error.bodyPreview ? String(firstR2Error.bodyPreview).slice(0, 300) : "",
+                firstR2Error.upstreamUrlPath ? String(firstR2Error.upstreamUrlPath).slice(0, 220) : ""
+              ].filter(Boolean).join(" · ")
+            : firstR2Error ? String(firstR2Error).slice(0, 300) : "";
+          const r2Text = r2Detail ? ` · R2: ${r2Detail}` : "";
+          throw new Error(`${pollutant} history response was incomplete for ${new Date(chunkStartMs).toISOString().slice(0, 10)}${reasonText}${r2Text}`);
         }
       }
       return parseHistoryPayloadPoints(payload);
