@@ -95,12 +95,13 @@
     </section>
 
     <section class="winter-series-panel" aria-labelledby="winter-series-title">
-      <h2 id="winter-series-title">SHUN Winter monthly average line assets</h2>
-      <p>October 2025 to March 2026. Each transparent line uses the same enlarged animation geometry and 0–4 µg/m³ vertical scale. The right edge is a sizing reference only: it matches the current animation span that happens to align with 16 October on the master month chart. The six colours are reused as the Winter-series legend colours.</p>
-      <div id="winter-series-preview" class="winter-series-preview" aria-label="Preview of all six Winter monthly average lines"></div>
+      <h2 id="winter-series-title">SHUN Winter monthly average UVPM line assets</h2>
+      <p>October 2025 to March 2026. UVPM is derived from exact-timestamp pairs as UV 370 nm minus Black Carbon 880 nm, then averaged by GMT hour ending. Missing pairs are excluded and finite negative differences are retained. The transparent lines keep the same enlarged animation geometry and 0–4 µg/m³ vertical scale as the Black Carbon animation so the Y-axis does not move between sequences.</p>
+      <p id="winter-series-load-status" role="status" aria-live="polite">Loading paired SHUN BC and UV 370 nm history…</p>
+      <div id="winter-series-preview" class="winter-series-preview" aria-label="Preview of all six Winter monthly average UVPM lines"></div>
       <div id="winter-series-list" class="winter-series-list"></div>
       <div class="resolve-animation-actions">
-        <button class="animation-prep-button" type="button" data-animation-download="winter-months">Download all 6 Winter PNGs</button>
+        <button class="animation-prep-button" type="button" data-animation-download="winter-months" disabled>Download all 6 UVPM Winter PNGs</button>
       </div>
     </section>
 
@@ -145,6 +146,7 @@
     <p id="download-status" class="animation-prep-output" role="status" aria-live="polite"></p>
   </main>
 
+  <script src="/shared/auth/uk-aq-cache-auth.js"></script>
   <script>
     "use strict";
 
@@ -294,62 +296,166 @@
     const smoothstep = (value) => value * value * (3 - 2 * value);
 
     const WINTER_LINE_STROKE_WIDTH = 3;
-    const WINTER_MONTHS = Object.freeze([
-      Object.freeze({
-        key: "2025-10",
-        label: "October 2025",
-        shortLabel: "Oct",
-        colourName: "Blue",
-        colour: "#3C78AC",
-        status: "Final",
-        values: Object.freeze([0.4793103448275862,0.40689655172413774,0.33928571428571414,0.31034482758620685,0.264516129032258,0.3299999999999999,0.3612903225806451,0.5161290322580645,0.6241379310344828,0.48965517241379314,0.39999999999999997,0.34516129032258047,0.3066666666666666,0.3129032258064515,0.30333333333333334,0.3133333333333333,0.4161290322580646,0.5419354838709679,0.7433333333333334,0.8533333333333332,0.8161290322580644,0.7451612903225808,0.6709677419354838,0.5935483870967742,0.4689655172413793])
-      }),
-      Object.freeze({
-        key: "2025-11",
-        label: "November 2025",
-        shortLabel: "Nov",
-        colourName: "Red",
-        colour: "#C55454",
-        status: "Final",
-        values: Object.freeze([0.5966666666666666,0.4566666666666666,0.35357142857142854,0.2962962962962963,0.2689655172413793,0.23103448275862062,0.2172413793103448,0.25333333333333335,0.5379310344827587,0.6,0.47142857142857136,0.3033333333333334,0.2827586206896551,0.31034482758620685,0.3642857142857144,0.39285714285714285,0.5827586206896551,0.9700000000000001,1.4310344827586206,1.5310344827586206,1.4933333333333334,1.38,1.1433333333333333,0.7799999999999999,0.6033333333333333])
-      }),
-      Object.freeze({
-        key: "2025-12",
-        label: "December 2025",
-        shortLabel: "Dec",
-        colourName: "Green",
-        colour: "#4F8A63",
-        status: "Final",
-        values: Object.freeze([0.49354838709677423,0.41,0.38666666666666666,0.3551724137931035,0.32903225806451614,0.3193548387096775,0.31333333333333335,0.3620689655172413,0.5172413793103448,0.5633333333333334,0.4769230769230769,0.5666666666666667,0.4724137931034484,0.48275862068965514,0.73,0.5933333333333335,0.8300000000000001,0.9034482758620691,1.3700000000000003,1.1733333333333333,0.8800000000000002,0.9533333333333331,0.7241379310344828,0.6064516129032256,0.5032258064516129])
-      }),
-      Object.freeze({
-        key: "2026-01",
-        label: "January 2026",
-        shortLabel: "Jan",
-        colourName: "Orange",
-        colour: "#D1873F",
-        status: "Provisional",
-        values: Object.freeze([0.6523809523809523,0.4761904761904761,0.6166666666666666,0.28823529411764703,0.23888888888888887,0.18947368421052632,0.1944444444444445,0.2722222222222222,0.5545454545454546,0.5944444444444446,0.5947368421052631,1.06,0.4714285714285714,0.5333333333333334,0.4952380952380951,0.41666666666666674,0.5526315789473684,0.9904761904761905,1.1578947368421053,2.0190476190476185,1.7549999999999997,1.261904761904762,1.0142857142857142,0.9636363636363636,0.6333333333333333])
-      }),
-      Object.freeze({
-        key: "2026-02",
-        label: "February 2026",
-        shortLabel: "Feb",
-        colourName: "Purple",
-        colour: "#8065A3",
-        status: "Provisional",
-        values: Object.freeze([0.4923076923076922,0.45769230769230757,0.38461538461538447,0.3333333333333332,0.2884615384615384,0.2923076923076922,0.32307692307692293,0.3759999999999999,0.6041666666666666,0.5304347826086956,0.45217391304347804,0.39565217391304347,0.38799999999999985,0.3909090909090908,0.4319999999999999,0.4708333333333332,0.528,0.6625000000000002,0.8346153846153848,0.9519999999999998,0.9076923076923078,0.8423076923076924,0.7208333333333333,0.6479999999999998,0.4999999999999999])
-      }),
-      Object.freeze({
-        key: "2026-03",
-        label: "March 2026",
-        shortLabel: "Mar",
-        colourName: "Rust",
-        colour: "#9B5A45",
-        status: "Provisional",
-        values: Object.freeze([0.5799999999999998,0.4769230769230769,0.4653846153846152,0.43199999999999983,0.4239999999999998,0.38461538461538447,0.40416666666666656,0.4923076923076922,0.6791666666666666,0.7000000000000001,0.6304347826086956,0.4045454545454545,0.3714285714285714,0.39523809523809517,0.33749999999999986,0.3428571428571428,0.3999999999999999,0.45833333333333326,0.5399999999999999,0.591304347826087,0.7958333333333334,0.8320000000000002,0.892,0.6833333333333331,0.5874999999999998])
-      })
+    const UVPM_HOUR_MS = 60 * 60 * 1000;
+    const UVPM_DAY_MS = 24 * UVPM_HOUR_MS;
+    const SHUN_UVPM_SERIES = Object.freeze({
+      connectorId: 8,
+      bcTimeseriesId: 35025128,
+      uv370TimeseriesId: 35025129
+    });
+    const WINTER_MONTH_SPECS = Object.freeze([
+      Object.freeze({ key: "2025-10", label: "October 2025", shortLabel: "Oct", colourName: "Blue", colour: "#3C78AC", status: "Final" }),
+      Object.freeze({ key: "2025-11", label: "November 2025", shortLabel: "Nov", colourName: "Red", colour: "#C55454", status: "Final" }),
+      Object.freeze({ key: "2025-12", label: "December 2025", shortLabel: "Dec", colourName: "Green", colour: "#4F8A63", status: "Final" }),
+      Object.freeze({ key: "2026-01", label: "January 2026", shortLabel: "Jan", colourName: "Orange", colour: "#D1873F", status: "Provisional" }),
+      Object.freeze({ key: "2026-02", label: "February 2026", shortLabel: "Feb", colourName: "Purple", colour: "#8065A3", status: "Provisional" }),
+      Object.freeze({ key: "2026-03", label: "March 2026", shortLabel: "Mar", colourName: "Rust", colour: "#9B5A45", status: "Provisional" })
     ]);
+    let WINTER_MONTHS = Object.freeze([]);
+
+    /*
+     * Animation-prep only: derive UVPM from exact canonical observation pairs.
+     * The public Wood Burning product should use the server-derived BC/UV diurnal
+     * contract once that route is deployed rather than duplicating this in-browser.
+     */
+    function uvpmCacheBaseUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const explicit = String(params.get("cache_base") || "").trim();
+      if (explicit) return explicit.replace(/\/+$/, "");
+      if (window.ukAqSharedAuth?.cacheBaseUrl) return String(window.ukAqSharedAuth.cacheBaseUrl).replace(/\/+$/, "");
+      if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+        return `${window.location.origin.replace(/\/$/, "")}/api/aq`;
+      }
+      return "https://cic-test.chronicillnesschannel.co.uk/api/aq";
+    }
+
+    function monthBounds(monthKey) {
+      const match = /^(\d{4})-(\d{2})$/.exec(monthKey);
+      if (!match) throw new Error(`Invalid month key: ${monthKey}`);
+      const year = Number(match[1]);
+      const monthIndex = Number(match[2]) - 1;
+      const startMs = Date.UTC(year, monthIndex, 1, 0, 0, 0);
+      const nextMs = Date.UTC(year, monthIndex + 1, 1, 0, 0, 0);
+      return Object.freeze({ startMs, nextMs });
+    }
+
+    function monthKeyUtc(timestampMs) {
+      const date = new Date(timestampMs);
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function parseHistoryPayloadPoints(payload) {
+      const rawRows = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.points)
+        ? payload.points
+        : Array.isArray(payload?.rows)
+        ? payload.rows
+        : Array.isArray(payload?.observations?.rows)
+        ? payload.observations.rows
+        : [];
+      const columns = Array.isArray(payload?.columns) ? payload.columns : [];
+      const timeIndex = ["observed_at", "observed_at_utc", "timestamp"].map((name) => columns.indexOf(name)).find((index) => index >= 0);
+      const valueIndex = columns.indexOf("value");
+
+      const byTimestamp = new Map();
+      rawRows.forEach((row) => {
+        const rawTime = Array.isArray(row)
+          ? row[timeIndex >= 0 ? timeIndex : 0]
+          : row?.observed_at ?? row?.observed_at_utc ?? row?.timestamp ?? row?.date;
+        const rawValue = Array.isArray(row)
+          ? row[valueIndex >= 0 ? valueIndex : 1]
+          : row?.value;
+        const timestampMs = Date.parse(String(rawTime || ""));
+        const value = typeof rawValue === "string" && rawValue.trim() === "" ? Number.NaN : Number(rawValue);
+        if (!Number.isFinite(timestampMs) || !Number.isFinite(value)) return;
+        byTimestamp.set(timestampMs, value);
+      });
+      return [...byTimestamp.entries()]
+        .map(([timestampMs, value]) => Object.freeze({ timestampMs, value }))
+        .sort((left, right) => left.timestampMs - right.timestampMs);
+    }
+
+    async function fetchUvpmSourcePoints(timeseriesId, pollutant, startMs, nextMs) {
+      const url = new URL(`${uvpmCacheBaseUrl()}/timeseries`);
+      url.searchParams.set("timeseries_id", String(timeseriesId));
+      url.searchParams.set("pollutant", pollutant);
+      url.searchParams.set("start", new Date(startMs).toISOString());
+      url.searchParams.set("end", new Date(nextMs + UVPM_HOUR_MS).toISOString());
+      url.searchParams.set("v", "2");
+      url.searchParams.set("format", "json");
+
+      const fetchApi = typeof window.ukAqFetchCacheApi === "function"
+        ? window.ukAqFetchCacheApi
+        : window.fetch.bind(window);
+      const response = await fetchApi(url.toString(), {
+        credentials: "include",
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        throw new Error(`${pollutant} history failed with HTTP ${response.status}${body ? `: ${body.slice(0, 180)}` : ""}`);
+      }
+      const payload = await response.json();
+      if (payload?.response_complete === false || payload?.meta?.response_complete === false) {
+        throw new Error(`${pollutant} history response was incomplete for ${new Date(startMs).toISOString().slice(0, 7)}`);
+      }
+      return parseHistoryPayloadPoints(payload);
+    }
+
+    function pairUvpmPoints(bcPoints, uv370Points) {
+      const bcByTimestamp = new Map(bcPoints.map((point) => [point.timestampMs, point.value]));
+      return uv370Points.flatMap((uvPoint) => {
+        const bcValue = bcByTimestamp.get(uvPoint.timestampMs);
+        if (!Number.isFinite(bcValue)) return [];
+        return [Object.freeze({
+          timestampMs: uvPoint.timestampMs,
+          value: uvPoint.value - bcValue
+        })];
+      });
+    }
+
+    function buildUvpmMonthProfile(spec, pairedPoints) {
+      const { startMs, nextMs } = monthBounds(spec.key);
+      const buckets = Array.from({ length: 25 }, () => []);
+      pairedPoints.forEach((point) => {
+        if (point.timestampMs < startMs || point.timestampMs > nextMs) return;
+        const date = new Date(point.timestampMs);
+        const hour = date.getUTCHours();
+        if (hour === 0) {
+          if (monthKeyUtc(point.timestampMs) === spec.key) buckets[0].push(point.value);
+          if (monthKeyUtc(point.timestampMs - UVPM_DAY_MS) === spec.key) buckets[24].push(point.value);
+        } else if (monthKeyUtc(point.timestampMs) === spec.key) {
+          buckets[hour].push(point.value);
+        }
+      });
+      const values = buckets.map((bucket) => bucket.length
+        ? bucket.reduce((sum, value) => sum + value, 0) / bucket.length
+        : null);
+      const counts = buckets.map((bucket) => bucket.length);
+      const pairedCount = pairedPoints.filter((point) => point.timestampMs >= startMs && point.timestampMs <= nextMs).length;
+      return Object.freeze({
+        ...spec,
+        values: Object.freeze(values),
+        counts: Object.freeze(counts),
+        pairedCount
+      });
+    }
+
+    async function loadWinterUvpmMonths() {
+      const months = [];
+      for (const spec of WINTER_MONTH_SPECS) {
+        const { startMs, nextMs } = monthBounds(spec.key);
+        const [bcPoints, uv370Points] = await Promise.all([
+          fetchUvpmSourcePoints(SHUN_UVPM_SERIES.bcTimeseriesId, "bc", startMs, nextMs),
+          fetchUvpmSourcePoints(SHUN_UVPM_SERIES.uv370TimeseriesId, "uv370", startMs, nextMs)
+        ]);
+        const pairedPoints = pairUvpmPoints(bcPoints, uv370Points);
+        if (!pairedPoints.length) throw new Error(`No paired BC/UV 370 nm observations found for ${spec.label}`);
+        months.push(buildUvpmMonthProfile(spec, pairedPoints));
+      }
+      return Object.freeze(months);
+    }
 
     function linePath(points, getX, getY, getDomainValue) {
       let path = "";
@@ -779,6 +885,8 @@
         }
       } finally {
         document.querySelectorAll("[data-animation-download], [data-download-all]").forEach((control) => { control.disabled = false; });
+        const winterButton = document.querySelector('[data-animation-download="winter-months"]');
+        if (winterButton && WINTER_MONTHS.length !== WINTER_MONTH_SPECS.length) winterButton.disabled = true;
         button.focus();
       }
     }
@@ -813,12 +921,16 @@
           status.textContent = `Animation asset download failed: ${error.message}`;
         }
       } else if (kind === "winter-months") {
+        if (WINTER_MONTHS.length !== WINTER_MONTH_SPECS.length) {
+          document.querySelector("#download-status").textContent = "UVPM profiles are still loading.";
+          return;
+        }
         await saveGeneratedPngSet({
           count: WINTER_MONTHS.length,
-          filenameForIndex: (index) => `SHUN_BC_${WINTER_MONTHS[index].key}_monthly_average_winter.png`,
+          filenameForIndex: (index) => `SHUN_UVPM_${WINTER_MONTHS[index].key}_monthly_average_winter.png`,
           pathForIndex: (index) => winterMonthPath(WINTER_MONTHS[index]),
           styleForIndex: (index) => ({ stroke: WINTER_MONTHS[index].colour, strokeWidth: WINTER_LINE_STROKE_WIDTH }),
-          description: "6 SHUN Winter monthly average PNGs",
+          description: "6 SHUN UVPM Winter monthly average PNGs",
           button
         });
       }
@@ -827,10 +939,12 @@
     function renderWinterSeriesPanel() {
       const previewHost = document.querySelector("#winter-series-preview");
       const listHost = document.querySelector("#winter-series-list");
+      previewHost.replaceChildren();
+      listHost.replaceChildren();
       const svg = svgElement("svg", {
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         role: "img",
-        "aria-label": "SHUN Winter monthly average Black Carbon lines, October 2025 to March 2026"
+        "aria-label": "SHUN Winter monthly average UVPM lines, October 2025 to March 2026"
       });
       svg.append(svgElement("rect", { x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: "#fcfcfb" }));
       [0,1,2,3,4].forEach((tick) => {
@@ -865,7 +979,7 @@
         copy.textContent = `${month.label} · ${month.colourName} ${month.colour}`;
         const status = document.createElement("span");
         status.className = "winter-series-status";
-        status.textContent = month.status;
+        status.textContent = `${month.status} · ${month.pairedCount} paired endpoints`;
         label.append(swatch, copy, status);
 
         const button = document.createElement("button");
@@ -873,7 +987,7 @@
         button.type = "button";
         button.textContent = "Download PNG";
         button.addEventListener("click", async () => {
-          const filename = `SHUN_BC_${month.key}_monthly_average_winter.png`;
+          const filename = `SHUN_UVPM_${month.key}_monthly_average_winter.png`;
           const output = document.querySelector("#download-status");
           try {
             output.textContent = `Preparing ${filename}…`;
@@ -980,7 +1094,9 @@
       if (fullWidthDomains.size !== 1 || !fullWidthDomains.has("0,24|0,4")) failures.push("daily/average domains");
       if (ANIMATION_FRAME_COUNT !== 60 || ANIMATION_FPS !== 30) failures.push("animation sequence configuration");
       if (Math.abs(EXPANDED_START_X - MARGIN.left) > 1e-9 || Math.abs(EXPANDED_END_X - timelineX(EXPANDED_REFERENCE_END_MS)) > 1e-9) failures.push("expanded animation geometry");
-      if (WINTER_MONTHS.length !== 6 || WINTER_MONTHS.some((month) => month.values.length !== 25)) failures.push("winter month profiles");
+      if (WINTER_MONTHS.length !== 6 || WINTER_MONTHS.some((month) => month.values.length !== 25)) failures.push("winter UVPM month profiles");
+      if (WINTER_MONTHS.some((month) => month.values.some((value) => Number.isFinite(value) && (value < 0 || value > 4)))) failures.push("winter UVPM outside fixed 0–4 scale");
+      if (WINTER_MONTHS.some((month) => month.counts.some((count) => count < 1))) failures.push("winter UVPM empty hourly slot");
       if (new Set(WINTER_MONTHS.map((month) => month.colour)).size !== 6) failures.push("winter month colours");
       if (oct1AnimationFramePath(0) === oct1AnimationFramePath(ANIMATION_FRAME_COUNT - 1)) failures.push("animation frame geometry");
       const pngDimensions = new Set(chartRecords.map((record) => record.pngDimensions.join("×")));
@@ -1039,7 +1155,6 @@
       });
     }
 
-    renderWinterSeriesPanel();
     populateDevelopmentInformation();
     const publicState = {
       sourceDays: SOURCE_DAYS,
@@ -1053,16 +1168,47 @@
         expandedReferenceEndMs: EXPANDED_REFERENCE_END_MS,
         winterLineStrokeWidth: WINTER_LINE_STROKE_WIDTH
       }),
-      winterMonths: WINTER_MONTHS,
+      winterMetric: "uvpm",
+      winterDerivation: "exact timestamp pairs: uv370 - bc",
+      winterYDomain: Object.freeze([0, 4]),
+      winterMonths: null,
+      winterLoadPromise: null,
       charts: Object.freeze(chartRecords),
       checks: null,
       validationPromise: null
     };
     window.__SHUN_BC_ANIMATION_PREP__ = publicState;
-    publicState.validationPromise = runChecks().then((checks) => {
-      publicState.checks = checks;
-      return checks;
-    });
+
+    async function initialiseWinterUvpm() {
+      const loadStatus = document.querySelector("#winter-series-load-status");
+      const winterButton = document.querySelector('[data-animation-download="winter-months"]');
+      try {
+        WINTER_MONTHS = await loadWinterUvpmMonths();
+        publicState.winterMonths = WINTER_MONTHS;
+        renderWinterSeriesPanel();
+        const allValues = WINTER_MONTHS.flatMap((month) => month.values).filter(Number.isFinite);
+        const min = Math.min(...allValues);
+        const max = Math.max(...allValues);
+        loadStatus.textContent = `Loaded exact-pair UVPM profiles. Range across monthly hourly means: ${min.toFixed(3)}–${max.toFixed(3)} µg/m³. Fixed animation Y-axis: 0–4 µg/m³.`;
+        winterButton.disabled = false;
+        publicState.validationPromise = runChecks().then((checks) => {
+          publicState.checks = checks;
+          return checks;
+        });
+        return WINTER_MONTHS;
+      } catch (error) {
+        console.error(error);
+        loadStatus.textContent = `UVPM profiles could not be loaded: ${error.message}`;
+        loadStatus.style.color = "#a2372e";
+        document.querySelector("#check-status").textContent = "UVPM load failed";
+        document.querySelector("#check-status").style.color = "#a2372e";
+        winterButton.disabled = true;
+        publicState.checks = Object.freeze({ passed: false, failures: Object.freeze(["winter UVPM load"]) });
+        return null;
+      }
+    }
+
+    publicState.winterLoadPromise = initialiseWinterUvpm();
   </script>
 </body>
 </html>
