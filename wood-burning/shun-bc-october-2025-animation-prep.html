@@ -379,6 +379,7 @@
     async function fetchUvpmSourcePoints(timeseriesId, pollutant, startMs, nextMs) {
       const url = new URL(`${uvpmCacheBaseUrl()}/timeseries`);
       url.searchParams.set("timeseries_id", String(timeseriesId));
+      url.searchParams.set("connector_id", String(SHUN_UVPM_SERIES.connectorId));
       url.searchParams.set("pollutant", pollutant);
       url.searchParams.set("start", new Date(startMs).toISOString());
       url.searchParams.set("end", new Date(nextMs + UVPM_HOUR_MS).toISOString());
