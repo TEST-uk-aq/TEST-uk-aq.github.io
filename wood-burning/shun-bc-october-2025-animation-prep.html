@@ -97,7 +97,7 @@
     <section class="winter-series-panel" aria-labelledby="winter-series-title">
       <h2 id="winter-series-title">SHUN Winter monthly average UVPM line assets</h2>
       <p>October 2025 to March 2026. UVPM is derived from exact-timestamp pairs as UV 370 nm minus Black Carbon 880 nm, then averaged by GMT hour ending. Missing pairs are excluded and finite negative differences are retained. The transparent lines keep the same enlarged animation geometry and 0–4 µg/m³ vertical scale as the Black Carbon animation so the Y-axis does not move between sequences.</p>
-      <p id="winter-series-load-status" role="status" aria-live="polite">Loading paired SHUN BC and UV 370 nm history…</p>
+      <p id="winter-series-load-status" role="status" aria-live="polite">Loading paired SHUN BC and UV 370 nm history in 24-hour R2 chunks…</p>
       <div id="winter-series-preview" class="winter-series-preview" aria-label="Preview of all six Winter monthly average UVPM lines"></div>
       <div id="winter-series-list" class="winter-series-list"></div>
       <div class="resolve-animation-actions">
@@ -376,13 +376,13 @@
         .sort((left, right) => left.timestampMs - right.timestampMs);
     }
 
-    async function fetchUvpmSourcePoints(timeseriesId, pollutant, startMs, nextMs) {
+    async function fetchUvpmHistoryChunk(timeseriesId, pollutant, chunkStartMs, chunkEndMs) {
       const url = new URL(`${uvpmCacheBaseUrl()}/timeseries`);
       url.searchParams.set("timeseries_id", String(timeseriesId));
       url.searchParams.set("connector_id", String(SHUN_UVPM_SERIES.connectorId));
       url.searchParams.set("pollutant", pollutant);
-      url.searchParams.set("start", new Date(startMs).toISOString());
-      url.searchParams.set("end", new Date(nextMs + UVPM_HOUR_MS).toISOString());
+      url.searchParams.set("start", new Date(chunkStartMs).toISOString());
+      url.searchParams.set("end", new Date(chunkEndMs).toISOString());
       url.searchParams.set("v", "2");
       url.searchParams.set("format", "json");
 
@@ -414,10 +414,35 @@
           && !hitPageLimit;
         if (!onlyExpectedSourceGaps) {
           const reasonText = partialReasons.length ? ` [${partialReasons.join(", ")}]` : "";
-          throw new Error(`${pollutant} history response was incomplete for ${new Date(startMs).toISOString().slice(0, 7)}${reasonText}`);
+          throw new Error(`${pollutant} history response was incomplete for ${new Date(chunkStartMs).toISOString().slice(0, 10)}${reasonText}`);
         }
       }
-      const points = parseHistoryPayloadPoints(payload);
+      return parseHistoryPayloadPoints(payload);
+    }
+
+    async function fetchUvpmSourcePoints(timeseriesId, pollutant, startMs, nextMs) {
+      const requestedEndMs = nextMs + UVPM_HOUR_MS;
+      const chunks = [];
+      for (let chunkStartMs = startMs; chunkStartMs < requestedEndMs; chunkStartMs += UVPM_DAY_MS) {
+        chunks.push(Object.freeze({
+          startMs: chunkStartMs,
+          endMs: Math.min(chunkStartMs + UVPM_DAY_MS, requestedEndMs)
+        }));
+      }
+
+      const pointsByTimestamp = new Map();
+      const concurrency = 8;
+      for (let offset = 0; offset < chunks.length; offset += concurrency) {
+        const batch = chunks.slice(offset, offset + concurrency);
+        const results = await Promise.all(batch.map((chunk) =>
+          fetchUvpmHistoryChunk(timeseriesId, pollutant, chunk.startMs, chunk.endMs)
+        ));
+        results.flat().forEach((point) => pointsByTimestamp.set(point.timestampMs, point.value));
+      }
+
+      const points = [...pointsByTimestamp.entries()]
+        .map(([timestampMs, value]) => Object.freeze({ timestampMs, value }))
+        .sort((left, right) => left.timestampMs - right.timestampMs);
       if (!points.length) {
         throw new Error(`${pollutant} history returned no usable observations for ${new Date(startMs).toISOString().slice(0, 7)}`);
       }
