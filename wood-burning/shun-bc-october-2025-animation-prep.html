@@ -97,7 +97,7 @@
     <section class="winter-series-panel" aria-labelledby="winter-series-title">
       <h2 id="winter-series-title">SHUN Winter monthly average UVPM line assets</h2>
       <p>October 2025 to March 2026. UVPM is derived from exact-timestamp pairs as UV 370 nm minus Black Carbon 880 nm, then averaged by GMT hour ending. Missing pairs are excluded and finite negative differences are retained. The transparent lines keep the same enlarged animation geometry and 0–4 µg/m³ vertical scale as the Black Carbon animation so the Y-axis does not move between sequences.</p>
-      <p id="winter-series-load-status" role="status" aria-live="polite">Loading paired SHUN BC and UV 370 nm history in 24-hour R2 chunks…</p>
+      <p id="winter-series-load-status" role="status" aria-live="polite">Loading paired SHUN BC and UV 370 nm history in sequential 24-hour R2 chunks…</p>
       <div id="winter-series-preview" class="winter-series-preview" aria-label="Preview of all six Winter monthly average UVPM lines"></div>
       <div id="winter-series-list" class="winter-series-list"></div>
       <div class="resolve-animation-actions">
@@ -376,7 +376,18 @@
         .sort((left, right) => left.timestampMs - right.timestampMs);
     }
 
-    async function fetchUvpmHistoryChunk(timeseriesId, pollutant, chunkStartMs, chunkEndMs) {
+    function uvpmDelay(ms) {
+      return new Promise((resolve) => window.setTimeout(resolve, ms));
+    }
+
+    function isTransientUvpmR2ReadError(error) {
+      const message = String(error?.message || error || "");
+      return message.includes("10058")
+        || message.includes("Reduce your rate of simultaneous reads on the same object")
+        || message.includes("Too many simultaneous reads");
+    }
+
+    async function fetchUvpmHistoryChunkOnce(timeseriesId, pollutant, chunkStartMs, chunkEndMs) {
       const url = new URL(`${uvpmCacheBaseUrl()}/timeseries`);
       url.searchParams.set("timeseries_id", String(timeseriesId));
       url.searchParams.set("connector_id", String(SHUN_UVPM_SERIES.connectorId));
@@ -395,7 +406,7 @@
       });
       if (!response.ok) {
         const body = await response.text().catch(() => "");
-        throw new Error(`${pollutant} history failed with HTTP ${response.status}${body ? `: ${body.slice(0, 180)}` : ""}`);
+        throw new Error(`${pollutant} history failed with HTTP ${response.status}${body ? `: ${body.slice(0, 600)}` : ""}`);
       }
       const payload = await response.json();
       const meta = payload?.meta && typeof payload.meta === "object" ? payload.meta : {};
@@ -418,15 +429,28 @@
           const r2Detail = firstR2Error && typeof firstR2Error === "object"
             ? [
                 firstR2Error.status ? `HTTP ${firstR2Error.status}` : "",
-                firstR2Error.bodyPreview ? String(firstR2Error.bodyPreview).slice(0, 300) : "",
+                firstR2Error.bodyPreview ? String(firstR2Error.bodyPreview).slice(0, 600) : "",
                 firstR2Error.upstreamUrlPath ? String(firstR2Error.upstreamUrlPath).slice(0, 220) : ""
               ].filter(Boolean).join(" · ")
-            : firstR2Error ? String(firstR2Error).slice(0, 300) : "";
+            : firstR2Error ? String(firstR2Error).slice(0, 600) : "";
           const r2Text = r2Detail ? ` · R2: ${r2Detail}` : "";
           throw new Error(`${pollutant} history response was incomplete for ${new Date(chunkStartMs).toISOString().slice(0, 10)}${reasonText}${r2Text}`);
         }
       }
       return parseHistoryPayloadPoints(payload);
+    }
+
+    async function fetchUvpmHistoryChunk(timeseriesId, pollutant, chunkStartMs, chunkEndMs) {
+      const maxAttempts = 5;
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          return await fetchUvpmHistoryChunkOnce(timeseriesId, pollutant, chunkStartMs, chunkEndMs);
+        } catch (error) {
+          if (!isTransientUvpmR2ReadError(error) || attempt === maxAttempts) throw error;
+          await uvpmDelay(400 * (2 ** (attempt - 1)));
+        }
+      }
+      return [];
     }
 
     async function fetchUvpmSourcePoints(timeseriesId, pollutant, startMs, nextMs) {
@@ -440,13 +464,10 @@
       }
 
       const pointsByTimestamp = new Map();
-      const concurrency = 8;
-      for (let offset = 0; offset < chunks.length; offset += concurrency) {
-        const batch = chunks.slice(offset, offset + concurrency);
-        const results = await Promise.all(batch.map((chunk) =>
-          fetchUvpmHistoryChunk(timeseriesId, pollutant, chunk.startMs, chunk.endMs)
-        ));
-        results.flat().forEach((point) => pointsByTimestamp.set(point.timestampMs, point.value));
+      for (const chunk of chunks) {
+        const result = await fetchUvpmHistoryChunk(timeseriesId, pollutant, chunk.startMs, chunk.endMs);
+        result.forEach((point) => pointsByTimestamp.set(point.timestampMs, point.value));
+        await uvpmDelay(100);
       }
 
       const points = [...pointsByTimestamp.entries()]
@@ -499,12 +520,23 @@
 
     async function loadWinterUvpmMonths() {
       const months = [];
+      const loadStatus = document.querySelector("#winter-series-load-status");
       for (const spec of WINTER_MONTH_SPECS) {
         const { startMs, nextMs } = monthBounds(spec.key);
-        const [bcPoints, uv370Points] = await Promise.all([
-          fetchUvpmSourcePoints(SHUN_UVPM_SERIES.bcTimeseriesId, "bc", startMs, nextMs),
-          fetchUvpmSourcePoints(SHUN_UVPM_SERIES.uv370TimeseriesId, "uv370", startMs, nextMs)
-        ]);
+        if (loadStatus) loadStatus.textContent = `Loading ${spec.label} Black Carbon history…`;
+        const bcPoints = await fetchUvpmSourcePoints(
+          SHUN_UVPM_SERIES.bcTimeseriesId,
+          "bc",
+          startMs,
+          nextMs
+        );
+        if (loadStatus) loadStatus.textContent = `Loading ${spec.label} UV 370 nm history…`;
+        const uv370Points = await fetchUvpmSourcePoints(
+          SHUN_UVPM_SERIES.uv370TimeseriesId,
+          "uv370",
+          startMs,
+          nextMs
+        );
         const pairedPoints = pairUvpmPoints(bcPoints, uv370Points);
         if (!pairedPoints.length) throw new Error(`No paired BC/UV 370 nm observations found for ${spec.label}`);
         months.push(buildUvpmMonthProfile(spec, pairedPoints));
