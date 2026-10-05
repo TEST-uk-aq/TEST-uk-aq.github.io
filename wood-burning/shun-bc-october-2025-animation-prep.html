@@ -397,10 +397,30 @@
         throw new Error(`${pollutant} history failed with HTTP ${response.status}${body ? `: ${body.slice(0, 180)}` : ""}`);
       }
       const payload = await response.json();
-      if (payload?.response_complete === false || payload?.meta?.response_complete === false) {
-        throw new Error(`${pollutant} history response was incomplete for ${new Date(startMs).toISOString().slice(0, 7)}`);
+      const meta = payload?.meta && typeof payload.meta === "object" ? payload.meta : {};
+      const responseComplete = payload?.response_complete ?? meta.response_complete;
+      if (responseComplete === false) {
+        const partialReasons = Array.isArray(meta.partial_reasons)
+          ? meta.partial_reasons.map((reason) => String(reason || "").trim()).filter(Boolean)
+          : [];
+        const r2Errors = Array.isArray(meta.r2_errors) ? meta.r2_errors : [];
+        const ingestErrors = Array.isArray(meta.ingest_errors) ? meta.ingest_errors : [];
+        const hitPageLimit = meta.r2_hit_page_limit === true;
+        const onlyExpectedSourceGaps = partialReasons.length > 0
+          && partialReasons.every((reason) => reason === "detected_gap")
+          && r2Errors.length === 0
+          && ingestErrors.length === 0
+          && !hitPageLimit;
+        if (!onlyExpectedSourceGaps) {
+          const reasonText = partialReasons.length ? ` [${partialReasons.join(", ")}]` : "";
+          throw new Error(`${pollutant} history response was incomplete for ${new Date(startMs).toISOString().slice(0, 7)}${reasonText}`);
+        }
       }
-      return parseHistoryPayloadPoints(payload);
+      const points = parseHistoryPayloadPoints(payload);
+      if (!points.length) {
+        throw new Error(`${pollutant} history returned no usable observations for ${new Date(startMs).toISOString().slice(0, 7)}`);
+      }
+      return points;
     }
 
     function pairUvpmPoints(bcPoints, uv370Points) {
@@ -1189,7 +1209,7 @@
         const allValues = WINTER_MONTHS.flatMap((month) => month.values).filter(Number.isFinite);
         const min = Math.min(...allValues);
         const max = Math.max(...allValues);
-        loadStatus.textContent = `Loaded exact-pair UVPM profiles. Range across monthly hourly means: ${min.toFixed(3)}–${max.toFixed(3)} µg/m³. Fixed animation Y-axis: 0–4 µg/m³.`;
+        loadStatus.textContent = `Loaded exact-pair UVPM profiles. Missing source hours were excluded from the paired means. Range across monthly hourly means: ${min.toFixed(3)}–${max.toFixed(3)} µg/m³. Fixed animation Y-axis: 0–4 µg/m³.`;
         winterButton.disabled = false;
         publicState.validationPromise = runChecks().then((checks) => {
           publicState.checks = checks;
