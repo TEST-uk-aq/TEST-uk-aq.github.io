@@ -33,6 +33,7 @@
     let result = {};
     try { result = await response.json(); } catch { /* generic error below */ }
     if (!response.ok) {
+      if (result.error === 'invalid_email') throw new Error('Please enter a valid email address.');
       if (result.error === 'link_expired_or_invalid' || result.error === 'invalid_link') throw new Error('This link has expired or is no longer valid.');
       if (result.error === 'turnstile_failed') throw new Error('Verification was unsuccessful. Please complete it again.');
       throw new Error('Unable to complete this request. Please try again later.');
