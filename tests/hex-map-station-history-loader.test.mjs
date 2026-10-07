@@ -526,4 +526,132 @@ assert.equal(incompleteRequests.filter((endUtc) => endUtc === failedEndUtc).leng
   "the failed observation interval remains retryable");
 incompleteController.destroy();
 
+// A repaired observation interval must not retain its old settled AQI after
+// explicit Refresh. Ordinary retries and source switches still reuse it.
+const refreshHourMs = 60 * 60 * 1000;
+const refreshStartMs = Date.parse("2026-08-01T00:00:00.000Z");
+const refreshHeadMs = refreshStartMs + 48 * refreshHourMs;
+const refreshEndMs = refreshHeadMs + 24 * refreshHourMs;
+const refreshRange = { start_utc: new Date(refreshStartMs).toISOString(), end_utc: new Date(refreshEndMs).toISOString() };
+const refreshRequests = [];
+const refreshRecords = new Map();
+let historyRepaired = false;
+function refreshPoint(timestamp, level) {
+  return { date: new Date(timestamp), daqi: null, eaqi: level };
+}
+const refreshClient = {
+  kind: "calculated",
+  async loadCurrent(request, parts) {
+    const result = makeResult(request, parts);
+    const head = {
+      stable_head_start_utc: new Date(refreshHeadMs).toISOString(),
+      stable_head_end_utc: request.end_utc,
+      next_chunk_end_utc: new Date(refreshHeadMs).toISOString(),
+    };
+    return { ...result, observations: { ...result.observations, ...head }, aqi: { ...result.aqi, ...head } };
+  },
+  async loadOlder(request, parts) {
+    refreshRequests.push({ ...request, observations: parts.observations, aqi: parts.aqi });
+    const result = makeResult(request, parts);
+    const startMs = Date.parse(request.start_utc);
+    const point = refreshPoint(startMs + 6 * refreshHourMs, historyRepaired ? 1 : 2);
+    // One interval changes a valid value; the other goes from blank to valid
+    // for the primary sensor while remaining legitimately blank for the other.
+    const blank = startMs > refreshStartMs && (!historyRepaired || request.station_id === "1102");
+    const aqiPoints = blank ? [] : [point];
+    return {
+      ...result,
+      observations: {
+        ...result.observations,
+        points: historyRepaired ? [{ date: point.date, value: 2.8 }] : [],
+        response_complete: historyRepaired,
+        has_gap: !historyRepaired,
+      },
+      aqi: {
+        ...result.aqi,
+        rows: aqiPoints.map((value) => ({
+          timestamp_hour_utc: value.date.toISOString(),
+          daqi_calculation_status: "insufficient_samples",
+          eaqi_calculation_status: "ok",
+        })),
+        points: aqiPoints,
+        response_complete: false,
+        has_gap: true,
+      },
+    };
+  },
+  async prefetchAqi(request) { return makeResult(request, { observations: false, aqi: true }); },
+};
+const refreshController = controllerModule.createStationChartController({
+  renderer: { initialise() {}, renderAxes() {}, renderObservations() {}, renderAqi() {}, clearAqi() {}, setLoading() {}, destroy() {} },
+  calculatedClient: refreshClient,
+  compatibilityClient: refreshClient,
+  records: refreshRecords,
+  backgroundAqiPrefetch: false,
+  olderChunkMs: 24 * refreshHourMs,
+  aqiSourceController: sourceModule.createAqiSourceController({ transitionMs: 0, wait: async () => {} }),
+});
+const refreshEntries = [
+  { station_id: 1101, timeseries_id: 1201, connector_id: 1301, pollutant: "pm25" },
+  { station_id: 1102, timeseries_id: 1202, connector_id: 1302, pollutant: "pm25" },
+];
+refreshController.mount({});
+await refreshController.setRange(refreshRange);
+await refreshController.setSelection(refreshEntries);
+const refreshPrimaryRecord = [...refreshRecords.values()].find((record) => record.identity.station_id === 1101);
+assert.equal(cacheModule.getUncoveredRanges(refreshPrimaryRecord, "aqi", refreshRange).length, 0,
+  "historical AQI including the blank interval settles before repair");
+historyRepaired = true;
+const beforeOrdinaryRetry = refreshRequests.length;
+await refreshController.setSelection(refreshEntries);
+assert.ok(refreshRequests.slice(beforeOrdinaryRetry).some((request) => request.observations && !request.aqi),
+  "ordinary observation retries still reuse settled historical AQI");
+
+const outsideBefore = { start_utc: new Date(refreshStartMs - 24 * refreshHourMs).toISOString(), end_utc: refreshRange.start_utc };
+const outsideAfter = { start_utc: refreshRange.end_utc, end_utc: new Date(refreshEndMs + 24 * refreshHourMs).toISOString() };
+const retainedBefore = refreshPoint(refreshStartMs, 4);
+const retainedAfter = refreshPoint(refreshEndMs + refreshHourMs, 5);
+const removedInside = refreshPoint(refreshStartMs + 7 * refreshHourMs, 3);
+refreshPrimaryRecord.aqi_points.push(retainedBefore, removedInside, retainedAfter);
+for (const outside of [outsideBefore, outsideAfter]) {
+  cacheModule.recordCoverageInterval(refreshPrimaryRecord, "aqi", outside, "complete");
+  cacheModule.recordCoverageInterval(refreshPrimaryRecord, "observations", outside, "complete");
+}
+const unselectedRecord = cacheModule.createCacheRecord();
+cacheModule.recordCoverageInterval(unselectedRecord, "aqi", refreshRange, "complete");
+refreshRecords.set("unselected-sensor", unselectedRecord);
+const unselectedSnapshot = JSON.stringify(unselectedRecord);
+
+const beforeExplicitRefresh = refreshRequests.length;
+await refreshController.refresh();
+const explicitRequests = refreshRequests.slice(beforeExplicitRefresh);
+assert.equal(explicitRequests.length, 4, "Refresh re-evaluates the two displayed historical chunks for each selected sensor");
+assert.ok(explicitRequests.every((request) => request.observations && request.aqi),
+  "every explicitly refreshed historical observation request includes calculated AQI");
+assert.ok(explicitRequests.every((request) => Date.parse(request.start_utc) >= refreshStartMs && Date.parse(request.end_utc) <= refreshHeadMs),
+  "historical refresh requests stay inside the displayed range and stable-head boundary");
+assert.equal(refreshPrimaryRecord.aqi_points.find((point) => point.date.getTime() === refreshStartMs + 6 * refreshHourMs)?.eaqi, 1,
+  "Refresh replaces changed historical AQI instead of treating it as an extension conflict");
+assert.equal(refreshPrimaryRecord.aqi_points.find((point) => point.date.getTime() === refreshStartMs + 30 * refreshHourMs)?.eaqi, 1,
+  "the formerly blank historical interval gains its repaired EAQI");
+assert.equal(refreshPrimaryRecord.aqi_points.includes(removedInside), false,
+  "range replacement removes old AQI rows absent from the refreshed result");
+assert.ok(refreshPrimaryRecord.aqi_points.includes(retainedBefore) && refreshPrimaryRecord.aqi_points.includes(retainedAfter),
+  "cached AQI outside the refreshed endpoint interval remains intact");
+for (const outside of [outsideBefore, outsideAfter]) {
+  assert.equal(cacheModule.getUncoveredRanges(refreshPrimaryRecord, "aqi", outside).length, 0);
+  assert.equal(cacheModule.getUncoveredRanges(refreshPrimaryRecord, "observations", outside).length, 0);
+}
+assert.equal(JSON.stringify(unselectedRecord), unselectedSnapshot, "Refresh leaves unselected sensor caches untouched");
+const refreshSecondaryRecord = [...refreshRecords.values()].find((record) => record.identity?.station_id === 1102);
+assert.equal(cacheModule.getUncoveredRanges(refreshSecondaryRecord, "aqi", refreshRange).length, 0,
+  "a legitimate blank AQI response settles again after Refresh");
+const beforeSettledReuse = refreshRequests.length;
+await refreshController.setSelection(refreshEntries);
+await refreshController.setAqiSource("1102");
+await refreshController.setAqiSource("1101");
+assert.equal(refreshRequests.length, beforeSettledReuse,
+  "ordinary loads and settled source switches do not repeat refreshed historical requests");
+refreshController.destroy();
+
 console.log("Hex Map shared station-chart harness passed");

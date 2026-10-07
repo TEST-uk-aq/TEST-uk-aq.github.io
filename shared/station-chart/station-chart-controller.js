@@ -406,7 +406,7 @@
       }
       if (allows("aqi") && result.aqi?.enabled === true) {
         const bounds = mode === "current" ? sectionBounds(result.aqi, requestedRange) : requestedRange;
-        const merged = mode === "current"
+        const merged = mode === "current" || mode === "older-refresh"
           ? cache.replaceAuthoritativeAqiHead(record.aqi_points, result.aqi.points, bounds.startIso, bounds.endIso)
           : cache.mergeAqiWithoutReplacement(record.aqi_points, result.aqi.points);
         record.aqi_points = merged.points;
@@ -507,7 +507,8 @@
               recordFailedOlderWork(entry, value.workItem, kind, value.error, generation);
               return;
             }
-            commitResult(entry, value.result, value.chunkRange, "older", [kind]);
+            commitResult(entry, value.result, value.chunkRange,
+              parts.refreshHistory === true ? "older-refresh" : "older", [kind]);
             diagnostics.event("station_history_chunk_committed", {
               generation,
               source: clientKind,
@@ -604,6 +605,17 @@
         );
       };
       const source = selectedSource();
+      const refreshHistory = reason === "refresh" && clientKind === "calculated";
+      if (refreshHistory) {
+        // Settlement is reusable during ordinary loads, but an explicit
+        // Refresh re-evaluates both parts of the displayed range. Retain the
+        // points until successful responses replace the refreshed intervals.
+        selection.forEach(function (entry) {
+          const record = recordFor(entry);
+          cache.recordCoverageInterval(record, "observations", range, "stale");
+          cache.recordCoverageInterval(record, "aqi", range, "stale");
+        });
+      }
       const renderScheduler = createRenderScheduler(function () {
         renderAll({
           reason,
@@ -691,7 +703,8 @@
           const primary = entry.station_id === source?.station_id;
           const parts = {
             observations: true,
-            aqi: primary,
+            aqi: primary || refreshHistory,
+            refreshHistory,
             primary,
             priority: Number(primary
               ? options.priorities?.primary ?? DEFAULT_PRIORITIES.primary
