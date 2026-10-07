@@ -447,10 +447,6 @@
     return p === '/sensor_map/' || p === '/sensor_map/index.html';
   }
 
-  function isNaeiDataPage() {
-    return document.body.dataset.pageSlug === 'naei-data';
-  }
-
   function getState() {
     return document.body.getAttribute('data-sidebar-state');
   }
@@ -946,19 +942,6 @@
 
   function buildSiteFooter() {
     const oglUrl = 'https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/';
-    if (isNaeiDataPage()) {
-      return `
-        <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
-        <div class="ukaq-site-footer-sources" aria-label="NAEI data source and licence">
-          <section class="ukaq-site-footer-source" aria-label="National Atmospheric Emissions Inventory attribution">
-            <div class="ukaq-site-footer-mark">
-              <a href="https://naei.energysecurity.gov.uk/">National Atmospheric Emissions Inventory (NAEI)</a>
-            </div>
-            <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra &amp; DESNZ via <a class="ukaq-site-footer-attribution-source" href="https://naei.energysecurity.gov.uk/data/licensing">naei.energysecurity.gov.uk</a> licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
-          </section>
-        </div>`;
-    }
-
     return `
       <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
       <div class="ukaq-site-footer-sources" aria-label="Air quality data sources and licences">
@@ -1171,11 +1154,7 @@
     siteVersionReady = loadSiteVersion();
     const footerStylesReady = await ensureSiteFooterStyles();
     const footer = mountSiteFooter();
-    if (isNaeiDataPage()) {
-      finaliseFooterAttributionLayout();
-    } else {
-      await filterFooterAttributions();
-    }
+    await filterFooterAttributions();
     if (footerStylesReady) {
       footer.hidden = false;
       scheduleFooterConditionalSeparators();
