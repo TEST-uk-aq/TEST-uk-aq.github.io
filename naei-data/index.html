@@ -4,31 +4,166 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>NAEI Data | UK AQ</title>
+  <meta
+    name="description"
+    content="Explore UK National Atmospheric Emissions Inventory data with interactive line and bubble charts."
+  >
+  <title>NAEI Data Explorer | UK AQ</title>
+
   <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
+    rel="stylesheet"
+  >
   <link rel="stylesheet" href="/site-ui.css">
-  <style>
-    body { margin: 0; background: #FBFAF7; color: #101822; font-family: Inter, system-ui, sans-serif; }
-    .page-shell { box-sizing: border-box; min-height: 100vh; padding: 34px 28px 64px; }
-    .page-shell h1 { margin: 0; font-size: clamp(1.9rem, 3.2vw, 2.4rem); line-height: 1.2; }
-    @media (max-width: 767px) { .page-shell { padding: 16px 12px 48px; } }
-  </style>
+  <link rel="stylesheet" href="/naei-data/naei-data.css">
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <script type="module" src="/naei-data/naei-data.js"></script>
 </head>
-<body data-page-slug="naei-data">
+<body class="naei-data-page" data-page-slug="naei-data">
   <div id="uk-aq-sidebar-mount"></div>
   <script src="/sidebar.js"></script>
-  <main class="page-shell" id="mainContent">
-    <h1 class="ukaq-page-title-heading">
-      <span class="ukaq-page-title-text">NAEI Data</span>
-      <picture class="ukaq-page-title-picture">
-        <img
-          class="ukaq-page-title-image"
-          src="/images/UK-AQ-naei-data-1line.svg"
-          alt=""
-          aria-hidden="true"
-        >
-      </picture>
-    </h1>
+
+  <main class="naei-main" id="mainContent">
+    <header class="naei-intro">
+      <h1 class="ukaq-page-title-heading">
+        <span class="ukaq-page-title-text">NAEI Data Explorer</span>
+        <picture class="ukaq-page-title-picture">
+          <img
+            class="ukaq-page-title-image"
+            src="/images/UK-AQ-naei-data-1line.svg"
+            alt=""
+            aria-hidden="true"
+          >
+        </picture>
+      </h1>
+      <p>
+        Explore UK National Atmospheric Emissions Inventory data from 1970 to 2024.
+        Compare long-term trends or compare emissions with activity data for a selected year.
+      </p>
+    </header>
+
+    <div id="naei-status" class="naei-status" role="status" aria-live="polite">
+      <span class="naei-spinner" aria-hidden="true"></span>
+      <span>Loading NAEI data…</span>
+    </div>
+
+    <section id="naei-error" class="naei-error" role="alert" hidden>
+      <h2>NAEI data is unavailable</h2>
+      <p id="naei-error-message">The Explorer could not load the published NAEI dataset.</p>
+      <button type="button" id="naei-retry">Try again</button>
+    </section>
+
+    <div id="naei-app" hidden>
+      <section class="naei-view-tabs" aria-label="Chart type">
+        <button type="button" class="naei-view-tab" data-view="line" aria-pressed="true">
+          Line chart
+        </button>
+        <button type="button" class="naei-view-tab" data-view="bubble" aria-pressed="false">
+          Bubble chart
+        </button>
+      </section>
+
+      <section class="naei-workspace">
+        <aside class="naei-controls" aria-label="NAEI chart controls">
+          <div class="naei-control-block">
+            <label for="naei-metric">Pollutant</label>
+            <select id="naei-metric"></select>
+          </div>
+
+          <div class="naei-line-controls" data-for-view="line">
+            <div class="naei-year-pair">
+              <div class="naei-control-block">
+                <label for="naei-start-year">Start year</label>
+                <select id="naei-start-year"></select>
+              </div>
+              <div class="naei-control-block">
+                <label for="naei-end-year">End year</label>
+                <select id="naei-end-year"></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="naei-bubble-controls" data-for-view="bubble" hidden>
+            <div class="naei-control-block">
+              <label for="naei-bubble-year">Year</label>
+              <select id="naei-bubble-year"></select>
+            </div>
+            <p class="naei-control-note">
+              Bubble position compares Activity Data on the horizontal axis with the selected pollutant on the vertical axis.
+            </p>
+          </div>
+
+          <fieldset class="naei-group-fieldset">
+            <legend>Groups</legend>
+            <div class="naei-group-tools">
+              <label class="naei-search-label" for="naei-group-search">Find a group</label>
+              <input id="naei-group-search" type="search" autocomplete="off" placeholder="Search groups">
+              <div class="naei-group-actions">
+                <button type="button" id="naei-clear-groups">Clear</button>
+                <span id="naei-group-count" aria-live="polite">0 selected</span>
+              </div>
+            </div>
+            <div id="naei-group-list" class="naei-group-list"></div>
+            <p class="naei-control-note">Select up to 10 groups.</p>
+          </fieldset>
+
+          <div class="naei-control-actions">
+            <button type="button" id="naei-copy-link">Copy chart link</button>
+            <button type="button" id="naei-download-csv">Download CSV</button>
+          </div>
+        </aside>
+
+        <section class="naei-chart-card" aria-labelledby="naei-chart-heading">
+          <header class="naei-chart-header">
+            <div>
+              <p class="naei-chart-kicker" id="naei-chart-mode-label">Line chart</p>
+              <h2 id="naei-chart-heading">NAEI emissions</h2>
+              <p id="naei-chart-subtitle"></p>
+            </div>
+            <p id="naei-dataset-label" class="naei-dataset-label"></p>
+          </header>
+
+          <div id="naei-chart-message" class="naei-chart-message" role="status" aria-live="polite" hidden></div>
+
+          <div id="naei-legend" class="naei-legend" aria-label="Chart series"></div>
+
+          <div class="naei-chart-scroll">
+            <svg
+              id="naei-chart"
+              class="naei-chart"
+              viewBox="0 0 960 520"
+              role="img"
+              aria-labelledby="naei-chart-heading naei-chart-subtitle"
+              preserveAspectRatio="xMidYMid meet"
+            ></svg>
+          </div>
+
+          <div id="naei-chart-table-wrap" class="naei-table-wrap">
+            <table id="naei-chart-table">
+              <caption class="visually-hidden">Values shown in the current NAEI chart</caption>
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="naei-about" aria-labelledby="naei-about-heading">
+        <div>
+          <p class="naei-about-kicker">About the data</p>
+          <h2 id="naei-about-heading">National emissions inventory</h2>
+        </div>
+        <p>
+          Data are derived from the UK National Atmospheric Emissions Inventory. UK AQ preserves missing values as missing rather than treating them as zero, and excludes memo/non-additive records from normal grouped totals.
+        </p>
+        <p>
+          The Explorer uses the latest published UK AQ NAEI dataset. Historical and current source files are retained with the published dataset for provenance.
+        </p>
+      </section>
+    </div>
   </main>
 </body>
 </html>

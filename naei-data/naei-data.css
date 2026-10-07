@@ -1,0 +1,655 @@
+:root {
+  --naei-blue: #3c78ac;
+  --naei-blue-dark: #004d80;
+  --naei-ink: #101822;
+  --naei-muted: #5f6d7a;
+  --naei-card: #ffffff;
+  --naei-page: #fbfaf7;
+  --naei-border: #d6dde3;
+  --naei-grid: #d8e0e7;
+  --naei-focus: #ff8c1a;
+  --naei-shadow: 0 10px 28px rgba(16, 24, 34, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.naei-data-page {
+  margin: 0;
+  background: var(--naei-page);
+  color: var(--naei-ink);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.naei-main {
+  min-height: 100vh;
+  padding: 34px 28px 72px;
+}
+
+.naei-intro {
+  max-width: 1050px;
+}
+
+.naei-intro .ukaq-page-title-heading {
+  margin-bottom: 14px;
+}
+
+.naei-intro > p {
+  max-width: 840px;
+  margin: 0;
+  color: #43515e;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+.naei-status,
+.naei-error {
+  margin-top: 36px;
+  max-width: 760px;
+  border: 1px solid var(--naei-border);
+  border-radius: 16px;
+  background: var(--naei-card);
+}
+
+.naei-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.naei-spinner {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(60, 120, 172, 0.2);
+  border-top-color: var(--naei-blue);
+  border-radius: 50%;
+  animation: naei-spin 0.8s linear infinite;
+}
+
+@keyframes naei-spin {
+  to { transform: rotate(360deg); }
+}
+
+.naei-error {
+  padding: 22px;
+  border-color: #e8bcbc;
+  background: #fff9f9;
+}
+
+.naei-error h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.naei-error p {
+  margin: 0 0 16px;
+  line-height: 1.55;
+}
+
+.naei-error button,
+.naei-control-actions button,
+.naei-group-actions button,
+.naei-view-tab {
+  font: inherit;
+}
+
+.naei-view-tabs {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 30px;
+  padding: 4px;
+  border: 1px solid var(--naei-border);
+  border-radius: 13px;
+  background: #edf2f6;
+}
+
+.naei-view-tab {
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #344250;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.naei-view-tab[aria-pressed="true"] {
+  background: #fff;
+  color: var(--naei-blue-dark);
+  box-shadow: 0 2px 8px rgba(0, 77, 128, 0.12);
+}
+
+.naei-view-tab:focus-visible,
+.naei-controls button:focus-visible,
+.naei-controls select:focus-visible,
+.naei-controls input:focus-visible,
+.naei-legend-button:focus-visible {
+  outline: 3px solid rgba(255, 140, 26, 0.45);
+  outline-offset: 2px;
+}
+
+.naei-workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.naei-controls,
+.naei-chart-card {
+  border: 1px solid var(--naei-border);
+  border-radius: 18px;
+  background: var(--naei-card);
+  box-shadow: var(--naei-shadow);
+}
+
+.naei-controls {
+  position: sticky;
+  top: 20px;
+  padding: 18px;
+}
+
+.naei-control-block {
+  margin-bottom: 15px;
+}
+
+.naei-control-block label,
+.naei-group-fieldset legend,
+.naei-search-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #2f3e4c;
+  letter-spacing: 0.01em;
+}
+
+.naei-control-block select,
+.naei-group-tools input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #bec9d2;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--naei-ink);
+  font: inherit;
+}
+
+.naei-year-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.naei-group-fieldset {
+  margin: 4px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.naei-group-tools {
+  margin-bottom: 10px;
+}
+
+.naei-group-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.naei-group-actions button,
+.naei-control-actions button,
+.naei-error button {
+  min-height: 40px;
+  padding: 7px 11px;
+  border: 1px solid #b7c5cf;
+  border-radius: 9px;
+  background: #f7fafc;
+  color: var(--naei-blue-dark);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.naei-group-actions button:hover,
+.naei-control-actions button:hover,
+.naei-error button:hover {
+  background: #edf4f8;
+}
+
+#naei-group-count {
+  color: var(--naei-muted);
+  font-size: 0.8rem;
+}
+
+.naei-group-list {
+  max-height: 315px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #dce3e9;
+  border-radius: 10px;
+  background: #fcfdfd;
+}
+
+.naei-group-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 42px;
+  padding: 9px 10px;
+  border-bottom: 1px solid #e7ecef;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.naei-group-option:last-child {
+  border-bottom: 0;
+}
+
+.naei-group-option:hover {
+  background: #f2f7fa;
+}
+
+.naei-group-option input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  flex: 0 0 auto;
+  accent-color: var(--naei-blue);
+}
+
+.naei-group-option span {
+  font-size: 0.84rem;
+}
+
+.naei-control-note {
+  margin: 8px 0 0;
+  color: var(--naei-muted);
+  font-size: 0.77rem;
+  line-height: 1.45;
+}
+
+.naei-control-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.naei-control-actions button {
+  min-height: 44px;
+}
+
+.naei-chart-card {
+  min-width: 0;
+  padding: 20px 22px 24px;
+}
+
+.naei-chart-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.naei-chart-kicker,
+.naei-about-kicker {
+  margin: 0 0 5px;
+  color: var(--naei-blue);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.naei-chart-header h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  line-height: 1.25;
+}
+
+#naei-chart-subtitle {
+  margin: 5px 0 0;
+  color: var(--naei-muted);
+  line-height: 1.45;
+}
+
+.naei-dataset-label {
+  max-width: 250px;
+  margin: 2px 0 0;
+  color: #71808d;
+  font-size: 0.72rem;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.naei-chart-message {
+  margin: 20px 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f3f7fa;
+  color: #3d4d5a;
+}
+
+.naei-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-height: 32px;
+  margin: 10px 0 8px;
+}
+
+.naei-legend-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 5px 9px;
+  border: 1px solid #d4dce3;
+  border-radius: 999px;
+  background: #fff;
+  color: #273641;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.naei-legend-button[aria-pressed="true"] {
+  border-color: #9fb5c6;
+  background: #eef5f9;
+}
+
+.naei-legend-button.is-subdued {
+  opacity: 0.36;
+}
+
+.naei-legend-swatch {
+  width: 13px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--series-colour);
+}
+
+.naei-chart-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.naei-chart {
+  display: block;
+  width: 100%;
+  min-width: 680px;
+  height: auto;
+  overflow: visible;
+}
+
+.naei-chart .grid-line {
+  stroke: var(--naei-grid);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+.naei-chart .axis-line {
+  stroke: #8d9aa5;
+  stroke-width: 1;
+}
+
+.naei-chart .axis-label {
+  fill: #53616d;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12px;
+}
+
+.naei-chart .axis-title {
+  fill: #34424e;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.naei-chart .series-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.naei-chart .series-point {
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.naei-chart .series-group.is-subdued {
+  opacity: 0.18;
+}
+
+.naei-chart .bubble-point {
+  stroke: #fff;
+  stroke-width: 2;
+  cursor: pointer;
+}
+
+.naei-chart .bubble-point:focus {
+  outline: none;
+  stroke: var(--naei-ink);
+  stroke-width: 3;
+}
+
+.naei-chart-tooltip {
+  position: fixed;
+  z-index: 10000;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(16, 24, 34, 0.95);
+  color: #fff;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  pointer-events: none;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.18);
+}
+
+.naei-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border-top: 1px solid #e1e6ea;
+  padding-top: 12px;
+}
+
+.naei-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.naei-table-wrap th,
+.naei-table-wrap td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #e6ebef;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.naei-table-wrap th:first-child,
+.naei-table-wrap td:first-child {
+  text-align: left;
+}
+
+.naei-table-wrap th {
+  color: #354451;
+  font-weight: 800;
+}
+
+.naei-about {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) repeat(2, minmax(220px, 1fr));
+  gap: 24px;
+  max-width: 1180px;
+  margin-top: 28px;
+  padding: 22px 4px;
+  border-top: 1px solid #d9e0e5;
+}
+
+.naei-about h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.naei-about > p {
+  margin: 0;
+  color: #4d5b66;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1050px) {
+  .naei-workspace {
+    grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  }
+
+  .naei-year-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+@media (max-width: 850px) and (min-width: 768px) {
+  .naei-main {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .naei-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .naei-controls {
+    position: static;
+  }
+
+  .naei-group-list {
+    max-height: 220px;
+  }
+
+  .naei-year-pair {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .naei-main {
+    padding: 72px 12px 48px;
+  }
+
+  .naei-intro .ukaq-page-title-heading {
+    padding-left: 48px;
+    padding-right: 128px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .naei-intro .ukaq-page-title-picture {
+    min-width: 0;
+  }
+
+  .naei-intro .ukaq-page-title-image {
+    max-width: 100%;
+  }
+
+  .naei-intro > p {
+    margin-top: 10px;
+    font-size: 0.94rem;
+  }
+
+  .naei-view-tabs {
+    width: 100%;
+  }
+
+  .naei-view-tab {
+    flex: 1 1 0;
+    min-height: 46px;
+  }
+
+  .naei-workspace {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .naei-controls {
+    position: static;
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+  .naei-year-pair {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .naei-group-list {
+    max-height: 250px;
+  }
+
+  .naei-group-option {
+    min-height: 44px;
+  }
+
+  .naei-group-actions button,
+  .naei-control-actions button {
+    min-height: 44px;
+  }
+
+  .naei-chart-card {
+    padding: 16px 10px 18px;
+    border-radius: 14px;
+  }
+
+  .naei-chart-header {
+    display: block;
+  }
+
+  .naei-dataset-label {
+    max-width: none;
+    margin-top: 8px;
+    text-align: left;
+  }
+
+  .naei-chart-scroll {
+    margin: 0 -2px;
+  }
+
+  .naei-chart {
+    min-width: 620px;
+  }
+
+  .naei-legend-button {
+    min-height: 44px;
+  }
+
+  .naei-about {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 18px 2px 0;
+  }
+}
+
+@media (max-width: 430px) {
+  .naei-year-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .naei-chart {
+    min-width: 590px;
+  }
+}
