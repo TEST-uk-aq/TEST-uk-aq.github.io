@@ -86,13 +86,9 @@
   }
 
   function sectionBounds(section, fallbackRange) {
-    const bounds = domain.snapshotChartRange({
-      start_utc: section?.output_start_utc || section?.stable_head_start_utc || fallbackRange.start_utc,
-      end_utc: section?.output_end_utc || section?.stable_head_end_utc || fallbackRange.end_utc,
-    }) || fallbackRange;
     return domain.snapshotChartRange({
-      startMs: Math.max(bounds.startMs, fallbackRange.startMs),
-      endMs: Math.min(bounds.endMs, fallbackRange.endMs),
+      start_utc: section?.stable_head_start_utc || fallbackRange.start_utc,
+      end_utc: section?.stable_head_end_utc || fallbackRange.end_utc,
     }) || fallbackRange;
   }
 
@@ -129,14 +125,7 @@
         requestedRange.startIso,
         cursorEndUtc,
         spanMs,
-      ).flatMap(function (item) {
-        // Forced combined retries already evaluate their matching AQI interval.
-        // Subtract that work before adding independent AQI requests.
-        const combined = kind === "aqi" ? Array.from(byRequest.values()).filter(function (request) {
-          return request.aqi && request.observations && request.stable_head_start_utc === stableHeadStartUtc;
-        }).map(function (request) { return request.range; }) : [];
-        return cache.subtractCoveredIntervals(item.range, combined).map(function (range) { return { ...item, range }; });
-      }).forEach(function (item) {
+      ).forEach(function (item) {
         const requestKey = `${item.range.start_utc}|${item.range.end_utc}|${stableHeadStartUtc}`;
         if (!byRequest.has(requestKey)) {
           byRequest.set(requestKey, {
@@ -147,9 +136,6 @@
           });
         }
         byRequest.get(requestKey)[kind] = true;
-        if (kind === "observations" && parts.refreshObservations && parts.primary) {
-          byRequest.get(requestKey).aqi = true;
-        }
       });
     });
     let observationSequence = 0;
@@ -350,13 +336,7 @@
         aqi_source_id: source?.station_id || null,
         range,
         observations,
-        aqi: source ? pointsInRange(recordFor(source)?.aqi_points, range).filter(function (point) {
-          // Retained stale bands may remain during Refresh, but a source switch
-          // must never present those bands as the new source's fresh output.
-          return extra.reason !== "aqi-source-change" || !cache.hasStaleAqi(recordFor(source), {
-            startMs: point.date.getTime() - domain.HOUR_MS, endMs: point.date.getTime(),
-          });
-        }) : [],
+        aqi: source ? pointsInRange(recordFor(source)?.aqi_points, range) : [],
         guideline: source ? recordFor(source)?.guideline || source.guideline || null : null,
         loading,
         revision: renderRevision,
@@ -395,7 +375,7 @@
       renderer.renderAqi?.(currentState({ ...extra, aqi_only: true }));
     }
 
-    function commitResult(entry, result, requestedRange, mode, requestedKinds = null, context = {}) {
+    function commitResult(entry, result, requestedRange, mode, requestedKinds = null) {
       const record = recordFor(entry);
       if (!record || result?.identity_valid !== true) {
         throw new Error("station_series_authoritative_identity_invalid");
@@ -403,9 +383,6 @@
       record.identity = result.identity;
       const allows = function (kind) { return !requestedKinds || requestedKinds.includes(kind); };
       if (allows("observations") && result.observations?.enabled === true) {
-        if (result.observations.error || result.observations.malformed || !Array.isArray(result.observations.points) || !Array.isArray(result.observations.rows)) {
-          throw new Error("station_series_observations_malformed");
-        }
         const bounds = mode === "current" ? sectionBounds(result.observations, requestedRange) : requestedRange;
         record.observation_points = mode === "current"
           ? cache.replaceAuthoritativeObservationHead(
@@ -426,12 +403,13 @@
           observationSettlement.complete ? "complete" : "partial",
           observationSettlement,
         );
-        if (context.refreshObservations) {
-          cache.invalidateAqiForObservations(record, bounds, entry.pollutant, context.evaluation);
-        }
       }
       if (allows("aqi") && result.aqi?.enabled === true) {
         const bounds = mode === "current" ? sectionBounds(result.aqi, requestedRange) : requestedRange;
+        const merged = mode === "current" || mode === "older-refresh"
+          ? cache.replaceAuthoritativeAqiHead(record.aqi_points, result.aqi.points, bounds.startIso, bounds.endIso)
+          : cache.mergeAqiWithoutReplacement(record.aqi_points, result.aqi.points);
+        record.aqi_points = merged.points;
         const settlement = clientKind === "compatibility"
           ? {
               complete: result.aqi.response_complete === true && result.aqi.has_gap !== true,
@@ -442,17 +420,6 @@
               missing_reasons: [],
             }
           : cache.inspectAqiSettlement({ ...result.aqi, points: result.aqi.rows });
-        if (result.aqi.error || result.aqi.identity_valid === false || !settlement.settled
-          || !Array.isArray(result.aqi.points) || !Array.isArray(result.aqi.rows)) {
-          cache.recordCoverageInterval(record, "aqi", bounds, "failed", { ...settlement, settled: false });
-          throw new Error("station_series_aqi_malformed");
-        }
-        if (!cache.canApplyAqiEvaluation(record, bounds, context.evaluation)) return record;
-        const replace = mode === "current" || context.refreshObservations || cache.hasStaleAqi(record, bounds);
-        const merged = replace
-          ? cache.replaceAuthoritativeAqiHead(record.aqi_points, result.aqi.points, bounds.startIso, bounds.endIso)
-          : cache.mergeAqiWithoutReplacement(record.aqi_points, result.aqi.points);
-        if (!merged.conflicts.length) record.aqi_points = merged.points;
         const safe = settlement.settled && !merged.conflicts.length;
         cache.recordCoverageInterval(
           record,
@@ -462,8 +429,6 @@
           { ...settlement, settled: safe },
         );
         if (merged.conflicts.length) throw new Error("aqi_replacement_contract_error");
-        cache.markAqiFresh(record, bounds, context.evaluation);
-        if (mode === "current") record.aqi_head_start_utc = result.aqi.stable_head_start_utc || bounds.startIso;
       }
       record.guideline = result.raw?.guideline || record.guideline || entry.guideline || null;
       record.updated_at = new Date().toISOString();
@@ -522,47 +487,28 @@
       await runQueueWithConcurrency(work, concurrency, async function (workItem) {
         if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
         const chunkRange = domain.snapshotChartRange(workItem.range);
-        const evaluation = cache.beginAqiEvaluation(record);
         let settled;
         try {
           const result = await client().loadOlder(requestFor(entry, chunkRange, workItem.parts, {
             stable_head_start_utc: workItem.stable_head_start_utc,
           }), workItem.parts, signal);
-          settled = { workItem, chunkRange, result, evaluation };
+          settled = { workItem, chunkRange, result };
         } catch (error) {
           if (isAbort(error) || signal.aborted || !generations.isCurrent(generation)) throw abortError();
           settled = { workItem, chunkRange, error };
         }
         if (workItem.observations) callbacks.onObservationSettled?.();
-        if (workItem.observations) {
-          settled.observationCommit = new Promise(function (resolve, reject) {
-            settled.observationAccepted = resolve;
-            settled.observationRejected = reject;
-          });
-          void settled.observationCommit.catch(function () {});
-        }
         const kinds = [workItem.observations && "observations", workItem.aqi && "aqi"].filter(Boolean);
         kinds.forEach(function (kind) {
           const sequence = kind === "observations" ? workItem.observation_sequence : workItem.aqi_sequence;
           scheduleOrderedSettlement(orderedByKind[kind], sequence, { ...settled, kind }, async function (value) {
             if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
-            if (kind === "aqi") await value.observationCommit;
-            if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
             if (value.error) {
               recordFailedOlderWork(entry, value.workItem, kind, value.error, generation);
-              if (kind === "observations") value.observationAccepted();
               return;
             }
-            try {
-              commitResult(entry, value.result, value.chunkRange, "older", [kind], {
-                refreshObservations: parts.refreshObservations === true,
-                evaluation: value.evaluation,
-              });
-              if (kind === "observations") value.observationAccepted();
-            } catch (error) {
-              if (kind === "observations") value.observationRejected(error);
-              throw error;
-            }
+            commitResult(entry, value.result, value.chunkRange,
+              parts.refreshHistory === true ? "older-refresh" : "older", [kind]);
             diagnostics.event("station_history_chunk_committed", {
               generation,
               source: clientKind,
@@ -585,7 +531,7 @@
       const abort = function () { abortController.abort(); };
       parentSignal?.addEventListener?.("abort", abort, { once: true });
       backgroundAbortControllers.add(abortController);
-      void prefetchEntryAqi(entry, requestedRange, abortController.signal, generation, true)
+      void prefetchEntryAqi(entry, requestedRange, abortController.signal, generation)
         .catch(function (error) {
           if (!isAbort(error)) diagnostics.event("station_chart_aqi_prefetch_failed", {
             generation,
@@ -600,76 +546,37 @@
     }
 
     async function loadEntry(entry, requestedRange, parts, signal, generation, callbacks = {}) {
-      const evaluation = cache.beginAqiEvaluation(recordFor(entry));
       const result = await client().loadCurrent(requestFor(entry, requestedRange, parts), parts, signal);
       if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
-      commitResult(entry, result, requestedRange, "current", null, { refreshObservations: parts.refreshObservations, evaluation });
+      commitResult(entry, result, requestedRange, "current");
       callbacks.onCommit?.("current");
       await loadOlder(entry, result, requestedRange, parts, signal, generation, {
         onPlanned: callbacks.onPlanned,
         onObservationSettled: callbacks.onObservationSettled,
         onCommit: function () { callbacks.onCommit?.("older"); },
       });
-      if (parts.refreshObservations && entry.station_id === selectedSource()?.station_id) {
-        // Accepted retries can affect following PM hours or a head-boundary
-        // endpoint. Repair only the remaining stale/unsettled AQI output.
-        await prefetchEntryAqi(entry, requestedRange, signal, generation);
-        callbacks.onCommit?.("older");
-      }
-      if (parts.observations === true && parts.aqi !== true && !parts.refreshObservations) {
+      if (parts.observations === true && parts.aqi !== true) {
         startBackgroundAqiPrefetch(entry, requestedRange, signal, generation);
       }
       return result;
     }
 
-    async function prefetchEntryAqi(entry, requestedRange, signal, generation, forceCurrent = false) {
-      const record = recordFor(entry);
-      const inFlightKey = `${recordKey(entry)}|${requestedRange.startIso}|${requestedRange.endIso}|${clientKind}|${generation}|${cache.beginAqiEvaluation(record).version}`;
+    async function prefetchEntryAqi(entry, requestedRange, signal, generation) {
+      const inFlightKey = `${recordKey(entry)}|${requestedRange.startIso}|${requestedRange.endIso}|${clientKind}`;
       const existing = aqiPrefetchInFlight.get(inFlightKey);
       if (existing && !existing.signal?.aborted) return existing.promise;
       if (existing) aqiPrefetchInFlight.delete(inFlightKey);
       let holder = null;
       const work = (async function () {
-        const parts = {
-          observations: false, aqi: true,
-          priority: Number(forceCurrent
-            ? options.priorities?.aqiPrefetch ?? DEFAULT_PRIORITIES.aqiPrefetch
-            : options.priorities?.primary ?? DEFAULT_PRIORITIES.primary),
+        const parts = { observations: false, aqi: true };
+        const result = await client().prefetchAqi(requestFor(entry, requestedRange, parts), signal);
+        if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
+        commitResult(entry, result, requestedRange, "current");
+        await loadOlder(entry, result, requestedRange, {
+          ...parts,
+          priority: Number(options.priorities?.aqiPrefetch ?? DEFAULT_PRIORITIES.aqiPrefetch),
           primary: true,
-        };
-        let result = null;
-        let firstPass = true;
-        let version;
-        do {
-          version = cache.beginAqiEvaluation(record).version;
-          const headStart = record.aqi_head_start_utc ? domain.toDate(record.aqi_head_start_utc) : null;
-          const headRange = headStart ? domain.snapshotChartRange({
-            startMs: Math.max(headStart.getTime(), requestedRange.startMs), endMs: requestedRange.endMs,
-          }) : requestedRange;
-          const currentWork = firstPass && (forceCurrent || !headStart)
-            ? [requestedRange]
-            : headRange ? cache.getUncoveredRanges(record, "aqi", headRange).map(domain.snapshotChartRange) : [];
-          await runQueueWithConcurrency(currentWork, DEFAULT_PRIMARY_AQI_CONCURRENCY, async function (currentRange) {
-            const evaluation = cache.beginAqiEvaluation(record);
-            const response = await client().prefetchAqi(requestFor(entry, currentRange, parts), signal);
-            if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
-            commitResult(entry, response, currentRange, "current", ["aqi"], { evaluation });
-            result = response;
-          });
-          const boundary = record.aqi_head_start_utc;
-          if (boundary) {
-            const initial = { aqi: {
-              next_chunk_end_utc: new Date(Math.min(Date.parse(boundary), requestedRange.endMs)).toISOString(),
-              stable_head_start_utc: boundary,
-            } };
-            await loadOlder(entry, initial, requestedRange, parts, signal, generation);
-          }
-          firstPass = false;
-          // Retry only when a new accepted dependency raced this pass. A failed
-          // unchanged interval remains retryable without an automatic loop.
-        } while (!signal.aborted && generations.isCurrent(generation)
-          && cache.beginAqiEvaluation(record).version !== version
-          && cache.getUncoveredRanges(record, "aqi", requestedRange).length);
+        }, signal, generation);
         return result;
       })().finally(function () {
         if (aqiPrefetchInFlight.get(inFlightKey) === holder) aqiPrefetchInFlight.delete(inFlightKey);
@@ -682,8 +589,6 @@
     async function load(reason, loadOptions = {}) {
       if (destroyed || !mounted || !range) return null;
       activeAbortController?.abort();
-      sourceAbortController?.abort();
-      aqiSourceController.invalidate();
       backgroundAbortControllers.forEach(function (controller) { controller.abort(); });
       backgroundAbortControllers.clear();
       const abortController = new AbortController();
@@ -700,7 +605,17 @@
         );
       };
       const source = selectedSource();
-      const refreshObservations = loadOptions.explicitRefresh === true && clientKind === "calculated";
+      const refreshHistory = reason === "refresh" && clientKind === "calculated";
+      if (refreshHistory) {
+        // Settlement is reusable during ordinary loads, but an explicit
+        // Refresh re-evaluates both parts of the displayed range. Retain the
+        // points until successful responses replace the refreshed intervals.
+        selection.forEach(function (entry) {
+          const record = recordFor(entry);
+          cache.recordCoverageInterval(record, "observations", range, "stale");
+          cache.recordCoverageInterval(record, "aqi", range, "stale");
+        });
+      }
       const renderScheduler = createRenderScheduler(function () {
         renderAll({
           reason,
@@ -788,8 +703,8 @@
           const primary = entry.station_id === source?.station_id;
           const parts = {
             observations: true,
-            aqi: primary,
-            refreshObservations,
+            aqi: primary || refreshHistory,
+            refreshHistory,
             primary,
             priority: Number(primary
               ? options.priorities?.primary ?? DEFAULT_PRIORITIES.primary
@@ -1027,7 +942,7 @@
     }
 
     function refresh() {
-      return load("refresh", { explicitRefresh: true });
+      return load("refresh");
     }
 
     function resize(dimensions) {

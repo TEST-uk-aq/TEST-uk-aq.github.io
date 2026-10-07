@@ -60,8 +60,6 @@
   }
 
   function replaceAuthoritativeAqiHead(existingPoints, headPoints, headStartUtc, headEndUtc) {
-    // The endpoint interval (start, end] may be a head or a deliberately
-    // recalculated historical fragment. Never extend replacement beyond it.
     const startMs = Date.parse(String(headStartUtc || ""));
     const endMs = Date.parse(String(headEndUtc || ""));
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
@@ -71,10 +69,7 @@
       const key = domain.hourKey(point?.date);
       return key === null || key <= startMs || key > endMs;
     });
-    return mergeAqiWithoutReplacement(retained, (Array.isArray(headPoints) ? headPoints : []).filter(function (point) {
-      const key = domain.hourKey(point?.date);
-      return key !== null && key > startMs && key <= endMs;
-    }));
+    return mergeAqiWithoutReplacement(retained, headPoints);
   }
 
   function mergeObservationPoints(existingPoints, incomingPoints) {
@@ -237,103 +232,7 @@
 
   function getUncoveredRanges(record, kind, range) {
     const section = coverageSection(record, kind);
-    let reusable = kind === "aqi" ? section.settled_intervals : section.covered_intervals;
-    if (kind === "aqi") {
-      aqiFreshness(record).intervals.filter(function (interval) { return interval.stale; }).forEach(function (interval) {
-        reusable = subtractIntervals(reusable, interval);
-      });
-    }
-    return subtractCoveredIntervals(range, reusable);
-  }
-
-  function aqiFreshness(record) {
-    if (!record.aqi_freshness) record.aqi_freshness = { version: 0, intervals: [] };
-    return record.aqi_freshness;
-  }
-
-  function beginAqiEvaluation(record) {
-    return { version: aqiFreshness(record).version, observation_version: null, blocked_intervals: [] };
-  }
-
-  function observationAqiDependency(range, pollutant) {
-    const bounds = intervalBounds(range);
-    if (!bounds) return null;
-    // Visible observation responses include both boundary timestamps. Include
-    // missing canonical endpoints too; returned rows alone cannot prove sameness.
-    const first = Math.ceil(bounds.startMs / domain.HOUR_MS) * domain.HOUR_MS;
-    const last = Math.floor(bounds.endMs / domain.HOUR_MS) * domain.HOUR_MS;
-    if (last < first) return null;
-    const forwardHours = ["pm25", "pm10"].includes(domain.normalizePollutant(pollutant)) ? 23 : 0;
-    return { startMs: first - domain.HOUR_MS, endMs: last + forwardHours * domain.HOUR_MS };
-  }
-
-  function overlaps(left, right) {
-    return left.endMs > right.startMs && left.startMs < right.endMs;
-  }
-
-  function splitFreshnessIntervals(intervals, bounds) {
-    return intervals.flatMap(function (interval) {
-      if (!overlaps(interval, bounds)) return [interval];
-      const retained = [];
-      if (interval.startMs < bounds.startMs) retained.push({ ...interval, endMs: bounds.startMs });
-      if (interval.endMs > bounds.endMs) retained.push({ ...interval, startMs: bounds.endMs });
-      return retained;
-    });
-  }
-
-  function invalidateAqiForObservations(record, range, pollutant, evaluation = null) {
-    const bounds = observationAqiDependency(range, pollutant);
-    if (!bounds) return;
-    const freshness = aqiFreshness(record);
-    if (evaluation) {
-      // A combined response satisfies its own acceptance, but not an observation
-      // dependency accepted by another response while this request was in flight.
-      evaluation.blocked_intervals = normalizeIntervals([
-        ...evaluation.blocked_intervals,
-        ...freshness.intervals.filter(function (interval) {
-          return interval.version > evaluation.version && overlaps(interval, bounds);
-        }).map(function (interval) {
-          return { startMs: Math.max(interval.startMs, bounds.startMs), endMs: Math.min(interval.endMs, bounds.endMs) };
-        }),
-      ]);
-      evaluation.observation_version = freshness.version + 1;
-    }
-    freshness.version += 1;
-    freshness.intervals = splitFreshnessIntervals(freshness.intervals, bounds);
-    freshness.intervals.push({ ...bounds, version: freshness.version, stale: true });
-    freshness.intervals.sort(function (left, right) { return left.startMs - right.startMs; });
-  }
-
-  function canApplyAqiEvaluation(record, range, evaluation) {
-    const bounds = intervalBounds(range);
-    if (!bounds || !evaluation) return false;
-    return !evaluation.blocked_intervals.some(function (interval) { return overlaps(interval, bounds); })
-      && !aqiFreshness(record).intervals.some(function (interval) {
-        return overlaps(interval, bounds) && interval.version > evaluation.version
-          && interval.version !== evaluation.observation_version;
-      });
-  }
-
-  function markAqiFresh(record, range, evaluation) {
-    if (!canApplyAqiEvaluation(record, range, evaluation)) return false;
-    const bounds = intervalBounds(range);
-    const freshness = aqiFreshness(record);
-    const accepted = freshness.intervals.filter(function (interval) { return overlaps(interval, bounds); })
-      .map(function (interval) {
-        return { ...interval, startMs: Math.max(interval.startMs, bounds.startMs), endMs: Math.min(interval.endMs, bounds.endMs), stale: false };
-      });
-    // Retain dependency versions even after repair so a late older response
-    // cannot overwrite a newer, already-fresh calculated result.
-    freshness.intervals = [...splitFreshnessIntervals(freshness.intervals, bounds), ...accepted]
-      .sort(function (left, right) { return left.startMs - right.startMs; });
-    return true;
-  }
-
-  function hasStaleAqi(record, range) {
-    const bounds = intervalBounds(range);
-    return Boolean(bounds && aqiFreshness(record).intervals.some(function (interval) {
-      return interval.stale && overlaps(interval, bounds);
-    }));
+    return subtractCoveredIntervals(range, kind === "aqi" ? section.settled_intervals : section.covered_intervals);
   }
 
   function getIncompleteRanges(record, kind, range) {
@@ -383,8 +282,6 @@
       aqi_complete: value.aqi_complete === true,
       observations_complete: value.observations_complete === true,
       calculated_combined: value.calculated_combined === true,
-      aqi_freshness: value.aqi_freshness || { version: 0, intervals: [] },
-      aqi_head_start_utc: value.aqi_head_start_utc || null,
       identity: domain.resolveAuthoritativeIdentity({ identity: value.identity }) || null,
       guideline: value.guideline && typeof value.guideline === "object" ? value.guideline : null,
       updated_at: typeof value.updated_at === "string" ? value.updated_at : null,
@@ -666,12 +563,6 @@
     normalizeCoverageSection,
     recordCoverageInterval,
     getUncoveredRanges,
-    beginAqiEvaluation,
-    observationAqiDependency,
-    invalidateAqiForObservations,
-    canApplyAqiEvaluation,
-    markAqiFresh,
-    hasStaleAqi,
     getIncompleteRanges,
     nextChunkRange,
     chunkKey,
