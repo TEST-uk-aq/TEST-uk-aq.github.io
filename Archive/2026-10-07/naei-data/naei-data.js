@@ -46,6 +46,7 @@ const dom = {
   chartModeLabel: document.getElementById('naei-chart-mode-label'),
   chartMessage: document.getElementById('naei-chart-message'),
   datasetLabel: document.getElementById('naei-dataset-label'),
+  table: document.getElementById('naei-chart-table'),
 };
 
 const state = {
@@ -433,6 +434,32 @@ function renderLegend(groups) {
   });
 }
 
+function renderTable(headers, rows) {
+  const thead = dom.table.tHead || dom.table.createTHead();
+  const tbody = dom.table.tBodies[0] || dom.table.createTBody();
+  thead.replaceChildren();
+  tbody.replaceChildren();
+
+  const headRow = document.createElement('tr');
+  headers.forEach((header) => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.textContent = header;
+    headRow.append(th);
+  });
+  thead.append(headRow);
+
+  rows.forEach((row) => {
+    const tr = document.createElement('tr');
+    row.forEach((value) => {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.append(td);
+    });
+    tbody.append(tr);
+  });
+}
+
 function buildLineModel(groupPayloads) {
   const metric = metricById(state.metricId);
   const groups = selectedGroups();
@@ -459,6 +486,7 @@ function drawLineChart(model) {
   if (!numericValues.length) {
     dom.chartMessage.textContent = 'No reported values are available for this selection.';
     dom.chartMessage.hidden = false;
+    renderTable(['Year', ...model.groups.map((g) => g.display_title)], []);
     return;
   }
 
@@ -536,6 +564,12 @@ function drawLineChart(model) {
     flushSegment();
     dom.chart.append(g);
   });
+
+  const tableRows = model.years.map((year, index) => [
+    String(year),
+    ...model.series.map((item) => formatNumber(item.values[index])),
+  ]);
+  renderTable(['Year', ...model.groups.map((g) => g.display_title)], tableRows);
 }
 
 function buildBubbleModel(groupPayloads) {
@@ -569,6 +603,7 @@ function drawBubbleChart(model) {
   if (!model.points.length) {
     dom.chartMessage.textContent = 'The selected groups do not have both Activity Data and pollutant values for this year.';
     dom.chartMessage.hidden = false;
+    renderTable(['Group', 'Activity Data', model.metric?.display_name || 'Pollutant'], []);
     return;
   }
 
@@ -613,6 +648,15 @@ function drawBubbleChart(model) {
     circle.addEventListener('blur', hideTooltip);
     dom.chart.append(circle);
   });
+
+  renderTable(
+    ['Group', `Activity Data (${model.activity.unit || 'value'})`, `${model.metric.display_name} (${model.metric.unit || 'value'})`],
+    model.points.map((point) => [
+      point.group.display_title,
+      formatNumber(point.x),
+      formatNumber(point.y),
+    ]),
+  );
 }
 
 let lastModel = null;
@@ -642,6 +686,7 @@ async function renderChart() {
     dom.chart.replaceChildren();
     dom.chartMessage.textContent = 'Select at least one group to draw the chart.';
     dom.chartMessage.hidden = false;
+    renderTable([], []);
     lastModel = null;
     return;
   }

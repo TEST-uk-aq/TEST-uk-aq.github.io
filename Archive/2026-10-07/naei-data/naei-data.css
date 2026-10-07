@@ -59,10 +59,6 @@ body.naei-data-page {
   padding: 18px 20px;
 }
 
-.naei-status[hidden] {
-  display: none;
-}
-
 .naei-spinner {
   width: 22px;
   height: 22px;
@@ -460,6 +456,37 @@ body.naei-data-page {
   line-height: 1.45;
   pointer-events: none;
   box-shadow: 0 5px 16px rgba(0,0,0,0.18);
+}
+
+.naei-table-wrap {
+  margin-top: 14px;
+  overflow-x: auto;
+  border-top: 1px solid #e1e6ea;
+  padding-top: 12px;
+}
+
+.naei-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.naei-table-wrap th,
+.naei-table-wrap td {
+  padding: 7px 9px;
+  border-bottom: 1px solid #e6ebef;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.naei-table-wrap th:first-child,
+.naei-table-wrap td:first-child {
+  text-align: left;
+}
+
+.naei-table-wrap th {
+  color: #354451;
+  font-weight: 800;
 }
 
 .naei-about {
