@@ -3,7 +3,7 @@
 window.UKAQ_NEWS_EMAIL = Object.freeze({
   enabled: false,
   apiOrigin: 'https://uk-aq-media-email.uk-aq-media.workers.dev',
-  turnstileSiteKey: '',
+  turnstileSiteKey: '0x4AAAAAADvk69amXC9V2nNx',
   turnstileAction: 'news_subscribe',
   consentTextVersion: '2026-10-05',
 });

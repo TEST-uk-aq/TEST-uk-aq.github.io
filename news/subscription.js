@@ -12,7 +12,7 @@
   let secureToken = ''; let surface = 'subscribe'; let widget; let challenge = ''; let loadingWidget = false;
   const announce = (text, error = false) => { status.textContent = text; status.dataset.error = String(error); };
   const mode = () => form.elements.delivery_mode.value;
-  for (let minutes = 0; minutes < 1440; minutes += 15) {
+  for (let minutes = 0; minutes < 1440; minutes += 30) {
     const value = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
     time.add(new Option(value, value));
   }
