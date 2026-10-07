@@ -538,10 +538,13 @@ const drainBackground = async () => {
 };
 
 async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant = "pm25" } = {}) {
-  const requests = [], records = new Map();
-  const renders = { observations: 0, axes: 0, aqi: 0 };
+  const requests = [], records = new Map(), messages = [];
+  const renders = { observations: 0, axes: 0, aqi: 0, errors: 0, unavailable: 0, cleared: 0 };
   let repaired = false;
-  const controls = { failOlder: null, failHead: null, failAqi: null, invalidAqi: null, malformedAqi: false, holdHead: null };
+  const controls = {
+    failOlder: null, failHead: null, failAqi: null, invalidAqi: null,
+    malformedAqi: false, malformedHeadAqi: false, holdHead: null, holdAqi: null, observationValue: 2.8, aqiLevel: null,
+  };
   function result(request, parts, current) {
     const start = current ? Math.max(Date.parse(request.start_utc), Date.parse(refreshIso(96))) : Date.parse(request.start_utc);
     const end = Date.parse(request.end_utc);
@@ -551,10 +554,11 @@ async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant
     const aqiPoints = [];
     for (let hour = 0; hour <= 144; hour += 1) {
       const timestamp = Date.parse(refreshIso(hour));
-      if (timestamp >= start && timestamp <= end) observationPoints.push({ date: new Date(timestamp), value: 2.8 });
+      if (timestamp >= start && timestamp <= end) observationPoints.push({ date: new Date(timestamp), value: controls.observationValue });
       if (timestamp > start && timestamp <= end && !(hour === 30 && !repaired)
         && !(repaired && [24, 31].includes(hour))) {
-        aqiPoints.push({ date: new Date(timestamp), daqi: repaired ? 1 : 2, eaqi: repaired ? 1 : 2 });
+        const level = controls.aqiLevel ?? (repaired ? 1 : 2);
+        aqiPoints.push({ date: new Date(timestamp), daqi: level, eaqi: level });
       }
     }
     const head = current ? {
@@ -569,7 +573,7 @@ async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant
       aqi: {
         ...base.aqi, ...head, points: aqiPoints, rows: aqiPoints,
         response_complete: false, has_gap: true, partial_reasons: ["insufficient_samples"],
-        malformed: controls.malformedAqi && !current && parts.aqi,
+        malformed: parts.aqi && (current ? controls.malformedHeadAqi : controls.malformedAqi),
       },
     };
   }
@@ -592,17 +596,29 @@ async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant
     },
     async prefetchAqi(request) {
       requests.push({ ...request, type: "prefetch", observations: false, aqi: true });
-      return result(request, { observations: false, aqi: true }, true);
+      const response = result(request, { observations: false, aqi: true }, true);
+      if (controls.holdAqi?.id === request.station_id) {
+        const held = controls.holdAqi;
+        controls.holdAqi = null;
+        await new Promise((resolve) => { held.release = resolve; });
+        if (held.failure === "transport") throw new Error("obsolete_aqi_transport_failed");
+        response.aqi.malformed = true;
+      }
+      return response;
     },
   };
   const controller = controllerModule.createStationChartController({
     renderer: {
-      initialise() {}, setLoading() {}, clearAqi() {}, destroy() {},
+      initialise() {}, setLoading() {}, destroy() {},
+      clearAqi() { renders.cleared += 1; },
+      renderError() { renders.errors += 1; },
+      renderAqiUnavailable() { renders.unavailable += 1; },
       renderAxes() { renders.axes += 1; },
-      renderObservations() { renders.observations += 1; },
+      renderObservations(state) { renders.observations += 1; renders.observationState = state; },
       renderAqi(state) { renders.aqi += 1; renders.aqiState = state; },
     },
     calculatedClient: client, compatibilityClient: client, records,
+    onMessage(message) { messages.push(message); },
     olderChunkMs: 24 * refreshHourMs,
     aqiSourceController: sourceModule.createAqiSourceController({ transitionMs: 0, wait: async () => {} }),
   });
@@ -620,7 +636,8 @@ async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant
       "legitimate blank/partial AQI is initially settled and fresh");
   }
   requests.length = 0;
-  return { controller, requests, records, renders, record, controls, repair() { repaired = true; } };
+  messages.length = 0;
+  return { controller, requests, records, renders, messages, record, controls, repair() { repaired = true; } };
 }
 
 function olderObservationRequests(fixture) {
@@ -800,15 +817,72 @@ cacheModule.invalidateAqiForObservations(raceRecord, retryRange, "pm25", overlap
 assert.equal(cacheModule.canApplyAqiEvaluation(raceRecord, retryRange, overlappingCombined), false,
   "a combined response cannot erase another acceptance that raced its request");
 
-// Malformed recalculation retains valid cached rows and leaves dependency stale.
-const malformedRefresh = await createRefreshFixture({ count: 1, retryIds: [1] });
-const retainedMalformed = aqiAt(malformedRefresh.record(1), 36);
-malformedRefresh.controls.malformedAqi = true;
-malformedRefresh.repair();
-await malformedRefresh.controller.refresh();
-assert.equal(aqiAt(malformedRefresh.record(1), 36), retainedMalformed);
-assert.equal(cacheModule.hasStaleAqi(malformedRefresh.record(1), retryRange), true);
-malformedRefresh.controller.destroy();
+// Combined current/older Refresh accepts observations independently of AQI.
+for (const currentHead of [false, true]) {
+  const malformedRefresh = await createRefreshFixture({ count: 1, retryIds: currentHead ? [] : [1] });
+  const affectedHour = currentHead ? 100 : 36;
+  const unrelatedHour = currentHead ? 36 : 78;
+  const affectedRange = currentHead ? refreshInterval(99, 100) : retryRange;
+  const retained = aqiAt(malformedRefresh.record(1), affectedHour);
+  malformedRefresh.controls[currentHead ? "malformedHeadAqi" : "malformedAqi"] = true;
+  malformedRefresh.controls.observationValue = 4.2;
+  malformedRefresh.repair();
+  const refreshed = await malformedRefresh.controller.refresh();
+  assert.equal(refreshed.observation_complete, true, "AQI failure does not reject usable observation loading");
+  assert.ok([...malformedRefresh.renders.observationState.observations.values()].flat()
+    .some((point) => point.date.getTime() === Date.parse(refreshIso(affectedHour)) && point.value === 4.2),
+  "valid refreshed observations are accepted and rendered despite malformed combined AQI");
+  assert.equal(malformedRefresh.renders.errors, 0, "AQI-only failure never invokes chart-wide renderError");
+  assert.ok(malformedRefresh.messages.every((message) => message === ""), "no chart-wide failure message is shown");
+  assert.equal(aqiAt(malformedRefresh.record(1), affectedHour), retained, "failed recalculation preserves cached rows");
+  assert.equal(cacheModule.hasStaleAqi(malformedRefresh.record(1), affectedRange), true);
+  assert.ok(cacheModule.getUncoveredRanges(malformedRefresh.record(1), "aqi", affectedRange).length,
+    "failed AQI remains unsettled and retryable");
+  assert.ok(!malformedRefresh.renders.aqiState.aqi.some((point) => point.date.getTime() === Date.parse(refreshIso(affectedHour))),
+    "terminally failed stale bands are not presented alongside refreshed observations");
+  assert.ok(malformedRefresh.renders.aqiState.aqi.some((point) => point.date.getTime() === Date.parse(refreshIso(unrelatedHour))),
+    "unrelated fresh bands remain displayed");
+  malformedRefresh.controller.destroy();
+}
+
+// An older source-switch evaluation must not damage a newer accepted Refresh
+// dependency and repair, whether its late failure is malformed or transport.
+for (const failure of ["malformed", "transport"]) {
+  const obsoleteAqi = await createRefreshFixture({ count: 2, retryIds: [] });
+  obsoleteAqi.repair();
+  await obsoleteAqi.controller.refresh();
+  obsoleteAqi.controls.holdHead = { id: 2 };
+  const newerRefresh = obsoleteAqi.controller.refresh();
+  await drainBackground();
+  const held = { id: 2, failure };
+  obsoleteAqi.controls.holdAqi = held;
+  const olderSwitch = obsoleteAqi.controller.setAqiSource("2");
+  await drainBackground();
+  assert.equal(typeof held.release, "function", "older AQI evaluation has started before the new observation acceptance");
+  obsoleteAqi.controls.observationValue = 4.2;
+  obsoleteAqi.controls.aqiLevel = 3;
+  obsoleteAqi.controls.holdHead.release();
+  await newerRefresh;
+  const record = obsoleteAqi.record(2);
+  assert.ok(record.observation_points.some((point) => point.date.getTime() === Date.parse(refreshIso(100)) && point.value === 4.2),
+    "the newer observation dependency was accepted");
+  assert.equal(cacheModule.getUncoveredRanges(record, "aqi", refreshRange).length, 0,
+    "a newer AQI repair has settled fresh before the obsolete failure returns");
+  assert.equal(aqiAt(record, 100).eaqi, 3, "the newer repair supplies new AQI rows");
+  const beforeFailure = JSON.stringify(record);
+  const beforeRender = { ...obsoleteAqi.renders };
+  held.release();
+  await olderSwitch;
+  assert.equal(JSON.stringify(record), beforeFailure,
+    "obsolete AQI failure cannot alter newer rows, settlement, freshness or cache metadata");
+  assert.equal(obsoleteAqi.renders.unavailable, beforeRender.unavailable,
+    "an ignored obsolete failure does not make the repaired source unavailable");
+  assert.equal(obsoleteAqi.renders.observations, beforeRender.observations);
+  assert.equal(obsoleteAqi.renders.axes, beforeRender.axes);
+  assert.equal(obsoleteAqi.renders.errors, 0);
+  assert.ok(obsoleteAqi.messages.every((message) => message === ""));
+  obsoleteAqi.controller.destroy();
+}
 
 for (const failure of ["failAqi", "invalidAqi"]) {
   const failedSwitch = await createRefreshFixture({ count: 2, retryIds: [2] });
@@ -817,17 +891,21 @@ for (const failure of ["failAqi", "invalidAqi"]) {
   await failedSwitch.controller.refresh();
   failedSwitch.controls[failure] = 2;
   const beforeSwitch = { ...failedSwitch.renders };
+  failedSwitch.requests.length = 0;
   await failedSwitch.controller.setAqiSource("2");
   assert.equal(aqiAt(failedSwitch.record(2), 36), retained,
     "failed/identity-invalid AQI-only work preserves cached rows");
   assert.equal(cacheModule.hasStaleAqi(failedSwitch.record(2), retryRange), true,
     "failed recalculation never restores freshness");
   assert.equal(failedSwitch.renders.observations, beforeSwitch.observations);
-  if (failure === "failAqi") {
-    assert.ok(failedSwitch.renders.aqiState.aqi.every((point) =>
-      point.date.getTime() < Date.parse(refreshIso(24)) || point.date.getTime() > Date.parse(refreshIso(71))),
-    "terminal AQI-only rendering excludes retained stale output");
-  }
+  assert.equal(failedSwitch.renders.axes, beforeSwitch.axes);
+  assert.ok(failedSwitch.requests.every((request) => request.aqi && !request.observations));
+  assert.equal(failedSwitch.renders.cleared, beforeSwitch.cleared + 1);
+  assert.equal(failedSwitch.renders.unavailable, beforeSwitch.unavailable + 1,
+    "AQI-only source-switch failure retains the existing AQI-local unavailable path");
+  assert.equal(failedSwitch.renders.aqi, beforeSwitch.aqi, "the failed source never commits retained stale bands");
+  assert.equal(failedSwitch.renders.errors, beforeSwitch.errors);
+  assert.ok(failedSwitch.messages.every((message) => message === ""));
   failedSwitch.controller.destroy();
 }
 
