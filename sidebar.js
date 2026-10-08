@@ -84,11 +84,17 @@
     if (!manualReload && cached !== null) return cached;
 
     try {
-      const snapshot = window.UkAqPublicNetworkCatalogSnapshot;
-      if (snapshot) return acceptSnapshot(snapshot);
-      if (window.UkAqNetworkCatalog?.load) {
-        const eventSnapshot = await waitForCatalogEvent();
-        if (eventSnapshot) return acceptSnapshot(eventSnapshot);
+      let snapshot = window.UkAqPublicNetworkCatalogSnapshot;
+      if (!snapshot && window.UkAqNetworkCatalog?.load) {
+        snapshot = await waitForCatalogEvent();
+      }
+      if (snapshot) {
+        try {
+          return acceptSnapshot(snapshot);
+        } catch (error) {
+          // Rejected shared data must not prevent a valid direct response.
+          console.warn('UK AQ shared attribution catalogue rejected; requesting public catalogue', error);
+        }
       }
 
       const controller = new AbortController();
