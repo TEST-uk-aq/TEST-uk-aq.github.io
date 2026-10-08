@@ -186,6 +186,12 @@
     }
   }
 
+  // Preserve compound words at normal line breaks, leaving emergency wrapping to CSS.
+  // The word joiner is display-only; source article titles and search stay unchanged.
+  function displayTitleWrapping(value) {
+    return String(value).replace(/([\\p{L}\\p{N}])([-\\u2010])(?=[\\p{L}\\p{N}])/gu, "$1$2\\u2060");
+  }
+
   function text(value) {
     return typeof value === "string" ? value.trim() : "";
   }
@@ -359,7 +365,7 @@
     appendPublicationDate(source, article);
     const heading = document.createElement("span");
     heading.className = "news-grid-title";
-    heading.textContent = article.displayTitle;
+    heading.textContent = displayTitleWrapping(article.displayTitle);
     overlay.append(source, heading);
     card.append(overlay);
 
@@ -388,7 +394,7 @@
     imageCell.append(buildThumbnail(article));
 
     const titleCell = document.createElement("td");
-    titleCell.append(externalLink(article, "news-table-title-link", article.displayTitle));
+    titleCell.append(externalLink(article, "news-table-title-link", displayTitleWrapping(article.displayTitle)));
 
     const publicationCell = document.createElement("td");
     publicationCell.textContent = article.publisher;
