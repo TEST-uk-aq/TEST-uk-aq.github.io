@@ -708,6 +708,7 @@ body {
 
 .news-grid-title {
   display: -webkit-box;
+  overflow-wrap: anywhere; /* Last resort if a whole hyphenated word exceeds card width. */
   margin: 0;
   overflow: hidden;
   color: #fff;
@@ -1032,6 +1033,7 @@ body {
 }
 
 .news-table-title-link {
+  overflow-wrap: anywhere;
   color: #175283;
   font-weight: 700;
   line-height: 1.4;
