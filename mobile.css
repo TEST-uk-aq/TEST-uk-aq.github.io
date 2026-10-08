@@ -120,6 +120,7 @@
 
   .home-page .homepage-media-mobile-title-text {
     display: -webkit-box;
+    overflow-wrap: anywhere; /* Only when the complete hyphenated word cannot fit. */
     width: 100%;
     overflow: hidden;
     -webkit-box-orient: vertical;
