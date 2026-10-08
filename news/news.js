@@ -189,7 +189,7 @@
   // Preserve compound words at normal line breaks, leaving emergency wrapping to CSS.
   // The word joiner is display-only; source article titles and search stay unchanged.
   function displayTitleWrapping(value) {
-    return String(value).replace(/([\\p{L}\\p{N}])([-\\u2010])(?=[\\p{L}\\p{N}])/gu, "$1$2\\u2060");
+    return String(value).replace(/([\p{L}\p{N}])([-\u2010])(?=[\p{L}\p{N}])/gu, "$1$2\u2060");
   }
 
   function text(value) {
