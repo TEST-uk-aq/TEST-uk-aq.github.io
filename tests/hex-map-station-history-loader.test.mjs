@@ -526,4 +526,387 @@ assert.equal(incompleteRequests.filter((endUtc) => endUtc === failedEndUtc).leng
   "the failed observation interval remains retryable");
 incompleteController.destroy();
 
+// Explicit Refresh preserves observation coverage and tracks derived freshness.
+const refreshHourMs = 60 * 60 * 1000;
+const refreshStartMs = Date.parse("2026-08-01T00:00:00.000Z");
+const refreshIso = (hour) => new Date(refreshStartMs + hour * refreshHourMs).toISOString();
+const refreshInterval = (start, end) => ({ start_utc: refreshIso(start), end_utc: refreshIso(end) });
+const refreshRange = refreshInterval(0, 120);
+const retryRange = refreshInterval(24, 48);
+const drainBackground = async () => {
+  for (let turn = 0; turn < 8; turn += 1) await new Promise((resolve) => setImmediate(resolve));
+};
+
+async function createRefreshFixture({ count = 3, retryIds = [1, 2, 3], pollutant = "pm25" } = {}) {
+  const requests = [], records = new Map(), messages = [];
+  const renders = { observations: 0, axes: 0, aqi: 0, errors: 0, unavailable: 0, cleared: 0 };
+  let repaired = false;
+  const controls = {
+    failOlder: null, failHead: null, failAqi: null, invalidAqi: null,
+    malformedAqi: false, malformedHeadAqi: false, holdHead: null, holdAqi: null, observationValue: 2.8, aqiLevel: null,
+  };
+  function result(request, parts, current) {
+    const start = current ? Math.max(Date.parse(request.start_utc), Date.parse(refreshIso(96))) : Date.parse(request.start_utc);
+    const end = Date.parse(request.end_utc);
+    const inRetry = !current && start < Date.parse(refreshIso(48)) && end > Date.parse(refreshIso(24));
+    const incomplete = !repaired && retryIds.includes(request.station_id) && inRetry;
+    const observationPoints = [];
+    const aqiPoints = [];
+    for (let hour = 0; hour <= 144; hour += 1) {
+      const timestamp = Date.parse(refreshIso(hour));
+      if (timestamp >= start && timestamp <= end) observationPoints.push({ date: new Date(timestamp), value: controls.observationValue });
+      if (timestamp > start && timestamp <= end && !(hour === 30 && !repaired)
+        && !(repaired && [24, 31].includes(hour))) {
+        const level = controls.aqiLevel ?? (repaired ? 1 : 2);
+        aqiPoints.push({ date: new Date(timestamp), daqi: level, eaqi: level });
+      }
+    }
+    const head = current ? {
+      stable_head_start_utc: refreshIso(96), stable_head_end_utc: request.end_utc,
+      output_start_utc: new Date(start).toISOString(), output_end_utc: request.end_utc,
+      next_chunk_end_utc: refreshIso(96),
+    } : {};
+    const base = makeResult(request, parts);
+    return {
+      ...base,
+      observations: { ...base.observations, ...head, points: observationPoints, response_complete: !incomplete, has_gap: incomplete },
+      aqi: {
+        ...base.aqi, ...head, points: aqiPoints, rows: aqiPoints,
+        response_complete: false, has_gap: true, partial_reasons: ["insufficient_samples"],
+        malformed: parts.aqi && (current ? controls.malformedHeadAqi : controls.malformedAqi),
+      },
+    };
+  }
+  const client = {
+    async loadCurrent(request, parts) {
+      requests.push({ ...request, type: "current", observations: parts.observations, aqi: parts.aqi });
+      if (controls.failHead === request.station_id) throw new Error("head_transport_failed");
+      if (controls.holdHead?.id === request.station_id) {
+        await new Promise((resolve) => { controls.holdHead.release = resolve; });
+      }
+      return result(request, parts, true);
+    },
+    async loadOlder(request, parts) {
+      requests.push({ ...request, type: "older", observations: parts.observations, aqi: parts.aqi });
+      if (parts.observations && controls.failOlder === request.station_id) throw new Error("history_transport_failed");
+      if (!parts.observations && controls.failAqi === request.station_id) throw new Error("aqi_transport_failed");
+      const response = result(request, parts, false);
+      if (!parts.observations && controls.invalidAqi === request.station_id) response.identity_valid = false;
+      return response;
+    },
+    async prefetchAqi(request) {
+      requests.push({ ...request, type: "prefetch", observations: false, aqi: true });
+      const response = result(request, { observations: false, aqi: true }, true);
+      if (controls.holdAqi?.id === request.station_id) {
+        const held = controls.holdAqi;
+        controls.holdAqi = null;
+        await new Promise((resolve) => { held.release = resolve; });
+        if (held.failure === "transport") throw new Error("obsolete_aqi_transport_failed");
+        response.aqi.malformed = true;
+      }
+      return response;
+    },
+  };
+  const controller = controllerModule.createStationChartController({
+    renderer: {
+      initialise() {}, setLoading() {}, destroy() {},
+      clearAqi() { renders.cleared += 1; },
+      renderError() { renders.errors += 1; },
+      renderAqiUnavailable() { renders.unavailable += 1; },
+      renderAxes() { renders.axes += 1; },
+      renderObservations(state) { renders.observations += 1; renders.observationState = state; },
+      renderAqi(state) { renders.aqi += 1; renders.aqiState = state; },
+    },
+    calculatedClient: client, compatibilityClient: client, records,
+    onMessage(message) { messages.push(message); },
+    olderChunkMs: 24 * refreshHourMs,
+    aqiSourceController: sourceModule.createAqiSourceController({ transitionMs: 0, wait: async () => {} }),
+  });
+  controller.mount({});
+  await controller.setRange(refreshRange);
+  await controller.setSelection(Array.from({ length: count }, (_, index) => ({
+    station_id: index + 1, timeseries_id: index + 101, connector_id: index + 201, pollutant,
+  })));
+  await drainBackground();
+  assert.equal(requests.filter((request) => request.type === "prefetch").length, count - 1,
+    "ordinary initial loading preserves secondary background prefetch");
+  const record = (id) => [...records.values()].find((entry) => entry.identity?.station_id === id);
+  for (let id = 1; id <= count; id += 1) {
+    assert.equal(cacheModule.getUncoveredRanges(record(id), "aqi", refreshRange).length, 0,
+      "legitimate blank/partial AQI is initially settled and fresh");
+  }
+  requests.length = 0;
+  messages.length = 0;
+  return { controller, requests, records, renders, messages, record, controls, repair() { repaired = true; } };
+}
+
+function olderObservationRequests(fixture) {
+  return fixture.requests.filter((request) => request.type === "older" && request.observations);
+}
+function assertOnlyExpectedObservationRetries(fixture, ids) {
+  assert.deepEqual(olderObservationRequests(fixture).map((request) => request.station_id).sort(), ids);
+  assert.ok(olderObservationRequests(fixture).every((request) =>
+    request.start_utc === retryRange.start_utc && request.end_utc === retryRange.end_utc),
+  "complete unrelated observation chunks are never re-fetched");
+}
+function assertSecondaryDeferred(fixture, ids) {
+  assert.ok(fixture.requests.every((request) => !ids.includes(request.station_id) || !request.aqi),
+    "Refresh suppresses secondary current and historical AQI, including background prefetch");
+}
+function aqiAt(record, hour) {
+  return record.aqi_points.find((point) => point.date.getTime() === Date.parse(refreshIso(hour)));
+}
+
+// 1: repaired primary history, bounded authoritative replacement, outside cache.
+const singleRefresh = await createRefreshFixture({ count: 1, retryIds: [1] });
+const primaryRecord = singleRefresh.record(1);
+assert.equal(aqiAt(primaryRecord, 30), undefined, "the repaired endpoint starts as settled blank");
+const obsoletePoint = aqiAt(primaryRecord, 31);
+const outsidePoint = { date: new Date(refreshIso(130)), daqi: 5, eaqi: 5 };
+primaryRecord.aqi_points.push(outsidePoint);
+cacheModule.recordCoverageInterval(primaryRecord, "aqi", refreshInterval(120, 144), "complete");
+const unselectedRecord = cacheModule.createCacheRecord();
+singleRefresh.records.set("unselected", unselectedRecord);
+const unselectedBefore = JSON.stringify(unselectedRecord);
+singleRefresh.repair();
+await singleRefresh.controller.refresh();
+assertOnlyExpectedObservationRetries(singleRefresh, [1]);
+assert.ok(olderObservationRequests(singleRefresh).every((request) => request.aqi),
+  "the primary observation retry includes AQI despite old blank settlement");
+assert.equal(aqiAt(primaryRecord, 30)?.eaqi, 1, "repaired blank EAQI appears");
+assert.equal(aqiAt(primaryRecord, 36)?.eaqi, 1, "changed AQI replaces an earlier level");
+assert.equal(primaryRecord.aqi_points.includes(obsoletePoint), false, "absent authoritative output removes obsolete rows");
+assert.equal(aqiAt(primaryRecord, 24), undefined, "an entirely blank recalculated interval removes its old row");
+assert.equal(cacheModule.getUncoveredRanges(primaryRecord, "aqi", refreshInterval(23, 24)).length, 0,
+  "successfully recalculated empty output becomes settled and fresh");
+assert.ok(primaryRecord.aqi_points.includes(outsidePoint), "replacement preserves points outside its interval");
+assert.equal(cacheModule.getUncoveredRanges(primaryRecord, "aqi", refreshRange).length, 0);
+assert.equal(cacheModule.hasStaleAqi(primaryRecord, refreshInterval(129, 130)), true,
+  "cached output inside the PM tail beyond the visible range remains stale");
+assert.equal(cacheModule.hasStaleAqi(primaryRecord, refreshInterval(143, 144)), false,
+  "the dependency ends at the last refreshed endpoint plus 23 hours");
+assert.equal(JSON.stringify(unselectedRecord), unselectedBefore, "unselected cache state stays untouched");
+assert.ok(singleRefresh.requests.every((request) => Date.parse(request.end_utc) <= Date.parse(refreshRange.end_utc)),
+  "immediate work is clipped to displayed output");
+const primaryAqiHistory = singleRefresh.requests.filter((request) => request.type === "older" && request.aqi);
+for (let index = 0; index < primaryAqiHistory.length; index += 1) {
+  const left = primaryAqiHistory[index];
+  assert.ok(primaryAqiHistory.slice(index + 1).every((right) =>
+    Date.parse(left.end_utc) <= Date.parse(right.start_utc) || Date.parse(right.end_utc) <= Date.parse(left.start_utc)),
+  "combined retries and following AQI-only work never duplicate an output interval");
+}
+singleRefresh.controller.destroy();
+
+// 2, 5, 6: all three retry, secondary heads/history defer, visible equality is no shortcut.
+const multiRefresh = await createRefreshFixture();
+const beforeVisiblePoints = JSON.stringify(multiRefresh.record(2).observation_points);
+const secondaryDiagnostics = JSON.stringify(multiRefresh.record(2).coverage.aqi.interval_states);
+multiRefresh.repair();
+await multiRefresh.controller.refresh();
+await drainBackground();
+assertOnlyExpectedObservationRetries(multiRefresh, [1, 2, 3]);
+assertSecondaryDeferred(multiRefresh, [2, 3]);
+assert.equal(JSON.stringify(multiRefresh.record(2).observation_points), beforeVisiblePoints,
+  "this retry returns identical normalized visible observations");
+assert.equal(JSON.stringify(multiRefresh.record(2).coverage.aqi.interval_states), secondaryDiagnostics,
+  "freshness invalidation preserves response settlement and diagnostics");
+for (const id of [2, 3]) {
+  assert.equal(cacheModule.hasStaleAqi(multiRefresh.record(id), retryRange), true);
+  assert.equal(cacheModule.hasStaleAqi(multiRefresh.record(id), refreshInterval(100, 101)), true,
+    "accepted secondary current-head observations invalidate dependent head AQI");
+  assert.equal(cacheModule.hasStaleAqi(multiRefresh.record(id), refreshInterval(70, 71)), true,
+    "PM dependency extends across the observation chunk edge through t+23h");
+  assert.equal(cacheModule.hasStaleAqi(multiRefresh.record(id), refreshInterval(71, 72)), false);
+  const beforeSwitch = { ...multiRefresh.renders };
+  multiRefresh.requests.length = 0;
+  await multiRefresh.controller.setAqiSource(String(id));
+  assert.ok(multiRefresh.requests.length > 0, "settled-but-stale source switching requests AQI");
+  assert.ok(multiRefresh.requests.every((request) => request.aqi && !request.observations),
+    "source switching never refetches observations");
+  assert.equal(aqiAt(multiRefresh.record(id), 30)?.eaqi, 1);
+  assert.equal(aqiAt(multiRefresh.record(id), 60)?.daqi, 1,
+    "AQI-only following-chunk work repairs PM forward dependency");
+  assert.equal(cacheModule.getUncoveredRanges(multiRefresh.record(id), "aqi", refreshRange).length, 0);
+  assert.equal(multiRefresh.renders.aqi, beforeSwitch.aqi + 1, "the new source commits bands once");
+  assert.equal(multiRefresh.renders.observations, beforeSwitch.observations);
+  assert.equal(multiRefresh.renders.axes, beforeSwitch.axes);
+}
+multiRefresh.requests.length = 0;
+await multiRefresh.controller.setAqiSource("2");
+await multiRefresh.controller.setAqiSource("1");
+assert.equal(multiRefresh.requests.length, 0, "settled-and-fresh sources retain the fast cache path");
+multiRefresh.controller.destroy();
+
+// 3: only B has retryable older observations; A/C history is retained.
+const secondaryOnly = await createRefreshFixture({ retryIds: [2] });
+secondaryOnly.repair();
+await secondaryOnly.controller.refresh();
+await drainBackground();
+assertOnlyExpectedObservationRetries(secondaryOnly, [2]);
+assertSecondaryDeferred(secondaryOnly, [2, 3]);
+assert.ok(secondaryOnly.requests.filter((request) => request.type === "older" && request.station_id === 1)
+  .every((request) => Date.parse(request.start_utc) >= Date.parse(refreshIso(95))),
+"the only possible primary historical AQI is its own inclusive head seam, never B's old interval");
+assert.equal(cacheModule.hasStaleAqi(secondaryOnly.record(2), retryRange), true);
+assert.equal(cacheModule.hasStaleAqi(secondaryOnly.record(3), retryRange), false);
+secondaryOnly.controller.destroy();
+
+// 4: complete older observations produce no observation work or blanket AQI requests.
+const completeRefresh = await createRefreshFixture({ retryIds: [] });
+completeRefresh.repair();
+await completeRefresh.controller.refresh();
+await drainBackground();
+assertOnlyExpectedObservationRetries(completeRefresh, []);
+assertSecondaryDeferred(completeRefresh, [2, 3]);
+assert.equal(completeRefresh.requests.filter((request) => request.type === "current").length, 3);
+assert.ok(completeRefresh.requests.filter((request) => request.type === "older")
+  .every((request) => request.aqi && !request.observations
+    && request.start_utc === refreshIso(95) && request.end_utc === refreshIso(96)),
+"any older request is limited to the primary head's inclusive observation endpoint");
+completeRefresh.controller.destroy();
+
+// 7: exact endpoint dependency arithmetic, including NO2 and a single PM seam.
+assert.deepEqual(cacheModule.observationAqiDependency(refreshInterval(24, 25), "pm25"), {
+  startMs: Date.parse(refreshIso(23)), endMs: Date.parse(refreshIso(48)),
+});
+assert.deepEqual(cacheModule.observationAqiDependency(refreshInterval(24, 25), "no2"), {
+  startMs: Date.parse(refreshIso(23)), endMs: Date.parse(refreshIso(25)),
+});
+
+// 8: transport failure and cancelled observation work cannot invalidate freshness.
+const failedRefresh = await createRefreshFixture({ retryIds: [2] });
+failedRefresh.controls.failOlder = 2;
+failedRefresh.controls.failHead = 3;
+const failedHeadBefore = JSON.stringify(failedRefresh.record(3).aqi_freshness);
+failedRefresh.repair();
+await failedRefresh.controller.refresh();
+assert.equal(cacheModule.hasStaleAqi(failedRefresh.record(2), retryRange), false,
+  "failed older observations do not invalidate their AQI");
+assert.equal(JSON.stringify(failedRefresh.record(3).aqi_freshness), failedHeadBefore,
+  "failed current observations do not invalidate AQI");
+failedRefresh.controller.destroy();
+
+const obsoleteRefresh = await createRefreshFixture({ retryIds: [] });
+obsoleteRefresh.controls.holdHead = { id: 2 };
+const obsoleteBefore = JSON.stringify(obsoleteRefresh.record(2).aqi_freshness);
+const pendingRefresh = obsoleteRefresh.controller.refresh();
+await drainBackground();
+await obsoleteRefresh.controller.setSelection([]);
+obsoleteRefresh.controls.holdHead.release();
+await pendingRefresh;
+assert.equal(JSON.stringify(obsoleteRefresh.record(2).aqi_freshness), obsoleteBefore,
+  "cancelled/obsolete observation responses never accept a freshness dependency");
+obsoleteRefresh.controller.destroy();
+
+// A newer dependency cannot be cleared by an earlier AQI evaluation, including
+// after the newer dependency has itself been repaired. No wall clock is involved.
+const raceRecord = cacheModule.createCacheRecord();
+cacheModule.recordCoverageInterval(raceRecord, "aqi", refreshRange, "complete");
+const oldEvaluation = cacheModule.beginAqiEvaluation(raceRecord);
+cacheModule.invalidateAqiForObservations(raceRecord, retryRange, "pm25");
+assert.equal(cacheModule.canApplyAqiEvaluation(raceRecord, retryRange, oldEvaluation), false);
+assert.equal(cacheModule.markAqiFresh(raceRecord, retryRange, oldEvaluation), false);
+assert.equal(cacheModule.hasStaleAqi(raceRecord, retryRange), true);
+const newEvaluation = cacheModule.beginAqiEvaluation(raceRecord);
+assert.equal(cacheModule.markAqiFresh(raceRecord, retryRange, newEvaluation), true);
+assert.equal(cacheModule.canApplyAqiEvaluation(raceRecord, retryRange, oldEvaluation), false,
+  "a late response cannot overwrite a newer fresh repair");
+const overlappingCombined = cacheModule.beginAqiEvaluation(raceRecord);
+cacheModule.invalidateAqiForObservations(raceRecord, retryRange, "pm25");
+cacheModule.invalidateAqiForObservations(raceRecord, retryRange, "pm25", overlappingCombined);
+assert.equal(cacheModule.canApplyAqiEvaluation(raceRecord, retryRange, overlappingCombined), false,
+  "a combined response cannot erase another acceptance that raced its request");
+
+// Combined current/older Refresh accepts observations independently of AQI.
+for (const currentHead of [false, true]) {
+  const malformedRefresh = await createRefreshFixture({ count: 1, retryIds: currentHead ? [] : [1] });
+  const affectedHour = currentHead ? 100 : 36;
+  const unrelatedHour = currentHead ? 36 : 78;
+  const affectedRange = currentHead ? refreshInterval(99, 100) : retryRange;
+  const retained = aqiAt(malformedRefresh.record(1), affectedHour);
+  malformedRefresh.controls[currentHead ? "malformedHeadAqi" : "malformedAqi"] = true;
+  malformedRefresh.controls.observationValue = 4.2;
+  malformedRefresh.repair();
+  const refreshed = await malformedRefresh.controller.refresh();
+  assert.equal(refreshed.observation_complete, true, "AQI failure does not reject usable observation loading");
+  assert.ok([...malformedRefresh.renders.observationState.observations.values()].flat()
+    .some((point) => point.date.getTime() === Date.parse(refreshIso(affectedHour)) && point.value === 4.2),
+  "valid refreshed observations are accepted and rendered despite malformed combined AQI");
+  assert.equal(malformedRefresh.renders.errors, 0, "AQI-only failure never invokes chart-wide renderError");
+  assert.ok(malformedRefresh.messages.every((message) => message === ""), "no chart-wide failure message is shown");
+  assert.equal(aqiAt(malformedRefresh.record(1), affectedHour), retained, "failed recalculation preserves cached rows");
+  assert.equal(cacheModule.hasStaleAqi(malformedRefresh.record(1), affectedRange), true);
+  assert.ok(cacheModule.getUncoveredRanges(malformedRefresh.record(1), "aqi", affectedRange).length,
+    "failed AQI remains unsettled and retryable");
+  assert.ok(!malformedRefresh.renders.aqiState.aqi.some((point) => point.date.getTime() === Date.parse(refreshIso(affectedHour))),
+    "terminally failed stale bands are not presented alongside refreshed observations");
+  assert.ok(malformedRefresh.renders.aqiState.aqi.some((point) => point.date.getTime() === Date.parse(refreshIso(unrelatedHour))),
+    "unrelated fresh bands remain displayed");
+  malformedRefresh.controller.destroy();
+}
+
+// An older source-switch evaluation must not damage a newer accepted Refresh
+// dependency and repair, whether its late failure is malformed or transport.
+for (const failure of ["malformed", "transport"]) {
+  const obsoleteAqi = await createRefreshFixture({ count: 2, retryIds: [] });
+  obsoleteAqi.repair();
+  await obsoleteAqi.controller.refresh();
+  obsoleteAqi.controls.holdHead = { id: 2 };
+  const newerRefresh = obsoleteAqi.controller.refresh();
+  await drainBackground();
+  const held = { id: 2, failure };
+  obsoleteAqi.controls.holdAqi = held;
+  const olderSwitch = obsoleteAqi.controller.setAqiSource("2");
+  await drainBackground();
+  assert.equal(typeof held.release, "function", "older AQI evaluation has started before the new observation acceptance");
+  obsoleteAqi.controls.observationValue = 4.2;
+  obsoleteAqi.controls.aqiLevel = 3;
+  obsoleteAqi.controls.holdHead.release();
+  await newerRefresh;
+  const record = obsoleteAqi.record(2);
+  assert.ok(record.observation_points.some((point) => point.date.getTime() === Date.parse(refreshIso(100)) && point.value === 4.2),
+    "the newer observation dependency was accepted");
+  assert.equal(cacheModule.getUncoveredRanges(record, "aqi", refreshRange).length, 0,
+    "a newer AQI repair has settled fresh before the obsolete failure returns");
+  assert.equal(aqiAt(record, 100).eaqi, 3, "the newer repair supplies new AQI rows");
+  const beforeFailure = JSON.stringify(record);
+  const beforeRender = { ...obsoleteAqi.renders };
+  held.release();
+  await olderSwitch;
+  assert.equal(JSON.stringify(record), beforeFailure,
+    "obsolete AQI failure cannot alter newer rows, settlement, freshness or cache metadata");
+  assert.equal(obsoleteAqi.renders.unavailable, beforeRender.unavailable,
+    "an ignored obsolete failure does not make the repaired source unavailable");
+  assert.equal(obsoleteAqi.renders.observations, beforeRender.observations);
+  assert.equal(obsoleteAqi.renders.axes, beforeRender.axes);
+  assert.equal(obsoleteAqi.renders.errors, 0);
+  assert.ok(obsoleteAqi.messages.every((message) => message === ""));
+  obsoleteAqi.controller.destroy();
+}
+
+for (const failure of ["failAqi", "invalidAqi"]) {
+  const failedSwitch = await createRefreshFixture({ count: 2, retryIds: [2] });
+  const retained = aqiAt(failedSwitch.record(2), 36);
+  failedSwitch.repair();
+  await failedSwitch.controller.refresh();
+  failedSwitch.controls[failure] = 2;
+  const beforeSwitch = { ...failedSwitch.renders };
+  failedSwitch.requests.length = 0;
+  await failedSwitch.controller.setAqiSource("2");
+  assert.equal(aqiAt(failedSwitch.record(2), 36), retained,
+    "failed/identity-invalid AQI-only work preserves cached rows");
+  assert.equal(cacheModule.hasStaleAqi(failedSwitch.record(2), retryRange), true,
+    "failed recalculation never restores freshness");
+  assert.equal(failedSwitch.renders.observations, beforeSwitch.observations);
+  assert.equal(failedSwitch.renders.axes, beforeSwitch.axes);
+  assert.ok(failedSwitch.requests.every((request) => request.aqi && !request.observations));
+  assert.equal(failedSwitch.renders.cleared, beforeSwitch.cleared + 1);
+  assert.equal(failedSwitch.renders.unavailable, beforeSwitch.unavailable + 1,
+    "AQI-only source-switch failure retains the existing AQI-local unavailable path");
+  assert.equal(failedSwitch.renders.aqi, beforeSwitch.aqi, "the failed source never commits retained stale bands");
+  assert.equal(failedSwitch.renders.errors, beforeSwitch.errors);
+  assert.ok(failedSwitch.messages.every((message) => message === ""));
+  failedSwitch.controller.destroy();
+}
+
 console.log("Hex Map shared station-chart harness passed");

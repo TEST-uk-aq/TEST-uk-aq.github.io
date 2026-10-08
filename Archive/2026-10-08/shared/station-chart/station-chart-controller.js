@@ -351,17 +351,10 @@
         range,
         observations,
         aqi: source ? pointsInRange(recordFor(source)?.aqi_points, range).filter(function (point) {
-          const record = recordFor(source);
-          const timeMs = point.date.getTime();
-          // Keep failed rows cached for retry, but leave their endpoint interval
-          // blank once recalculation has failed. Other bands remain available.
-          if (record.coverage.aqi.interval_states.some(function (interval) {
-            return interval.state === "failed" && timeMs > interval.startMs && timeMs <= interval.endMs;
-          })) return false;
           // Retained stale bands may remain during Refresh, but a source switch
           // must never present those bands as the new source's fresh output.
-          return extra.reason !== "aqi-source-change" || !cache.hasStaleAqi(record, {
-            startMs: timeMs - domain.HOUR_MS, endMs: timeMs,
+          return extra.reason !== "aqi-source-change" || !cache.hasStaleAqi(recordFor(source), {
+            startMs: point.date.getTime() - domain.HOUR_MS, endMs: point.date.getTime(),
           });
         }) : [],
         guideline: source ? recordFor(source)?.guideline || source.guideline || null : null,
@@ -404,15 +397,13 @@
 
     function commitResult(entry, result, requestedRange, mode, requestedKinds = null, context = {}) {
       const record = recordFor(entry);
-      const allows = function (kind) { return !requestedKinds || requestedKinds.includes(kind); };
-      if (!record || (allows("observations") && result?.identity_valid !== true)) {
+      if (!record || result?.identity_valid !== true) {
         throw new Error("station_series_authoritative_identity_invalid");
       }
-      const outcome = { record, aqi_status: "not_requested", aqi_error: null };
-      let accepted = false;
-      if (allows("observations")) {
-        if (result.observations?.enabled !== true || result.observations.error || result.observations.malformed
-          || !Array.isArray(result.observations.points) || !Array.isArray(result.observations.rows)) {
+      record.identity = result.identity;
+      const allows = function (kind) { return !requestedKinds || requestedKinds.includes(kind); };
+      if (allows("observations") && result.observations?.enabled === true) {
+        if (result.observations.error || result.observations.malformed || !Array.isArray(result.observations.points) || !Array.isArray(result.observations.rows)) {
           throw new Error("station_series_observations_malformed");
         }
         const bounds = mode === "current" ? sectionBounds(result.observations, requestedRange) : requestedRange;
@@ -438,68 +429,45 @@
         if (context.refreshObservations) {
           cache.invalidateAqiForObservations(record, bounds, entry.pollutant, context.evaluation);
         }
-        accepted = true;
       }
-      if (allows("aqi")) {
-        const section = result?.aqi;
-        const bounds = mode === "current" ? sectionBounds({
-          ...section,
-          stable_head_start_utc: section?.stable_head_start_utc
-            || result?.observations?.stable_head_start_utc || record.aqi_head_start_utc,
-        }, requestedRange) : requestedRange;
-        // Failed evaluations have the same authority requirements as valid
-        // replacements: neither may disturb a newer dependency or repair.
-        if (!cache.canApplyAqiEvaluation(record, bounds, context.evaluation)) {
-          outcome.aqi_status = "superseded";
-        } else {
-          const settlement = clientKind === "compatibility" && section
-            ? {
-                complete: section.response_complete === true && section.has_gap !== true,
-                settled: !section.error && section.identity_valid !== false,
-                has_gap: section.has_gap === true,
-                partial_reasons: cache.boundedStrings(section.partial_reasons),
-                calculation_statuses: [],
-                missing_reasons: [],
-              }
-            : cache.inspectAqiSettlement({ ...section, points: section?.rows });
-          if (result?.identity_valid !== true || section?.enabled !== true || section.error || section.malformed
-            || section.identity_valid === false || !settlement.settled
-            || !Array.isArray(section.points) || !Array.isArray(section.rows)) {
-            cache.recordCoverageInterval(record, "aqi", bounds, "failed", { ...settlement, settled: false });
-            outcome.aqi_status = "failed";
-            outcome.aqi_error = new Error("station_series_aqi_malformed");
-          } else {
-            const replace = mode === "current" || context.refreshObservations || cache.hasStaleAqi(record, bounds);
-            const merged = replace
-              ? cache.replaceAuthoritativeAqiHead(record.aqi_points, section.points, bounds.startIso, bounds.endIso)
-              : cache.mergeAqiWithoutReplacement(record.aqi_points, section.points);
-            if (!merged.conflicts.length) record.aqi_points = merged.points;
-            const safe = settlement.settled && !merged.conflicts.length;
-            cache.recordCoverageInterval(
-              record,
-              "aqi",
-              { start_utc: bounds.startIso, end_utc: bounds.endIso },
-              merged.conflicts.length ? "failed" : settlement.complete ? "complete" : "partial",
-              { ...settlement, settled: safe },
-            );
-            if (merged.conflicts.length) {
-              outcome.aqi_status = "failed";
-              outcome.aqi_error = new Error("aqi_replacement_contract_error");
-            } else {
-              cache.markAqiFresh(record, bounds, context.evaluation);
-              if (mode === "current") record.aqi_head_start_utc = section.stable_head_start_utc || bounds.startIso;
-              outcome.aqi_status = "accepted";
-              accepted = true;
+      if (allows("aqi") && result.aqi?.enabled === true) {
+        const bounds = mode === "current" ? sectionBounds(result.aqi, requestedRange) : requestedRange;
+        const settlement = clientKind === "compatibility"
+          ? {
+              complete: result.aqi.response_complete === true && result.aqi.has_gap !== true,
+              settled: !result.aqi.error && result.aqi.identity_valid !== false,
+              has_gap: result.aqi.has_gap === true,
+              partial_reasons: cache.boundedStrings(result.aqi.partial_reasons),
+              calculation_statuses: [],
+              missing_reasons: [],
             }
-          }
+          : cache.inspectAqiSettlement({ ...result.aqi, points: result.aqi.rows });
+        if (result.aqi.error || result.aqi.identity_valid === false || !settlement.settled
+          || !Array.isArray(result.aqi.points) || !Array.isArray(result.aqi.rows)) {
+          cache.recordCoverageInterval(record, "aqi", bounds, "failed", { ...settlement, settled: false });
+          throw new Error("station_series_aqi_malformed");
         }
+        if (!cache.canApplyAqiEvaluation(record, bounds, context.evaluation)) return record;
+        const replace = mode === "current" || context.refreshObservations || cache.hasStaleAqi(record, bounds);
+        const merged = replace
+          ? cache.replaceAuthoritativeAqiHead(record.aqi_points, result.aqi.points, bounds.startIso, bounds.endIso)
+          : cache.mergeAqiWithoutReplacement(record.aqi_points, result.aqi.points);
+        if (!merged.conflicts.length) record.aqi_points = merged.points;
+        const safe = settlement.settled && !merged.conflicts.length;
+        cache.recordCoverageInterval(
+          record,
+          "aqi",
+          { start_utc: bounds.startIso, end_utc: bounds.endIso },
+          settlement.complete && !merged.conflicts.length ? "complete" : "partial",
+          { ...settlement, settled: safe },
+        );
+        if (merged.conflicts.length) throw new Error("aqi_replacement_contract_error");
+        cache.markAqiFresh(record, bounds, context.evaluation);
+        if (mode === "current") record.aqi_head_start_utc = result.aqi.stable_head_start_utc || bounds.startIso;
       }
-      if (accepted) {
-        record.identity = result.identity;
-        record.guideline = result.raw?.guideline || record.guideline || entry.guideline || null;
-        record.updated_at = new Date().toISOString();
-      }
-      return outcome;
+      record.guideline = result.raw?.guideline || record.guideline || entry.guideline || null;
+      record.updated_at = new Date().toISOString();
+      return record;
     }
 
     function olderChunkMs() {
@@ -512,9 +480,8 @@
       );
     }
 
-    function recordFailedOlderWork(entry, workItem, kind, error, generation, evaluation) {
+    function recordFailedOlderWork(entry, workItem, kind, error, generation) {
       const record = recordFor(entry);
-      if (kind === "aqi" && !cache.canApplyAqiEvaluation(record, workItem.range, evaluation)) return false;
       cache.recordCoverageInterval(record, kind, workItem.range, "failed");
       diagnostics.event("station_history_chunk_failed", {
         generation,
@@ -525,7 +492,6 @@
         kind,
         error: error?.message || String(error),
       });
-      return true;
     }
 
     async function loadOlder(entry, initialResult, requestedRange, parts, signal, generation, callbacks = {}) {
@@ -539,9 +505,8 @@
         parts.priority,
       );
       const observationWorkCount = work.filter(function (item) { return item.observations; }).length;
-      let aqiError = null;
       callbacks.onPlanned?.(observationWorkCount, work);
-      if (!work.length) return { work_count: 0, observation_work_count: 0, aqi_error: null };
+      if (!work.length) return { work_count: 0, observation_work_count: 0 };
       const orderedByKind = {
         observations: historyLoader.createOrderedSettlementBuffer(0),
         aqi: historyLoader.createOrderedSettlementBuffer(0),
@@ -566,7 +531,7 @@
           settled = { workItem, chunkRange, result, evaluation };
         } catch (error) {
           if (isAbort(error) || signal.aborted || !generations.isCurrent(generation)) throw abortError();
-          settled = { workItem, chunkRange, error, evaluation };
+          settled = { workItem, chunkRange, error };
         }
         if (workItem.observations) callbacks.onObservationSettled?.();
         if (workItem.observations) {
@@ -584,17 +549,15 @@
             if (kind === "aqi") await value.observationCommit;
             if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
             if (value.error) {
-              const applied = recordFailedOlderWork(entry, value.workItem, kind, value.error, generation, value.evaluation);
-              if (kind === "aqi" && applied) aqiError = aqiError || value.error;
+              recordFailedOlderWork(entry, value.workItem, kind, value.error, generation);
               if (kind === "observations") value.observationAccepted();
               return;
             }
             try {
-              const outcome = commitResult(entry, value.result, value.chunkRange, "older", [kind], {
+              commitResult(entry, value.result, value.chunkRange, "older", [kind], {
                 refreshObservations: parts.refreshObservations === true,
                 evaluation: value.evaluation,
               });
-              aqiError = aqiError || outcome.aqi_error;
               if (kind === "observations") value.observationAccepted();
             } catch (error) {
               if (kind === "observations") value.observationRejected(error);
@@ -613,7 +576,7 @@
         });
       });
       await Promise.all([orderedByKind.observations.flush(), orderedByKind.aqi.flush()]);
-      return { work_count: work.length, observation_work_count: observationWorkCount, aqi_error: aqiError };
+      return { work_count: work.length, observation_work_count: observationWorkCount };
     }
 
     function startBackgroundAqiPrefetch(entry, requestedRange, parentSignal, generation) {
@@ -640,33 +603,23 @@
       const evaluation = cache.beginAqiEvaluation(recordFor(entry));
       const result = await client().loadCurrent(requestFor(entry, requestedRange, parts), parts, signal);
       if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
-      const requestedKinds = [parts.observations && "observations", parts.aqi && "aqi"].filter(Boolean);
-      const current = commitResult(entry, result, requestedRange, "current", requestedKinds, { refreshObservations: parts.refreshObservations, evaluation });
+      commitResult(entry, result, requestedRange, "current", null, { refreshObservations: parts.refreshObservations, evaluation });
       callbacks.onCommit?.("current");
-      const older = await loadOlder(entry, result, requestedRange, parts, signal, generation, {
+      await loadOlder(entry, result, requestedRange, parts, signal, generation, {
         onPlanned: callbacks.onPlanned,
         onObservationSettled: callbacks.onObservationSettled,
         onCommit: function () { callbacks.onCommit?.("older"); },
       });
-      let aqiError = current.aqi_error || older.aqi_error;
       if (parts.refreshObservations && entry.station_id === selectedSource()?.station_id) {
         // Accepted retries can affect following PM hours or a head-boundary
         // endpoint. Repair only the remaining stale/unsettled AQI output.
-        try {
-          await prefetchEntryAqi(entry, requestedRange, signal, generation);
-        } catch (error) {
-          if (isAbort(error) || signal.aborted || !generations.isCurrent(generation)) throw abortError();
-          aqiError = aqiError || error;
-        }
+        await prefetchEntryAqi(entry, requestedRange, signal, generation);
         callbacks.onCommit?.("older");
       }
       if (parts.observations === true && parts.aqi !== true && !parts.refreshObservations) {
         startBackgroundAqiPrefetch(entry, requestedRange, signal, generation);
       }
-      if (aqiError) diagnostics.event("station_chart_aqi_load_failed", {
-        generation, timeseries_id: entry.timeseries_id, error: aqiError.message || String(aqiError),
-      });
-      return { result, aqi_error: aqiError };
+      return result;
     }
 
     async function prefetchEntryAqi(entry, requestedRange, signal, generation, forceCurrent = false) {
@@ -677,7 +630,6 @@
       if (existing) aqiPrefetchInFlight.delete(inFlightKey);
       let holder = null;
       const work = (async function () {
-        let aqiError = null;
         const parts = {
           observations: false, aqi: true,
           priority: Number(forceCurrent
@@ -699,20 +651,9 @@
             : headRange ? cache.getUncoveredRanges(record, "aqi", headRange).map(domain.snapshotChartRange) : [];
           await runQueueWithConcurrency(currentWork, DEFAULT_PRIMARY_AQI_CONCURRENCY, async function (currentRange) {
             const evaluation = cache.beginAqiEvaluation(record);
-            let response;
-            try {
-              response = await client().prefetchAqi(requestFor(entry, currentRange, parts), signal);
-            } catch (error) {
-              if (isAbort(error) || signal.aborted || !generations.isCurrent(generation)) throw abortError();
-              const failedRange = sectionBounds({ stable_head_start_utc: headStart?.toISOString() }, currentRange);
-              if (recordFailedOlderWork(entry, { range: failedRange }, "aqi", error, generation, evaluation)) {
-                aqiError = aqiError || error;
-              }
-              return;
-            }
+            const response = await client().prefetchAqi(requestFor(entry, currentRange, parts), signal);
             if (signal.aborted || !generations.isCurrent(generation)) throw abortError();
-            const outcome = commitResult(entry, response, currentRange, "current", ["aqi"], { evaluation });
-            aqiError = aqiError || outcome.aqi_error;
+            commitResult(entry, response, currentRange, "current", ["aqi"], { evaluation });
             result = response;
           });
           const boundary = record.aqi_head_start_utc;
@@ -721,8 +662,7 @@
               next_chunk_end_utc: new Date(Math.min(Date.parse(boundary), requestedRange.endMs)).toISOString(),
               stable_head_start_utc: boundary,
             } };
-            const older = await loadOlder(entry, initial, requestedRange, parts, signal, generation);
-            aqiError = aqiError || older.aqi_error;
+            await loadOlder(entry, initial, requestedRange, parts, signal, generation);
           }
           firstPass = false;
           // Retry only when a new accepted dependency raced this pass. A failed
@@ -730,7 +670,6 @@
         } while (!signal.aborted && generations.isCurrent(generation)
           && cache.beginAqiEvaluation(record).version !== version
           && cache.getUncoveredRanges(record, "aqi", requestedRange).length);
-        if (aqiError) throw aqiError;
         return result;
       })().finally(function () {
         if (aqiPrefetchInFlight.get(inFlightKey) === holder) aqiPrefetchInFlight.delete(inFlightKey);
