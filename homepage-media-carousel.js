@@ -49,6 +49,11 @@
     return typeof value === "string" ? value.trim() : "";
   }
 
+  // Display-only: avoid wrapping at a hyphen when the compound can fit whole.
+  function displayTitleWrapping(value) {
+    return String(value).replace(/([\p{L}\p{N}])([-\u2010])(?=[\p{L}\p{N}])/gu, "$1$2\u2060");
+  }
+
   function articleDate(value) {
     const raw = text(value);
     const match = /^(\d{4})-(\d{2})-(\d{2})(?:[T\s]|$)/.exec(raw);
@@ -148,7 +153,7 @@
     appendSource(card, "homepage-media-mobile-source", article, publisher);
     const headline = document.createElement("h3");
     headline.className = "homepage-media-mobile-title";
-    headline.append(addTextElement("span", "homepage-media-mobile-title-text", title));
+    headline.append(addTextElement("span", "homepage-media-mobile-title-text", displayTitleWrapping(title)));
     card.append(headline);
     const icon = document.createElement("img");
     icon.className = "homepage-media-mobile-link-icon";
@@ -314,7 +319,7 @@
     const overlay = document.createElement("div");
     overlay.className = "homepage-media-carousel-overlay";
     appendSource(overlay, "homepage-media-carousel-source", article, publisher);
-    overlay.append(addTextElement("h3", "homepage-media-carousel-title", title));
+    overlay.append(addTextElement("h3", "homepage-media-carousel-title", displayTitleWrapping(title)));
     card.append(overlay);
 
     return card;
