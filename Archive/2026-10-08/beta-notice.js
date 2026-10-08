@@ -9,29 +9,6 @@
 
   if (!mounts.length) return;
 
-  const attribution = window.UkAqSourceAttribution;
-  let sources = [];
-
-  function sourceHtml() {
-    if (!sources.length) return "";
-    const links = sources.map((source) =>
-      '<a href="' + source.href + '" target="_blank" rel="noopener noreferrer">' + source.name + '</a>');
-    const names = links.length === 1 ? links[0]
-      : links.length === 2 ? links.join(" and ")
-        : links.slice(0, -1).join(", ") + ", and " + links[links.length - 1];
-    return " For authoritative readings, refer to the source networks: " + names + ".";
-  }
-
-  function updateSources(codes) {
-    sources = attribution.sourcesFor(codes);
-    // Updating only this span preserves the current pill/expanded state and
-    // keyboard focus, including a dismissal made while resolution was pending.
-    mounts.forEach((mount) => {
-      const sourceText = mount.querySelector("[data-ukaq-beta-notice-sources]");
-      if (sourceText) sourceText.innerHTML = sourceHtml();
-    });
-  }
-
   const safeStorage = (() => {
     try {
       const storage = window.localStorage;
@@ -69,8 +46,11 @@
       '<button type="button" class="ukaq-beta-notice__dismiss" data-ukaq-beta-notice-dismiss aria-expanded="true" aria-label="Dismiss beta notice">Dismiss</button>' +
       '</div>' +
       '<div class="ukaq-beta-notice__body">' +
-      'Sensor data shown here is provisional and may change. Do not cite it as official data.' +
-      '<span data-ukaq-beta-notice-sources>' + sourceHtml() + '</span>' +
+      'Sensor data shown here is provisional and may change. Do not cite it as official data. For authoritative readings, refer to the source networks: ' +
+      '<a href="https://www.breathelondon.org" target="_blank" rel="noopener noreferrer">Breathe London</a>, ' +
+      '<a href="https://explore.openaq.org" target="_blank" rel="noopener noreferrer">OpenAQ</a>, ' +
+      '<a href="https://sensor.community/en/" target="_blank" rel="noopener noreferrer">Sensor.Community</a>, and ' +
+      '<a href="https://uk-air.defra.gov.uk/interactive-map?network=aurn" target="_blank" rel="noopener noreferrer">Gov.UK AURN</a>.' +
       '</div>' +
       '</section>';
   }
@@ -90,24 +70,6 @@
 
   let dismissed = readDismissed();
   render(dismissed);
-
-  if (attribution) {
-    const resolveSources = () => { void attribution.resolveCodes().then(updateSources); };
-    // Deferred page modules can publish/load the shared client before we decide
-    // whether a direct metadata request is needed (notably on the Hex Map).
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", resolveSources, { once: true });
-    } else {
-      resolveSources();
-    }
-    window.addEventListener("ukaq:public-network-catalog", (event) => {
-      try {
-        updateSources(attribution.normaliseCodes(event.detail?.rows, event.detail?.contractVersion));
-      } catch (_) {
-        // Keep the resolved source list when a later catalogue is rejected.
-      }
-    });
-  }
 
   document.addEventListener("click", (event) => {
     if (event.target.closest("[data-ukaq-beta-notice-dismiss]")) {
