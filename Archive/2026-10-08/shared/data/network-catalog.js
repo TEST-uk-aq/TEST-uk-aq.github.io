@@ -30,10 +30,7 @@
     });
     const snapshot = {
       contractVersion: payload?.contract_version,
-      // Attribution needs the full public response, including explicit display
-      // flags and identities rejected by page-specific row normalization.
-      // Page callers still receive their unchanged normalized rows below.
-      rows: payload?.data,
+      rows,
     };
     root.UkAqPublicNetworkCatalogSnapshot = snapshot;
     if (typeof root.dispatchEvent === "function" && typeof root.CustomEvent === "function") {

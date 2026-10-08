@@ -1,142 +1,3 @@
-// Permanent source identities and one attribution resolution shared with beta UI.
-// Initialising this API does not fetch; NAEI never resolves monitoring sources.
-(() => {
-  const SOURCES = Object.freeze([
-    { code: 'gov_uk_aurn', name: 'GOV.UK AURN', href: 'https://uk-air.defra.gov.uk/networks/network-info?view=aurn' },
-    { code: 'black_carbon', name: 'Black Carbon', href: 'https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn' },
-    { code: 'breathelondon', name: 'Breathe London', href: 'https://www.breathelondon.org/' },
-    { code: 'waqn', name: 'Welsh AQN', href: 'https://www.airquality.gov.wales/' },
-    { code: 'saqn', name: 'Scottish AQN', href: 'https://www.scottishairquality.scot/' },
-    { code: 'ni', name: 'N Ireland Air', href: 'https://www.airqualityni.co.uk/' },
-    { code: 'openaq', name: 'OpenAQ', href: 'https://openaq.org/' },
-    { code: 'sensorcommunity', name: 'Sensor.Community', href: 'https://sensor.community/' },
-  ].map(Object.freeze));
-  const FALLBACK_CODES = Object.freeze(['gov_uk_aurn', 'breathelondon', 'openaq']);
-  const CACHE_KEY = 'uk_aq_footer_network_catalog_v1';
-  const CONTRACT_VERSION = 2;
-  const EVENT_WAIT_MS = 1500;
-  const FETCH_TIMEOUT_MS = 10000;
-  let resolution;
-  let validatedCodes;
-
-  function normaliseCodes(rows, contractVersion) {
-    if (contractVersion !== CONTRACT_VERSION || !Array.isArray(rows)) {
-      throw new Error('network catalogue response does not match contract v2');
-    }
-    const codes = rows.map((row) => row?.network_code);
-    if (codes.some((code) => typeof code !== 'string' || !code.trim())) {
-      throw new Error('network catalogue response contains a missing network_code');
-    }
-    return [...new Set(rows
-      .filter((row) => !Object.prototype.hasOwnProperty.call(row, 'public_display_enabled')
-        || row.public_display_enabled === true)
-      .map((row) => row.network_code.trim()))];
-  }
-
-  function readCachedCatalog() {
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
-      if (cached?.contractVersion !== CONTRACT_VERSION
-        || !Array.isArray(cached.networkCodes)
-        || cached.networkCodes.some((code) => typeof code !== 'string' || !code.trim())) {
-        return null;
-      }
-      return [...new Set(cached.networkCodes.map((code) => code.trim()))];
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function acceptSnapshot(snapshot) {
-    const codes = normaliseCodes(snapshot?.rows, snapshot?.contractVersion);
-    validatedCodes = codes;
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-        contractVersion: CONTRACT_VERSION,
-        networkCodes: codes,
-      }));
-    } catch (_) {
-      // Session storage is an optimisation only.
-    }
-    return codes;
-  }
-
-  function waitForCatalogEvent() {
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = (snapshot) => {
-        if (settled) return;
-        settled = true;
-        window.removeEventListener('ukaq:public-network-catalog', onCatalog);
-        window.clearTimeout(timeout);
-        resolve(snapshot);
-      };
-      const onCatalog = (event) => finish(event.detail);
-      const timeout = window.setTimeout(() => finish(null), EVENT_WAIT_MS);
-      window.addEventListener('ukaq:public-network-catalog', onCatalog, { once: true });
-      if (window.UkAqPublicNetworkCatalogSnapshot) finish(window.UkAqPublicNetworkCatalogSnapshot);
-    });
-  }
-
-  async function loadCodes() {
-    const cached = validatedCodes ?? readCachedCatalog();
-    const manualReload = performance.getEntriesByType?.('navigation')?.[0]?.type === 'reload';
-    if (!manualReload && cached !== null) return cached;
-
-    try {
-      const snapshot = window.UkAqPublicNetworkCatalogSnapshot;
-      if (snapshot) return acceptSnapshot(snapshot);
-      if (window.UkAqNetworkCatalog?.load) {
-        const eventSnapshot = await waitForCatalogEvent();
-        if (eventSnapshot) return acceptSnapshot(eventSnapshot);
-      }
-
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-      try {
-        const response = await fetch(`${location.origin}/api/aq/networks`, {
-          credentials: 'omit',
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error(`network catalogue request failed (${response.status})`);
-        const payload = await response.json();
-        return acceptSnapshot({ rows: payload?.data, contractVersion: payload?.contract_version });
-      } finally {
-        window.clearTimeout(timeout);
-      }
-    } catch (error) {
-      // A refresh failure must not discard reusable validated state. Never cache
-      // the editorial fallback as a successful public catalogue.
-      const reusable = validatedCodes ?? readCachedCatalog() ?? cached;
-      console.warn('UK AQ attribution catalogue failed; using validated cache or stable fallback', error);
-      return reusable ?? FALLBACK_CODES;
-    }
-  }
-
-  // New valid data prepares subsequent navigations without changing a visible
-  // footer. The beta notice may update only its source text from the same event.
-  window.addEventListener('ukaq:public-network-catalog', (event) => {
-    try {
-      acceptSnapshot(event.detail);
-    } catch (_) {
-      // Rejected data must never replace a previously validated cache.
-    }
-  });
-
-  window.UkAqSourceAttribution = Object.freeze({
-    sources: SOURCES,
-    normaliseCodes,
-    resolveCodes: () => (resolution ||= loadCodes()),
-    sourcesFor(codes) {
-      const publicCodes = new Set(codes);
-      const unknownCodes = [...publicCodes].filter((code) => !SOURCES.some((source) => source.code === code));
-      if (unknownCodes.length) console.debug('UK AQ has no source-link definition for public network codes', unknownCodes);
-      return SOURCES.filter((source) => publicCodes.has(source.code));
-    },
-  });
-})();
-
 (() => {
   try {
     const embedded = window.parent && window.parent !== window;
@@ -202,8 +63,11 @@
   const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
   const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
   const SIDEBAR_PINNED_KEY = 'uk_aq_sidebar_pinned_v1';
-  const sourceAttribution = window.UkAqSourceAttribution;
-  const sourceByCode = new Map(sourceAttribution.sources.map((source) => [source.code, source]));
+  const FOOTER_NETWORK_CATALOG_CACHE_KEY = 'uk_aq_footer_network_catalog_v1';
+  const FOOTER_NETWORK_CATALOG_CONTRACT_VERSION = 2;
+  const PUBLIC_NETWORK_CATALOG_URL = `${location.origin}/api/aq/networks`;
+  const PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS = 1500;
+  const PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS = 10000;
   const FOOTER_STYLESHEET_TIMEOUT_MS = 15000;
   let SITE_VERSION = readCachedSiteVersion();
   const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
@@ -240,6 +104,51 @@
     } catch (_) {
       // Sidebar pin persistence is session-scoped and non-critical.
     }
+  }
+
+  function normaliseFooterNetworkCodes(rows, contractVersion) {
+    if (contractVersion !== FOOTER_NETWORK_CATALOG_CONTRACT_VERSION || !Array.isArray(rows)) {
+      throw new Error('network catalogue response does not match contract v2');
+    }
+
+    const networkCodes = rows.map((row) => String(row?.code || row?.network_code || '').trim());
+    if (networkCodes.some((networkCode) => !networkCode)) {
+      throw new Error('network catalogue response contains a missing network_code');
+    }
+    return [...new Set(networkCodes)];
+  }
+
+  function readCachedFooterNetworkCatalog() {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(FOOTER_NETWORK_CATALOG_CACHE_KEY) || 'null');
+      if (
+        cached?.contractVersion !== FOOTER_NETWORK_CATALOG_CONTRACT_VERSION
+        || !Array.isArray(cached.networkCodes)
+        || cached.networkCodes.some((networkCode) => (
+          typeof networkCode !== 'string' || !networkCode.trim()
+        ))
+      ) {
+        return null;
+      }
+      return [...new Set(cached.networkCodes.map((networkCode) => networkCode.trim()))];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeCachedFooterNetworkCatalog(networkCodes) {
+    try {
+      sessionStorage.setItem(FOOTER_NETWORK_CATALOG_CACHE_KEY, JSON.stringify({
+        contractVersion: FOOTER_NETWORK_CATALOG_CONTRACT_VERSION,
+        networkCodes,
+      }));
+    } catch (_) {
+      // Session storage is an optimisation only.
+    }
+  }
+
+  function isManualReload() {
+    return performance.getEntriesByType?.('navigation')?.[0]?.type === 'reload';
   }
 
   function rememberSidebarNavHandoff() {
@@ -381,8 +290,101 @@
   window.addEventListener('resize', scheduleFooterConditionalSeparators, { passive: true });
 
   async function filterFooterAttributions() {
-    applyFooterAttributions(await sourceAttribution.resolveCodes());
+    try {
+      if (!isManualReload()) {
+        const cachedNetworkCodes = readCachedFooterNetworkCatalog();
+        if (cachedNetworkCodes) {
+          applyFooterAttributions(cachedNetworkCodes);
+          return;
+        }
+      }
+
+      const existingSnapshot = window.UkAqPublicNetworkCatalogSnapshot;
+      if (existingSnapshot) {
+        const networkCodes = normaliseFooterNetworkCodes(
+          existingSnapshot.rows,
+          existingSnapshot.contractVersion,
+        );
+        applyFooterAttributions(networkCodes);
+        writeCachedFooterNetworkCatalog(networkCodes);
+        return;
+      }
+
+      if (window.UkAqNetworkCatalog?.load) {
+        const eventSnapshot = await waitForPublicNetworkCatalogEvent();
+        if (eventSnapshot) {
+          const networkCodes = normaliseFooterNetworkCodes(
+            eventSnapshot.rows,
+            eventSnapshot.contractVersion,
+          );
+          applyFooterAttributions(networkCodes);
+          writeCachedFooterNetworkCatalog(networkCodes);
+          return;
+        }
+      }
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        PUBLIC_NETWORK_CATALOG_FETCH_TIMEOUT_MS,
+      );
+      let response;
+      try {
+        response = await fetch(PUBLIC_NETWORK_CATALOG_URL, {
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(timeout);
+      }
+      if (!response.ok) {
+        throw new Error(`network catalogue request failed (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const networkCodes = normaliseFooterNetworkCodes(payload?.data, payload?.contract_version);
+      applyFooterAttributions(networkCodes);
+      writeCachedFooterNetworkCatalog(networkCodes);
+    } catch (error) {
+      console.warn('UK AQ footer network catalogue failed to load; retaining all attributions', error);
+      finaliseFooterAttributionLayout();
+    }
   }
+
+  function waitForPublicNetworkCatalogEvent() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (snapshot) => {
+        if (settled) return;
+        settled = true;
+        window.removeEventListener('ukaq:public-network-catalog', onCatalog);
+        window.clearTimeout(timeout);
+        resolve(snapshot);
+      };
+      const onCatalog = (event) => finish(event.detail);
+      const timeout = window.setTimeout(
+        () => finish(null),
+        PUBLIC_NETWORK_CATALOG_EVENT_WAIT_MS,
+      );
+      window.addEventListener('ukaq:public-network-catalog', onCatalog, { once: true });
+
+      const snapshot = window.UkAqPublicNetworkCatalogSnapshot;
+      if (snapshot) finish(snapshot);
+    });
+  }
+
+  // A valid catalogue published after the footer is visible may prepare the next
+  // navigation, but must not mutate the already-finalised footer on this page.
+  window.addEventListener('ukaq:public-network-catalog', (event) => {
+    try {
+      const snapshot = event.detail;
+      const networkCodes = normaliseFooterNetworkCodes(snapshot?.rows, snapshot?.contractVersion);
+      writeCachedFooterNetworkCatalog(networkCodes);
+    } catch (_) {
+      // Rejected catalogue state must never replace a previously validated cache.
+    }
+  });
 
   // ─── Preload default sidebar button image; lazy-warm the alternate icon ─────
   const sidebarIconOffHref = location.origin + SIDEBAR_ICON_OFF;
@@ -965,26 +967,26 @@
           <div class="ukaq-site-footer-official-rows">
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="${sourceByCode.get('gov_uk_aurn').href}" aria-label="GOV.UK AURN">${sourceByCode.get('gov_uk_aurn').name}</a>
-                <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="${sourceByCode.get('black_carbon').href}" aria-label="Black Carbon">${sourceByCode.get('black_carbon').name}</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="https://uk-air.defra.gov.uk/networks/network-info?view=aurn" aria-label="GOV.UK AURN">GOV.UK AURN</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn" aria-label="Black Carbon">Black Carbon</a>
               </div>
               <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a class="ukaq-site-footer-attribution-source" href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="${sourceByCode.get('ni').href}" aria-label="Northern Ireland Air">${sourceByCode.get('ni').name}</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="https://www.airqualityni.co.uk/" aria-label="Northern Ireland Air">N Ireland Air</a>
               </div>
               <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2014 copyright DAERA</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="${sourceByCode.get('waqn').href}" aria-label="Welsh Air Quality Network">${sourceByCode.get('waqn').name}</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="https://www.airquality.gov.wales/" aria-label="Welsh Air Quality Network">Welsh AQN</a>
               </div>
               <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2026 copyright the Welsh Government</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
             </div>
             <div class="ukaq-site-footer-official-row">
               <div class="ukaq-site-footer-mark">
-                <a class="ukaq-site-footer-gov-pill" data-network-code="saqn" href="${sourceByCode.get('saqn').href}" aria-label="Scottish Air Quality Network">${sourceByCode.get('saqn').name}</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="saqn" href="https://www.scottishairquality.scot/" aria-label="Scottish Air Quality Network">Scottish AQN</a>
               </div>
               <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Scottish Government via <a class="ukaq-site-footer-attribution-source" href="https://www.scottishairquality.scot/">scottishairquality.co.uk</a></p>
             </div>
@@ -993,7 +995,7 @@
 
         <section class="ukaq-site-footer-source" data-network-code="breathelondon" aria-label="Breathe London attribution">
           <div class="ukaq-site-footer-mark">
-            <a href="${sourceByCode.get('breathelondon').href}" aria-label="${sourceByCode.get('breathelondon').name}">
+            <a href="https://www.breathelondon.org/" aria-label="Breathe London">
               <img class="ukaq-site-footer-logo ukaq-site-footer-logo--breathe" src="${location.origin}/sidebar-images/breathelondon_logo_v2.svg" alt="Breathe London">
             </a>
           </div>
@@ -1003,7 +1005,7 @@
 
         <section class="ukaq-site-footer-source" data-network-code="openaq" aria-label="OpenAQ attribution">
           <div class="ukaq-site-footer-mark">
-            <a href="${sourceByCode.get('openaq').href}" aria-label="${sourceByCode.get('openaq').name}">
+            <a href="https://openaq.org/" aria-label="OpenAQ">
               <img class="ukaq-site-footer-logo ukaq-site-footer-logo--openaq" src="${location.origin}/sidebar-images/openaq_logo.svg" alt="OpenAQ">
             </a>
           </div>
@@ -1012,7 +1014,7 @@
 
         <section class="ukaq-site-footer-source" data-network-code="sensorcommunity" aria-label="Sensor.Community attribution">
           <div class="ukaq-site-footer-mark">
-            <a href="${sourceByCode.get('sensorcommunity').href}" aria-label="${sourceByCode.get('sensorcommunity').name}">
+            <a href="https://sensor.community/" aria-label="Sensor.Community">
               <img class="ukaq-site-footer-logo ukaq-site-footer-logo--scomm" src="${location.origin}/sidebar-images/scomm_logo_text.svg" alt="Sensor.Community">
             </a>
           </div>
