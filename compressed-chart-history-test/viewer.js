@@ -93,11 +93,11 @@ async function load() {
     const scheduledJsonFetch = (requestUrl, init) => scheduler.schedule(0, () => fetchApi(requestUrl, init), init?.signal);
     const client = isNormal ? normalClient : createJsonHistoryClient({ base, publication, fetchApi: scheduledJsonFetch, record });
     const renderer = rendererWithTiming(runtime.renderer.createStationChartRenderer({
-      getWindowLabel: () => isMonth ? "31d" : "24h", noHistoryMessage: "No observations in this window.",
+      getWindowLabel: () => isMonth ? "30d" : "24h", noHistoryMessage: "No observations in this window.",
     }), began);
     const chart = runtime.controller.createStationChartController({ renderer, calculatedClient: client,
       compatibilityClient: client, diagnostics, maxSelection: 1,
-      getWindowLabel: () => isMonth ? "31d" : "24h",
+      getWindowLabel: () => isMonth ? "30d" : "24h",
       cacheContract: `compressed-chart-pilot:${isNormal ? "normal-v3" : sampleId}:${publication?.publication_sha256 || "canonical"}`,
       onCacheCommit: (details) => record({ type: "cache_merge_commit", ...details }),
       onMessage: (message, options) => { if (options?.error) status.textContent = message; },

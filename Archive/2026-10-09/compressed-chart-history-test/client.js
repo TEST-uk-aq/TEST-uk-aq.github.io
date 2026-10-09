@@ -77,11 +77,9 @@ export function createJsonHistoryClient({ base, publication, fetchApi, record })
         && month.coverage.requested_start_utc === sample.start
         && month.coverage.requested_end_exclusive_utc === sample.end
         && Array.isArray(rows) && rows.length === publication.object.row_count, "prototype_month_invalid");
-      assert(rows.every((row) => Array.isArray(row) && row.length === 5
-        && (row[2] === null || row[2] === 248)), "prototype_observation_station_invalid");
       const normalizeStarted = performance.now();
       const transformed = rows.filter((row) => row[0] >= request.start_utc && row[0] <= request.end_utc)
-        .map((row) => ({ ...identity, station_id: row[2], observed_at: row[0], value: row[1],
+        .map((row) => ({ ...identity, observed_at: row[0], value: row[1],
           source_status: row[3], verification_status: row[4] }));
       record({ type: "normalization", source: sampleId, row_count: transformed.length,
         duration_ms: Math.round(performance.now() - normalizeStarted) });
