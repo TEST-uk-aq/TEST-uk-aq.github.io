@@ -13,8 +13,8 @@ function record(value) {
 }
 function rendererWithTiming(renderer, began) {
   let firstLine = false;
-  return new Proxy(renderer, { get(target, property) {
-    const value = target[property];
+  return new Proxy({}, { get(_target, property) {
+    const value = Reflect.get(renderer, property, renderer);
     if (typeof value !== "function" || !["renderAxes", "renderObservations", "renderAqi"].includes(property)) return value;
     return (...args) => {
       const start = performance.now();
