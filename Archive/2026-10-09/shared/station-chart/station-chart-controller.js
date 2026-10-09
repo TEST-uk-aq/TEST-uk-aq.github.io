@@ -376,7 +376,6 @@
     }
 
     function commitResult(entry, result, requestedRange, mode, requestedKinds = null) {
-      const commitStarted = options.onCacheCommit && typeof performance !== "undefined" ? performance.now() : null;
       const record = recordFor(entry);
       if (!record || result?.identity_valid !== true) {
         throw new Error("station_series_authoritative_identity_invalid");
@@ -433,12 +432,6 @@
       }
       record.guideline = result.raw?.guideline || record.guideline || entry.guideline || null;
       record.updated_at = new Date().toISOString();
-      if (commitStarted !== null) options.onCacheCommit({
-        timeseries_id: entry.timeseries_id,
-        mode,
-        kinds: requestedKinds || ["observations", "aqi"],
-        duration_ms: performance.now() - commitStarted,
-      });
       return record;
     }
 
