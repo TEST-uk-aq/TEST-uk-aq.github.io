@@ -48,6 +48,10 @@ async function load() {
   try {
     let publication = null;
     if (!isNormal) publication = await loadPublication({ base, sampleId, fetchApi, record });
+    record({ type: "aqi_source_selected", source: isNormal ? "normal_request_time_calculated" : publication.aqi_source,
+      publication: publication?.publication_sha256 || null,
+      observation_object: publication?.object?.sha256 || null,
+      aqi_object: publication?.aqi_object?.sha256 || null });
     if (id !== run) return;
     const diagnostics = runtime.diagnostics.createDiagnostics({
       recordEvent: (name, details) => {
@@ -87,6 +91,9 @@ async function load() {
       onResponse: ({ url, response, payload }) => record({ type: "normal_response", route: new URL(url).pathname,
         status: response.status, observations: payload?.observations?.rows?.length || 0,
         aqi: payload?.aqi?.rows?.length || 0,
+        observation_complete: payload?.observations?.response_complete ?? null,
+        aqi_complete: payload?.aqi?.response_complete ?? null,
+        aqi_source: payload?.aqi?.calculation_source || null,
         source_mode: payload?.source?.mode || response.headers.get("X-UK-AQ-Timeseries-Source-Mode") || null,
         generation: payload?.source?.generation || null }),
     });
@@ -109,10 +116,14 @@ async function load() {
       { range: { start_utc: start, end_utc: end } });
     if (id !== run) return;
     await new Promise((resolve) => requestAnimationFrame(resolve));
+    const observationState = [...entries].reverse().find((entry) => entry.type === "observation_completeness");
+    const aqiState = [...entries].reverse().find((entry) => entry.type === "aqi_completeness");
     record({ type: "complete", elapsed_ms: Math.round(performance.now() - began),
-      observation_complete: result?.observation_complete === true,
+      observation_complete: observationState?.response_complete ?? (result?.observation_complete === true),
+      aqi_complete: aqiState?.response_complete ?? null,
+      aqi_source: isNormal ? "normal_request_time_calculated" : publication.aqi_source,
       source: choice, publication: publication?.publication_sha256 || null });
-    status.textContent = `${result?.observation_complete === true ? "Loaded" : "Loaded with incomplete observation coverage"} ${choice}. ${publication ? `Publication ${publication.publication_sha256.slice(0, 12)}.` : "Normal TEST route."}`;
+    status.textContent = `Loaded ${choice}. Observations: ${(observationState?.response_complete ?? result?.observation_complete) === true ? "complete" : "incomplete"}; AQI: ${aqiState ? aqiState.response_complete ? "complete" : "incomplete" : "see normal route diagnostics"}. ${publication ? `Publication ${publication.publication_sha256.slice(0, 12)} (${publication.aqi_source}).` : "Normal TEST route."}`;
   } catch (error) {
     if (id === run) {
       status.textContent = `Load failed: ${error.message}`;
