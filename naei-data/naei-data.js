@@ -238,7 +238,7 @@ function applyDefaultGroups() {
   if (state.view === 'bubble') {
     const preferredNames = ['Ecodesign Stove - Ready To Burn', 'Gas Boilers'];
     state.selectedGroupIds = preferredNames
-      .map((name) => state.groups.find((group) => group.display_title === name)?.group_id)
+      .map((name) => Number(state.groups.find((group) => group.display_title === name)?.group_id))
       .filter(Boolean);
   }
 
@@ -780,6 +780,7 @@ function updateChartText() {
 }
 
 async function renderChart() {
+  const token = ++state.renderToken;
   lastModel = null;
   writeUrlState();
   syncViewUi();
@@ -794,7 +795,6 @@ async function renderChart() {
     return;
   }
 
-  const token = ++state.renderToken;
   setBusy();
   try {
     const payloads = new Map();
@@ -821,6 +821,7 @@ async function renderChart() {
 
 let renderTimer = 0;
 function scheduleRender() {
+  state.renderToken += 1;
   lastModel = null;
   window.clearTimeout(renderTimer);
   renderTimer = window.setTimeout(renderChart, 40);
