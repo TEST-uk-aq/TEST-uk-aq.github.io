@@ -236,6 +236,22 @@ function populateYears() {
   dom.bubbleYear.value = String(state.bubbleYear);
 }
 
+// Size every group combobox for the longest published title, not the full card width.
+// The flex item may still shrink to fit the row on narrow screens.
+function sizeGroupCombos() {
+  const input = dom.groupList.querySelector('.naei-group-combo input');
+  if (!input || !state.groups.length) return;
+  const context = document.createElement('canvas').getContext('2d');
+  if (!context) return;
+  const style = getComputedStyle(input);
+  context.font = style.font;
+  const longest = state.groups.reduce((width, group) =>
+    Math.max(width, context.measureText(String(group.display_title || '')).width), 0);
+  const spacing = ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth']
+    .reduce((sum, property) => sum + (parseFloat(style[property]) || 0), 0);
+  dom.groupList.style.setProperty('--naei-group-combo-width', `${Math.ceil(longest + spacing + 2)}px`);
+}
+
 function populateMetrics() {
   const emissions = (state.dimensions.metrics || [])
     .filter((metric) => metric.metric_type === 'emission')
@@ -1269,6 +1285,9 @@ async function initialise() {
     dom.status.hidden = true;
     dom.error.hidden = true;
     dom.app.hidden = false;
+    sizeGroupCombos();
+    document.fonts?.ready.then(sizeGroupCombos);
+    window.addEventListener('resize', sizeGroupCombos);
     await renderChart();
   } catch (error) {
     showFatal(error);
