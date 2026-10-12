@@ -955,10 +955,7 @@
         <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
         <div class="ukaq-site-footer-sources" aria-label="NAEI data source and licence">
           <section class="ukaq-site-footer-source" aria-label="National Atmospheric Emissions Inventory attribution">
-            <div class="ukaq-site-footer-mark">
-              <a href="https://naei.energysecurity.gov.uk/">National Atmospheric Emissions Inventory (NAEI)</a>
-            </div>
-            <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra &amp; DESNZ via <a class="ukaq-site-footer-attribution-source" href="https://naei.energysecurity.gov.uk/data/licensing">naei.energysecurity.gov.uk</a> licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
+            <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra &amp; DESNZ via <a class="ukaq-site-footer-attribution-source" href="https://naei.energysecurity.gov.uk/">naei.energysecurity.gov.uk</a> licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
           </section>
         </div>`;
     }

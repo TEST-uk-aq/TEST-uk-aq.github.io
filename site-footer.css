@@ -244,25 +244,25 @@ body #ukaq-site-footer {
   word-break: normal;
 }
 
-/* The NAEI page has one source block; centre it without changing other footers. */
+/* The NAEI page keeps the UK AQ version and legal attribution as two compact sections. */
+body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-meta {
+  padding: 5px 12px;
+}
+
 body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-sources {
-  justify-content: center;
+  display: block;
 }
 
 body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-source {
-  flex: 0 1 720px;
-  align-items: center;
+  display: block;
+  padding: 6px 12px;
   border-right: 0;
-  text-align: center;
-}
-
-body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-mark {
-  justify-content: center;
   text-align: center;
 }
 
 body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-copy {
   text-align: center;
+  overflow-wrap: normal;
 }
 
 /* Last-resort safeguard only for viewports narrower than the longest source URL. */

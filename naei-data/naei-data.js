@@ -46,7 +46,6 @@ const dom = {
   legend: document.getElementById('naei-legend'),
   chartHeading: document.getElementById('naei-chart-heading'),
   chartSubtitle: document.getElementById('naei-chart-subtitle'),
-  chartModeLabel: document.getElementById('naei-chart-mode-label'),
   chartMessage: document.getElementById('naei-chart-message'),
   datasetLabel: document.getElementById('naei-dataset-label'),
 };
@@ -257,7 +256,10 @@ function moveGroup(from, to) {
   scheduleRender();
 }
 
+let closeOpenGroupOptions = null;
+
 function renderGroupList(focusIndex = null) {
+  closeOpenGroupOptions?.();
   const fragment = document.createDocumentFragment();
   state.selectedGroupIds.forEach((id, index) => {
     const group = groupById(id);
@@ -274,6 +276,7 @@ function renderGroupList(focusIndex = null) {
     input.setAttribute('role', 'combobox');
     input.setAttribute('aria-label', `Group ${index + 1}`);
     input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-haspopup', 'listbox');
     input.setAttribute('aria-expanded', 'false');
     const listId = `naei-group-options-${index}`;
     input.setAttribute('aria-controls', listId);
@@ -304,20 +307,51 @@ function renderGroupList(focusIndex = null) {
 
     function close() {
       options.hidden = true;
+      row.classList.remove('is-open');
       input.setAttribute('aria-expanded', 'false');
       input.removeAttribute('aria-activedescendant');
       input.value = groupById(state.selectedGroupIds[index])?.display_title || '';
+      query = '';
+      document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
+      window.removeEventListener('scroll', positionOptions, true);
+      window.visualViewport?.removeEventListener('resize', positionOptions);
+      window.visualViewport?.removeEventListener('scroll', positionOptions);
+      if (closeOpenGroupOptions === close) closeOpenGroupOptions = null;
+    }
+
+    function closeOnOutsidePointer(event) {
+      if (!combo.contains(event.target)) close();
+    }
+
+    function positionOptions() {
+      if (options.hidden) return;
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop || 0;
+      const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+      const bounds = input.getBoundingClientRect();
+      const below = Math.max(0, viewportBottom - bounds.bottom - 8);
+      const above = Math.max(0, bounds.top - viewportTop - 8);
+      const openAbove = below < 170 && above > below;
+      row.classList.toggle('opens-above', openAbove);
+      options.style.maxHeight = `${Math.min(240, openAbove ? above : below)}px`;
     }
 
     function choose(chosenId) {
+      close();
       state.selectedGroupIds[index] = chosenId;
       state.highlightedGroupId = null;
       renderGroupList();
       scheduleRender();
-      dom.groupList.querySelectorAll('.naei-group-combo input')[index]?.focus();
+      dom.groupAnnouncement.textContent = `Selected ${groupById(chosenId)?.display_title || 'group'} for group ${index + 1}`;
+      const nextInput = dom.groupList.querySelectorAll('.naei-group-combo input')[index];
+      if (nextInput) {
+        nextInput.dataset.suppressNextOpen = 'true';
+        nextInput.focus({ preventScroll: true });
+      }
     }
 
     function show() {
+      if (closeOpenGroupOptions && closeOpenGroupOptions !== close) closeOpenGroupOptions();
       matches = state.groups.filter((candidate) => {
         const candidateId = Number(candidate.group_id);
         return (candidateId === id || !state.selectedGroupIds.includes(candidateId))
@@ -342,19 +376,39 @@ function renderGroupList(focusIndex = null) {
         options.append(empty);
       }
       options.hidden = false;
+      row.classList.add('is-open');
       input.setAttribute('aria-expanded', 'true');
       announcement.textContent = `${matches.length} matching group${matches.length === 1 ? '' : 's'}`;
+      closeOpenGroupOptions = close;
+      positionOptions();
+      document.addEventListener('pointerdown', closeOnOutsidePointer, true);
+      window.addEventListener('scroll', positionOptions, true);
+      window.visualViewport?.addEventListener('resize', positionOptions);
+      window.visualViewport?.addEventListener('scroll', positionOptions);
       setActive(matches.length ? 0 : -1);
     }
 
-    input.addEventListener('focus', () => { query = ''; input.select(); show(); });
+    input.addEventListener('focus', () => {
+      if (input.dataset.suppressNextOpen) {
+        delete input.dataset.suppressNextOpen;
+        return;
+      }
+      query = '';
+      input.select();
+      show();
+    });
+    input.addEventListener('click', () => { if (options.hidden) { query = ''; show(); } });
     input.addEventListener('input', () => { query = input.value; show(); });
     input.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') { close(); return; }
+      if (event.key === 'Escape') { event.preventDefault(); close(); return; }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
-        if (options.hidden) show();
-        if (matches.length) setActive((active + (event.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length);
+        if (options.hidden) {
+          show();
+          if (event.key === 'ArrowUp' && matches.length) setActive(matches.length - 1);
+        } else if (matches.length) {
+          setActive((active + (event.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length);
+        }
       } else if (event.key === 'Enter' && !options.hidden) {
         event.preventDefault();
         if (active >= 0) choose(Number(matches[active].group_id));
@@ -447,7 +501,6 @@ function syncViewUi() {
   });
   document.querySelector('[data-for-view="line"]').hidden = state.view !== 'line';
   document.querySelector('[data-for-view="bubble"]').hidden = state.view !== 'bubble';
-  dom.chartModeLabel.textContent = state.view === 'line' ? 'Line chart' : 'Bubble chart';
   dom.smoothing.setAttribute('aria-pressed', state.smoothing ? 'true' : 'false');
   dom.smoothing.textContent = state.smoothing ? 'Disable Smoothing' : 'Enable Smoothing';
 }
@@ -801,10 +854,10 @@ function renderCurrentChartFromCache() {
 
 function updateChartText() {
   const metric = metricById(state.metricId);
-  dom.chartHeading.textContent = metric?.display_name || 'NAEI emissions';
+  dom.chartHeading.textContent = `UK ${metric?.display_name || 'NAEI'} Emissions`;
   dom.chartSubtitle.textContent = state.view === 'line'
-    ? `${state.startYear}–${state.endYear} · ${selectedGroups().length} group${selectedGroups().length === 1 ? '' : 's'}`
-    : `${state.bubbleYear} · Activity Data vs ${metric?.display_name || 'pollutant'}`;
+    ? `${state.startYear} - ${state.endYear}`
+    : String(state.bubbleYear);
 }
 
 async function renderChart() {
