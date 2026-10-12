@@ -671,6 +671,38 @@ function buildLineModel(groupPayloads) {
   return { metric, groups, years, series };
 }
 
+// Cubic Hermite interpolation with monotone tangents; every span ends at an observation.
+function linePath(points, smoothing) {
+  if (!smoothing || points.length < 3) {
+    return points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
+  }
+
+  const secants = points.slice(1).map((point, index) => {
+    const previous = points[index];
+    return (point.y - previous.y) / (point.x - previous.x);
+  });
+  const tangents = points.map((point, index) => {
+    if (index === 0) return secants[0];
+    if (index === points.length - 1) return secants.at(-1);
+
+    const left = secants[index - 1];
+    const right = secants[index];
+    if (!left || !right || Math.sign(left) !== Math.sign(right)) return 0;
+
+    const leftWidth = point.x - points[index - 1].x;
+    const rightWidth = points[index + 1].x - point.x;
+    const weighted = (left * rightWidth + right * leftWidth) / (leftWidth + rightWidth);
+    return Math.sign(left) * Math.min(2 * Math.abs(left), 2 * Math.abs(right), Math.abs(weighted));
+  });
+
+  const curves = points.slice(1).map((point, index) => {
+    const previous = points[index];
+    const thirdWidth = (point.x - previous.x) / 3;
+    return `C ${previous.x + thirdWidth} ${previous.y + thirdWidth * tangents[index]} ${point.x - thirdWidth} ${point.y - thirdWidth * tangents[index + 1]} ${point.x} ${point.y}`;
+  });
+  return `M ${points[0].x} ${points[0].y} ${curves.join(' ')}`;
+}
+
 function drawLineChart(model) {
   dom.chart.replaceChildren();
   renderLegend(model.groups);
@@ -701,23 +733,16 @@ function drawLineChart(model) {
     if (state.highlightedGroupId && state.highlightedGroupId !== groupId) g.classList.add('is-subdued');
 
     let segment = [];
+    const markers = [];
     const flushSegment = () => {
       if (segment.length < 2) {
         segment = [];
         return;
       }
-      const pathData = state.smoothing && segment.length > 2
-        ? `M ${segment[0].x.toFixed(2)} ${segment[0].y.toFixed(2)} `
-          + segment.slice(1, -1).map((point, index) => {
-            const next = segment[index + 2];
-            return `Q ${point.x.toFixed(2)} ${point.y.toFixed(2)} ${((point.x + next.x) / 2).toFixed(2)} ${((point.y + next.y) / 2).toFixed(2)}`;
-          }).join(' ')
-          + ` Q ${segment.at(-1).x.toFixed(2)} ${segment.at(-1).y.toFixed(2)} ${segment.at(-1).x.toFixed(2)} ${segment.at(-1).y.toFixed(2)}`
-        : segment.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
       const path = createSvgElement('path', {
         class: 'series-line',
         stroke: item.colour,
-        d: pathData,
+        d: linePath(segment, state.smoothing),
       });
       g.append(path);
       segment = [];
@@ -759,9 +784,10 @@ function drawLineChart(model) {
         );
       });
       circle.addEventListener('blur', hideTooltip);
-      g.append(circle);
+      markers.push(circle);
     });
     flushSegment();
+    g.append(...markers);
     dom.chart.append(g);
   });
 }
