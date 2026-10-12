@@ -33,12 +33,15 @@ const dom = {
   startYear: document.getElementById('naei-start-year'),
   endYear: document.getElementById('naei-end-year'),
   bubbleYear: document.getElementById('naei-bubble-year'),
-  groupSearch: document.getElementById('naei-group-search'),
   groupList: document.getElementById('naei-group-list'),
-  clearGroups: document.getElementById('naei-clear-groups'),
+  addGroup: document.getElementById('naei-add-group'),
   groupCount: document.getElementById('naei-group-count'),
+  groupAnnouncement: document.getElementById('naei-group-announcement'),
   copyLink: document.getElementById('naei-copy-link'),
   downloadCsv: document.getElementById('naei-download-csv'),
+  downloadXlsx: document.getElementById('naei-download-xlsx'),
+  downloadPng: document.getElementById('naei-download-png'),
+  smoothing: document.getElementById('naei-smoothing'),
   chart: document.getElementById('naei-chart'),
   legend: document.getElementById('naei-legend'),
   chartHeading: document.getElementById('naei-chart-heading'),
@@ -59,6 +62,7 @@ const state = {
   startYear: 1970,
   endYear: 2024,
   bubbleYear: 2024,
+  smoothing: false,
   highlightedGroupId: null,
   renderToken: 0,
 };
@@ -113,6 +117,7 @@ function parseUrlState() {
     .split(',')
     .map(Number)
     .filter((id) => Number.isInteger(id) && id > 0)
+    .filter((id, index, all) => all.indexOf(id) === index)
     .slice(0, MAX_GROUPS);
   if (groups.length) state.selectedGroupIds = groups;
 
@@ -122,6 +127,7 @@ function parseUrlState() {
   if (Number.isInteger(start)) state.startYear = start;
   if (Number.isInteger(end)) state.endYear = end;
   if (Number.isInteger(year)) state.bubbleYear = year;
+  state.smoothing = params.get('smooth') === '1';
 }
 
 function writeUrlState() {
@@ -135,6 +141,7 @@ function writeUrlState() {
   } else {
     params.set('year', String(state.bubbleYear));
   }
+  if (state.smoothing) params.set('smooth', '1');
   history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }
 
@@ -222,6 +229,7 @@ function applyDefaultGroups() {
   if (state.selectedGroupIds.length) {
     state.selectedGroupIds = state.selectedGroupIds
       .filter((id) => state.groups.some((group) => Number(group.group_id) === Number(id)))
+      .filter((id, index, all) => all.indexOf(id) === index)
       .slice(0, MAX_GROUPS);
   }
 
@@ -240,63 +248,194 @@ function applyDefaultGroups() {
   }
 }
 
-function renderGroupList() {
-  const query = dom.groupSearch.value.trim().toLowerCase();
+function moveGroup(from, to) {
+  if (to < 0 || to >= state.selectedGroupIds.length || from === to) return;
+  const [id] = state.selectedGroupIds.splice(from, 1);
+  state.selectedGroupIds.splice(to, 0, id);
+  renderGroupList(to);
+  dom.groupAnnouncement.textContent = `Moved ${groupById(id)?.display_title || 'group'} to position ${to + 1} of ${state.selectedGroupIds.length}`;
+  scheduleRender();
+}
+
+function renderGroupList(focusIndex = null) {
   const fragment = document.createDocumentFragment();
-
-  state.groups.forEach((group) => {
-    if (query && !group.display_title.toLowerCase().includes(query)) return;
-    const id = Number(group.group_id);
-    const label = document.createElement('label');
-    label.className = 'naei-group-option';
-
+  state.selectedGroupIds.forEach((id, index) => {
+    const group = groupById(id);
+    if (!group) return;
+    const row = document.createElement('div');
+    row.className = 'naei-group-row';
+    row.dataset.groupId = String(id);
+    const combo = document.createElement('div');
+    combo.className = 'naei-group-combo';
     const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.value = String(id);
-    input.checked = state.selectedGroupIds.includes(id);
-    input.disabled = !input.checked && state.selectedGroupIds.length >= MAX_GROUPS;
-    input.addEventListener('change', () => {
-      if (input.checked) {
-        if (state.selectedGroupIds.length >= MAX_GROUPS) {
-          input.checked = false;
-          return;
-        }
-        state.selectedGroupIds.push(id);
-      } else {
-        state.selectedGroupIds = state.selectedGroupIds.filter((groupId) => groupId !== id);
-      }
+    input.type = 'text';
+    input.value = group.display_title;
+    input.autocomplete = 'off';
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-label', `Group ${index + 1}`);
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    const listId = `naei-group-options-${index}`;
+    input.setAttribute('aria-controls', listId);
+    const options = document.createElement('div');
+    options.id = listId;
+    options.className = 'naei-group-options';
+    options.setAttribute('role', 'listbox');
+    options.hidden = true;
+    const announcement = document.createElement('span');
+    announcement.className = 'naei-visually-hidden';
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    let matches = [];
+    let active = -1;
+    let query = '';
+
+    function setActive(next) {
+      active = next;
+      [...options.querySelectorAll('[role="option"]')].forEach((option, optionIndex) => {
+        option.setAttribute('aria-selected', optionIndex === active ? 'true' : 'false');
+      });
+      const option = options.querySelectorAll('[role="option"]')[active];
+      if (option) {
+        input.setAttribute('aria-activedescendant', option.id);
+        option.scrollIntoView({ block: 'nearest' });
+      } else input.removeAttribute('aria-activedescendant');
+    }
+
+    function close() {
+      options.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      input.value = groupById(state.selectedGroupIds[index])?.display_title || '';
+    }
+
+    function choose(chosenId) {
+      state.selectedGroupIds[index] = chosenId;
       state.highlightedGroupId = null;
       renderGroupList();
       scheduleRender();
+      dom.groupList.querySelectorAll('.naei-group-combo input')[index]?.focus();
+    }
+
+    function show() {
+      matches = state.groups.filter((candidate) => {
+        const candidateId = Number(candidate.group_id);
+        return (candidateId === id || !state.selectedGroupIds.includes(candidateId))
+          && candidate.display_title.toLocaleLowerCase('en-GB').includes(query.toLocaleLowerCase('en-GB'));
+      });
+      options.replaceChildren();
+      matches.forEach((candidate, optionIndex) => {
+        const option = document.createElement('div');
+        option.id = `${listId}-${optionIndex}`;
+        option.className = 'naei-group-option';
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', 'false');
+        option.textContent = candidate.display_title;
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => choose(Number(candidate.group_id)));
+        options.append(option);
+      });
+      if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'naei-group-empty';
+        empty.textContent = 'No matching groups';
+        options.append(empty);
+      }
+      options.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      announcement.textContent = `${matches.length} matching group${matches.length === 1 ? '' : 's'}`;
+      setActive(matches.length ? 0 : -1);
+    }
+
+    input.addEventListener('focus', () => { query = ''; input.select(); show(); });
+    input.addEventListener('input', () => { query = input.value; show(); });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') { close(); return; }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (options.hidden) show();
+        if (matches.length) setActive((active + (event.key === 'ArrowDown' ? 1 : -1) + matches.length) % matches.length);
+      } else if (event.key === 'Enter' && !options.hidden) {
+        event.preventDefault();
+        if (active >= 0) choose(Number(matches[active].group_id));
+      }
     });
+    input.addEventListener('blur', () => { window.setTimeout(close, 0); });
+    combo.append(input, options, announcement);
 
-    const text = document.createElement('span');
-    text.textContent = group.display_title;
-    label.append(input, text);
-    fragment.append(label);
+    function rowButton(label, symbol, action, disabled = false) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = symbol;
+      button.setAttribute('aria-label', `${label}: ${group.display_title}`);
+      button.disabled = disabled;
+      button.addEventListener('click', action);
+      return button;
+    }
+    const handle = rowButton('Drag or press Alt + Up/Down to reorder group', '⠿', () => {});
+    handle.draggable = true;
+    handle.addEventListener('dragstart', (event) => {
+      event.dataTransfer.setData('text/plain', String(id));
+      event.dataTransfer.effectAllowed = 'move';
+      row.classList.add('is-dragging');
+    });
+    handle.addEventListener('dragend', () => row.classList.remove('is-dragging'));
+    handle.addEventListener('keydown', (event) => {
+      if (event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+        event.preventDefault();
+        moveGroup(index, index + (event.key === 'ArrowUp' ? -1 : 1));
+      }
+    });
+    row.addEventListener('dragover', (event) => { event.preventDefault(); row.classList.add('is-drop-target'); });
+    row.addEventListener('dragleave', () => row.classList.remove('is-drop-target'));
+    row.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const draggedId = Number(event.dataTransfer.getData('text/plain'));
+      moveGroup(state.selectedGroupIds.indexOf(draggedId), index);
+    });
+    const up = rowButton('Move group up', '↑', () => moveGroup(index, index - 1), index === 0);
+    const down = rowButton('Move group down', '↓', () => moveGroup(index, index + 1), index === state.selectedGroupIds.length - 1);
+    const remove = rowButton('Remove group', '×', () => {
+      state.selectedGroupIds.splice(index, 1);
+      state.highlightedGroupId = null;
+      renderGroupList();
+      scheduleRender();
+      dom.groupList.querySelectorAll('.naei-group-combo input')[Math.min(index, state.selectedGroupIds.length - 1)]?.focus();
+    });
+    row.append(handle, combo, up, down, remove);
+    fragment.append(row);
   });
-
   dom.groupList.replaceChildren(fragment);
-  const count = state.selectedGroupIds.length;
-  dom.groupCount.textContent = `${count} selected`;
+  dom.groupCount.textContent = `${state.selectedGroupIds.length} of ${MAX_GROUPS} selected`;
+  dom.addGroup.disabled = state.selectedGroupIds.length >= Math.min(MAX_GROUPS, state.groups.length);
+  if (focusIndex !== null) dom.groupList.querySelectorAll('.naei-group-row > button')[focusIndex * 4]?.focus();
 }
 
 function syncViewUi() {
   document.querySelectorAll('.naei-view-tab').forEach((button) => {
     const active = button.dataset.view === state.view;
     button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    button.classList.toggle('active', active);
   });
   document.querySelector('[data-for-view="line"]').hidden = state.view !== 'line';
   document.querySelector('[data-for-view="bubble"]').hidden = state.view !== 'bubble';
   dom.chartModeLabel.textContent = state.view === 'line' ? 'Line chart' : 'Bubble chart';
+  dom.smoothing.setAttribute('aria-pressed', state.smoothing ? 'true' : 'false');
+  dom.smoothing.textContent = state.smoothing ? 'Disable Smoothing' : 'Enable Smoothing';
 }
 
 function clampYearControls(changed) {
   let start = Number(dom.startYear.value);
   let end = Number(dom.endYear.value);
   if (start >= end) {
-    if (changed === 'start') end = Math.min(2024, start + 1);
-    else start = Math.max(1970, end - 1);
+    const [first, last] = state.dimensions.year_range;
+    if (changed === 'start') {
+      if (start >= last) start = last - 1;
+      end = start + 1;
+    } else {
+      if (end <= first) end = first + 1;
+      start = end - 1;
+    }
   }
   state.startYear = start;
   state.endYear = end;
@@ -486,10 +625,18 @@ function drawLineChart(model) {
         segment = [];
         return;
       }
+      const pathData = state.smoothing && segment.length > 2
+        ? `M ${segment[0].x.toFixed(2)} ${segment[0].y.toFixed(2)} `
+          + segment.slice(1, -1).map((point, index) => {
+            const next = segment[index + 2];
+            return `Q ${point.x.toFixed(2)} ${point.y.toFixed(2)} ${((point.x + next.x) / 2).toFixed(2)} ${((point.y + next.y) / 2).toFixed(2)}`;
+          }).join(' ')
+          + ` Q ${segment.at(-1).x.toFixed(2)} ${segment.at(-1).y.toFixed(2)} ${segment.at(-1).x.toFixed(2)} ${segment.at(-1).y.toFixed(2)}`
+        : segment.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' ');
       const path = createSvgElement('path', {
         class: 'series-line',
         stroke: item.colour,
-        d: segment.map((point, index) => `${index ? 'L' : 'M'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(' '),
+        d: pathData,
       });
       g.append(path);
       segment = [];
@@ -553,7 +700,7 @@ function buildBubbleModel(groupPayloads) {
     };
   }).filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
 
-  return { metric, activity, groups, points };
+  return { metric, activity, groups, points, year: state.bubbleYear };
 }
 
 function drawBubbleChart(model) {
@@ -633,6 +780,7 @@ function updateChartText() {
 }
 
 async function renderChart() {
+  lastModel = null;
   writeUrlState();
   syncViewUi();
   updateChartText();
@@ -673,6 +821,7 @@ async function renderChart() {
 
 let renderTimer = 0;
 function scheduleRender() {
+  lastModel = null;
   window.clearTimeout(renderTimer);
   renderTimer = window.setTimeout(renderChart, 40);
 }
@@ -699,9 +848,161 @@ function currentCsv() {
     point.group.display_title,
     point.x,
     point.y,
-    state.bubbleYear,
+    lastModel.year,
   ]);
   return [headers, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n');
+}
+
+function exportRows() {
+  if (!lastModel) return [];
+  if (state.view === 'line') return [
+    ['Year', ...lastModel.groups.map((group) => group.display_title)],
+    ...lastModel.years.map((year, index) => [year, ...lastModel.series.map((series) => series.values[index])]),
+  ];
+  return [
+    ['Group', `Activity Data (${lastModel.activity?.unit || ''})`, `${lastModel.metric?.display_name || 'Pollutant'} (${lastModel.metric?.unit || ''})`, 'Year'],
+    ...lastModel.points.map((point) => [point.group.display_title, point.x, point.y, lastModel.year]),
+  ];
+}
+
+function exportName(extension) {
+  const metric = String(lastModel?.metric?.display_name || 'naei').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const years = state.view === 'line' ? `${state.startYear}-${state.endYear}` : String(lastModel?.year || state.bubbleYear);
+  return `uk-aq-naei-${state.view}-${metric}-${years}.${extension}`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function xmlEscape(value) {
+  return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
+}
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipStored(files) {
+  const encoder = new TextEncoder();
+  const local = [];
+  const central = [];
+  let offset = 0;
+  files.forEach(([name, content]) => {
+    const nameBytes = encoder.encode(name);
+    const bytes = encoder.encode(content);
+    const crc = crc32(bytes);
+    const header = new Uint8Array(30 + nameBytes.length);
+    const view = new DataView(header.buffer);
+    view.setUint32(0, 0x04034b50, true);
+    view.setUint16(4, 20, true);
+    view.setUint32(14, crc, true);
+    view.setUint32(18, bytes.length, true);
+    view.setUint32(22, bytes.length, true);
+    view.setUint16(26, nameBytes.length, true);
+    header.set(nameBytes, 30);
+    local.push(header, bytes);
+    const directory = new Uint8Array(46 + nameBytes.length);
+    const directoryView = new DataView(directory.buffer);
+    directoryView.setUint32(0, 0x02014b50, true);
+    directoryView.setUint16(4, 20, true);
+    directoryView.setUint16(6, 20, true);
+    directoryView.setUint32(16, crc, true);
+    directoryView.setUint32(20, bytes.length, true);
+    directoryView.setUint32(24, bytes.length, true);
+    directoryView.setUint16(28, nameBytes.length, true);
+    directoryView.setUint32(42, offset, true);
+    directory.set(nameBytes, 46);
+    central.push(directory);
+    offset += header.length + bytes.length;
+  });
+  const centralSize = central.reduce((sum, entry) => sum + entry.length, 0);
+  const end = new Uint8Array(22);
+  const endView = new DataView(end.buffer);
+  endView.setUint32(0, 0x06054b50, true);
+  endView.setUint16(8, files.length, true);
+  endView.setUint16(10, files.length, true);
+  endView.setUint32(12, centralSize, true);
+  endView.setUint32(16, offset, true);
+  return new Blob([...local, ...central, end], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+function currentXlsx() {
+  const rows = exportRows();
+  if (!rows.length) return null;
+  const letters = (index) => {
+    let result = '';
+    for (let current = index + 1; current; current = Math.floor((current - 1) / 26)) result = String.fromCharCode(65 + (current - 1) % 26) + result;
+    return result;
+  };
+  const sheetRows = rows.map((row, rowIndex) => `<row r="${rowIndex + 1}">${row.map((value, columnIndex) => {
+    const cell = `${letters(columnIndex)}${rowIndex + 1}`;
+    return typeof value === 'number' && Number.isFinite(value)
+      ? `<c r="${cell}"><v>${value}</v></c>`
+      : `<c r="${cell}" t="inlineStr"><is><t>${xmlEscape(value ?? '')}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  const sheet = `<?xml version="1.0" encoding="UTF-8"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>`;
+  return zipStored([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="NAEI Data" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
+    ['xl/worksheets/sheet1.xml', sheet],
+  ]);
+}
+
+async function downloadPng() {
+  if (!lastModel || !dom.chart.children.length) return;
+  const svg = dom.chart.cloneNode(true);
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('width', '960');
+  svg.setAttribute('height', '520');
+  const style = createSvgElement('style');
+  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
+  svg.prepend(style);
+  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    const legendRows = Math.ceil(lastModel.groups.length / 2);
+    canvas.width = 1920;
+    canvas.height = (610 + legendRows * 30) * 2;
+    const context = canvas.getContext('2d');
+    context.scale(2, 2);
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, 960, canvas.height / 2);
+    context.fillStyle = '#101822';
+    context.font = 'bold 22px Arial, sans-serif';
+    context.fillText(dom.chartHeading.textContent, 35, 35);
+    context.font = '14px Arial, sans-serif';
+    context.fillStyle = '#5f6d7a';
+    context.fillText(dom.chartSubtitle.textContent, 35, 58);
+    context.drawImage(img, 0, 70, 960, 520);
+    lastModel.groups.forEach((group, index) => {
+      const x = 40 + (index % 2) * 460;
+      const y = 615 + Math.floor(index / 2) * 30;
+      context.fillStyle = colourForGroup(group, index);
+      context.fillRect(x, y - 11, 16, 5);
+      context.fillStyle = '#273641';
+      context.fillText(group.display_title, x + 25, y);
+    });
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    if (blob) downloadBlob(blob, exportName('png'));
+  } finally { URL.revokeObjectURL(url); }
 }
 
 function bindUi() {
@@ -740,13 +1041,22 @@ function bindUi() {
     scheduleRender();
   });
 
-  dom.groupSearch.addEventListener('input', renderGroupList);
-
-  dom.clearGroups.addEventListener('click', () => {
-    state.selectedGroupIds = [];
+  dom.addGroup.addEventListener('click', () => {
+    if (state.selectedGroupIds.length >= MAX_GROUPS) return;
+    const group = state.groups.find((candidate) => !state.selectedGroupIds.includes(Number(candidate.group_id)));
+    if (!group) return;
+    state.selectedGroupIds.push(Number(group.group_id));
     state.highlightedGroupId = null;
     renderGroupList();
     scheduleRender();
+    dom.groupList.querySelector('.naei-group-row:last-child input')?.focus();
+  });
+
+  dom.smoothing.addEventListener('click', () => {
+    state.smoothing = !state.smoothing;
+    writeUrlState();
+    syncViewUi();
+    renderCurrentChartFromCache();
   });
 
   dom.copyLink.addEventListener('click', async () => {
@@ -764,17 +1074,18 @@ function bindUi() {
   dom.downloadCsv.addEventListener('click', () => {
     const csv = currentCsv();
     if (!csv) return;
-    const metric = metricById(state.metricId);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const metricKey = String(metric?.display_name || 'naei').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    link.href = url;
-    link.download = `uk-aq-naei-${state.view}-${metricKey}.csv`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), exportName('csv'));
+  });
+  dom.downloadXlsx.addEventListener('click', () => {
+    const blob = currentXlsx();
+    if (blob) downloadBlob(blob, exportName('xlsx'));
+  });
+  dom.downloadPng.addEventListener('click', () => {
+    downloadPng().catch((error) => {
+      console.error(error);
+      dom.chartMessage.textContent = 'The chart image could not be created.';
+      dom.chartMessage.hidden = false;
+    });
   });
 
   dom.retry.addEventListener('click', () => location.reload());
