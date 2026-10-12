@@ -434,8 +434,7 @@ body.naei-data-page {
 }
 
 .naei-chart .series-point {
-  stroke: #fff;
-  stroke-width: 1.5;
+  stroke: none;
 }
 
 .naei-chart .series-group.is-subdued {
