@@ -60,39 +60,35 @@
       <section class="naei-workspace">
         <div class="naei-controls" role="region" aria-label="NAEI chart controls">
           <div class="naei-toolbar">
-            <div class="naei-control-block">
-              <span class="naei-field-label" id="naei-view-label">Chart</span>
-              <div class="naei-view-tabs" role="group" aria-labelledby="naei-view-label">
-                <button type="button" class="naei-view-tab" data-view="line" aria-pressed="true">Line Chart</button>
-                <button type="button" class="naei-view-tab" data-view="bubble" aria-pressed="false">Bubble Chart</button>
-              </div>
+            <div class="naei-view-tabs" role="group" aria-label="Chart type">
+              <button type="button" class="naei-view-tab" data-view="line" aria-pressed="true">Line Chart</button>
+              <button type="button" class="naei-view-tab" data-view="bubble" aria-pressed="false">Bubble Chart</button>
             </div>
             <div class="naei-control-block naei-pollutant-control">
-              <label for="naei-metric">Pollutant</label>
+              <label for="naei-metric">Pollutant:</label>
               <select id="naei-metric"></select>
             </div>
           </div>
 
           <fieldset class="naei-group-fieldset">
-            <legend>Groups</legend>
+            <legend class="naei-visually-hidden">Groups</legend>
             <div id="naei-group-list" class="naei-group-list"></div>
             <div class="naei-group-actions">
               <button type="button" id="naei-add-group">Add Group</button>
               <span id="naei-group-count" aria-live="polite">0 selected</span>
               <span id="naei-group-announcement" class="naei-visually-hidden" role="status" aria-live="polite"></span>
             </div>
-            <p class="naei-control-note">Select up to 10 groups. Drag a handle, use its arrow buttons, or press Alt + Up/Down to reorder.</p>
           </fieldset>
 
           <div class="naei-secondary-controls">
             <div class="naei-line-controls" data-for-view="line">
               <div class="naei-year-pair">
                 <div class="naei-control-block">
-                  <label for="naei-start-year">Start year</label>
+                  <label for="naei-start-year">Start year:</label>
                   <select id="naei-start-year"></select>
                 </div>
                 <div class="naei-control-block">
-                  <label for="naei-end-year">End year</label>
+                  <label for="naei-end-year">End year:</label>
                   <select id="naei-end-year"></select>
                 </div>
               </div>
@@ -101,7 +97,7 @@
 
             <div class="naei-bubble-controls" data-for-view="bubble" hidden>
               <div class="naei-control-block">
-                <label for="naei-bubble-year">Year</label>
+                <label for="naei-bubble-year">Year:</label>
                 <select id="naei-bubble-year"></select>
               </div>
               <p class="naei-control-note">
