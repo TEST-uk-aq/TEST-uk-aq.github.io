@@ -1,0 +1,1311 @@
+// Permanent source identities and one attribution resolution shared with beta UI.
+// Initialising this API does not fetch; NAEI never resolves monitoring sources.
+(() => {
+  const SOURCES = Object.freeze([
+    { code: 'gov_uk_aurn', name: 'GOV.UK AURN', href: 'https://uk-air.defra.gov.uk/networks/network-info?view=aurn' },
+    { code: 'black_carbon', name: 'Black Carbon', href: 'https://uk-air.defra.gov.uk/networks/network-info?view=ukbsn' },
+    { code: 'breathelondon', name: 'Breathe London', href: 'https://www.breathelondon.org/' },
+    { code: 'waqn', name: 'Welsh AQN', href: 'https://www.airquality.gov.wales/' },
+    { code: 'saqn', name: 'Scottish AQN', href: 'https://www.scottishairquality.scot/' },
+    { code: 'ni', name: 'N Ireland Air', href: 'https://www.airqualityni.co.uk/' },
+    { code: 'openaq', name: 'OpenAQ', href: 'https://openaq.org/' },
+    { code: 'sensorcommunity', name: 'Sensor.Community', href: 'https://sensor.community/' },
+  ].map(Object.freeze));
+  const FALLBACK_CODES = Object.freeze(['gov_uk_aurn', 'breathelondon', 'openaq']);
+  const CACHE_KEY = 'uk_aq_footer_network_catalog_v1';
+  const CONTRACT_VERSION = 2;
+  const EVENT_WAIT_MS = 1500;
+  const FETCH_TIMEOUT_MS = 10000;
+  let resolution;
+  let validatedCodes;
+
+  function normaliseCodes(rows, contractVersion) {
+    if (contractVersion !== CONTRACT_VERSION || !Array.isArray(rows)) {
+      throw new Error('network catalogue response does not match contract v2');
+    }
+    const codes = rows.map((row) => row?.network_code);
+    if (codes.some((code) => typeof code !== 'string' || !code.trim())) {
+      throw new Error('network catalogue response contains a missing network_code');
+    }
+    return [...new Set(rows
+      .filter((row) => !Object.prototype.hasOwnProperty.call(row, 'public_display_enabled')
+        || row.public_display_enabled === true)
+      .map((row) => row.network_code.trim()))];
+  }
+
+  function readCachedCatalog() {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
+      if (cached?.contractVersion !== CONTRACT_VERSION
+        || !Array.isArray(cached.networkCodes)
+        || cached.networkCodes.some((code) => typeof code !== 'string' || !code.trim())) {
+        return null;
+      }
+      return [...new Set(cached.networkCodes.map((code) => code.trim()))];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function acceptSnapshot(snapshot) {
+    const codes = normaliseCodes(snapshot?.rows, snapshot?.contractVersion);
+    validatedCodes = codes;
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        contractVersion: CONTRACT_VERSION,
+        networkCodes: codes,
+      }));
+    } catch (_) {
+      // Session storage is an optimisation only.
+    }
+    return codes;
+  }
+
+  function waitForCatalogEvent() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (snapshot) => {
+        if (settled) return;
+        settled = true;
+        window.removeEventListener('ukaq:public-network-catalog', onCatalog);
+        window.clearTimeout(timeout);
+        resolve(snapshot);
+      };
+      const onCatalog = (event) => finish(event.detail);
+      const timeout = window.setTimeout(() => finish(null), EVENT_WAIT_MS);
+      window.addEventListener('ukaq:public-network-catalog', onCatalog, { once: true });
+      if (window.UkAqPublicNetworkCatalogSnapshot) finish(window.UkAqPublicNetworkCatalogSnapshot);
+    });
+  }
+
+  async function loadCodes() {
+    const cached = validatedCodes ?? readCachedCatalog();
+    const manualReload = performance.getEntriesByType?.('navigation')?.[0]?.type === 'reload';
+    if (!manualReload && cached !== null) return cached;
+
+    try {
+      let snapshot = window.UkAqPublicNetworkCatalogSnapshot;
+      if (!snapshot && window.UkAqNetworkCatalog?.load) {
+        snapshot = await waitForCatalogEvent();
+      }
+      if (snapshot) {
+        try {
+          return acceptSnapshot(snapshot);
+        } catch (error) {
+          // Rejected shared data must not prevent a valid direct response.
+          console.warn('UK AQ shared attribution catalogue rejected; requesting public catalogue', error);
+        }
+      }
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      try {
+        const response = await fetch(`${location.origin}/api/aq/networks`, {
+          credentials: 'omit',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`network catalogue request failed (${response.status})`);
+        const payload = await response.json();
+        return acceptSnapshot({ rows: payload?.data, contractVersion: payload?.contract_version });
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    } catch (error) {
+      // A refresh failure must not discard reusable validated state. Never cache
+      // the editorial fallback as a successful public catalogue.
+      const reusable = validatedCodes ?? readCachedCatalog() ?? cached;
+      console.warn('UK AQ attribution catalogue failed; using validated cache or stable fallback', error);
+      return reusable ?? FALLBACK_CODES;
+    }
+  }
+
+  // New valid data prepares subsequent navigations without changing a visible
+  // footer. The beta notice may update only its source text from the same event.
+  window.addEventListener('ukaq:public-network-catalog', (event) => {
+    try {
+      acceptSnapshot(event.detail);
+    } catch (_) {
+      // Rejected data must never replace a previously validated cache.
+    }
+  });
+
+  window.UkAqSourceAttribution = Object.freeze({
+    sources: SOURCES,
+    normaliseCodes,
+    resolveCodes: () => (resolution ||= loadCodes()),
+    sourcesFor(codes) {
+      const publicCodes = new Set(codes);
+      const unknownCodes = [...publicCodes].filter((code) => !SOURCES.some((source) => source.code === code));
+      if (unknownCodes.length) console.debug('UK AQ has no source-link definition for public network codes', unknownCodes);
+      return SOURCES.filter((source) => publicCodes.has(source.code));
+    },
+  });
+})();
+
+(() => {
+  try {
+    const embedded = window.parent && window.parent !== window;
+    if (embedded) {
+      return;
+    }
+  } catch (error) {
+    return;
+  }
+
+  // ─── Nav config ──────────────────────────────────────────────────────────────
+  const NAV = [
+    {
+      id: 'uk-aq',
+      label: 'UK AQ',
+      showLabel: false,
+      children: [
+        { label: 'Hex Map',     iconImg: 'uk-aq-hex-map-sidebar.svg', href: '/hex_map/' },
+        //{ label: 'Sensors',     iconImg: 'uk-aq-sensors-icon-blue.svg',  href: '/sensors/' },
+        { label: 'Sensor Map', iconImg: 'uk-aq-location-pin.svg',       href: '/sensor_map/' },
+        { label: 'WHO Guidelines', iconImg: 'UK-AQ-WHO-button.svg', href: '/who-guidelines/', className: 'uk-aq-nav-item--wordmark' },
+        { label: 'Wood Burning', iconImg: 'uk-aq-wood-burning-stove.png', href: '/wood-burning/', className: 'uk-aq-nav-item--stove' },
+        { label: 'NAEI Data', iconImg: 'uk-aq-naei-data.png', href: '/naei-data/' },
+        { label: 'Research', iconImg: 'uk-aq-research-icon.png', href: '/research/', className: 'uk-aq-nav-item--research' },
+        { label: 'AQ in the News', iconImg: 'uk-aq-news-sidebar-button.svg', href: '/news/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--wordmark-spaced' },
+      ],
+    },
+/*    {
+      id: 'data-explorer',
+      label: 'Data Explorer',
+      children: [
+        { label: 'Bubble Chart',       iconImg: 'Bubble-Chart-Icon.svg', href: '/data-explorer/?page=bubblechart' },
+        { label: 'Line Chart',         iconImg: 'Line-Chart-Icon.svg', href: '/data-explorer/?page=linechart' },
+        { label: 'Ecodesign Replaces', iconImg: 'Stove Ecodesign 430x683.svg', href: '/data-explorer/?page=eco-replaces-all', className: 'uk-aq-nav-item--eco-replaces' },
+        { label: 'Category Info',      iconImg: 'Category Info - Icon.svg', href: '/data-explorer/category-info/' },
+        { label: 'User Guide',         iconImg: 'user-guide.svg', href: '/data-explorer/user-guide/' },
+      ],
+    },
+*/    {
+      id: 'quick-links',
+      showLabel: false,
+      dividerBefore: true,
+      children: [
+/*        {
+          label: 'YouTube',
+          iconImg: 'youtube-logo.svg',
+          labelImg: 'youtube-logo-Word.svg',
+          href: 'https://youtube.com/@chronicillnesschannel',
+          external: true,
+        },
+*/        { label: 'Blog', iconImg: 'uk-aq-blog-sidebar-button.svg', href: '/blog/', className: 'uk-aq-nav-item--wordmark uk-aq-nav-item--wordmark-spaced' },
+        { label: 'Resources', iconImg: 'chain-link-icon-ukaqblue-200h.svg', href: '/resources/' },
+        { label: 'Contact', iconImg: 'uk-aq-contact-blue-200h.svg', href: '/contact.html' },
+      ],
+    },
+  ];
+  const HOME_ITEM = {
+    label: 'Home',
+    iconImg: 'uk-aq-home-sidebar-blue.svg',
+    href: '/',
+    className: 'uk-aq-home-nav-item',
+  };
+  const SITE_VERSION_CACHE_KEY = 'uk_aq_site_version_v1';
+  const SIDEBAR_NAV_HANDOFF_KEY = 'uk_aq_sidebar_nav_handoff_v1';
+  const SIDEBAR_PINNED_KEY = 'uk_aq_sidebar_pinned_v1';
+  const sourceAttribution = window.UkAqSourceAttribution;
+  const sourceByCode = new Map(sourceAttribution.sources.map((source) => [source.code, source]));
+  const FOOTER_STYLESHEET_TIMEOUT_MS = 15000;
+  let SITE_VERSION = readCachedSiteVersion();
+  const SIDEBAR_ICON_OFF = '/sidebar-images/uk-aq-sidebar-off.svg';
+  const SIDEBAR_ICON_ON = '/sidebar-images/uk-aq-sidebar-on.svg';
+  let siteVersionReady;
+
+  function readCachedSiteVersion() {
+    try {
+      return String(sessionStorage.getItem(SITE_VERSION_CACHE_KEY) || '').trim();
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function writeCachedSiteVersion(version) {
+    try {
+      sessionStorage.setItem(SITE_VERSION_CACHE_KEY, version);
+    } catch (_) {
+      // Session storage is an optimisation only.
+    }
+  }
+
+  function readPinnedSidebarPreference() {
+    try {
+      return sessionStorage.getItem(SIDEBAR_PINNED_KEY) === '1';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function writePinnedSidebarPreference(pinned) {
+    try {
+      sessionStorage.setItem(SIDEBAR_PINNED_KEY, pinned ? '1' : '0');
+    } catch (_) {
+      // Sidebar pin persistence is session-scoped and non-critical.
+    }
+  }
+
+  function rememberSidebarNavHandoff() {
+    try {
+      sessionStorage.setItem(SIDEBAR_NAV_HANDOFF_KEY, EXPANDED);
+    } catch (_) {
+      // Navigation continuity is cosmetic only.
+    }
+  }
+
+  function consumeSidebarNavHandoff() {
+    try {
+      const state = sessionStorage.getItem(SIDEBAR_NAV_HANDOFF_KEY);
+      sessionStorage.removeItem(SIDEBAR_NAV_HANDOFF_KEY);
+      return state === EXPANDED;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function applySiteVersion(version) {
+    const value = String(version || '').trim();
+    if (!value) return;
+    SITE_VERSION = value;
+    writeCachedSiteVersion(value);
+
+    const sidebarFooter = document.getElementById('uk-aq-sidebar-footer');
+    if (sidebarFooter) sidebarFooter.textContent = `${location.hostname} · ${SITE_VERSION}`;
+
+    const siteFooterMeta = document.querySelector('#ukaq-site-footer .ukaq-site-footer-meta');
+    if (siteFooterMeta) siteFooterMeta.textContent = `© 2026 UK AQ · ${SITE_VERSION}`;
+  }
+
+  async function loadSiteVersion() {
+    try {
+      const response = await fetch(`${location.origin}/VERSION`, { cache: 'no-cache' });
+      if (!response.ok) {
+        throw new Error(`VERSION request failed (${response.status})`);
+      }
+      const version = String(await response.text()).trim();
+      if (!version) throw new Error('VERSION file is empty');
+      applySiteVersion(version);
+      return version;
+    } catch (error) {
+      console.warn('UK AQ VERSION failed to load', error);
+      return SITE_VERSION;
+    }
+  }
+
+  function applyFooterAttributions(networkCodes) {
+    const footer = document.getElementById('ukaq-site-footer');
+    if (!footer) return;
+    const publicNetworkCodes = new Set(networkCodes);
+    const attributionDefinitions = Array.from(
+      footer.querySelectorAll('.ukaq-site-footer-source [data-network-code], .ukaq-site-footer-source[data-network-code]'),
+    );
+    const definedNetworkCodes = new Set(
+      attributionDefinitions.map((definition) => definition.dataset.networkCode),
+    );
+
+    footer.querySelectorAll('.ukaq-site-footer-source[data-network-code]').forEach((section) => {
+      if (!publicNetworkCodes.has(section.dataset.networkCode)) section.remove();
+    });
+
+    footer.querySelectorAll('.ukaq-site-footer-source[data-network-group]').forEach((section) => {
+      const networkMarks = Array.from(section.querySelectorAll('[data-network-code]'));
+      networkMarks.forEach((mark) => {
+        if (!publicNetworkCodes.has(mark.dataset.networkCode)) mark.remove();
+      });
+      // Each official row owns its copy; remove it when its last pill is gone.
+      section.querySelectorAll('.ukaq-site-footer-official-row').forEach((row) => {
+        if (!row.querySelector('[data-network-code]')) row.remove();
+      });
+      if (!networkMarks.some((mark) => publicNetworkCodes.has(mark.dataset.networkCode))) {
+        section.remove();
+      }
+    });
+
+    finaliseFooterAttributionLayout();
+
+    const missingDefinitions = [...publicNetworkCodes]
+      .filter((networkCode) => !definedNetworkCodes.has(networkCode));
+    if (missingDefinitions.length) {
+      console.debug(
+        'UK AQ footer has no attribution definition for public network codes',
+        missingDefinitions,
+      );
+    }
+  }
+
+  function finaliseFooterAttributionLayout() {
+    const footer = document.getElementById('ukaq-site-footer');
+    if (!footer) return;
+
+    const sources = footer.querySelector('.ukaq-site-footer-sources');
+    const visibleCount = sources?.querySelectorAll('.ukaq-site-footer-source').length || 0;
+    if (sources) {
+      sources.dataset.sourceCount = String(visibleCount);
+      sources.hidden = visibleCount === 0;
+    }
+  }
+
+  let footerSeparatorLayoutFrame = 0;
+
+  function updateFooterConditionalSeparators() {
+    const footer = document.getElementById('ukaq-site-footer');
+    if (!footer || footer.hidden) return;
+
+    footer.querySelectorAll('.ukaq-site-footer-copy--conditional-separator').forEach((copy) => {
+      const owner = copy.querySelector('.ukaq-site-footer-attribution-owner');
+      const separator = copy.querySelector('.ukaq-site-footer-conditional-separator');
+      const source = copy.querySelector('.ukaq-site-footer-attribution-source');
+      if (!owner || !separator || !source) return;
+
+      // Measure with the separator present. If the source starts on a new visual
+      // line, the separator is decorative noise and should disappear.
+      separator.hidden = false;
+      const ownerRects = owner.getClientRects();
+      const sourceRects = source.getClientRects();
+      const ownerLast = ownerRects[ownerRects.length - 1];
+      const sourceFirst = sourceRects[0];
+      if (!ownerLast || !sourceFirst) return;
+
+      const lineTolerance = Math.max(2, Math.min(ownerLast.height, sourceFirst.height) * 0.4);
+      separator.hidden = Math.abs(sourceFirst.top - ownerLast.top) > lineTolerance;
+    });
+  }
+
+  function scheduleFooterConditionalSeparators() {
+    if (footerSeparatorLayoutFrame) {
+      window.cancelAnimationFrame(footerSeparatorLayoutFrame);
+    }
+    footerSeparatorLayoutFrame = window.requestAnimationFrame(() => {
+      footerSeparatorLayoutFrame = 0;
+      updateFooterConditionalSeparators();
+    });
+  }
+
+  window.addEventListener('resize', scheduleFooterConditionalSeparators, { passive: true });
+
+  async function filterFooterAttributions() {
+    applyFooterAttributions(await sourceAttribution.resolveCodes());
+  }
+
+  // ─── Preload default sidebar button image; lazy-warm the alternate icon ─────
+  const sidebarIconOffHref = location.origin + SIDEBAR_ICON_OFF;
+  if (!document.head.querySelector(`link[rel="preload"][as="image"][href="${sidebarIconOffHref}"]`)) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = sidebarIconOffHref;
+    document.head.appendChild(link);
+  }
+  const warmSidebarOnIcon = () => {
+    const img = new Image();
+    img.src = location.origin + SIDEBAR_ICON_ON;
+  };
+  if (document.readyState === 'complete') {
+    warmSidebarOnIcon();
+  } else {
+    window.addEventListener('load', warmSidebarOnIcon, { once: true });
+  }
+
+  // ─── State ────────────────────────────────────────────────────────────────────
+  const EXPANDED  = 'expanded';
+  const COLLAPSED = 'collapsed';
+  const MINI      = 'mini';
+  const DRAWER    = 'drawer';
+
+  let autoCollapseTimer = null;
+  let pinnedOpenDesktop = false;
+
+  function getBreakpoint() {
+    const w = window.innerWidth;
+    if (w < 768)  return 'mobile';
+    if (w < 1100) return 'tablet';
+    return 'desktop';
+  }
+
+  function isConstrainedSidebarMode() {
+    const width = window.innerWidth;
+    if (width < 768) return false;
+    if (document.body.classList.contains('hex-map-page')) {
+      return width < 920;
+    }
+    if (document.body.classList.contains('home-page')) {
+      return width < 1100;
+    }
+    return false;
+  }
+
+  function isSidebarHoverMode() {
+    return getBreakpoint() !== 'mobile';
+  }
+
+  function isHomePage() {
+    const p = location.pathname;
+    return p === '/' || p === '/index.html' || p === '';
+  }
+
+  function isSensorMapPage() {
+    const p = location.pathname;
+    return p === '/sensor_map/' || p === '/sensor_map/index.html';
+  }
+
+  function isNaeiDataPage() {
+    return document.body.dataset.pageSlug === 'naei-data';
+  }
+
+  function getState() {
+    return document.body.getAttribute('data-sidebar-state');
+  }
+
+  function setState(state) {
+    document.body.setAttribute('data-sidebar-state', state);
+  }
+
+  function scheduleAutoCollapse(isHoverActive = () => false) {
+    clearTimeout(autoCollapseTimer);
+    autoCollapseTimer = setTimeout(() => {
+      if (
+        isSidebarHoverMode()
+        && !pinnedOpenDesktop
+        && getState() === EXPANDED
+        && !isHoverActive()
+      ) {
+        setState(MINI);
+      }
+    }, 500);
+  }
+
+  function updateHamburgerIcon(btn) {
+    const img = btn?.querySelector('img');
+    if (!img) return;
+    const mobileDrawer = getBreakpoint() === 'mobile';
+    const drawerOpen = mobileDrawer && document.body.classList.contains('uk-aq-drawer-open');
+    const shouldShowOn = drawerOpen
+      || (!mobileDrawer && !isConstrainedSidebarMode() && pinnedOpenDesktop);
+    const target = `${location.origin}${shouldShowOn ? SIDEBAR_ICON_ON : SIDEBAR_ICON_OFF}`;
+    if (img.src !== target) img.src = target;
+  }
+
+  // ─── CSS ──────────────────────────────────────────────────────────────────────
+  const CSS = `
+    :root {
+      --uk-aq-accent:        #3C78AC;
+      --uk-aq-accent-deep:   #285A84;
+      --uk-aq-ink:           #101822;
+      --uk-aq-ink-1:         #1b2a38;
+      --uk-aq-ink-2:         #3a4a5a;
+      --uk-aq-ink-3:         #6b7a88;
+      --uk-aq-ink-4:         #9aa7b3;
+      --uk-aq-line:          #e4e6ea;
+      --uk-aq-line-soft:     #eef0f3;
+      --uk-aq-surface:       #ffffff;
+      --uk-aq-surface-2:     #fbfaf6;
+      --uk-aq-sidebar-w:             212px;
+      --uk-aq-sidebar-mini-w:        64px;
+      --uk-aq-sidebar-drawer-w:      212px;
+      --uk-aq-ease:          0.3s ease;
+      --uk-aq-font:          'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    #uk-aq-sidebar,
+    #uk-aq-sidebar * {
+      box-sizing: content-box;
+    }
+
+    /* ── Body shift ── */
+    body {
+      transition: padding-left var(--uk-aq-ease);
+    }
+    body[data-sidebar-state="expanded"]  { padding-left: var(--uk-aq-sidebar-w); }
+    body[data-sidebar-state="collapsed"] { padding-left: 0; }
+    body[data-sidebar-state="mini"]      { padding-left: var(--uk-aq-sidebar-mini-w); }
+    body[data-sidebar-state="drawer"]    { padding-left: 0; }
+
+    @media (min-width: 768px) and (max-width: 919px) {
+      body.hex-map-page[data-sidebar-state="expanded"] {
+        padding-left: var(--uk-aq-sidebar-mini-w);
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1099px) {
+      body.home-page[data-sidebar-state="expanded"] {
+        padding-left: var(--uk-aq-sidebar-mini-w);
+      }
+    }
+
+    /* ── Sidebar panel ── */
+    #uk-aq-sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: var(--uk-aq-sidebar-w);
+      background: var(--uk-aq-surface);
+      border-right: 1px solid var(--uk-aq-line);
+      display: flex;
+      flex-direction: column;
+      z-index: 10010;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: transform var(--uk-aq-ease), width var(--uk-aq-ease);
+      font-family: var(--uk-aq-font);
+    }
+
+    body[data-sidebar-state="collapsed"] #uk-aq-sidebar {
+      transform: translateX(calc(-1 * var(--uk-aq-sidebar-w)));
+    }
+    body[data-sidebar-state="mini"] #uk-aq-sidebar {
+      width: var(--uk-aq-sidebar-mini-w);
+      transform: none;
+    }
+    body[data-sidebar-state="drawer"] #uk-aq-sidebar {
+      width: var(--uk-aq-sidebar-drawer-w);
+      transform: translateX(calc(-1 * var(--uk-aq-sidebar-drawer-w)));
+    }
+    body[data-sidebar-state="drawer"].uk-aq-drawer-open #uk-aq-sidebar {
+      transform: translateX(0);
+    }
+
+    /* ── Overlay (mobile drawer backdrop) ── */
+    #uk-aq-sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(16,24,34,0.35);
+      z-index: 10009;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--uk-aq-ease);
+    }
+    body[data-sidebar-state="drawer"].uk-aq-drawer-open #uk-aq-sidebar-overlay {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ── Hamburger button ── */
+    #uk-aq-hamburger {
+      position: fixed;
+      top: 16px; left: 10px;
+      z-index: 10012;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 25%;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    @media (max-width: 767px) {
+      #uk-aq-hamburger { position: absolute; }
+    }
+    #uk-aq-hamburger:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 14px rgba(20,34,37,0.12);
+    }
+    @media (min-width: 768px) and (max-width: 919px) {
+      body.hex-map-page #uk-aq-hamburger:disabled {
+        cursor: default;
+        pointer-events: none;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    @media (min-width: 768px) and (max-width: 1099px) {
+      body.home-page #uk-aq-hamburger:disabled {
+        cursor: default;
+        pointer-events: none;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+    #uk-aq-hamburger img { width: 44px; height: 44px; object-fit: contain; display: block; }
+
+    /* ── Top-right UK AQ home logo ── */
+    #ukaq-home-logo {
+      position: absolute;
+      top: 16px; right: 28px;
+      z-index: 10008;
+      display: block;
+      border-radius: 16px;
+      overflow: visible;
+      cursor: pointer;
+    }
+    #ukaq-home-logo:hover { cursor: pointer; }
+    #ukaq-home-logo:focus-visible {
+      outline: 3px solid rgba(60, 120, 172, 0.55);
+      outline-offset: 4px;
+    }
+    #ukaq-home-logo img {
+      width: 104px; height: 104px;
+      object-fit: contain; display: block;
+    }
+    #ukaq-home-logo picture { display: block; }
+    @media (max-width: 767px) {
+      #ukaq-home-logo {
+        top: 16px;
+        right: 16px;
+      }
+      #ukaq-home-logo img {
+        width: 112px;
+        height: auto;
+      }
+    }
+    @media (min-width: 768px) {
+      body.home-page #ukaq-home-logo { display: none; }
+    }
+
+    /* ── Nav ── */
+    .uk-aq-nav {
+      flex: 1;
+      padding: 68px 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+	.uk-aq-home-nav-item {
+	  margin-bottom: 0;
+	}
+    .uk-aq-home-nav-item .uk-aq-nav-icon-img {
+      width: 44px !important;
+      height: 44px !important;
+      min-width: 44px !important;
+      min-height: 44px !important;
+      max-width: 44px !important;
+      max-height: 44px !important;
+    }
+    .uk-aq-home-nav-item + .uk-aq-nav-section .uk-aq-section-label {
+      padding-top: 6px;
+    }
+    .uk-aq-section-divider {
+      height: 0;
+      border-top: 1px solid var(--uk-aq-line);
+      margin: 10px 12px 8px;
+    }
+
+    .uk-aq-section-label {
+      font-family: var(--uk-aq-font);
+      font-size: 20px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 14px 10px 5px;
+      background: linear-gradient(285deg,#004D80,#67B0ED);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    body[data-sidebar-state="mini"] .uk-aq-section-label { display: none; }
+
+    /* ── Nav items ── */
+	.uk-aq-nav-item {
+	  display: flex;
+	  align-items: center;
+	  justify-content: flex-start;
+	  gap: 10px;
+	  padding: 9px 10px 9px 14px;
+	  border-radius: 7px;
+	  color: var(--uk-aq-ink-2);
+	  font-size: 15px;
+	  font-weight: 700;
+	  font-family: var(--uk-aq-font);
+	  text-decoration: none;
+	  border: 1px solid transparent;
+	  white-space: nowrap;
+	  overflow: hidden;
+	  transition:
+	    padding 0.3s ease,
+	    gap 0.3s ease,
+	    background-color 0.2s ease,
+	    border-color 0.2s ease,
+	    color 0.2s ease;
+	}
+    .uk-aq-nav-item:hover {
+      background: var(--uk-aq-surface-2);
+      color: var(--uk-aq-ink-1);
+      text-decoration: none;
+    }
+    .uk-aq-nav-item.active {
+      background: #FBFAF7;
+      color: var(--uk-aq-accent-deep);
+      border-color: #d6d0c8;
+    }
+    .uk-aq-nav-item--pending {
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
+    .uk-aq-nav-item--pending:hover {
+      background: transparent;
+      color: var(--uk-aq-ink-2);
+    }
+    .uk-aq-visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .uk-aq-nav-icon {
+      width: 20px; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-style: normal; font-size: 13px;
+    }
+	.uk-aq-nav-icon-slot {
+	  width: 40px;
+	  min-width: 40px;
+	  flex-shrink: 0;
+	  display: inline-flex;
+	  align-items: center;
+	  justify-content: center;
+	  overflow: visible;
+	}
+    .uk-aq-nav-icon-img {
+      width: 40px !important;
+      height: 40px !important;
+      min-width: 40px !important;
+      min-height: 40px !important;
+      max-width: 40px !important;
+      max-height: 40px !important;
+      flex-shrink: 0;
+      max-width: none !important;
+      object-fit: contain;
+      display: block;
+    }
+    /* Enlarge the artwork only; the existing 40px icon box and row spacing stay unchanged. */
+    .uk-aq-nav-item--stove .uk-aq-nav-icon-img {
+      transform: scale(1.25);
+      transform-origin: center;
+    }
+    .uk-aq-nav-item--research .uk-aq-nav-icon-img {
+      transform: scale(1.12);
+      transform-origin: center;
+    }
+	.uk-aq-nav-item--wordmark {
+	  overflow: visible;
+	}
+	.uk-aq-nav-item--wordmark .uk-aq-nav-icon-slot {
+	  height: 40px;
+	  overflow: visible;
+	}
+    .uk-aq-nav-item--wordmark + .uk-aq-nav-item--wordmark {
+      margin-top: 0px;
+    }
+    .uk-aq-nav-item--wordmark .uk-aq-nav-icon-img {
+      width: auto !important;
+      height: 24px !important;
+      min-width: 0 !important;
+      min-height: 24px !important;
+      max-width: none !important;
+      max-height: 24px !important;
+      object-fit: contain;
+    }
+    .uk-aq-nav-item--wordmark-spaced .uk-aq-nav-label {
+      margin-left: 3px;
+    }
+    .uk-aq-nav-icon-placeholder {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      border: 2px dashed var(--uk-aq-ink-4);
+      border-radius: 10px;
+      display: inline-block;
+      opacity: 0.75;
+    }
+    .uk-aq-nav-label-img {
+      display: block;
+      height: 16px !important;
+      width: auto !important;
+      max-width: 136px !important;
+      max-height: 16px !important;
+      object-fit: contain;
+    }
+	.uk-aq-nav-label {
+	  min-width: 0;
+	  max-width: 150px;
+	  overflow: hidden;
+	  opacity: 1;
+	  transform: translateX(0);
+	  text-overflow: ellipsis;
+	  white-space: nowrap;
+	  transition:
+	    max-width 0.3s ease,
+	    opacity 0.18s ease,
+	    transform 0.3s ease;
+	}
+    .uk-aq-nav-item--eco-replaces .uk-aq-nav-label {
+      display: block;
+      width: 92px;
+      white-space: normal;
+      line-height: 1.15;
+      text-align: left;
+      overflow: visible;
+      text-overflow: clip;
+    }
+	body[data-sidebar-state="mini"] .uk-aq-nav-label {
+	  max-width: 0;
+	  opacity: 0;
+	  transform: translateX(-8px);
+	  pointer-events: none;
+	}
+	body[data-sidebar-state="mini"] .uk-aq-nav-item {
+	  padding: 9px 4px;
+	  gap: 0;
+	  justify-content: flex-start;
+	}
+	body[data-sidebar-state="mini"] .uk-aq-nav-item--wordmark {
+	  margin-inline: -4px;
+	  padding-left: 7px;
+	  padding-right: 1px;
+	}
+    /* ── Sidebar footer ── */
+    #uk-aq-sidebar-footer {
+      padding: 10px 14px 14px;
+      border-top: 1px solid var(--uk-aq-line-soft);
+      font-size: 11px;
+      font-family: var(--uk-aq-font);
+      color: var(--uk-aq-ink-4);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    body[data-sidebar-state="mini"] #uk-aq-sidebar-footer { display: none; }
+  `;
+
+  // ─── HTML builders ────────────────────────────────────────────────────────────
+  function buildNavItem(item) {
+    const path = location.pathname;
+    const pathWithSearch = location.pathname + location.search;
+    const href = item.href || '';
+    const isActive = Boolean(href) && (
+      href === '/' || href === '/index.html'
+        ? isHomePage()
+        : (href.includes('?') ? pathWithSearch.includes(href) : path.includes(href))
+    );
+    const className = `${item.className ? ` ${item.className}` : ''}${item.pending ? ' uk-aq-nav-item--pending' : ''}`;
+  const usesCentredIconSlot =
+    item.className?.includes('uk-aq-home-nav-item')
+    || item.className?.includes('uk-aq-nav-item--wordmark');
+
+  const imageHtml = item.iconImg
+    ? `<img class="uk-aq-nav-icon-img" src="${location.origin}/sidebar-images/${item.iconImg}" alt="">`
+    : '';
+
+  const iconHtml = item.iconImg
+    ? (usesCentredIconSlot
+        ? `<span class="uk-aq-nav-icon-slot" aria-hidden="true">${imageHtml}</span>`
+        : imageHtml)
+    : item.iconPlaceholder
+      ? `<span class="uk-aq-nav-icon-placeholder" aria-hidden="true"></span>`
+      : `<i class="uk-aq-nav-icon">${item.icon}</i>`;
+    const labelHtml = item.labelImg
+      ? `<img class="uk-aq-nav-label-img" src="${location.origin}/sidebar-images/${item.labelImg}" alt="${item.label}">`
+      : item.label;
+    const targetAttrs = item.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const openTag = item.pending
+      ? `<span class="uk-aq-nav-item${className}" role="link" aria-disabled="true" title="Coming soon">`
+      : `<a class="uk-aq-nav-item${className}${isActive ? ' active' : ''}" href="${href}"${targetAttrs}>`;
+    const closeTag = item.pending ? '</span>' : '</a>';
+    const pendingText = item.pending ? '<span class="uk-aq-visually-hidden"> (coming soon)</span>' : '';
+    return `
+      ${openTag}
+        ${iconHtml}
+        <span class="uk-aq-nav-label">${labelHtml}${pendingText}</span>
+      ${closeTag}`;
+  }
+
+  function buildSection(section) {
+    const childrenHtml = section.children.map(buildNavItem).join('');
+    const sectionLabel = section.showLabel === false
+      ? ''
+      : `<div class="uk-aq-section-label">${section.label}</div>`;
+    const divider = section.dividerBefore ? '<div class="uk-aq-section-divider" aria-hidden="true"></div>' : '';
+    return `
+      <div class="uk-aq-nav-section uk-aq-nav-section--${section.id}">
+        ${divider}
+        ${sectionLabel}
+        ${childrenHtml}
+      </div>`;
+  }
+
+  function versionSuffix() {
+    return SITE_VERSION ? ` · ${SITE_VERSION}` : '';
+  }
+
+  function buildSidebar() {
+    return `
+      <nav class="uk-aq-nav" aria-label="Site navigation">
+        ${buildNavItem(HOME_ITEM)}
+        ${NAV.map(buildSection).join('')}
+      </nav>
+      <div id="uk-aq-sidebar-footer">
+        ${location.hostname}${versionSuffix()}
+      </div>`;
+  }
+
+  function buildSiteFooter() {
+    const oglUrl = 'https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/';
+    if (isNaeiDataPage()) {
+      return `
+        <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
+        <div class="ukaq-site-footer-sources" aria-label="NAEI data source and licence">
+          <section class="ukaq-site-footer-source" aria-label="National Atmospheric Emissions Inventory attribution">
+            <div class="ukaq-site-footer-mark">
+              <a href="https://naei.energysecurity.gov.uk/">National Atmospheric Emissions Inventory (NAEI)</a>
+            </div>
+            <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra &amp; DESNZ via <a class="ukaq-site-footer-attribution-source" href="https://naei.energysecurity.gov.uk/data/licensing">naei.energysecurity.gov.uk</a> licenced under the <a href="${oglUrl}">Open Government Licence (OGL)</a>.</p>
+          </section>
+        </div>`;
+    }
+
+    return `
+      <p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>
+      <div class="ukaq-site-footer-sources" aria-label="Air quality data sources and licences">
+        <section class="ukaq-site-footer-source ukaq-site-footer-source--official" data-network-group="official-government" aria-label="Official government air quality networks attribution">
+          <p class="ukaq-site-footer-copy ukaq-site-footer-licence">Licensed under the <a href="${oglUrl}">Open Government Licence</a> (OGL).</p>
+          <div class="ukaq-site-footer-official-rows">
+            <div class="ukaq-site-footer-official-row">
+              <div class="ukaq-site-footer-mark">
+                <a class="ukaq-site-footer-gov-pill" data-network-code="gov_uk_aurn" href="${sourceByCode.get('gov_uk_aurn').href}" aria-label="GOV.UK AURN">${sourceByCode.get('gov_uk_aurn').name}</a>
+                <a class="ukaq-site-footer-gov-pill" data-network-code="black_carbon" href="${sourceByCode.get('black_carbon').href}" aria-label="Black Carbon">${sourceByCode.get('black_carbon').name}</a>
+              </div>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Defra via <a class="ukaq-site-footer-attribution-source" href="https://uk-air.defra.gov.uk/">uk-air.defra.gov.uk</a></p>
+            </div>
+            <div class="ukaq-site-footer-official-row">
+              <div class="ukaq-site-footer-mark">
+                <a class="ukaq-site-footer-gov-pill" data-network-code="ni" href="${sourceByCode.get('ni').href}" aria-label="Northern Ireland Air">${sourceByCode.get('ni').name}</a>
+              </div>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2014 copyright DAERA</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airqualityni.co.uk/">www.airqualityni.co.uk</a></p>
+            </div>
+            <div class="ukaq-site-footer-official-row">
+              <div class="ukaq-site-footer-mark">
+                <a class="ukaq-site-footer-gov-pill" data-network-code="waqn" href="${sourceByCode.get('waqn').href}" aria-label="Welsh Air Quality Network">${sourceByCode.get('waqn').name}</a>
+              </div>
+              <p class="ukaq-site-footer-copy ukaq-site-footer-copy--conditional-separator"><span class="ukaq-site-footer-attribution-owner">&copy; Crown 2026 copyright the Welsh Government</span><span class="ukaq-site-footer-conditional-separator" aria-hidden="true"> · </span> <a class="ukaq-site-footer-attribution-source" href="https://www.airquality.gov.wales/data/so">www.airquality.gov.wales/data/so</a></p>
+            </div>
+            <div class="ukaq-site-footer-official-row">
+              <div class="ukaq-site-footer-mark">
+                <a class="ukaq-site-footer-gov-pill" data-network-code="saqn" href="${sourceByCode.get('saqn').href}" aria-label="Scottish Air Quality Network">${sourceByCode.get('saqn').name}</a>
+              </div>
+              <p class="ukaq-site-footer-copy">&copy; Crown 2026 copyright Scottish Government via <a class="ukaq-site-footer-attribution-source" href="https://www.scottishairquality.scot/">scottishairquality.co.uk</a></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="breathelondon" aria-label="Breathe London attribution">
+          <div class="ukaq-site-footer-mark">
+            <a href="${sourceByCode.get('breathelondon').href}" aria-label="${sourceByCode.get('breathelondon').name}">
+              <img class="ukaq-site-footer-logo ukaq-site-footer-logo--breathe" src="${location.origin}/sidebar-images/breathelondon_logo_v2.svg" alt="Breathe London">
+            </a>
+          </div>
+          <p class="ukaq-site-footer-copy">Contains <a href="https://www.breathelondon.org/">Breathe London</a> data licensed under the <a href="${oglUrl}">Open Government License v3.0</a></p>
+          <p class="ukaq-site-footer-copy">Powered by <a href="https://www.breathelondon-communities.org/">Breathe London Communities</a></p>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="openaq" aria-label="OpenAQ attribution">
+          <div class="ukaq-site-footer-mark">
+            <a href="${sourceByCode.get('openaq').href}" aria-label="${sourceByCode.get('openaq').name}">
+              <img class="ukaq-site-footer-logo ukaq-site-footer-logo--openaq" src="${location.origin}/sidebar-images/openaq_logo.svg" alt="OpenAQ">
+            </a>
+          </div>
+          <p class="ukaq-site-footer-copy">Air quality data via <a href="https://openaq.org/">OpenAQ</a></p>
+        </section>
+
+        <section class="ukaq-site-footer-source" data-network-code="sensorcommunity" aria-label="Sensor.Community attribution">
+          <div class="ukaq-site-footer-mark">
+            <a href="${sourceByCode.get('sensorcommunity').href}" aria-label="${sourceByCode.get('sensorcommunity').name}">
+              <img class="ukaq-site-footer-logo ukaq-site-footer-logo--scomm" src="${location.origin}/sidebar-images/scomm_logo_text.svg" alt="Sensor.Community">
+            </a>
+          </div>
+          <p class="ukaq-site-footer-copy"><a href="https://sensor.community/">Sensor.Community</a>, made available under the <a href="https://opendatacommons.org/licenses/odbl/1-0/">Open Database License (ODbL)</a>.</p>
+        </section>
+      </div>`;
+  }
+
+  function mountSiteFooter() {
+    const existing = document.getElementById('ukaq-site-footer');
+    if (existing) return existing;
+
+    const oldHomeFooter = document.querySelector('.home-footer');
+    if (oldHomeFooter) oldHomeFooter.remove();
+
+    const footer = document.createElement('footer');
+    footer.id = 'ukaq-site-footer';
+    footer.hidden = true;
+    footer.setAttribute('aria-label', 'UK AQ site information and data licences');
+    footer.innerHTML = buildSiteFooter();
+
+    if (isSensorMapPage()) {
+      document.body.classList.add('ukaq-site-footer-after-viewport');
+    }
+
+    document.body.appendChild(footer);
+    return footer;
+  }
+
+  function ensureSiteFooterStyles() {
+    const waitForStylesheet = (link) => new Promise((resolve) => {
+      let settled = false;
+      const finish = (loaded, reason) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timeout);
+        link.removeEventListener('load', onLoad);
+        link.removeEventListener('error', onError);
+        if (!loaded) {
+          console.warn(`UK AQ footer stylesheet failed to load (${reason}); footer will remain hidden`);
+        }
+        resolve(loaded);
+      };
+      const onLoad = () => finish(true, 'load');
+      const onError = () => finish(false, 'error');
+      const timeout = window.setTimeout(
+        () => finish(false, 'timeout'),
+        FOOTER_STYLESHEET_TIMEOUT_MS,
+      );
+      link.addEventListener('load', onLoad, { once: true });
+      link.addEventListener('error', onError, { once: true });
+    });
+
+    const existing = document.getElementById('ukaq-site-footer-styles');
+    if (existing) {
+      if (existing.sheet) return Promise.resolve(true);
+      return waitForStylesheet(existing);
+    }
+
+    const link = document.createElement('link');
+    link.id = 'ukaq-site-footer-styles';
+    link.rel = 'stylesheet';
+    link.href = `${location.origin}/site-footer.css`;
+    const stylesheetReady = waitForStylesheet(link);
+    document.head.appendChild(link);
+    return stylesheetReady;
+  }
+
+  // ─── Mount ────────────────────────────────────────────────────────────────────
+  function mount() {
+    // Establish responsive page geometry before creating any visible chrome.
+    const bp = getBreakpoint();
+    const restoreExpandedForNavigation = consumeSidebarNavHandoff();
+    document.body.style.transition = 'none';
+    pinnedOpenDesktop = readPinnedSidebarPreference();
+    if (isConstrainedSidebarMode() && pinnedOpenDesktop) {
+      pinnedOpenDesktop = false;
+      writePinnedSidebarPreference(false);
+    }
+    setState(bp === 'mobile' ? DRAWER : (
+      pinnedOpenDesktop || restoreExpandedForNavigation
+        ? EXPANDED
+        : MINI
+    ));
+
+    // Injected sidebar styles
+    if (!document.getElementById('uk-aq-sidebar-styles')) {
+      const style = document.createElement('style');
+      style.id = 'uk-aq-sidebar-styles';
+      style.textContent = CSS;
+      document.head.appendChild(style);
+    }
+
+    // Sidebar panel
+    const aside = document.createElement('aside');
+    aside.id = 'uk-aq-sidebar';
+    aside.setAttribute('aria-label', 'Site navigation');
+    aside.innerHTML = buildSidebar();
+
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'uk-aq-sidebar-overlay';
+
+    // Hamburger button
+    const btn = document.createElement('button');
+    btn.id = 'uk-aq-hamburger';
+    btn.setAttribute('aria-label', 'Toggle navigation');
+    btn.disabled = isConstrainedSidebarMode();
+    btn.innerHTML = `<img src="${location.origin}${SIDEBAR_ICON_OFF}" alt="Menu">`;
+
+    // Shared top-right UK AQ home logo
+    const homeLogo = document.createElement('a');
+    const mobileHomeLogoSrc = '/sidebar-images/UK-AQ-Logo-v3-2Lines.svg';
+    homeLogo.id = 'ukaq-home-logo';
+    homeLogo.href = '/';
+    homeLogo.setAttribute('aria-label', 'UK AQ home');
+    homeLogo.innerHTML = `
+      <picture>
+        <source media="(max-width: 767px)" srcset="${location.origin}${mobileHomeLogoSrc}">
+        <img src="${location.origin}/sidebar-images/UK-AQ-Logo-v3-2Lines.svg" alt="UK AQ">
+      </picture>`;
+
+    // Mount into placeholder or body
+    const mountEl = document.getElementById('uk-aq-sidebar-mount');
+    if (mountEl) {
+      mountEl.appendChild(aside);
+      mountEl.appendChild(overlay);
+      mountEl.appendChild(btn);
+      mountEl.appendChild(homeLogo);
+    } else {
+      document.body.prepend(homeLogo);
+      document.body.prepend(btn);
+      document.body.prepend(overlay);
+      document.body.prepend(aside);
+    }
+
+    document.body.offsetHeight;
+    document.body.style.transition = '';
+    updateHamburgerIcon(btn);
+
+    bindEvents(btn, overlay);
+    void completeSharedChrome();
+  }
+
+  async function completeSharedChrome() {
+    if (!document.getElementById('uk-aq-inter-font')) {
+      const link = document.createElement('link');
+      link.id = 'uk-aq-inter-font';
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+      document.head.appendChild(link);
+    }
+
+    siteVersionReady = loadSiteVersion();
+    const footerStylesReady = await ensureSiteFooterStyles();
+    const footer = mountSiteFooter();
+    if (isNaeiDataPage()) {
+      finaliseFooterAttributionLayout();
+    } else {
+      await filterFooterAttributions();
+    }
+    if (footerStylesReady) {
+      footer.hidden = false;
+      scheduleFooterConditionalSeparators();
+      document.fonts?.ready?.then(scheduleFooterConditionalSeparators);
+    }
+    window.dispatchEvent(new CustomEvent('ukaq:sidebar-ready'));
+  }
+
+  // ─── Events ───────────────────────────────────────────────────────────────────
+  function bindEvents(btn, overlay) {
+    const sidebar = document.getElementById('uk-aq-sidebar');
+    let wasConstrainedSidebarMode = isConstrainedSidebarMode();
+    const isSidebarChromeHovered = () => (
+      sidebar.matches(':hover') || btn.matches(':hover')
+    );
+    const handleDesktopHoverEnter = () => {
+      clearTimeout(autoCollapseTimer);
+      if (
+        isSidebarHoverMode()
+        && !pinnedOpenDesktop
+        && getState() === MINI
+      ) {
+        setState(EXPANDED);
+      }
+    };
+    const handleDesktopHoverLeave = () => {
+      if (
+        !pinnedOpenDesktop
+        && isSidebarHoverMode()
+        && getState() === EXPANDED
+      ) {
+        scheduleAutoCollapse(isSidebarChromeHovered);
+      }
+    };
+
+    // Keep a hover-expanded non-mobile sidebar visually open across same-tab
+    // internal navigation. The destination consumes this one-time handoff.
+    sidebar.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const link = target?.closest('a.uk-aq-nav-item');
+      if (!link || event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (link.target && link.target !== '_self') return;
+      if (link.origin !== location.origin) return;
+      if (
+        isSidebarHoverMode()
+        && getState() === EXPANDED
+      ) {
+        rememberSidebarNavHandoff();
+      }
+    });
+
+    // Hamburger toggle
+    btn.addEventListener('click', () => {
+      const bp = getBreakpoint();
+      if (isConstrainedSidebarMode()) {
+        return;
+      }
+      if (bp === 'mobile') {
+        document.body.classList.toggle('uk-aq-drawer-open');
+      } else {
+        clearTimeout(autoCollapseTimer);
+        pinnedOpenDesktop = !pinnedOpenDesktop;
+        writePinnedSidebarPreference(pinnedOpenDesktop);
+        setState(
+          pinnedOpenDesktop || isSidebarChromeHovered()
+            ? EXPANDED
+            : MINI
+        );
+      }
+      updateHamburgerIcon(btn);
+    });
+
+    // Close drawer on overlay click
+    overlay.addEventListener('click', () => {
+      document.body.classList.remove('uk-aq-drawer-open');
+      updateHamburgerIcon(btn);
+    });
+
+    // Non-mobile hover-expand treats the sidebar and hamburger as one hover region.
+    sidebar.addEventListener('mouseenter', handleDesktopHoverEnter);
+    btn.addEventListener('mouseenter', handleDesktopHoverEnter);
+
+    // Only collapse after the pointer leaves both the sidebar and hamburger.
+    sidebar.addEventListener('mouseleave', handleDesktopHoverLeave);
+    btn.addEventListener('mouseleave', handleDesktopHoverLeave);
+
+    // Responsive resize
+    window.addEventListener('resize', () => {
+      const bp = getBreakpoint();
+      const constrainedSidebarMode = isConstrainedSidebarMode();
+      clearTimeout(autoCollapseTimer);
+      if (constrainedSidebarMode) {
+        if (pinnedOpenDesktop) {
+          pinnedOpenDesktop = false;
+          writePinnedSidebarPreference(false);
+        }
+        document.body.classList.remove('uk-aq-drawer-open');
+        if (!wasConstrainedSidebarMode) {
+          setState(isSidebarChromeHovered() ? EXPANDED : MINI);
+        } else if (getState() !== MINI && getState() !== EXPANDED) {
+          setState(MINI);
+        }
+      } else if (bp === 'tablet') {
+        setState(pinnedOpenDesktop || isSidebarChromeHovered() ? EXPANDED : MINI);
+        document.body.classList.remove('uk-aq-drawer-open');
+      } else if (bp === 'mobile') {
+        setState(DRAWER);
+        document.body.classList.remove('uk-aq-drawer-open');
+      } else if (getState() === MINI || getState() === DRAWER || getState() === COLLAPSED) {
+        document.body.classList.remove('uk-aq-drawer-open');
+        setState(pinnedOpenDesktop || isSidebarChromeHovered() ? EXPANDED : MINI);
+      } else {
+        setState(pinnedOpenDesktop || isSidebarChromeHovered() ? EXPANDED : MINI);
+      }
+      btn.disabled = constrainedSidebarMode;
+      wasConstrainedSidebarMode = constrainedSidebarMode;
+      updateHamburgerIcon(btn);
+    });
+  }
+
+  if (document.body && document.getElementById('uk-aq-sidebar-mount')) {
+    mount();
+  } else if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount, { once: true });
+  } else {
+    mount();
+  }
+})();
