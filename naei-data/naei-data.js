@@ -671,8 +671,9 @@ function buildLineModel(groupPayloads) {
   return { metric, groups, years, series };
 }
 
-// Cubic Hermite interpolation with monotone tangents; every span ends at an observation.
-function linePath(points, smoothing) {
+// Centered cardinal tangents keep curves flowing through observations. Limit their
+// handles locally so sharp changes produce only small overshoot at a turn.
+function linePath(points, smoothing, zeroY) {
   if (!smoothing || points.length < 3) {
     return points.map((point, index) => `${index ? 'L' : 'M'} ${point.x} ${point.y}`).join(' ');
   }
@@ -687,12 +688,27 @@ function linePath(points, smoothing) {
 
     const left = secants[index - 1];
     const right = secants[index];
-    if (!left || !right || Math.sign(left) !== Math.sign(right)) return 0;
+    if (!left || !right) return 0; // Keep repeated observations exactly flat.
 
     const leftWidth = point.x - points[index - 1].x;
     const rightWidth = points[index + 1].x - point.x;
-    const weighted = (left * rightWidth + right * leftWidth) / (leftWidth + rightWidth);
-    return Math.sign(left) * Math.min(2 * Math.abs(left), 2 * Math.abs(right), Math.abs(weighted));
+    const centered = (points[index + 1].y - points[index - 1].y) / (leftWidth + rightWidth);
+    if (Math.sign(left) === Math.sign(right)) {
+      // Keep both Bézier handles within each monotone span's observed range.
+      return Math.sign(centered) * Math.min(Math.abs(centered), 3 * Math.abs(left), 3 * Math.abs(right));
+    }
+
+    // A small tangent at an asymmetric peak/trough avoids a forced horizontal
+    // shoulder. Its outer handle can exceed the observation by at most 5% of
+    // the smaller adjacent change; a zero-valued trough cannot dip below zero.
+    const maxWidth = Math.max(leftWidth, rightWidth);
+    let maxHandle = 0.05 * Math.min(Math.abs(point.y - points[index - 1].y),
+      Math.abs(points[index + 1].y - point.y));
+    if (point.y > points[index - 1].y && point.y > points[index + 1].y) {
+      maxHandle = Math.min(maxHandle, Math.max(0, zeroY - point.y));
+    }
+    const maxSlope = 3 * maxHandle / maxWidth;
+    return Math.max(-maxSlope, Math.min(centered, maxSlope));
   });
 
   const curves = points.slice(1).map((point, index) => {
@@ -742,7 +758,7 @@ function drawLineChart(model) {
       const path = createSvgElement('path', {
         class: 'series-line',
         stroke: item.colour,
-        d: linePath(segment, state.smoothing),
+        d: linePath(segment, state.smoothing, axes.yScale(0)),
       });
       g.append(path);
       segment = [];
