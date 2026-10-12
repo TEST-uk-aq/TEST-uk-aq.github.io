@@ -85,6 +85,33 @@ function metricById(id) {
   return state.dimensions?.metrics?.find((item) => Number(item.id) === Number(id)) || null;
 }
 
+function metricLabel(metric) {
+  const publicName = metric?.public_display_name;
+  return typeof publicName === 'string' && publicName.trim() && !/[\x00-\x1f\x7f]/.test(publicName)
+    ? publicName.trim()
+    : (metric?.display_name || 'Pollutant');
+}
+
+function metricOptionLabel(metric, counts) {
+  const label = metricLabel(metric);
+  if (counts.get(label) === 1) return label;
+  return `${label} (${metric.display_name}; ${metric.key})`;
+}
+
+function visibleMetricLabel(metric) {
+  if (!metric) return 'Pollutant';
+  const label = metricLabel(metric);
+  const duplicates = (state.dimensions?.metrics || []).filter((item) =>
+    item.metric_type === 'emission' && metricLabel(item) === label);
+  return duplicates.length > 1 ? metricOptionLabel(metric, new Map([[label, duplicates.length]])) : label;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+}
+
 function groupById(id) {
   return state.groups.find((item) => Number(item.group_id) === Number(id)) || null;
 }
@@ -212,10 +239,12 @@ function populateYears() {
 function populateMetrics() {
   const emissions = (state.dimensions.metrics || [])
     .filter((metric) => metric.metric_type === 'emission')
-    .sort((a, b) => a.display_name.localeCompare(b.display_name, 'en-GB'));
+    .sort((a, b) => metricLabel(a).localeCompare(metricLabel(b), 'en-GB') || Number(a.id) - Number(b.id));
+  const counts = new Map();
+  emissions.forEach((metric) => counts.set(metricLabel(metric), (counts.get(metricLabel(metric)) || 0) + 1));
 
   dom.metric.replaceChildren(...emissions.map((metric) => (
-    new Option(metric.display_name, String(metric.id))
+    new Option(metricOptionLabel(metric, counts), String(metric.id))
   )));
 
   const requested = emissions.find((metric) => Number(metric.id) === Number(state.metricId));
@@ -740,7 +769,7 @@ function drawLineChart(model) {
     xTicks: yearTicks(state.startYear, state.endYear),
     yTicks,
     xTitle: 'Year',
-    yTitle: model.metric?.unit || model.metric?.display_name || 'Value',
+    yTitle: model.metric?.unit || visibleMetricLabel(model.metric),
   });
 
   model.series.forEach((item) => {
@@ -855,7 +884,7 @@ function drawBubbleChart(model) {
     xTicks,
     yTicks,
     xTitle: model.activity.unit || 'Activity Data',
-    yTitle: model.metric?.unit || model.metric?.display_name || 'Value',
+    yTitle: model.metric?.unit || visibleMetricLabel(model.metric),
   });
 
   model.points.forEach((point) => {
@@ -868,11 +897,11 @@ function drawBubbleChart(model) {
       fill: point.colour,
       tabindex: 0,
       role: 'button',
-      'aria-label': `${point.group.display_title}: Activity Data ${formatNumber(point.x)}, ${model.metric.display_name} ${formatNumber(point.y)}`,
+      'aria-label': `${point.group.display_title}: Activity Data ${formatNumber(point.x)}, ${visibleMetricLabel(model.metric)} ${formatNumber(point.y)}`,
     });
     if (state.highlightedGroupId && state.highlightedGroupId !== groupId) circle.style.opacity = '0.18';
 
-    const tooltipHtml = `<strong>${point.group.display_title}</strong><br>Activity Data: ${formatNumber(point.x)} ${model.activity.unit || ''}<br>${model.metric.display_name}: ${formatNumber(point.y)} ${model.metric.unit || ''}`;
+    const tooltipHtml = `<strong>${point.group.display_title}</strong><br>Activity Data: ${formatNumber(point.x)} ${model.activity.unit || ''}<br>${escapeHtml(visibleMetricLabel(model.metric))}: ${formatNumber(point.y)} ${model.metric.unit || ''}`;
     circle.addEventListener('mouseenter', (event) => showTooltip(event, tooltipHtml));
     circle.addEventListener('mousemove', (event) => showTooltip(event, tooltipHtml));
     circle.addEventListener('mouseleave', hideTooltip);
@@ -896,7 +925,7 @@ function renderCurrentChartFromCache() {
 
 function updateChartText() {
   const metric = metricById(state.metricId);
-  dom.chartHeading.textContent = `UK ${metric?.display_name || 'NAEI'} Emissions`;
+  dom.chartHeading.textContent = `UK ${metric ? visibleMetricLabel(metric) : 'NAEI'} Emissions`;
   dom.chartSubtitle.textContent = state.view === 'line'
     ? `${state.startYear} - ${state.endYear}`
     : String(state.bubbleYear);
@@ -990,7 +1019,7 @@ function exportRows() {
 }
 
 function exportName(extension) {
-  const metric = String(lastModel?.metric?.display_name || 'naei').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const metric = String(visibleMetricLabel(lastModel?.metric)).toLowerCase().replace(/[^a-z0-9]+/g, '-');
   const years = state.view === 'line' ? `${state.startYear}-${state.endYear}` : String(lastModel?.year || state.bubbleYear);
   return `uk-aq-naei-${state.view}-${metric}-${years}.${extension}`;
 }
