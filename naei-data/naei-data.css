@@ -676,7 +676,8 @@ body.naei-data-page {
 .naei-group-list { max-height: none; overflow: visible; border: 0; background: none; }
 .naei-group-row { position: relative; display: flex; align-items: start; gap: 6px; margin: 3px 0; min-width: 0; }
 .naei-group-row.is-open { z-index: 3; }
-.naei-group-combo { position: relative; flex: 1 1 320px; min-width: 0; }
+/* Match the longest published group title, while allowing the field to shrink on narrow screens. */
+.naei-group-combo { position: relative; flex: 0 1 var(--naei-group-combo-width, 320px); min-width: 0; }
 .naei-group-combo input {
   width: 100%; min-height: 32px; padding: 4px 30px 4px 9px; border: 1px solid #bec9d2;
   border-radius: 9px; background: #fff; color: var(--naei-ink); font: inherit;
@@ -707,7 +708,8 @@ body.naei-data-page {
 .naei-year-pair .naei-control-block, .naei-bubble-controls .naei-control-block {
   display: inline-flex; align-items: center; gap: 6px;
 }
-.naei-year-pair select, .naei-bubble-controls select { width: auto; min-width: 92px; }
+/* Four-digit years plus the native select arrow need no fixed 92px minimum. */
+.naei-year-pair select, .naei-bubble-controls select { width: max-content; min-width: 0; }
 .naei-line-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .naei-bubble-controls { max-width: 480px; }
 .naei-control-actions { margin-top: 0; gap: 6px; }
