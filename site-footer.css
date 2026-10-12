@@ -244,6 +244,27 @@ body #ukaq-site-footer {
   word-break: normal;
 }
 
+/* The NAEI page has one source block; centre it without changing other footers. */
+body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-sources {
+  justify-content: center;
+}
+
+body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-source {
+  flex: 0 1 720px;
+  align-items: center;
+  border-right: 0;
+  text-align: center;
+}
+
+body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-mark {
+  justify-content: center;
+  text-align: center;
+}
+
+body[data-page-slug="naei-data"] #ukaq-site-footer .ukaq-site-footer-copy {
+  text-align: center;
+}
+
 /* Last-resort safeguard only for viewports narrower than the longest source URL. */
 @media (max-width: 280px) {
   #ukaq-site-footer .ukaq-site-footer-attribution-source {

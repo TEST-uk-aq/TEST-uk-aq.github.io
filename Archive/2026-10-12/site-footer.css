@@ -1,0 +1,348 @@
+/* Permanent shared UK AQ site footer styles.
+ * The footer markup is mounted by sidebar.js and must remain independent of beta UI.
+ */
+
+/* Desktop/tablet keeps a separate gap between the map card and footer.
+ * Cardless mobile uses only the legend's existing inset inside the canvas. */
+.hex-map-page main {
+  padding-bottom: 0 !important;
+}
+
+@media (min-width: 768px) {
+  .hex-map-page main {
+    padding-bottom: 16px !important;
+  }
+}
+
+/*
+ * On short pages, use the body's spare viewport height to push the footer to
+ * the bottom of the screen. Long pages remain normal scrolling documents.
+ * The full-screen Sensor Map has its own footer treatment below.
+ */
+body:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) > #ukaq-site-footer {
+  margin-top: auto;
+  flex: 0 0 auto;
+}
+
+/* The cardless mobile Hex Map footer follows the map content directly instead
+ * of absorbing spare viewport height above the footer. */
+@media (max-width: 767px) {
+  body.hex-map-page:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) {
+    min-height: 0;
+  }
+
+  body.hex-map-page:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport)
+    > #ukaq-site-footer {
+    margin-top: 0;
+  }
+}
+
+body #ukaq-site-footer {
+  position: static !important;
+  inset: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  max-width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  background: #fff7ed;
+  color: #666;
+  border-top: 1px solid #e1e3e6;
+  overflow: hidden;
+  text-align: left;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#ukaq-site-footer .ukaq-site-footer-meta {
+  margin: 0;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+}
+
+#ukaq-site-footer .ukaq-site-footer-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-top: 1px solid #e1e3e6;
+}
+
+#ukaq-site-footer .ukaq-site-footer-sources[hidden] {
+  display: none;
+}
+
+#ukaq-site-footer .ukaq-site-footer-source {
+  flex: 1 1 250px;
+  min-width: 0;
+  padding: 10px 18px 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 5px;
+  box-sizing: border-box;
+  text-align: left;
+  overflow: hidden;
+  border-right: 1px solid #e1e3e6;
+  border-bottom: 1px solid #e1e3e6;
+}
+
+#ukaq-site-footer .ukaq-site-footer-mark {
+  min-height: 36px;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  max-width: 100%;
+  text-align: left;
+}
+
+#ukaq-site-footer .ukaq-site-footer-mark > a {
+  max-width: 100%;
+}
+
+#ukaq-site-footer .ukaq-site-footer-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+}
+
+#ukaq-site-footer .ukaq-site-footer-logo--breathe {
+  max-height: 29px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-logo--openaq {
+  max-height: 38px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-logo--scomm {
+  max-height: 34px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-gov-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px 4px;
+  border: 2px solid #666;
+  border-radius: 6px;
+  color: #666;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+}
+
+#ukaq-site-footer .ukaq-site-footer-copy {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.28;
+  text-align: left;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+#ukaq-site-footer .ukaq-site-footer-copy + .ukaq-site-footer-copy {
+  margin-top: -1px;
+}
+
+#ukaq-site-footer a {
+  color: inherit;
+  text-decoration-color: rgba(102, 102, 102, 0.5);
+  text-underline-offset: 0.14em;
+}
+
+#ukaq-site-footer a:hover {
+  color: #285a84;
+  text-decoration-color: currentColor;
+}
+
+#ukaq-site-footer a:focus-visible {
+  outline: 2px solid rgba(60, 120, 172, 0.55);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* The official box is wider than a logo source but participates in the same
+ * wrapping flex layout instead of claiming a dedicated footer row. */
+#ukaq-site-footer .ukaq-site-footer-source--official {
+  flex-basis: 500px;
+  max-width: 720px;
+  padding-top: 8px;
+  padding-bottom: 9px;
+  gap: 6px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-source--official .ukaq-site-footer-copy {
+  font-size: 13px;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 5px;
+  min-width: 0;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-mark {
+  flex: 0 1 auto;
+  width: auto;
+  min-height: 0;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-gov-pill {
+  flex: 0 0 110px;
+  box-sizing: border-box;
+  width: 110px;
+  max-width: 100%;
+  min-height: 27px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-copy {
+  flex: 1 1 210px;
+  width: auto;
+  min-width: 0;
+}
+
+#ukaq-site-footer .ukaq-site-footer-source--official .ukaq-site-footer-copy a {
+  text-decoration-line: underline;
+}
+
+#ukaq-site-footer .ukaq-site-footer-attribution-source {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+/* Last-resort safeguard only for viewports narrower than the longest source URL. */
+@media (max-width: 280px) {
+  #ukaq-site-footer .ukaq-site-footer-attribution-source {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/*
+ * The full-screen Sensor Map occupies exactly one viewport before the footer.
+ * flow-root keeps the footer's 100vh spacer inside the body instead of letting
+ * its top margin collapse out of the body and create excess document height.
+ */
+body.ukaq-site-footer-after-viewport {
+  display: flow-root !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+/*
+ * Sensor Map chrome is normally fixed by the page stylesheet. Once the shared
+ * footer makes the page scrollable, move the title/beta notice and controls
+ * into the same scrolling coordinate space as the map so the whole page moves
+ * together while the sidebar remains fixed.
+ */
+body.ukaq-site-footer-after-viewport #uk-aq-page-chrome,
+body.ukaq-site-footer-after-viewport .sensor-map-controls {
+  position: absolute !important;
+}
+
+body.ukaq-site-footer-after-viewport #map {
+  bottom: auto !important;
+  height: calc(100vh - var(--ukaq-chrome-h, 0px));
+}
+
+body.ukaq-site-footer-after-viewport #ukaq-site-footer {
+  margin-top: 100vh;
+}
+
+@media (max-width: 620px) {
+  #ukaq-site-footer .ukaq-site-footer-meta {
+    padding: 8px 14px;
+  }
+
+  #ukaq-site-footer .ukaq-site-footer-source {
+    flex-basis: 100%;
+    padding: 10px 14px 11px;
+  }
+
+  #ukaq-site-footer .ukaq-site-footer-source--official {
+    max-width: none;
+  }
+}
+
+/* At the very narrow end, keep the Observed timestamp inside the fixed 160px
+ * circle without changing the otherwise-good iPhone layout at wider widths. */
+@media (max-width: 374px) {
+  body.home-page .pollutant-meta-cycle .pollutant-observed {
+    width: 92% !important;
+  }
+
+  body.home-page .pollutant-meta-cycle .pollutant-observed time {
+    max-width: 100%;
+    font-size: 0.88em;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Mobile metadata polish: give unusually long station names enough room to stay
+ * within two lines. Restore the gentle vertical carousel movement, but clip each
+ * translated line back to its original metadata slot so no incoming/outgoing
+ * text can peek through as a sliver outside that slot. */
+@media (max-width: 767px) {
+  body.home-page .pollutant-meta-cycle .pollutant-station {
+    width: 94% !important;
+    max-height: 2.12em !important;
+    overflow: hidden !important;
+    font-size: 0.62rem !important;
+    line-height: 1.06 !important;
+  }
+
+  body.home-page .pollutant-meta-cycle .pollutant-observed,
+  body.home-page .pollutant-meta-cycle .pollutant-station,
+  body.home-page .pollutant-meta-cycle .pollutant-network {
+    transform: translateY(6px) !important;
+    clip-path: inset(0 0 6px 0);
+    transition: opacity 0.28s ease, transform 0.28s ease, clip-path 0.28s ease !important;
+    will-change: opacity, transform, clip-path;
+  }
+
+  body.home-page .pollutant-meta-cycle .is-meta-current {
+    transform: translateY(0) !important;
+    clip-path: inset(0) !important;
+  }
+
+  body.home-page .pollutant-meta-cycle .is-meta-leaving {
+    transform: translateY(-6px) !important;
+    clip-path: inset(6px 0 0 0) !important;
+  }
+}

@@ -249,7 +249,7 @@ function applyDefaultGroups() {
 }
 
 function moveGroup(from, to) {
-  if (to < 0 || to >= state.selectedGroupIds.length || from === to) return;
+  if (from < 0 || to < 0 || to >= state.selectedGroupIds.length || from === to) return;
   const [id] = state.selectedGroupIds.splice(from, 1);
   state.selectedGroupIds.splice(to, 0, id);
   renderGroupList(to);
@@ -373,6 +373,7 @@ function renderGroupList(focusIndex = null) {
       return button;
     }
     const handle = rowButton('Drag or press Alt + Up/Down to reorder group', '⠿', () => {});
+    handle.className = 'naei-group-handle';
     handle.draggable = true;
     handle.addEventListener('dragstart', (event) => {
       event.dataTransfer.setData('text/plain', String(id));
@@ -386,6 +387,31 @@ function renderGroupList(focusIndex = null) {
         moveGroup(index, index + (event.key === 'ArrowUp' ? -1 : 1));
       }
     });
+    let touchTarget = null;
+    handle.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+      touchTarget = index;
+      handle.setPointerCapture(event.pointerId);
+    });
+    handle.addEventListener('pointermove', (event) => {
+      if (touchTarget === null) return;
+      dom.groupList.querySelectorAll('.naei-group-row').forEach((item) => item.classList.remove('is-drop-target'));
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.naei-group-row');
+      if (target && dom.groupList.contains(target)) {
+        touchTarget = [...dom.groupList.children].indexOf(target);
+        if (touchTarget !== index) target.classList.add('is-drop-target');
+      }
+    });
+    handle.addEventListener('pointerup', () => {
+      const target = touchTarget;
+      touchTarget = null;
+      dom.groupList.querySelectorAll('.naei-group-row').forEach((item) => item.classList.remove('is-drop-target'));
+      if (target !== null) moveGroup(index, target);
+    });
+    handle.addEventListener('pointercancel', () => {
+      touchTarget = null;
+      dom.groupList.querySelectorAll('.naei-group-row').forEach((item) => item.classList.remove('is-drop-target'));
+    });
     row.addEventListener('dragover', (event) => { event.preventDefault(); row.classList.add('is-drop-target'); });
     row.addEventListener('dragleave', () => row.classList.remove('is-drop-target'));
     row.addEventListener('drop', (event) => {
@@ -393,22 +419,24 @@ function renderGroupList(focusIndex = null) {
       const draggedId = Number(event.dataTransfer.getData('text/plain'));
       moveGroup(state.selectedGroupIds.indexOf(draggedId), index);
     });
-    const up = rowButton('Move group up', '↑', () => moveGroup(index, index - 1), index === 0);
-    const down = rowButton('Move group down', '↓', () => moveGroup(index, index + 1), index === state.selectedGroupIds.length - 1);
-    const remove = rowButton('Remove group', '×', () => {
-      state.selectedGroupIds.splice(index, 1);
-      state.highlightedGroupId = null;
-      renderGroupList();
-      scheduleRender();
-      dom.groupList.querySelectorAll('.naei-group-combo input')[Math.min(index, state.selectedGroupIds.length - 1)]?.focus();
-    });
-    row.append(handle, combo, up, down, remove);
+    row.append(handle, combo);
+    if (state.selectedGroupIds.length > 1) {
+      const remove = rowButton('Remove group', '×', () => {
+        if (state.selectedGroupIds.length <= 1) return;
+        state.selectedGroupIds.splice(index, 1);
+        state.highlightedGroupId = null;
+        renderGroupList();
+        scheduleRender();
+        dom.groupList.querySelectorAll('.naei-group-combo input')[Math.min(index, state.selectedGroupIds.length - 1)]?.focus();
+      });
+      row.append(remove);
+    }
     fragment.append(row);
   });
   dom.groupList.replaceChildren(fragment);
   dom.groupCount.textContent = `${state.selectedGroupIds.length} of ${MAX_GROUPS} selected`;
   dom.addGroup.disabled = state.selectedGroupIds.length >= Math.min(MAX_GROUPS, state.groups.length);
-  if (focusIndex !== null) dom.groupList.querySelectorAll('.naei-group-row > button')[focusIndex * 4]?.focus();
+  if (focusIndex !== null) dom.groupList.querySelectorAll('.naei-group-handle')[focusIndex]?.focus();
 }
 
 function syncViewUi() {
