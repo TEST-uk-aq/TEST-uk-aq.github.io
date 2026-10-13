@@ -1190,7 +1190,7 @@ async function downloadPng() {
   svg.setAttribute('width', '960');
   svg.setAttribute('height', '520');
   const style = createSvgElement('style');
-  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.grid-line-major{stroke:#ccd6de;stroke-width:1;stroke-dasharray:6 4}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
+  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:0.6;stroke-dasharray:2 5}.grid-line-major{stroke:#ccd6de;stroke-width:0.75}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
   svg.prepend(style);
   const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
   try {
