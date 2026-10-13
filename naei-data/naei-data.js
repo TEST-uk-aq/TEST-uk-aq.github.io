@@ -588,9 +588,40 @@ function niceTicks(maxValue, count = 5) {
   return ticks;
 }
 
+// Keep the full chart card and shared footer within one desktop viewport at the
+// bottom of the page. Widen the SVG plot instead of letterboxing a fixed 960x520
+// graphic when the available viewport height is shorter than its natural height.
+function sizeChartToViewport() {
+  const width = 960;
+  const naturalHeight = 520;
+  const svg = dom.chart;
+  if (window.innerWidth < 768 || window.innerHeight < 600) {
+    svg.style.removeProperty('height');
+    svg.setAttribute('viewBox', `0 0 ${width} ${naturalHeight}`);
+    return naturalHeight;
+  }
+
+  const chartWidth = svg.getBoundingClientRect().width;
+  const card = svg.closest('.naei-chart-card');
+  if (!chartWidth || !card) return naturalHeight;
+
+  const svgHeight = svg.getBoundingClientRect().height;
+  const cardOverhead = card.getBoundingClientRect().height - svgHeight;
+  const footer = document.getElementById('ukaq-site-footer');
+  const footerHeight = footer && !footer.hidden ? footer.getBoundingClientRect().height : 56;
+  const naturalCssHeight = chartWidth * naturalHeight / width;
+  const room = window.innerHeight - footerHeight - cardOverhead - 12;
+  const targetCssHeight = Math.min(naturalCssHeight, Math.max(320, room));
+  const scaledHeight = targetCssHeight * width / chartWidth;
+
+  svg.style.height = `${targetCssHeight}px`;
+  svg.setAttribute('viewBox', `0 0 ${width} ${scaledHeight}`);
+  return scaledHeight;
+}
+
 function drawAxes({ xMin, xMax, yMin = 0, yMax, xTicks, yTicks, xTitle, yTitle }) {
   const width = 960;
-  const height = 520;
+  const height = sizeChartToViewport();
   const margin = { top: 24, right: 28, bottom: 72, left: 88 };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
@@ -1286,8 +1317,15 @@ async function initialise() {
     dom.error.hidden = true;
     dom.app.hidden = false;
     sizeGroupCombos();
-    document.fonts?.ready.then(sizeGroupCombos);
-    window.addEventListener('resize', sizeGroupCombos);
+    document.fonts?.ready.then(() => {
+      sizeGroupCombos();
+      renderCurrentChartFromCache();
+    });
+    window.addEventListener('resize', () => {
+      sizeGroupCombos();
+      renderCurrentChartFromCache();
+    });
+    window.addEventListener('ukaq:sidebar-ready', renderCurrentChartFromCache);
     await renderChart();
   } catch (error) {
     showFatal(error);
