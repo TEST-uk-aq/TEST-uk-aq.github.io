@@ -1223,11 +1223,14 @@ async function downloadPng() {
     lastModel.groups.forEach((group, index) => {
       const x = 40 + (index % 2) * 460;
       const y = 615 + Math.floor(index / 2) * 30;
+      // A hidden series remains identifiable in the image legend, but subdued.
+      context.globalAlpha = state.disabledGroupIds.has(Number(group.group_id)) ? 0.35 : 1;
       context.fillStyle = colourForGroup(group, index);
       context.fillRect(x, y - 11, 16, 5);
       context.fillStyle = '#273641';
       context.fillText(group.display_title, x + 25, y);
     });
+    context.globalAlpha = 1;
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
     if (blob) downloadBlob(blob, exportName('png'));
   } finally { URL.revokeObjectURL(url); }
