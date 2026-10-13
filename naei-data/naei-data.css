@@ -739,6 +739,7 @@ body.naei-data-page {
 }
 
 @media (max-width: 767px) {
-  /* Still a generous touch target without the old 44px-plus-gap row pitch. */
-  .naei-legend-button { min-height: 40px; padding-block: 0; }
+  /* Use the same compact row pitch as 768–1000px; wrapped labels may still
+     require their natural two-line height. */
+  .naei-legend-button { min-height: 30px; padding-block: 1px; line-height: 1.2; }
 }
