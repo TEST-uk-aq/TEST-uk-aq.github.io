@@ -575,17 +575,21 @@ function createSvgElement(name, attributes = {}) {
   return element;
 }
 
-function niceTicks(maxValue, count = 5) {
+// CIC lets Google Charts choose its own upper Y bound from the data.
+// Use comparably compact steps, so a 12.x peak can finish at 13 rather than 15.
+function niceTicks(maxValue, count = 12) {
   if (!Number.isFinite(maxValue) || maxValue <= 0) return [0, 1];
   const raw = maxValue / count;
   const magnitude = 10 ** Math.floor(Math.log10(raw));
-  const residual = raw / magnitude;
-  const nice = residual >= 5 ? 10 : residual >= 2 ? 5 : residual >= 1 ? 2 : 1;
-  const step = nice * magnitude;
-  const top = Math.ceil(maxValue / step) * step;
-  const ticks = [];
-  for (let value = 0; value <= top + step / 2; value += step) ticks.push(value);
-  return ticks;
+  const candidates = [1, 2, 2.5, 5, 10].map((factor) => factor * magnitude);
+  let step = candidates.reduce((best, candidate) =>
+    Math.abs(Math.log(candidate / raw)) < Math.abs(Math.log(best / raw)) ? candidate : best);
+  if (Math.ceil(maxValue / step) > 16) {
+    step = candidates.find((candidate) => Math.ceil(maxValue / candidate) <= 16) || candidates.at(-1);
+  }
+  const lastIndex = Math.ceil(maxValue / step);
+  return Array.from({ length: lastIndex + 1 }, (_, index) =>
+    Number((index * step).toPrecision(12)));
 }
 
 // Keep the full chart card and shared footer within one desktop viewport at the
@@ -622,16 +626,29 @@ function sizeChartToViewport() {
 function drawAxes({ xMin, xMax, yMin = 0, yMax, xTicks, yTicks, xTitle, yTitle }) {
   const width = 960;
   const height = sizeChartToViewport();
-  const margin = { top: 24, right: 28, bottom: 72, left: 88 };
+  const longestYTick = Math.max(...yTicks.map((value) => formatNumber(value).length), 1);
+  const margin = {
+    top: 6,
+    right: 20,
+    bottom: 54,
+    left: Math.max(68, Math.min(116, 42 + longestYTick * 7)),
+  };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
   const xScale = (value) => margin.left + ((value - xMin) / (xMax - xMin || 1)) * plotWidth;
   const yScale = (value) => margin.top + plotHeight - ((value - yMin) / (yMax - yMin || 1)) * plotHeight;
 
+  // Dotted half-step gridlines sit behind darker, solid labelled major lines.
+  yTicks.slice(1).forEach((value, index) => {
+    const y = yScale((yTicks[index] + value) / 2);
+    dom.chart.append(createSvgElement('line', {
+      x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: 'grid-line',
+    }));
+  });
   yTicks.forEach((value) => {
     const y = yScale(value);
     dom.chart.append(createSvgElement('line', {
-      x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: 'grid-line',
+      x1: margin.left, x2: width - margin.right, y1: y, y2: y, class: 'grid-line-major',
     }));
     const label = createSvgElement('text', {
       x: margin.left - 12, y: y + 4, 'text-anchor': 'end', class: 'axis-label',
@@ -660,14 +677,14 @@ function drawAxes({ xMin, xMax, yMin = 0, yMax, xTicks, yTicks, xTitle, yTitle }
   });
 
   const xLabel = createSvgElement('text', {
-    x: margin.left + plotWidth / 2, y: height - 16, 'text-anchor': 'middle', class: 'axis-title',
+    x: margin.left + plotWidth / 2, y: height - 11, 'text-anchor': 'middle', class: 'axis-title',
   });
   xLabel.textContent = xTitle;
   dom.chart.append(xLabel);
 
   const yLabel = createSvgElement('text', {
-    x: 19, y: margin.top + plotHeight / 2, 'text-anchor': 'middle', class: 'axis-title',
-    transform: `rotate(-90 19 ${margin.top + plotHeight / 2})`,
+    x: 15, y: margin.top + plotHeight / 2, 'text-anchor': 'middle', class: 'axis-title',
+    transform: `rotate(-90 15 ${margin.top + plotHeight / 2})`,
   });
   yLabel.textContent = yTitle;
   dom.chart.append(yLabel);
@@ -808,7 +825,7 @@ function drawLineChart(model) {
 
   clearBusy();
   const maxValue = Math.max(...numericValues, 0);
-  const yTicks = niceTicks(maxValue, 5);
+  const yTicks = niceTicks(maxValue);
   const axes = drawAxes({
     xMin: state.startYear,
     xMax: state.endYear,
@@ -816,7 +833,7 @@ function drawLineChart(model) {
     xTicks: yearTicks(state.startYear, state.endYear),
     yTicks,
     xTitle: 'Year',
-    yTitle: model.metric?.unit || visibleMetricLabel(model.metric),
+    yTitle: `${visibleMetricLabel(model.metric)} Emissions (${model.metric?.unit === 'kilotonne' ? 'kilotonnes' : model.metric?.unit || 'units'})`,
   });
 
   model.series.forEach((item) => {
@@ -922,7 +939,7 @@ function drawBubbleChart(model) {
   const maxX = Math.max(...model.points.map((point) => point.x), 0);
   const maxY = Math.max(...model.points.map((point) => point.y), 0);
   const xTicks = niceTicks(maxX, 5);
-  const yTicks = niceTicks(maxY, 5);
+  const yTicks = niceTicks(maxY);
   const axes = drawAxes({
     xMin: 0,
     xMax: xTicks[xTicks.length - 1],
@@ -931,7 +948,7 @@ function drawBubbleChart(model) {
     xTicks,
     yTicks,
     xTitle: model.activity.unit || 'Activity Data',
-    yTitle: model.metric?.unit || visibleMetricLabel(model.metric),
+    yTitle: `${visibleMetricLabel(model.metric)} Emissions (${model.metric?.unit === 'kilotonne' ? 'kilotonnes' : model.metric?.unit || 'units'})`,
   });
 
   model.points.forEach((point) => {
@@ -1170,7 +1187,7 @@ async function downloadPng() {
   svg.setAttribute('width', '960');
   svg.setAttribute('height', '520');
   const style = createSvgElement('style');
-  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
+  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.grid-line-major{stroke:#bdc9d2;stroke-width:1}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
   svg.prepend(style);
   const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
   try {
