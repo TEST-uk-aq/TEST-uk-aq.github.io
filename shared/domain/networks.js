@@ -23,12 +23,14 @@
   }
 
   function resolveLabel(row, catalogByCode = null) {
-    const label = normalizeLabel(row?.network_label || row?.station?.network_label || null);
-    if (label) return label;
     const definition = catalogByCode instanceof Map
       ? catalogByCode.get(resolveCode(row))
       : null;
-    return normalizeLabel(typeof definition === "string" ? definition : definition?.label) || null;
+    const catalogLabel = normalizeLabel(
+      typeof definition === "string" ? definition : definition?.label
+    );
+    if (catalogLabel) return catalogLabel;
+    return normalizeLabel(row?.network_label || row?.station?.network_label || null) || null;
   }
 
   function normalizeCatalogRows(payload, options = {}) {
