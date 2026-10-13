@@ -1252,6 +1252,15 @@ async function downloadPng() {
 }
 
 function bindUi() {
+  // Chrome may give clicked selects :focus-visible. Reserve focus outlines for
+  // actual Tab-key navigation, clearing the mode before pointer-based focus.
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') document.body.classList.add('naei-keyboard-navigation');
+  }, true);
+  document.addEventListener('pointerdown', () => {
+    document.body.classList.remove('naei-keyboard-navigation');
+  }, true);
+
   document.querySelectorAll('.naei-view-tab').forEach((button) => {
     button.addEventListener('click', () => {
       const nextView = button.dataset.view;
