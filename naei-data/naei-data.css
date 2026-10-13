@@ -469,10 +469,6 @@ body.naei-data-page {
   stroke: none;
 }
 
-.naei-chart .series-group.is-subdued {
-  opacity: 0.18;
-}
-
 .naei-chart .bubble-point {
   stroke: #fff;
   stroke-width: 2;
