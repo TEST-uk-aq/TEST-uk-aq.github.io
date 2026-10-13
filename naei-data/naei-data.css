@@ -7,7 +7,7 @@
   --naei-page: #fbfaf7;
   --naei-border: #d6dde3;
   --naei-grid: #d8e0e7;
-  --naei-focus: #ff8c1a;
+  --naei-focus: #3c78ac;
   --naei-shadow: 0 10px 28px rgba(16, 24, 34, 0.08);
 }
 
@@ -53,11 +53,6 @@ body.naei-data-page {
   text-decoration: underline;
   text-underline-offset: 2px;
   overflow-wrap: anywhere;
-}
-
-.naei-source-link a:focus-visible {
-  outline: 3px solid rgba(255, 140, 26, 0.45);
-  outline-offset: 2px;
 }
 
 .naei-status,
@@ -144,19 +139,15 @@ body.naei-data-page {
   box-shadow: 0 2px 8px rgba(0, 77, 128, 0.12);
 }
 
-.naei-view-tab:focus-visible,
-.naei-controls button:focus-visible,
-.naei-legend-button:focus-visible {
-  outline: 3px solid rgba(255, 140, 26, 0.45);
-  outline-offset: 2px;
+/* Native :focus-visible may be true after a pointer click on Chrome selects.
+   Only show the blue focus indicator for Tab navigation. */
+.naei-data-page .naei-main :is(button, select, input, a):focus {
+  outline: none;
 }
 
-/* Use a restrained blue keyboard-focus indicator on dropdowns instead of
-   the orange ring. Keep focus discoverable for keyboard navigation. */
-.naei-controls select:focus-visible,
-.naei-group-combo input:focus-visible {
-  outline: 2px solid rgba(60, 120, 172, 0.55);
-  outline-offset: 1px;
+.naei-data-page.naei-keyboard-navigation .naei-main :is(button, select, input, a):focus {
+  outline: 2px solid var(--naei-focus);
+  outline-offset: 2px;
 }
 
 .naei-workspace {
@@ -718,7 +709,6 @@ body.naei-data-page {
 .naei-chart-scroll { min-width: 0; }
 .naei-chart { min-width: 0; width: 100%; }
 .naei-controls [hidden] { display: none; }
-.naei-controls button:focus-visible { outline: 3px solid rgba(255,140,26,.45); outline-offset: 2px; }
 
 @media (max-width: 767px) {
   .naei-controls { padding: 15px; }
