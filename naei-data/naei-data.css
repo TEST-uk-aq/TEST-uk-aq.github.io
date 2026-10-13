@@ -319,15 +319,6 @@ body.naei-data-page {
   margin-bottom: 4px;
 }
 
-.naei-about-kicker {
-  margin: 0 0 5px;
-  color: var(--naei-blue);
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .naei-chart-title {
   text-align: center;
 }
