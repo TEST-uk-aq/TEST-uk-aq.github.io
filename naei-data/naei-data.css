@@ -363,7 +363,7 @@ body.naei-data-page {
   flex-wrap: wrap;
   justify-content: center;
   gap: 5px 15px;
-  margin: 6px 0 8px;
+  margin: 6px 0 4px;
 }
 
 .naei-legend-button {
@@ -414,6 +414,11 @@ body.naei-data-page {
   stroke: var(--naei-grid);
   stroke-width: 1;
   stroke-dasharray: 2 5;
+}
+
+.naei-chart .grid-line-major {
+  stroke: #bdc9d2;
+  stroke-width: 1;
 }
 
 .naei-chart .axis-line {
