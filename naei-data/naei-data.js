@@ -614,7 +614,10 @@ function sizeChartToViewport() {
   const footer = document.getElementById('ukaq-site-footer');
   const footerHeight = footer && !footer.hidden ? footer.getBoundingClientRect().height : 56;
   const naturalCssHeight = chartWidth * naturalHeight / width;
-  const room = window.innerHeight - footerHeight - cardOverhead - 12;
+  // At the document bottom, leave a small strip of the previous section visible
+  // above the card, as in CIC. Retain the existing 12px card-to-footer spacing.
+  const viewportTopGap = 12;
+  const room = window.innerHeight - footerHeight - cardOverhead - 12 - viewportTopGap;
   const targetCssHeight = Math.min(naturalCssHeight, Math.max(320, room));
   const scaledHeight = targetCssHeight * width / chartWidth;
 
@@ -631,7 +634,7 @@ function drawAxes({ xMin, xMax, yMin = 0, yMax, xTicks, yTicks, xTitle, yTitle }
     top: 6,
     right: 20,
     bottom: 54,
-    left: Math.max(68, Math.min(116, 42 + longestYTick * 7)),
+    left: Math.max(52, Math.min(108, 35 + longestYTick * 7)),
   };
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.top - margin.bottom;
@@ -1187,7 +1190,7 @@ async function downloadPng() {
   svg.setAttribute('width', '960');
   svg.setAttribute('height', '520');
   const style = createSvgElement('style');
-  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.grid-line-major{stroke:#bdc9d2;stroke-width:1}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
+  style.textContent = '.grid-line{stroke:#d8e0e7;stroke-width:1;stroke-dasharray:2 5}.grid-line-major{stroke:#ccd6de;stroke-width:1;stroke-dasharray:6 4}.axis-line{stroke:#8d9aa5;stroke-width:1}.axis-label{fill:#53616d;font:12px Arial,sans-serif}.axis-title{fill:#34424e;font:700 13px Arial,sans-serif}.series-line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.series-point{stroke:white;stroke-width:1.5}.bubble-point{stroke:white;stroke-width:2}';
   svg.prepend(style);
   const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
   try {
