@@ -430,8 +430,9 @@ body.naei-data-page {
 }
 
 .naei-chart .grid-line-major {
-  stroke: #bdc9d2;
+  stroke: #ccd6de;
   stroke-width: 1;
+  stroke-dasharray: 6 4;
 }
 
 .naei-chart .axis-line {
