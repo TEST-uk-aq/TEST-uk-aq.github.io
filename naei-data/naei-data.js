@@ -62,7 +62,7 @@ const state = {
   endYear: 2024,
   bubbleYear: 2024,
   smoothing: false,
-  highlightedGroupId: null,
+  disabledGroupIds: new Set(),
   renderToken: 0,
 };
 
@@ -384,7 +384,8 @@ function renderGroupList(focusIndex = null) {
     function choose(chosenId) {
       close();
       state.selectedGroupIds[index] = chosenId;
-      state.highlightedGroupId = null;
+      state.disabledGroupIds.delete(id);
+      state.disabledGroupIds.delete(chosenId);
       renderGroupList();
       scheduleRender();
       dom.groupAnnouncement.textContent = `Selected ${groupById(chosenId)?.display_title || 'group'} for group ${index + 1}`;
@@ -523,7 +524,7 @@ function renderGroupList(focusIndex = null) {
       const remove = rowButton('Remove group', '×', () => {
         if (state.selectedGroupIds.length <= 1) return;
         state.selectedGroupIds.splice(index, 1);
-        state.highlightedGroupId = null;
+        state.disabledGroupIds.delete(id);
         renderGroupList();
         scheduleRender();
         dom.groupList.querySelectorAll('.naei-group-combo input')[Math.min(index, state.selectedGroupIds.length - 1)]?.focus();
@@ -728,11 +729,14 @@ function renderLegend(groups) {
   dom.legend.replaceChildren();
   groups.forEach((group, index) => {
     const id = Number(group.group_id);
+    const enabled = !state.disabledGroupIds.has(id);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'naei-legend-button';
-    button.setAttribute('aria-pressed', state.highlightedGroupId === id ? 'true' : 'false');
-    if (state.highlightedGroupId && state.highlightedGroupId !== id) button.classList.add('is-subdued');
+    button.dataset.groupId = String(id);
+    button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    button.setAttribute('aria-label', `${group.display_title}: ${enabled ? 'visible' : 'hidden'}; toggle series`);
+    if (!enabled) button.classList.add('is-subdued');
 
     const swatch = document.createElement('span');
     swatch.className = 'naei-legend-swatch';
@@ -742,8 +746,13 @@ function renderLegend(groups) {
     button.append(swatch, label);
 
     button.addEventListener('click', () => {
-      state.highlightedGroupId = state.highlightedGroupId === id ? null : id;
+      if (state.disabledGroupIds.has(id)) state.disabledGroupIds.delete(id);
+      else state.disabledGroupIds.add(id);
       renderCurrentChartFromCache();
+      // Rebuilding the legend must not strand keyboard focus on a removed node.
+      [...dom.legend.querySelectorAll('.naei-legend-button')]
+        .find((entry) => entry.dataset.groupId === String(id))
+        ?.focus({ preventScroll: true });
     });
     dom.legend.append(button);
   });
@@ -841,8 +850,8 @@ function drawLineChart(model) {
 
   model.series.forEach((item) => {
     const groupId = Number(item.group.group_id);
+    if (state.disabledGroupIds.has(groupId)) return;
     const g = createSvgElement('g', { class: 'series-group' });
-    if (state.highlightedGroupId && state.highlightedGroupId !== groupId) g.classList.add('is-subdued');
 
     let segment = [];
     const markers = [];
@@ -956,6 +965,7 @@ function drawBubbleChart(model) {
 
   model.points.forEach((point) => {
     const groupId = Number(point.group.group_id);
+    if (state.disabledGroupIds.has(groupId)) return;
     const circle = createSvgElement('circle', {
       class: 'bubble-point',
       cx: axes.xScale(point.x),
@@ -966,7 +976,6 @@ function drawBubbleChart(model) {
       role: 'button',
       'aria-label': `${point.group.display_title}: Activity Data ${formatNumber(point.x)}, ${visibleMetricLabel(model.metric)} ${formatNumber(point.y)}`,
     });
-    if (state.highlightedGroupId && state.highlightedGroupId !== groupId) circle.style.opacity = '0.18';
 
     const tooltipHtml = `<strong>${point.group.display_title}</strong><br>Activity Data: ${formatNumber(point.x)} ${model.activity.unit || ''}<br>${escapeHtml(visibleMetricLabel(model.metric))}: ${formatNumber(point.y)} ${model.metric.unit || ''}`;
     circle.addEventListener('mouseenter', (event) => showTooltip(event, tooltipHtml));
@@ -987,7 +996,6 @@ function renderCurrentChartFromCache() {
   if (!lastModel) return;
   if (state.view === 'line') drawLineChart(lastModel);
   else drawBubbleChart(lastModel);
-  renderLegend(selectedGroups());
 }
 
 function updateChartText() {
@@ -1231,7 +1239,6 @@ function bindUi() {
       const nextView = button.dataset.view;
       if (nextView === state.view) return;
       state.view = nextView;
-      state.highlightedGroupId = null;
       if (state.view === 'bubble' && state.selectedGroupIds.length === 1 && state.selectedGroupIds[0] === 1) {
         state.selectedGroupIds = [];
         applyDefaultGroups();
@@ -1266,7 +1273,7 @@ function bindUi() {
     const group = state.groups.find((candidate) => !state.selectedGroupIds.includes(Number(candidate.group_id)));
     if (!group) return;
     state.selectedGroupIds.push(Number(group.group_id));
-    state.highlightedGroupId = null;
+    state.disabledGroupIds.delete(Number(group.group_id));
     renderGroupList();
     scheduleRender();
     dom.groupList.querySelector('.naei-group-row:last-child input')?.focus();
