@@ -146,11 +146,17 @@ body.naei-data-page {
 
 .naei-view-tab:focus-visible,
 .naei-controls button:focus-visible,
-.naei-controls select:focus-visible,
-.naei-controls input:focus-visible,
 .naei-legend-button:focus-visible {
   outline: 3px solid rgba(255, 140, 26, 0.45);
   outline-offset: 2px;
+}
+
+/* Use a restrained blue keyboard-focus indicator on dropdowns instead of
+   the orange ring. Keep focus discoverable for keyboard navigation. */
+.naei-controls select:focus-visible,
+.naei-group-combo input:focus-visible {
+  outline: 2px solid rgba(60, 120, 172, 0.55);
+  outline-offset: 1px;
 }
 
 .naei-workspace {
@@ -719,7 +725,7 @@ body.naei-data-page {
 .naei-chart-scroll { min-width: 0; }
 .naei-chart { min-width: 0; width: 100%; }
 .naei-controls [hidden] { display: none; }
-.naei-controls button:focus-visible, .naei-group-combo input:focus-visible { outline: 3px solid rgba(255,140,26,.45); outline-offset: 2px; }
+.naei-controls button:focus-visible { outline: 3px solid rgba(255,140,26,.45); outline-offset: 2px; }
 
 @media (max-width: 767px) {
   .naei-controls { padding: 15px; }
