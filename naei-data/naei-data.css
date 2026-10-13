@@ -425,14 +425,13 @@ body.naei-data-page {
 
 .naei-chart .grid-line {
   stroke: var(--naei-grid);
-  stroke-width: 1;
+  stroke-width: 0.6;
   stroke-dasharray: 2 5;
 }
 
 .naei-chart .grid-line-major {
   stroke: #ccd6de;
-  stroke-width: 1;
-  stroke-dasharray: 6 4;
+  stroke-width: 0.75;
 }
 
 .naei-chart .axis-line {
