@@ -23,8 +23,9 @@ body.naei-data-page {
 }
 
 .naei-main {
-  min-height: 100vh;
-  padding: 34px 28px 72px;
+  /* The shared site footer already owns the viewport floor on short pages. */
+  min-height: 0;
+  padding: 34px 28px 12px;
 }
 
 .naei-intro {
@@ -361,22 +362,22 @@ body.naei-data-page {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 4px 12px;
-  margin: 4px 0 8px;
+  gap: 5px 15px;
+  margin: 6px 0 8px;
 }
 
 .naei-legend-button {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 30px;
+  gap: 8px;
+  min-height: 32px;
   padding: 3px 2px;
   border: 0;
   background: transparent;
   color: #273641;
   cursor: pointer;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 0.94rem;
   font-weight: 650;
 }
 
@@ -389,9 +390,9 @@ body.naei-data-page {
 }
 
 .naei-legend-swatch {
-  width: 12px;
-  height: 12px;
-  flex: 0 0 12px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   border-radius: 50%;
   background: var(--series-colour);
 }
@@ -511,7 +512,7 @@ body.naei-data-page {
 
 @media (max-width: 767px) {
   .naei-main {
-    padding: 72px 12px 48px;
+    padding: 72px 12px 12px;
   }
 
   .naei-intro .ukaq-page-title-heading {
