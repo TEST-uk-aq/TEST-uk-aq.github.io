@@ -309,8 +309,9 @@ body.naei-data-page {
 }
 
 .naei-chart-card {
+  position: relative;
   min-width: 0;
-  padding: 20px 22px 24px;
+  padding: 12px 22px 16px;
 }
 
 .naei-chart-header {
@@ -340,14 +341,26 @@ body.naei-data-page {
 }
 
 .naei-dataset-label {
-  order: -1;
-  align-self: flex-end;
+  position: absolute;
+  top: 12px;
+  right: 18px;
   max-width: 100%;
   margin: 0;
   color: #71808d;
   font-size: 0.72rem;
   text-align: right;
   overflow-wrap: anywhere;
+}
+
+/* When the centred heading and inventory caption cannot sit beside each
+   other, restore the caption's own row instead of letting them overlap. */
+@media (max-width: 1060px) {
+  .naei-dataset-label {
+    position: static;
+    order: -1;
+    align-self: center;
+    text-align: center;
+  }
 }
 
 .naei-chart-message {
