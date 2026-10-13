@@ -397,11 +397,8 @@ body.naei-data-page {
   cursor: pointer;
   font: inherit;
   font-size: 0.94rem;
-  font-weight: 650;
-}
-
-.naei-legend-button[aria-pressed="true"] {
-  font-weight: 800;
+  /* Constant weight prevents toggles from changing label widths and row wraps. */
+  font-weight: 700;
 }
 
 .naei-legend-button.is-subdued {
@@ -733,4 +730,15 @@ body.naei-data-page {
   .naei-control-actions { width: 100%; }
   .naei-control-actions button, #naei-smoothing { min-height: 44px; }
   .naei-chart { min-width: 590px; }
+}
+
+/* Keep wrapped legend rows compact on narrow desktop, tablet and mobile. */
+@media (max-width: 1000px) {
+  .naei-legend { row-gap: 0; column-gap: 10px; }
+  .naei-legend-button { min-height: 30px; padding-block: 1px; }
+}
+
+@media (max-width: 767px) {
+  /* Still a generous touch target without the old 44px-plus-gap row pitch. */
+  .naei-legend-button { min-height: 40px; padding-block: 0; }
 }
