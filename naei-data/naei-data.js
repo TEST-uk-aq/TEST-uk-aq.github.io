@@ -725,34 +725,49 @@ function hideTooltip() {
   if (tip) tip.hidden = true;
 }
 
+function updateLegendButton(button, group, index) {
+  const id = Number(group.group_id);
+  const enabled = !state.disabledGroupIds.has(id);
+  button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+  button.setAttribute('aria-label', `${group.display_title}: ${enabled ? 'visible' : 'hidden'}; toggle series`);
+  button.classList.toggle('is-subdued', !enabled);
+  button.querySelector('.naei-legend-swatch')
+    ?.style.setProperty('--series-colour', colourForGroup(group, index));
+  const label = button.querySelector('.naei-legend-label');
+  if (label) label.textContent = group.display_title;
+}
+
 function renderLegend(groups) {
+  // Visibility toggles must not destroy/recreate the legend: preserving its
+  // elements prevents focus jumps and reflow on narrow wrapped rows.
+  const existing = [...dom.legend.children];
+  const reusable = existing.length === groups.length && groups.every(
+    (group, index) => existing[index].dataset.groupId === String(group.group_id)
+  );
+  if (reusable) {
+    groups.forEach((group, index) => updateLegendButton(existing[index], group, index));
+    return;
+  }
+
   dom.legend.replaceChildren();
   groups.forEach((group, index) => {
     const id = Number(group.group_id);
-    const enabled = !state.disabledGroupIds.has(id);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'naei-legend-button';
     button.dataset.groupId = String(id);
-    button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-    button.setAttribute('aria-label', `${group.display_title}: ${enabled ? 'visible' : 'hidden'}; toggle series`);
-    if (!enabled) button.classList.add('is-subdued');
 
     const swatch = document.createElement('span');
     swatch.className = 'naei-legend-swatch';
-    swatch.style.setProperty('--series-colour', colourForGroup(group, index));
     const label = document.createElement('span');
-    label.textContent = group.display_title;
+    label.className = 'naei-legend-label';
     button.append(swatch, label);
+    updateLegendButton(button, group, index);
 
     button.addEventListener('click', () => {
       if (state.disabledGroupIds.has(id)) state.disabledGroupIds.delete(id);
       else state.disabledGroupIds.add(id);
       renderCurrentChartFromCache();
-      // Rebuilding the legend must not strand keyboard focus on a removed node.
-      [...dom.legend.querySelectorAll('.naei-legend-button')]
-        .find((entry) => entry.dataset.groupId === String(id))
-        ?.focus({ preventScroll: true });
     });
     dom.legend.append(button);
   });
