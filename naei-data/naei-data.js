@@ -57,6 +57,8 @@ const state = {
   groupData: new Map(),
   view: 'line',
   metricId: null,
+  lineMetricId: null,
+  bubbleMetricId: null,
   selectedGroupIds: [],
   startYear: 1970,
   endYear: 2024,
@@ -253,20 +255,31 @@ function sizeGroupCombos() {
 }
 
 function populateMetrics() {
-  const emissions = (state.dimensions.metrics || [])
-    .filter((metric) => metric.metric_type === 'emission')
+  const allMetrics = state.dimensions.metrics || [];
+  const emissions = allMetrics.filter((metric) => metric.metric_type === 'emission');
+  const choices = (state.view === 'line'
+    ? allMetrics.filter((metric) => metric.metric_type === 'emission' ||
+      (metric.metric_type === 'activity' && metric.display_name === ACTIVITY_DATA_NAME))
+    : emissions)
     .sort((a, b) => metricLabel(a).localeCompare(metricLabel(b), 'en-GB') || Number(a.id) - Number(b.id));
   const counts = new Map();
-  emissions.forEach((metric) => counts.set(metricLabel(metric), (counts.get(metricLabel(metric)) || 0) + 1));
+  choices.forEach((metric) => counts.set(metricLabel(metric), (counts.get(metricLabel(metric)) || 0) + 1));
 
-  dom.metric.replaceChildren(...emissions.map((metric) => (
+  dom.metric.replaceChildren(...choices.map((metric) => (
     new Option(metricOptionLabel(metric, counts), String(metric.id))
   )));
 
-  const requested = emissions.find((metric) => Number(metric.id) === Number(state.metricId));
-  const pm25 = emissions.find((metric) => metric.display_name === 'PM2.5');
-  state.metricId = Number((requested || pm25 || emissions[0])?.id || 0);
+  // Activity Data is a valid Line metric, but cannot be the Bubble Y-axis.
+  const requested = choices.find((metric) => Number(metric.id) === Number(state.metricId));
+  const pm25 = emissions.find((metric) => metricLabel(metric) === 'PM2.5' ||
+    /^PM2\.5(?:\s|\()/.test(metric.display_name));
+  state.metricId = Number((requested || pm25 || choices[0])?.id || 0);
   dom.metric.value = String(state.metricId);
+  if (dom.metric.labels?.[0]) {
+    dom.metric.labels[0].textContent = state.view === 'line' ? 'Metric:' : 'Pollutant:';
+  }
+  if (state.view === 'line') state.lineMetricId = state.metricId;
+  else state.bubbleMetricId = state.metricId;
 }
 
 function applyDefaultGroups() {
@@ -860,7 +873,9 @@ function drawLineChart(model) {
     xTicks: yearTicks(state.startYear, state.endYear),
     yTicks,
     xTitle: 'Year',
-    yTitle: `${visibleMetricLabel(model.metric)} Emissions (${model.metric?.unit === 'kilotonne' ? 'kilotonnes' : model.metric?.unit || 'units'})`,
+    yTitle: model.metric?.metric_type === 'activity'
+      ? `Activity Data (${model.metric.unit || 'units'})`
+      : `${visibleMetricLabel(model.metric)} Emissions (${model.metric?.unit === 'kilotonne' ? 'kilotonnes' : model.metric?.unit || 'units'})`,
   });
 
   model.series.forEach((item) => {
@@ -1067,7 +1082,9 @@ function renderCurrentChartFromCache() {
 
 function updateChartText() {
   const metric = metricById(state.metricId);
-  dom.chartHeading.textContent = `UK ${metric ? visibleMetricLabel(metric) : 'NAEI'} Emissions`;
+  dom.chartHeading.textContent = metric?.metric_type === 'activity' && state.view === 'line'
+    ? 'UK Activity Data'
+    : `UK ${metric ? visibleMetricLabel(metric) : 'NAEI'} Emissions`;
   dom.chartSubtitle.textContent = state.view === 'line'
     ? `${state.startYear} - ${state.endYear}`
     : String(state.bubbleYear);
@@ -1318,6 +1335,10 @@ function bindUi() {
       const nextView = button.dataset.view;
       if (nextView === state.view) return;
       state.view = nextView;
+      state.metricId = nextView === 'line'
+        ? (state.lineMetricId ?? state.metricId)
+        : (state.bubbleMetricId ?? state.metricId);
+      populateMetrics();
       if (state.view === 'bubble' && state.selectedGroupIds.length === 1 && state.selectedGroupIds[0] === 1) {
         state.selectedGroupIds = [];
         applyDefaultGroups();
@@ -1329,6 +1350,8 @@ function bindUi() {
 
   dom.metric.addEventListener('change', () => {
     state.metricId = Number(dom.metric.value);
+    if (state.view === 'line') state.lineMetricId = state.metricId;
+    else state.bubbleMetricId = state.metricId;
     scheduleRender();
   });
 
