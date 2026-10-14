@@ -928,6 +928,38 @@ function drawLineChart(model) {
   });
 }
 
+// Bubble size uses the implied emission factor, as on the original CIC Explorer.
+// All Activity Data are published in TJ (net); convert each emission unit to
+// g/GJ (or g I-TEQ/GJ) without altering the canonical NAEI values or axes.
+const EMISSION_FACTOR_CONVERSIONS = {
+  kilotonne: 1000000, // 1 kt/TJ = 1,000,000 g/GJ
+  t: 1000,            // 1 tonne/TJ = 1,000 g/GJ
+  kg: 1,              // 1 kg/TJ = 1 g/GJ
+  'grams International Toxic Equivalent': 0.001, // 1 g/TJ = 0.001 g/GJ
+};
+
+function emissionFactorForBubble(metric, activity, emissions, activityValue) {
+  if (activity?.unit !== 'TJ (net)' || !Number.isFinite(emissions) ||
+      !Number.isFinite(activityValue) || activityValue <= 0) return null;
+  const factor = EMISSION_FACTOR_CONVERSIONS[metric?.unit];
+  return Number.isFinite(factor) ? (emissions / activityValue) * factor : null;
+}
+
+function bubbleRadiusForEmissionFactor(value, minPositive, maxPositive) {
+  const minRadius = 4;
+  const maxRadius = 36;
+  if (!(value > 0) || !(maxPositive > 0)) return minRadius;
+  // CIC uses a logarithmic scale for exceptionally wide EF ranges (>1000x).
+  // Keep radius bounded so points remain legible in the UK AQ SVG renderer.
+  if (minPositive > 0 && maxPositive / minPositive > 1000) {
+    const position = Math.log(value / minPositive) / Math.log(maxPositive / minPositive);
+    return minRadius + (maxRadius - minRadius) * Math.max(0, Math.min(1, position));
+  }
+  // Circle AREA, not radius, is proportional to emission factor.
+  return Math.max(minRadius, Math.min(maxRadius,
+    maxRadius * Math.sqrt(value / maxPositive)));
+}
+
 function buildBubbleModel(groupPayloads) {
   const metric = metricById(state.metricId);
   const activity = activityMetric();
@@ -941,7 +973,11 @@ function buildBubbleModel(groupPayloads) {
       x: activity ? valueAt(data, activity.id, state.bubbleYear) : null,
       y: valueAt(data, state.metricId, state.bubbleYear),
     };
-  }).filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+  }).filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+    .map((point) => ({
+      ...point,
+      emissionFactor: emissionFactorForBubble(metric, activity, point.y, point.x),
+    }));
 
   return { metric, activity, groups, points, year: state.bubbleYear };
 }
@@ -965,8 +1001,13 @@ function drawBubbleChart(model) {
   clearBusy();
   const maxX = Math.max(...model.points.map((point) => point.x), 0);
   const maxY = Math.max(...model.points.map((point) => point.y), 0);
-  const xTicks = niceTicks(maxX, 5);
-  const yTicks = niceTicks(maxY);
+  // Leave room for the larger bubbles near the top/right plot boundaries.
+  const xTicks = niceTicks(maxX * 1.12, 5);
+  const yTicks = niceTicks(maxY * 1.12);
+  const positiveFactors = model.points.map((point) => point.emissionFactor)
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const minPositiveFactor = positiveFactors.length ? Math.min(...positiveFactors) : 0;
+  const maxPositiveFactor = positiveFactors.length ? Math.max(...positiveFactors) : 0;
   const axes = drawAxes({
     xMin: 0,
     xMax: xTicks[xTicks.length - 1],
@@ -978,21 +1019,32 @@ function drawBubbleChart(model) {
     yTitle: `${visibleMetricLabel(model.metric)} Emissions (${model.metric?.unit === 'kilotonne' ? 'kilotonnes' : model.metric?.unit || 'units'})`,
   });
 
-  model.points.forEach((point) => {
+  const efUnit = model.metric.unit === 'grams International Toxic Equivalent'
+    ? 'g I-TEQ/GJ' : 'g/GJ';
+  const sizedPoints = model.points.map((point) => ({
+    ...point,
+    radius: bubbleRadiusForEmissionFactor(
+      point.emissionFactor, minPositiveFactor, maxPositiveFactor),
+  }));
+  // Draw large circles behind small circles so the latter remain selectable.
+  sizedPoints.sort((a, b) => b.radius - a.radius);
+  sizedPoints.forEach((point) => {
     const groupId = Number(point.group.group_id);
     if (state.disabledGroupIds.has(groupId)) return;
+    const efLabel = Number.isFinite(point.emissionFactor)
+      ? `${formatNumber(point.emissionFactor)} ${efUnit}` : 'unavailable';
     const circle = createSvgElement('circle', {
       class: 'bubble-point',
       cx: axes.xScale(point.x),
       cy: axes.yScale(point.y),
-      r: 10,
+      r: point.radius,
       fill: point.colour,
       tabindex: 0,
       role: 'button',
-      'aria-label': `${point.group.display_title}: Activity Data ${formatNumber(point.x)}, ${visibleMetricLabel(model.metric)} ${formatNumber(point.y)}`,
+      'aria-label': `${point.group.display_title}: Activity Data ${formatNumber(point.x)}, ${visibleMetricLabel(model.metric)} ${formatNumber(point.y)}, emission factor ${efLabel}`,
     });
 
-    const tooltipHtml = `<strong>${point.group.display_title}</strong><br>Activity Data: ${formatNumber(point.x)} ${model.activity.unit || ''}<br>${escapeHtml(visibleMetricLabel(model.metric))}: ${formatNumber(point.y)} ${model.metric.unit || ''}`;
+    const tooltipHtml = `<strong>${point.group.display_title}</strong><br>Activity Data: ${formatNumber(point.x)} ${model.activity.unit || ''}<br>${escapeHtml(visibleMetricLabel(model.metric))}: ${formatNumber(point.y)} ${model.metric.unit || ''}<br>Emission factor: ${efLabel}`;
     circle.addEventListener('mouseenter', (event) => showTooltip(event, tooltipHtml));
     circle.addEventListener('mousemove', (event) => showTooltip(event, tooltipHtml));
     circle.addEventListener('mouseleave', hideTooltip);
