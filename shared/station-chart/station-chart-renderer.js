@@ -442,9 +442,26 @@
       drawObservations(state, true);
     }
 
+    function latestObservationMs(state) {
+      const sourcePoints = state?.observations?.get?.(state?.aqi_source_id);
+      const rangeStartMs = state?.range?.startMs;
+      const rangeEndMs = state?.range?.endMs;
+      let latestMs = null;
+      (Array.isArray(sourcePoints) ? sourcePoints : []).forEach(function (point) {
+        const timestampMs = point?.date?.getTime?.();
+        if (!Number.isFinite(timestampMs)
+            || !Number.isFinite(Number(point?.value))
+            || (Number.isFinite(rangeStartMs) && timestampMs < rangeStartMs)
+            || (Number.isFinite(rangeEndMs) && timestampMs > rangeEndMs)) return;
+        if (latestMs === null || timestampMs > latestMs) latestMs = timestampMs;
+      });
+      return latestMs;
+    }
+
     function drawBand(label, key, colours, y, state) {
       const current = frame;
       const bandHeight = 22;
+      const latestSourceObservationMs = latestObservationMs(state);
       const group = current.aqi.append("g").attr("class", `aqi-band aqi-band--${key}`)
         .attr("transform", `translate(0, ${y})`);
       group.append("text").attr("class", "aqi-band-label")
@@ -456,7 +473,8 @@
         const colour = colours[point?.[key]];
         if (!Number.isFinite(endpointMs) || !Number.isFinite(startMs) || !colour) return;
         const clippedStart = Math.max(state.range.startMs, startMs);
-        const clippedEnd = Math.min(state.range.endMs, endpointMs);
+        if (latestSourceObservationMs === null) return;
+        const clippedEnd = Math.min(state.range.endMs, endpointMs, latestSourceObservationMs);
         if (clippedEnd <= clippedStart) return;
         const x = current.xScale(new Date(clippedStart));
         const endX = current.xScale(new Date(clippedEnd));
