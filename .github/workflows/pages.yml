@@ -87,11 +87,13 @@ jobs:
       - name: Build Pages artifact
         env:
           UK_AQ_BLOG_FEED_URL: ${{ vars.UK_AQ_BLOG_FEED_URL || '' }}
+          UK_AQ_MEDIA_EMAIL_PUBLIC_URL: ${{ vars.UK_AQ_MEDIA_EMAIL_PUBLIC_URL }}
         run: |
           set -euo pipefail
           test ! -e .pages-site
           mkdir .pages-site
           rsync -a --exclude='.git/' --exclude='.pages-site/' ./ .pages-site/
+          node scripts/uk_aq_inject_media_email_config.mjs .pages-site
           node scripts/uk_aq_generate_blog_phase2.mjs .pages-site
           node scripts/uk_aq_inject_initial_loader.mjs .pages-site
           node scripts/uk_aq_content_hash_assets.mjs .pages-site
