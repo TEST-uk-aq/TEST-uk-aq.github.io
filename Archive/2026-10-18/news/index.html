@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Recent air-quality reporting selected by UK AQ.">
+  <title>UK AQ News</title>
+
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="/site-ui.css">
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <link rel="stylesheet" href="news.css">
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <link rel="stylesheet" href="subscription.css">
+  <script src="subscription-config.js" defer></script>
+  <script src="subscription.js" defer></script>
+  <script src="news.js" defer></script>
+</head>
+<body class="news-page" data-page-slug="news">
+  <div id="uk-aq-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+
+  <main class="news-main" id="mainContent">
+    <header class="news-intro">
+      <h1 class="visually-hidden">UK AQ News</h1>
+		<picture class="news-title-picture">
+		  <img
+		    class="news-title-image"
+		    src="/images/UK-AQ-NEWS-1line.svg"
+		    alt=""
+		    aria-hidden="true"
+		  >
+		</picture>
+      <p>Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
+    </header>
+
+    <section class="news-subscription" aria-label="AQ NEWS email">
+      <details id="news-email-panel">
+        <summary>Get AQ News by email</summary>
+        <div class="news-email-content">
+          <h2 id="news-email-heading">Get AQ News by email</h2>
+          <p id="news-email-status" role="status" aria-live="polite"></p>
+          <form id="news-email-form">
+            <div id="news-email-address-field">
+              <label for="news-email-address">Email address</label>
+              <input id="news-email-address" name="email" type="email" autocomplete="email" maxlength="254" required>
+            </div>
+            <fieldset>
+              <legend>Delivery preference</legend>
+              <label><input type="radio" name="delivery_mode" value="immediate" checked> Immediate</label>
+              <p>Receive an email when a new article is approved for AQ NEWS.</p>
+              <label><input type="radio" name="delivery_mode" value="daily"> Daily</label>
+              <p>Receive one email each day with articles approved since your previous daily update. Choose your preferred UK time.</p>
+            </fieldset>
+            <div id="news-email-time-field" hidden>
+              <label for="news-email-time">Daily delivery time (UK time)</label>
+              <select id="news-email-time" name="daily_time_local" disabled></select>
+              <p>UK time adjusts automatically for BST and GMT.</p>
+            </div>
+            <div id="news-email-consent">
+              <p>By subscribing, you ask UK AQ to store your email address and delivery preference and send AQ NEWS emails. Confirm your address before delivery starts. You can unsubscribe at any time using the link in each email. No account is required.</p>
+            </div>
+            <div id="news-email-turnstile" aria-label="Subscription verification"></div>
+            <button id="news-email-submit" type="submit" disabled>Subscribe</button>
+          </form>
+          <button id="news-email-unsubscribe" type="button" hidden>Unsubscribe from AQ NEWS</button>
+          <p><a href="#news-toolbar" id="news-email-return">Back to AQ NEWS</a></p>
+        </div>
+      </details>
+    </section>
+
+    <section class="news-feed" aria-label="News articles">
+      <div class="news-toolbar" id="news-toolbar" hidden>
+        <div class="news-search-shell">
+          <label class="visually-hidden" for="news-search-input">Search news</label>
+          <div class="news-search">
+            <span class="news-search-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 13 13" fill="none">
+                <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"></circle>
+                <path d="M9 9l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+              </svg>
+            </span>
+            <input
+              id="news-search-input"
+              class="news-search-input"
+              type="search"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-controls="news-search-suggestions"
+              placeholder="Search news…"
+            >
+            <button id="news-search-clear" class="news-search-clear" type="button" aria-label="Clear search" hidden>&times;</button>
+            <details class="news-search-fields" id="news-search-fields">
+              <summary aria-label="Choose fields to search">
+                <span id="news-search-fields-summary">All</span>
+                <span aria-hidden="true">▾</span>
+              </summary>
+              <fieldset>
+                <legend>Search fields</legend>
+                <label><input type="checkbox" value="title" checked> Title</label>
+                <label><input type="checkbox" value="publication" checked> Publication</label>
+                <label><input type="checkbox" value="author" checked> Author</label>
+              </fieldset>
+            </details>
+          </div>
+          <div id="news-search-suggestions" class="news-search-suggestions" role="listbox" hidden></div>
+        </div>
+
+        <div class="news-toolbar-actions">
+          <label class="news-grid-sort" id="news-grid-sort-label" for="news-grid-sort">
+            <span>Sort</span>
+            <select id="news-grid-sort" aria-label="Sort news articles">
+              <option value="published:desc">Published — newest</option>
+              <option value="published:asc">Published — oldest</option>
+              <option value="title:asc">Title — A–Z</option>
+              <option value="title:desc">Title — Z–A</option>
+              <option value="publication:asc">Publication — A–Z</option>
+              <option value="publication:desc">Publication — Z–A</option>
+              <option value="author:asc">Author — A–Z</option>
+              <option value="author:desc">Author — Z–A</option>
+            </select>
+          </label>
+
+          <div class="news-page-view-group">
+            <div class="news-toolbar-page-wrap" id="news-toolbar-page-wrap">
+              <span class="news-toolbar-page-label" aria-hidden="true">Page</span>
+              <div class="news-toolbar-page" role="group" aria-label="Page navigation">
+                <button
+                  id="news-toolbar-page-previous"
+                  class="news-toolbar-page-button news-toolbar-page-button--previous"
+                  type="button"
+                  aria-label="Previous page"
+                  title="Previous page"
+                >
+                  <span class="news-toolbar-page-triangle news-toolbar-page-triangle--previous" aria-hidden="true"></span>
+                </button>
+                <span id="news-toolbar-page-current" class="news-toolbar-page-current" aria-live="polite">1 / 1</span>
+                <button
+                  id="news-toolbar-page-next"
+                  class="news-toolbar-page-button news-toolbar-page-button--next"
+                  type="button"
+                  aria-label="Next page"
+                  title="Next page"
+                >
+                  <span class="news-toolbar-page-triangle news-toolbar-page-triangle--next" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="news-view-switch" role="group" aria-label="Article view">
+              <button id="news-view-grid" type="button" aria-label="Grid view" aria-pressed="true" title="Grid view">
+                <img id="news-view-grid-icon" src="/images/UK-AQ-grid-icon-blue.svg" alt="" aria-hidden="true" draggable="false">
+              </button>
+              <button id="news-view-list" type="button" aria-label="List view" aria-pressed="false" title="List view">
+                <img id="news-view-list-icon" src="/images/UK-AQ-list-icon-blue.svg" alt="" aria-hidden="true" draggable="false">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="news-status" class="news-status" role="status" aria-live="polite">
+        <span class="news-spinner" aria-hidden="true"></span>
+        <span>Loading the latest articles…</span>
+      </div>
+
+      <div id="news-error" class="news-message news-message--error" role="alert" hidden>
+        <h3>News is unavailable</h3>
+        <p>We could not load the Media feed. Please try again.</p>
+        <button id="news-retry" type="button">Try again</button>
+      </div>
+
+      <div id="news-empty" class="news-message" hidden>
+        <h3>No articles yet</h3>
+        <p>Approved stories will appear here when they are available.</p>
+      </div>
+
+      <div id="news-no-results" class="news-message" hidden>
+        <h3>No matching articles</h3>
+        <p>Try another search or select more search fields.</p>
+      </div>
+
+      <div id="news-grid" class="news-grid" hidden></div>
+
+      <div class="news-table-shell">
+        <div
+          id="news-table-scroll"
+          class="news-table-scroll"
+          role="region"
+          aria-label="News article list. Scroll horizontally to see all columns."
+          tabindex="0"
+          hidden
+        >
+          <table class="news-table">
+          <thead>
+            <tr>
+              <th class="news-table-image-heading" scope="col"><span class="visually-hidden">Article image</span></th>
+              <th scope="col" data-sort-key="title" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="title">
+                  <span>Title</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="publication" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="publication">
+                  <span>Publication</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="author" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="author">
+                  <span>Author</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+              <th scope="col" data-sort-key="published" aria-sort="none">
+                <button class="news-sort-heading" type="button" data-sort-key="published">
+                  <span>Published</span><span class="news-sort-arrow" aria-hidden="true"></span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="news-table-scroll-control" class="news-table-scroll-control" hidden>
+            <tr>
+              <td colspan="5">
+                <div id="news-table-scroll-lane" class="news-table-scroll-lane">
+                  <div
+                    id="news-table-scrollbar"
+                    class="news-table-scrollbar"
+                    role="scrollbar"
+                    aria-label="Horizontal table scroll position"
+                    aria-controls="news-table-scroll"
+                    aria-orientation="horizontal"
+                    aria-valuemin="0"
+                    aria-valuemax="0"
+                    aria-valuenow="0"
+                    tabindex="0"
+                  >
+                    <span id="news-table-scroll-thumb" class="news-table-scroll-thumb"></span>
+                  </div>
+                  <button id="news-table-scroll-left" class="news-table-scroll-chevron is-left" type="button" aria-label="Scroll table left"></button>
+                  <button id="news-table-scroll-right" class="news-table-scroll-chevron is-right" type="button" aria-label="Scroll table right"></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tbody id="news-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="news-results-footer" class="news-results-footer" hidden>
+        <p id="news-results-summary" class="news-results-summary" aria-live="polite"></p>
+        <nav id="news-pagination" class="news-pagination" aria-label="News pages" hidden>
+          <button id="news-page-previous" type="button">Previous</button>
+          <div id="news-page-numbers" class="news-page-numbers"></div>
+          <button id="news-page-next" type="button">Next</button>
+        </nav>
+      </div>
+
+      <noscript>
+        <div class="news-message news-message--error">
+          <p>JavaScript is required to load AQ in the News.</p>
+        </div>
+      </noscript>
+    </section>
+
+    <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">
+      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--two">
+        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+            </span>
+            <span class="ukaq-bottom-nav-title-switch">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+            </span>
+          </div>
+          <p class="ukaq-bottom-nav-description">View sensor locations and readings on an interactive UK map.</p>
+        </a>
+      </div>
+    </nav>
+  </main>
+</body>
+</html>

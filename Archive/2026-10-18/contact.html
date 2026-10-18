@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<!-- UK AK contact.html  -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UK AQ Contact</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Contact UK AQ, follow UK AQ on social media, and learn about the independent UK air quality project.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Contact &amp; Info | UK AQ">
+  <meta property="og:description" content="Contact UK AQ, follow UK AQ on social media, and learn about the independent UK air quality project.">
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #FBFAF7;
+      color: #111827;
+      margin: 0;
+    }
+
+    /* ── Outer shell — class names preserved for height postMessage script ── */
+    .chart-shell {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+
+    .resources-shell {
+      padding: 28px;
+      margin: 0;
+      background: #FBFAF7;
+    }
+
+    .resources-frame {
+      width: 100%;
+      margin: 0;
+      padding: 0 104px 0 0;
+      background: #FBFAF7;
+      box-sizing: border-box;
+    }
+
+    /* ── Content width constraint ── */
+    .contact-content {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    /* ── Title row ── */
+    .contact-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+      margin-top: 0;
+    }
+
+    @media (min-width: 768px) {
+      .contact-title-row {
+        margin-bottom: calc(1.25rem + 34px);
+      }
+    }
+
+    .contact-title-icon {
+      height: 34px;
+      width: auto;
+      flex-shrink: 0;
+    }
+
+    .contact-page-title {
+      height: 42px;
+      width: auto;
+      display: block;
+      max-width: 100%;
+    }
+
+    /* ── Section headings ── */
+    .contact-section {
+      margin-top: 2.25rem;
+    }
+
+    .contact-section-heading {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #3C78AC;
+      margin: 0 0 0.65rem;
+    }
+
+    /* ── Contact / social mini cards ── */
+    .contact-links {
+      container-type: inline-size;
+    }
+
+    .contact-links-heading {
+      margin: 0;
+      color: #3C78AC;
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: left;
+    }
+
+    .contact-links-intro {
+      max-width: 980px;
+      margin: 0.55rem 0 1rem;
+      color: #374151;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .contact-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 0.8rem;
+    }
+
+    .contact-mini-grid:has(.contact-mini-card:nth-child(4)) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .contact-mini-card {
+      display: flex;
+      box-sizing: border-box;
+      min-width: 0;
+      min-height: 92px;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8rem 0.9rem;
+      border: 2px solid rgba(60, 120, 172, 0.35);
+      border-radius: 18px;
+      background: #fff;
+      color: #101822;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .contact-mini-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(60, 120, 172, 0.12);
+      border-color: rgba(60, 120, 172, 0.6);
+    }
+
+    .contact-mini-card:focus-visible {
+      outline: 3px solid rgba(60, 120, 172, 0.45);
+      outline-offset: 3px;
+    }
+
+    .contact-mini-icon-box {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-mini-icon {
+      display: block;
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .contact-mini-icon--bluesky {
+      width: 38px;
+      height: 34px;
+    }
+
+    .contact-mini-icon--facebook {
+      width: 38px;
+      height: 38px;
+    }
+
+    .contact-mini-icon--substack {
+      width: 32px;
+      height: 38px;
+    }
+
+    .contact-mini-copy {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 0.22rem;
+    }
+
+    .contact-mini-title {
+      color: #3C78AC;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .contact-mini-value {
+      color: #175283;
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    @container (min-width: 621px) and (max-width: 926px) {
+      .contact-mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .contact-mini-grid > .contact-mini-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        width: calc((100% - 0.8rem) / 2);
+        justify-self: center;
+      }
+    }
+
+    .about-copy {
+      max-width: 860px;
+      margin: 0;
+      color: #374151;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .about-copy + .about-copy {
+      margin-top: 0.75rem;
+    }
+
+    .about-attribution {
+      color: #5b6472;
+      font-size: 0.9rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .resources-shell {
+        box-sizing: border-box;
+      }
+
+      .resources-frame {
+        padding-right: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .resources-shell {
+        padding: 18px;
+      }
+
+      .contact-mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 480px) {
+      .contact-title-icon {
+        height: 28px;
+      }
+
+      .contact-page-title {
+        height: 36px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+</head>
+<body data-page-slug="contact">
+  <div id="uk-aq-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+  <main class="chart-shell resources-shell">
+    <div class="resources-frame" id="mainContent">
+
+      <h1 class="contact-title-row">
+        <img
+          class="contact-title-icon"
+          src="./sidebar-images/uk-aq-contact-blue-200h.svg"
+          alt=""
+          aria-hidden="true"
+        >
+        <img
+          class="contact-page-title"
+          src="./images/UK-AQ-title-contact.svg"
+          alt="Contact &amp; Info"
+        >
+      </h1>
+
+      <div class="contact-content">
+        <section class="contact-links" aria-labelledby="contact-links-heading">
+          <h2 id="contact-links-heading" class="contact-links-heading">Contact and Follow</h2>
+          <p class="contact-links-intro">Questions, feedback, data issues, corrections or ideas? Email UK AQ, or follow for air quality data, pollution updates and news articles.</p>
+
+          <div class="contact-mini-grid">
+            <a class="contact-mini-card" href="mailto:info@ukaq.co.uk" aria-label="Email UK AQ at info@ukaq.co.uk">
+              <span class="contact-mini-icon-box">
+                <img class="contact-mini-icon" src="./sidebar-images/uk-aq-contact-blue-200h.svg" alt="">
+              </span>
+              <span class="contact-mini-copy">
+                <span class="contact-mini-title">Email UK AQ</span>
+                <span class="contact-mini-value">info@ukaq.co.uk</span>
+              </span>
+            </a>
+
+            <a class="contact-mini-card" href="https://bsky.app/profile/ukaq.co.uk" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Bluesky at @ukaq.co.uk (opens in a new tab)">
+              <span class="contact-mini-icon-box">
+                <img class="contact-mini-icon contact-mini-icon--bluesky" src="./images/Bluesky_Logo.svg" alt="">
+              </span>
+              <span class="contact-mini-copy">
+                <span class="contact-mini-title">Bluesky</span>
+                <span class="contact-mini-value">@ukaq.co.uk</span>
+              </span>
+            </a>
+
+            <a class="contact-mini-card" href="https://www.facebook.com/UKAirQuality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Facebook at facebook.com/UKAirQuality (opens in a new tab)">
+              <span class="contact-mini-icon-box">
+                <img class="contact-mini-icon contact-mini-icon--facebook" src="./images/facebook.svg" alt="">
+              </span>
+              <span class="contact-mini-copy">
+                <span class="contact-mini-title">Facebook</span>
+                <span class="contact-mini-value">facebook.com/UKAirQuality</span>
+              </span>
+            </a>
+
+            <!-- Substack: uncomment this mini card when the UK AQ Substack is live.
+            <a class="contact-mini-card" href="https://substack.com/@ukairquality" target="_blank" rel="noopener noreferrer" aria-label="UK AQ on Substack at substack.com/@ukairquality (opens in a new tab)">
+              <span class="contact-mini-icon-box">
+                <img class="contact-mini-icon contact-mini-icon--substack" src="./images/substack-icon.svg" alt="">
+              </span>
+              <span class="contact-mini-copy">
+                <span class="contact-mini-title">Substack</span>
+                <span class="contact-mini-value">substack.com/@ukairquality</span>
+              </span>
+            </a>
+            -->
+          </div>
+        </section>
+
+        <section class="contact-section" aria-labelledby="about-ukaq-heading">
+          <h2 id="about-ukaq-heading" class="contact-section-heading">About UK AQ</h2>
+          <p class="about-copy">UK AQ brings together air quality data from monitoring networks across the UK, making it easier to explore current and historical air pollution in one place.</p>
+          <p class="about-copy">The site includes live monitoring data, interactive maps and charts, air quality indices, WHO guideline comparisons, and articles about air pollution and its effects on health.</p>
+          <p class="about-copy about-attribution">UK AQ is an independent project created and maintained by Mike Hinford.</p>
+        </section>
+      </div>
+
+      <nav class="contact-tools-wide ukaq-bottom-nav" aria-label="Explore UK AQ">
+        <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
+          <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+            <div class="ukaq-bottom-nav-header">
+              <span class="ukaq-bottom-nav-icon-box">
+                <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+              </span>
+              <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+            </div>
+            <p class="ukaq-bottom-nav-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+          </a>
+
+          <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+            <div class="ukaq-bottom-nav-header">
+              <span class="ukaq-bottom-nav-icon-box">
+                <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+              </span>
+              <span class="ukaq-bottom-nav-title-switch">
+                <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+                <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+              </span>
+            </div>
+            <p class="ukaq-bottom-nav-description">View sensor locations and readings on an interactive UK map.</p>
+          </a>
+
+          <a class="ukaq-bottom-nav-card" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+            <div class="ukaq-bottom-nav-header">
+              <span class="ukaq-bottom-nav-icon-box">
+                <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+              </span>
+              <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-NEWS-1line.svg" alt="AQ in the News">
+            </div>
+            <p class="ukaq-bottom-nav-description">Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
+          </a>
+        </div>
+      </nav>
+
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const MIN_HEIGHT_DELTA = 8;
+      let lastReportedHeight = 0;
+      let heightUpdateTimer = null;
+
+      function measureHeight() {
+        const shell = document.querySelector('.resources-shell');
+        const frame = document.querySelector('.resources-frame');
+        const frameRect = frame ? frame.getBoundingClientRect() : null;
+        const frameHeight = frameRect?.height || frame?.offsetHeight || frame?.scrollHeight || 0;
+        const shellStyles = shell ? window.getComputedStyle(shell) : null;
+        const paddingTop = shellStyles ? parseFloat(shellStyles.paddingTop) || 0 : 0;
+        const paddingBottom = shellStyles ? parseFloat(shellStyles.paddingBottom) || 0 : 0;
+        let measured = frameHeight + paddingTop + paddingBottom;
+
+        if (!Number.isFinite(measured) || measured <= 0) {
+          const body = document.body;
+          measured = Math.max(body?.scrollHeight || 0, 320);
+        }
+
+        return Math.max(Math.ceil(measured), 320);
+      }
+
+      function sendHeightToParent(force = false) {
+        try {
+          if (!(window.parent && window.parent !== window)) {
+            return;
+          }
+          const height = measureHeight();
+          if (!force && lastReportedHeight && Math.abs(height - lastReportedHeight) < MIN_HEIGHT_DELTA) {
+            return;
+          }
+          lastReportedHeight = height;
+          window.parent.postMessage({
+            type: 'contentHeight',
+            chart: 'contact',
+            height
+          }, '*');
+        } catch (error) {
+          console.warn('Unable to send contact height to parent:', error);
+        }
+      }
+
+      function scheduleHeightUpdate(delay = 50, force = false) {
+        if (heightUpdateTimer) {
+          clearTimeout(heightUpdateTimer);
+        }
+        heightUpdateTimer = setTimeout(() => {
+          heightUpdateTimer = null;
+          requestAnimationFrame(() => sendHeightToParent(force));
+        }, delay);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        scheduleHeightUpdate(30, true);
+
+        if (window.ResizeObserver) {
+          const frame = document.querySelector('.resources-frame') || document.body;
+          const resizeObserver = new ResizeObserver(() => scheduleHeightUpdate(20));
+          if (frame) resizeObserver.observe(frame);
+        } else {
+          window.addEventListener('resize', () => scheduleHeightUpdate(20));
+        }
+      });
+
+      window.addEventListener('load', () => {
+        sendHeightToParent(true);
+        scheduleHeightUpdate(40);
+      });
+
+      window.addEventListener('message', event => {
+        const payload = event?.data;
+        if (!payload) return;
+        if (payload.type === 'requestHeight') {
+          scheduleHeightUpdate(20, true);
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
