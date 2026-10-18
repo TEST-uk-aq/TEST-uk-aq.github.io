@@ -18,7 +18,6 @@
   const config = window.UKAQ_NEWS_EMAIL || {};
   const status = document.getElementById('news-email-status');
   const heading = document.getElementById('news-email-heading');
-  const pageTitle = document.getElementById('news-email-page-title');
   const email = document.getElementById('news-email-address');
   const time = document.getElementById('news-email-time');
   const submit = document.getElementById('news-email-submit');
@@ -232,13 +231,10 @@
 
     form.hidden = true;
     if (surface === 'manage') {
-      pageTitle.textContent = 'Manage News Emails';
       heading.textContent = 'Email preferences';
     } else if (surface === 'unsubscribe') {
-      pageTitle.textContent = 'Unsubscribe from News Emails';
       heading.textContent = 'Unsubscribe from News Emails';
     } else {
-      pageTitle.textContent = 'Confirm News Email';
       heading.textContent = 'Confirm News Email';
     }
 
@@ -253,7 +249,6 @@
         .then(result => {
           if (surface === 'confirm') {
             secureToken = '';
-            pageTitle.textContent = 'News by Email';
             announce('Your AQ in the News email subscription is active. ' + describePreference(result));
           } else {
             setPreferences(result);
