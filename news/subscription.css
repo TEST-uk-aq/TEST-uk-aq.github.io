@@ -3,8 +3,7 @@
 .news-email-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .7rem 1.15rem; border: 1px solid #285b88; border-radius: .4rem; background: #3c78ac; color: #fff; font: inherit; font-weight: 700; text-decoration: none; }
 .news-email-cta:hover { background: #285b88; }
 .news-email-page .news-subscription { margin-top: 1.75rem; }
-.news-email-title { margin: 0 0 .85rem; }
-.news-email-title img { display: block; width: min(100%, 26.5rem); height: auto; }
+.news-email-title { margin: 0; }
 .news-subscription summary { cursor: pointer; padding: .8rem 1rem; border: 1px solid #bbcbd7; border-radius: .6rem; font-weight: 600; color: #153c57; min-height: 44px; box-sizing: border-box; }
 .news-email-content { padding: 1rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; }
 .news-email-content h2 { margin-top: 0; font-size: 1.2rem; }
