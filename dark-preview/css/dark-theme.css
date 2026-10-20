@@ -1,0 +1,1198 @@
+/* Isolated dark slate experiment. No styles load on the normal website.
+ * Original styles own layout, breakpoints and state. Only presentation colours
+ * are overridden; observation colours, AQI bands, heat stops and images remain.
+ */
+:root.dark-preview {
+  color-scheme: dark;
+  --dark-page: #0f172a;
+  --dark-panel: #1e293b;
+  --dark-raised: #273449;
+  --dark-line: #334155;
+  --dark-text: #f1f5f9;
+  --dark-muted: #cbd5e1;
+  --dark-subtle: #a7b7cb;
+  --dark-link: #8fc8ef;
+  --dark-selected: #24415c;
+  --dark-focus: #a8d9ff;
+  --surface: var(--dark-panel);
+  --surface-2: var(--dark-page);
+  --surface-3: var(--dark-raised);
+  --ink: var(--dark-text);
+  --ink-1: var(--dark-text);
+  --ink-2: var(--dark-muted);
+  --ink-3: var(--dark-subtle);
+  --ink-4: var(--dark-subtle);
+  --ink-soft: var(--dark-muted);
+  --line: var(--dark-line);
+  --line-soft: var(--dark-line);
+  --card: var(--dark-panel);
+  --mist: var(--dark-raised);
+  --clay: var(--dark-raised);
+  --fog: rgb(203 213 225 / 10%);
+  --tab-inactive: var(--dark-raised);
+  --map-wrap: var(--dark-page);
+  --accent: #3c78ac;
+  --accent-deep: var(--dark-link);
+  --teal: var(--accent);
+  --teal-deep: var(--dark-link);
+  --ukaq-control-selected-bg: var(--dark-selected);
+  --ukaq-control-selected-text: var(--dark-text);
+  --ukaq-control-selected-border: #6698c1;
+  --ukaq-control-selectable-bg: var(--dark-panel);
+  --ukaq-control-selectable-text: var(--dark-text);
+  --ukaq-control-selectable-border: var(--dark-line);
+  --ukaq-control-selectable-hover-bg: var(--dark-raised);
+  --ukaq-control-disabled-bg: var(--dark-raised);
+  --ukaq-control-disabled-text: var(--dark-subtle);
+  --ukaq-control-disabled-border: var(--dark-line);
+  --ukaq-action-bg: #3c78ac;
+  --ukaq-action-text: #fff;
+  --uk-aq-accent: #3c78ac;
+  --uk-aq-accent-deep: var(--dark-link);
+  --uk-aq-ink: var(--dark-text);
+  --uk-aq-ink-1: var(--dark-text);
+  --uk-aq-ink-2: var(--dark-muted);
+  --uk-aq-ink-3: var(--dark-subtle);
+  --uk-aq-ink-4: var(--dark-subtle);
+  --uk-aq-line: var(--dark-line);
+  --uk-aq-line-soft: var(--dark-line);
+  --uk-aq-surface: var(--dark-panel);
+  --uk-aq-surface-2: var(--dark-raised);
+  --news-ink: var(--dark-text);
+  --news-ink-soft: var(--dark-muted);
+  --news-blue: #3c78ac;
+  --news-blue-dark: var(--dark-link);
+  --news-page: var(--dark-page);
+  --news-surface: var(--dark-panel);
+  --news-border: var(--dark-line);
+  --news-border-warm: var(--dark-line);
+  --news-error: #fca5a5;
+  background: var(--dark-page);
+  scrollbar-color: #64748b var(--dark-page);
+}
+
+html.dark-preview body {
+  color: var(--dark-text);
+  background: var(--dark-page);
+}
+
+html.dark-preview :is(input, select, textarea) {
+  color-scheme: dark;
+  accent-color: #79b8e8;
+}
+
+html.dark-preview :is(input, textarea)::placeholder {
+  color: var(--dark-subtle);
+  opacity: 1;
+}
+
+html.dark-preview :focus-visible {
+  outline: 3px solid var(--dark-focus) !important;
+  outline-offset: 3px !important;
+}
+
+html.dark-preview ::selection {
+  color: #fff;
+  background: #285a84;
+}
+
+
+
+/* Homepage neutral surfaces: explicit neutral-colour overrides from the source styles. */
+html.dark-preview:has(> body.home-page) body {
+  background-color: var(--dark-page);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) header {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .kofi-button {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) nav a {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) main {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) footer {
+  background-color: var(--dark-panel);
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-unit-v2 {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-table-v2 {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-table-v2 thead th {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-note-v2 {
+  color: var(--dark-text);
+}
+
+@media (max-width: 767px) {
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-note-v2 {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .home-page .who-guideline-note-v2::before {
+  background-color: var(--dark-panel);
+}
+}
+
+html.dark-preview:has(> body.home-page) .home-page {
+  color: var(--dark-text);
+  background-color: var(--dark-page);
+}
+
+html.dark-preview:has(> body.home-page) .home-header {
+  background-color: var(--dark-page);
+}
+
+html.dark-preview:has(> body.home-page) .home-subtitle {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .homepage-media-news-link {
+  color: var(--dark-link);
+}
+
+@media (min-width: 768px) {
+html.dark-preview:has(> body.home-page) .homepage-media-carousel {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .homepage-media-carousel-card {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.home-page) .homepage-media-carousel-button,
+html.dark-preview:has(> body.home-page) .homepage-media-carousel-dot {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .homepage-media-carousel-dot[aria-current="true"] {
+  color: var(--dark-link);
+}
+}
+
+html.dark-preview:has(> body.home-page) .readings-dashboard {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table-card {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table-wrap {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table th,
+html.dark-preview:has(> body.home-page) .dashboard-table td {
+  border-bottom-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table thead th {
+  background-color: var(--dark-raised);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table tbody tr {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table--networks tbody tr:last-child {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-status--error {
+  color: #fca5a5;
+}
+
+html.dark-preview:has(> body.home-page) .dashboard-table--areas .area-marker {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.home-page) .readings-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .readings-subtitle {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .readings-updated {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .pollutant-unavailable {
+  background-color: rgb(30 41 59 / 0.48);
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .pollutant-unavailable-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .section-description {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .tool-card {
+  background-image: linear-gradient(var(--dark-panel), var(--dark-panel)), linear-gradient(135deg, rgb(255, 240, 86), rgb(255, 0, 0));
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .tool-card-description {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .home-footer {
+  background-color: var(--dark-panel);
+  color: var(--dark-muted);
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.home-page) .who-dashboard-card {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .who-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .who-status {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .who-source-pill,
+html.dark-preview:has(> body.home-page) .who-date-pill {
+  background-color: var(--dark-panel);
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.home-page) .who-date-pill {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .who-date-pill-label {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.home-page) .who-toggle {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.home-page) .who-toggle button {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .who-summary-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.home-page) .who-summary-subtext {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .who-pollutant-topline {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.home-page) .who-pollutant-count {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.home-page) .who-card-footer {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+/* Hex Map neutral surfaces: explicit neutral-colour overrides from the source styles. */
+html.dark-preview:has(> body.hex-map-page) .map-select select {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-card-logo-box--light {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-card-logo-box--dark {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-card-logo-box--text {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .coverage-help {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .coverage-bar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.hex-map-page) .summary-card {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-summary-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-summary-accent {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-summary-number {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-summary-bar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.hex-map-page) .selected-network-label {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-share-title {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-share-percent,
+html.dark-preview:has(> body.hex-map-page) .sensor-share-count {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .summary-connector {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-selector-header-divider {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-panel-hex-icon--outlined path {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-panel-title[role="button"]:hover {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-panel-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-scroll-indicator {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-scroll-indicator--top {
+  background-image: linear-gradient(rgb(30 41 59 / 0.94), rgb(30 41 59 / 0));
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-scroll-indicator--bottom {
+  background-image: linear-gradient(to top, rgb(30 41 59 / 0.94), rgb(30 41 59 / 0));
+}
+
+html.dark-preview:has(> body.hex-map-page) .sort-header.is-active {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sort-arrow,
+html.dark-preview:has(> body.hex-map-page) .sort-icon {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-row--excluded {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-row-divider td {
+  background-color: var(--dark-raised);
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.hex-map-page) .sensor-name-button:hover {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .filters input[type="text"],
+html.dark-preview:has(> body.hex-map-page) .filters input[type="search"] {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-count {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-share-bar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-option.is-unselected .network-count {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-settings {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-settings-panel {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .window-group {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .window-option input {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .colour-scale-group,
+html.dark-preview:has(> body.hex-map-page) .metric-group {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .colour-scale-toggle::after,
+html.dark-preview:has(> body.hex-map-page) .metric-toggle::after {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex:hover {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex.is-selected {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .boundary-path {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .tooltip {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .tooltip-table {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .tooltip-connector {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .toggle {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .error {
+  color: #fca5a5;
+}
+
+html.dark-preview:has(> body.hex-map-page) .top-summary-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .top-summary-coverage-bar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.hex-map-page) .top-summary-update-line span {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-trigger {
+  background-color: var(--dark-panel);
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-trigger-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-trigger.is-open {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-trigger.is-open .network-dropdown-trigger-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-count {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-action {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .network-dropdown-actions-divider {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .networks-pill {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .networks-pill[aria-expanded="true"] {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .networks-panel-title {
+  color: var(--text-muted, var(--dark-muted));
+}
+
+html.dark-preview:has(> body.hex-map-page) .networks-panel-footer-note {
+  color: var(--text-muted, var(--dark-muted));
+}
+
+html.dark-preview:has(> body.hex-map-page) .networks-panel-floating.is-maxi .network-option-tag {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .popover-trigger {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .popover-trigger.open {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .popover-item.active {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-search {
+  background-color: rgb(30 41 59 / 0.92);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-search-icon {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-search-result-dest-name {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .status-pill {
+  background-color: rgb(30 41 59 / 0.88);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-summary-value {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-summary-coverage-bar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-summary-update-line span {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-zoom-controls {
+  background-color: rgb(30 41 59 / 0.94);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-zoom-controls button {
+  background-color: rgb(30 41 59 / 0.92);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-floating-tools {
+  background-color: rgb(30 41 59 / 0.94);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-floating-tools:hover {
+  background-color: rgb(30 41 59 / 0.98);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-zoom-controls button:hover {
+  background-color: rgb(30 41 59 / 0.98);
+}
+
+html.dark-preview:has(> body.hex-map-page) .map-floating-tools:active,
+html.dark-preview:has(> body.hex-map-page) .map-zoom-controls button:active,
+html.dark-preview:has(> body.hex-map-page) .btn-refresh:active,
+html.dark-preview:has(> body.hex-map-page) .toolbar button:active:not(:disabled):not(.active):not([aria-checked="true"]),
+html.dark-preview:has(> body.hex-map-page) .tab-button:active,
+html.dark-preview:has(> body.hex-map-page) .popover-trigger:active {
+  background-color: rgb(30 41 59 / 0.96);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-chart-selected-sensor-chip {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-chart-selector[data-chart-header-action="keep-top"]::after {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-chart-message {
+  background-color: rgb(30 41 59 / 0.92);
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-chart-message.is-error {
+  color: #fca5a5;
+}
+
+@media (max-width: 767px) {
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .map-zoom-controls::before {
+  background-color: rgb(30 41 59 / 0.94);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .map-settings::before {
+  background-color: rgb(30 41 59 / 0.94);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .mobile-map-controls--right .networks-pill::before {
+  background-color: rgb(30 41 59 / 0.72);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .mobile-map-controls--right .pollutant-selector .pill::before {
+  background-color: rgb(30 41 59 / 0.38);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .mobile-map-controls--right .pollutant-selector .pill[aria-checked="false"]:hover::before {
+  background-color: rgb(30 41 59 / 0.64);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .mobile-map-controls--left .popover-trigger::before,
+html.dark-preview:has(> body.hex-map-page) .hex-map-page .mobile-map-controls--region .popover-trigger::before {
+  background-color: rgb(30 41 59 / 0.72);
+}
+
+html.dark-preview:has(> body.hex-map-page) body.hex-map-page.mobile-map-controls-active .mobile-map-controls--right .networks-pill {
+  background-color: rgb(30 41 59 / 0.72);
+}
+
+html.dark-preview:has(> body.hex-map-page) body.hex-map-page.mobile-map-controls-active .mobile-map-controls--pollutant .pill {
+  background-color: rgb(30 41 59 / 0.38);
+}
+
+html.dark-preview:has(> body.hex-map-page) body.hex-map-page.mobile-map-controls-active .mobile-map-controls--region .popover-trigger {
+  background-color: rgb(30 41 59 / 0.72);
+}
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-axis path,
+html.dark-preview:has(> body.hex-map-page) .chart-axis line {
+  stroke: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-guideline {
+  stroke: #fca5a5;
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-guideline-label {
+  fill: #fca5a5;
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-tooltip {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex-chart-loading,
+html.dark-preview:has(> body.hex-map-page) .station-chart-loading {
+  color: var(--dark-link);
+  background-color: rgb(30 41 59 / 0.68);
+}
+
+/* News neutral surfaces: explicit neutral-colour overrides from the source styles. */
+html.dark-preview:has(> body.news-page) .news-search {
+  background-color: rgb(30 41 59 / 0.96);
+}
+
+html.dark-preview:has(> body.news-page) .news-search:focus-within {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.news-page) .news-search-icon {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.news-page) .news-search-input::placeholder {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.news-page) .news-search-clear {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.news-page) .news-search-fields summary {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-view-switch button[aria-pressed="true"] {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-status,
+html.dark-preview:has(> body.news-page) .news-message {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.news-page) .news-spinner {
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.news-page) .news-message--error {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.news-page) .news-grid-author {
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  color: var(--dark-link);
+  background-color: rgb(30 41 59 / 0.72);
+}
+
+html.dark-preview:has(> body.news-page) .news-table-scrollbar {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body.news-page) .news-table th {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.news-page) .news-sort-heading.is-active {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-sort-arrow {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-table-title-link {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-table-title-link:hover {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-table-missing-author {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body.news-page) .news-pagination button:hover:not(:disabled) {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-subscription summary {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body.news-page) .news-email-content {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body.news-page) .news-email-content fieldset {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.news-page) .news-email-content input[type="email"],
+html.dark-preview:has(> body.news-page) .news-email-content select {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body.news-page) #news-email-status[data-error="true"] {
+  color: #fca5a5;
+}
+
+/* Shared chrome and responsive surfaces: explicit neutral-colour overrides from the source styles. */
+html.dark-preview:has(> body) .ukaq-bottom-nav-card {
+  background-image: linear-gradient(var(--dark-panel), var(--dark-panel)), linear-gradient(135deg, rgb(103, 176, 237), rgb(23, 82, 131));
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .ukaq-bottom-nav-description {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .ukaq-beta-notice__dismiss {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .home-page .who-card-footer {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) .home-page .who-guideline-table-v2 thead th {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) .hex-map-page .network-dropdown-action-icon--clear-all::before {
+  color: var(--dark-link);
+}
+
+@media (max-width: 767px) {
+html.dark-preview:has(> body) .home-page .dashboard-table tbody tr {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table tbody th[scope="row"] {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--areas tbody td {
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--areas tbody td::before {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody td:nth-child(2) {
+  border-top-color: var(--dark-line);
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody td:nth-child(n+3) {
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody td:nth-child(n+4) {
+  border-left-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody td:nth-child(n+3)::before {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody tr[data-network="total"] {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) .home-page .dashboard-table--networks tbody tr[data-network="total"] th[scope="row"] {
+  background-color: var(--dark-raised);
+}
+}
+
+@media (max-width: 767px) {
+html.dark-preview:has(> body) body.home-page .dashboard-table-card .dashboard-table-wrap {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table thead tr,
+html.dark-preview:has(> body) body.home-page .dashboard-table tbody tr,
+html.dark-preview:has(> body) body.home-page .dashboard-table--areas tbody tr,
+html.dark-preview:has(> body) body.home-page .dashboard-table--networks tbody tr {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table th,
+html.dark-preview:has(> body) body.home-page .dashboard-table td,
+html.dark-preview:has(> body) body.home-page .dashboard-table tbody th[scope="row"],
+html.dark-preview:has(> body) body.home-page .dashboard-table--areas tbody td,
+html.dark-preview:has(> body) body.home-page .dashboard-table--networks tbody td {
+  border-bottom-color: var(--dark-line);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table thead th {
+  background-color: var(--dark-raised);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table--networks tbody tr[data-network="total"] {
+  background-color: var(--dark-raised);
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table--networks th:nth-child(2),
+html.dark-preview:has(> body) body.home-page .dashboard-table--networks td:nth-child(2) {
+  color: var(--dark-text);
+}
+}
+
+html.dark-preview:has(> body) body.home-page .dashboard-table--areas.area-table--grouped .area-reading-group-row > th {
+  border-bottom-color: var(--dark-line);
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+@media (max-width: 767px) {
+html.dark-preview:has(> body) .home-page .homepage-media-mobile {
+  background-color: var(--dark-panel);
+}
+
+html.dark-preview:has(> body) .home-page .homepage-media-mobile-controls .homepage-media-carousel-button,
+html.dark-preview:has(> body) .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) .home-page .homepage-media-mobile-controls .homepage-media-carousel-dot[aria-current="true"] {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body) .home-page .home-main > section {
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) .home-page .who-guideline-unit {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) .home-page .who-guideline-table {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .home-page .who-guideline-table thead th {
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body) .home-page .who-guideline-mobile-note {
+  background-color: var(--dark-panel);
+  color: var(--dark-text);
+}
+}
+
+html.dark-preview:has(> body) body #ukaq-site-footer {
+  background-color: var(--dark-panel);
+  color: var(--dark-muted);
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) #ukaq-site-footer .ukaq-site-footer-sources {
+  border-top-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) #ukaq-site-footer .ukaq-site-footer-source {
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+}
+
+html.dark-preview:has(> body) #ukaq-site-footer .ukaq-site-footer-gov-pill {
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) #ukaq-site-footer .ukaq-site-footer-copy {
+  color: var(--dark-muted);
+}
+
+html.dark-preview:has(> body) #ukaq-site-footer a:hover {
+  color: var(--dark-link);
+}
+
+html.dark-preview:has(> body) .uk-aq-nav-item.active {
+  background-color: var(--dark-panel);
+  border-top-color: var(--dark-line);
+  border-right-color: var(--dark-line);
+  border-bottom-color: var(--dark-line);
+  border-left-color: var(--dark-line);
+}
+
+/* Component tokens are set locally by the original homepage, so override them
+ * at that same component boundary rather than adding a competing state owner. */
+html.dark-preview .home-page .who-dashboard-card {
+  --who-surface: var(--dark-panel);
+  --who-wrap: var(--dark-panel);
+  --who-accent: #3c78ac;
+  --who-accent-deep: var(--dark-link);
+  --who-label: var(--dark-muted);
+  --who-line: var(--dark-line);
+  --who-line-soft: var(--dark-line);
+  --who-bar-grey: #475569;
+}
+
+html.dark-preview .home-page .dashboard-table--areas {
+  --area-group-border: var(--dark-line);
+}
+
+/* Keep the page canvas visible between the original section shells. */
+html.dark-preview:has(> body.home-page) .home-main {
+  background: transparent;
+}
+
+html.dark-preview:has(> body) .ukaq-bottom-nav-card,
+html.dark-preview:has(> body.home-page) .tool-card {
+  background: var(--dark-panel);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--dark-line), 0 4px 16px rgb(15 23 42 / 16%);
+}
+
+html.dark-preview:has(> body) .ukaq-bottom-nav-card:hover,
+html.dark-preview:has(> body.home-page) .tool-card:hover {
+  background: var(--dark-raised);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px #6698c1, 0 4px 16px rgb(15 23 42 / 16%);
+}
+
+html.dark-preview:has(> body) .uk-aq-nav-item.active {
+  background: var(--dark-selected);
+  color: var(--dark-text);
+  border-color: #6698c1;
+}
+
+html.dark-preview #uk-aq-sidebar .uk-aq-nav-item:hover {
+  background: var(--dark-raised);
+  color: var(--dark-text);
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex {
+  stroke: #475569;
+}
+
+html.dark-preview:has(> body.hex-map-page) .hex:hover,
+html.dark-preview:has(> body.hex-map-page) .hex.is-selected {
+  stroke: #f1f5f9;
+}
+
+html.dark-preview:has(> body.hex-map-page) .boundary-path {
+  stroke: #94a3b8;
+}
+
+html.dark-preview:has(> body.hex-map-page) .chart-axis path,
+html.dark-preview:has(> body.hex-map-page) .chart-axis line,
+html.dark-preview .chart-y-grid line {
+  stroke: #475569;
+}
+
+html.dark-preview .chart-empty-state text {
+  fill: var(--dark-muted);
+}
+
+/* These are containers, not scientific colour swatches. The heat scale,
+ * --no-data, reading dots and DAQI/EAQI segment fills are deliberately untouched. */
+html.dark-preview .hex-map-page .legend-pill,
+html.dark-preview .hex-map-page .sensor-reading-pill {
+  background: var(--dark-panel);
+  border-color: var(--dark-line);
+  color: var(--dark-muted);
+}
+
+/* Existing partner artwork keeps its original pixels and a small light mat
+ * where necessary until separately supplied dark-background artwork is ready. */
+html.dark-preview:has(> body.hex-map-page) .network-card-logo-box--light {
+  background: #fff;
+}
+
+html.dark-preview .network-card-logo-box--light .network-card-logo-box--text,
+html.dark-preview .network-card-logo-box--light.network-card-logo-box--text {
+  color: #101822;
+}
+
+html.dark-preview #ukaq-site-footer .ukaq-site-footer-logo {
+  background: #fff;
+  border-radius: 4px;
+}
+
+/* Do not inherit a brighter foreground token as a filled button background. */
+html.dark-preview .news-page #news-retry:hover,
+html.dark-preview .hex-map-page .map-search-result.is-active .map-search-result-arrow,
+html.dark-preview .hex-map-page .map-search-result:hover .map-search-result-arrow {
+  background: #285a84;
+}
+
+/* Colour overrides must not restore the outer mobile cards removed by the
+ * shared responsive styles. Layout and breakpoints remain source-owned. */
+@media (max-width: 767px) {
+  html.dark-preview:has(> body.home-page) .who-dashboard-card,
+  html.dark-preview:has(> body.home-page) .readings-dashboard,
+  html.dark-preview:has(> body.home-page) .home-main > .dashboard-table-card,
+  html.dark-preview:has(> body.home-page) .who-summary-shell .who-summary-card,
+  html.dark-preview:has(> body.home-page) .who-summary-shell .who-rolling-card {
+    background: transparent;
+  }
+}
+
+/* The build inserts the normal loader after page styles. Scope the canvas
+ * override more specifically while retaining its original artwork and timing. */
+html.dark-preview.ukaq-initial-loading,
+html.dark-preview #ukaq-initial-loader {
+  background: var(--dark-page);
+}
