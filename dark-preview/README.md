@@ -45,8 +45,9 @@ original sources and pixels. No image brightness/inversion treatment is added.
 
 Original data clients continue to use the same-origin `/api/aq` and `/api/media`
 routes and the shared deployment-injected authentication configuration. Unused
-page-local project/key/debug constants are omitted: these new HTML files are not
-part of the injector's explicit target list. No environment values, backend
+page-local project/key constants are omitted: these new HTML files are not part
+of the injector's explicit target list. The optional homepage debug-log flag
+uses the original script's default (off); shared Hex diagnostics are unchanged. No environment values, backend
 routes, browser theme setting, URL theme parameter or alternate-environment
 fallback is added. Existing supported query parameters remain unchanged.
 
