@@ -9,8 +9,7 @@ TEST NOTICE: This is a test of the UK AQ. site-wide warning system. [More inform
 [network_notices.gov_uk_aurn]
 enabled = true
 message = """
-TEST: AURN network warning.
-[More information](https://www.gov.uk/)
+Network AQ data feed not responding
 """
 
 [network_notices.openaq]
@@ -18,3 +17,9 @@ enabled = false
 
 [network_notices.breathelondon]
 enabled = false
+
+[network_notices.ni]
+enabled = true
+message = """
+Network AQ data feed not responding
+"""
