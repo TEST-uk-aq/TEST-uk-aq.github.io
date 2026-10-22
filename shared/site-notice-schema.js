@@ -33,16 +33,18 @@ export function parseMessage(message) {
   return message.replace(/\r\n?/g, "\n").trim().split(/\n\s*\n/).map((paragraph) => {
     const tokens = [];
     const pattern = /\[([^\[\]\n]+)\]\(([^\s()]+)\)/g;
+    // Leftover brackets are prose unless they still form a link-shaped opener.
+    const malformedLink = /\[[\s\S]*\]\(/;
     let offset = 0;
     for (const match of paragraph.matchAll(pattern)) {
       const before = paragraph.slice(offset, match.index);
-      if (/[\[\]]/.test(before) || before.endsWith("!")) throw new Error("Unsupported notice link syntax");
+      if (malformedLink.test(before) || before.endsWith("!")) throw new Error("Unsupported notice link syntax");
       if (before) tokens.push({ text: before });
       tokens.push({ text: match[1], href: safeLink(match[2]) });
       offset = match.index + match[0].length;
     }
     const after = paragraph.slice(offset);
-    if (/[\[\]]/.test(after)) throw new Error("Malformed notice link syntax");
+    if (malformedLink.test(after)) throw new Error("Malformed notice link syntax");
     if (after) tokens.push({ text: after });
     return tokens;
   });
