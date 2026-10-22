@@ -1,0 +1,43 @@
+name: Publish site notice
+
+on:
+  push:
+    branches: [main]
+    paths: [site-notice.toml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-notice-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Manual runs must publish current main, never a branch or cross-environment fallback.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      UK_AQ_SITE_NOTICE_KV_NAMESPACE_ID: ${{ vars.UK_AQ_SITE_NOTICE_KV_NAMESPACE_ID }}
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Use Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Validate complete TOML
+        run: python3 scripts/site-notice/publish.py --check
+      - name: Replace the notice KV document
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python3 scripts/site-notice/publish.py

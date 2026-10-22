@@ -1,0 +1,1554 @@
+<!doctype html>
+<!-- HEX MAP index.html  -->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://static.cloudflareinsights.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: blob:; frame-src https://challenges.cloudflare.com;"
+    />
+    <title>UK AQ Hex Map</title>
+    <link rel="icon" href="/images/favicon.ico" type="image/png">
+    <link rel="preload" as="image" href="/images/UK-AQ-hex-map.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/hex_map/hex-map.css">
+    <link rel="stylesheet" href="/shared/station-chart/station-chart.css">
+    <link rel="stylesheet" href="/beta-notice.css">
+  <link rel="stylesheet" href="/site-ui.css">
+    <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+</head>
+  <body class="hex-map-page">
+    <div id="uk-aq-sidebar-mount"></div>
+    <script src="/sidebar.js"></script>
+    <main>
+      <header>
+        <h1 class="page-title-heading">
+          <span class="page-title-text">Hex Map</span>
+          <img src="/images/UK-AQ-hex-map.svg" alt="" aria-hidden="true" class="page-title" />
+        </h1>
+      </header>
+
+      <div class="ukaq-beta-notice-mount" data-ukaq-beta-notice-mount></div>
+
+      <div class="tab-panel" id="tab-panel-uk" role="tabpanel" aria-labelledby="tab-uk">
+
+        <!-- ── Top summary boxes moved inside map card (layout test) ── -->
+        <!-- Hidden anchors for old summary-* IDs (existing JS still references them) -->
+        <span id="summary-stations" hidden></span>
+        <span id="summary-highest-label" hidden></span>
+        <span id="summary-lowest-label" hidden></span>
+        <span id="summary-highest-value" hidden></span>
+        <span id="summary-highest-datetime" hidden></span>
+        <span id="summary-highest-connector" hidden></span>
+        <span id="summary-highest-name" hidden></span>
+        <span id="summary-lowest-value" hidden></span>
+        <span id="summary-lowest-datetime" hidden></span>
+        <span id="summary-lowest-connector" hidden></span>
+        <span id="summary-lowest-name" hidden></span>
+
+        <section class="card">
+          <div class="hint" id="endpoint-hint" hidden></div>
+          <div class="error" id="error" hidden></div>
+          <div class="map-layout">
+            <div class="map-panel">
+              <div class="map-wrap map-dashboard-card map-main-grid is-loading is-initial">
+                <div class="map-title-strip">
+                  <h2 class="card-title map-dashboard-title" id="map-title">Latest PM2.5 by constituency</h2>
+                </div>
+                <div id="uk-toolbar-slot" class="map-controls-row">
+                  <!-- ── Toolbar: scope switcher + region popover + pollutant pills ── -->
+                  <div class="toolbar" id="main-toolbar">
+                    <div class="toolbar-control-row toolbar-control-row--one" data-toolbar-control-row="one">
+                      <div class="toolbar-control-group toolbar-control-group--view">
+                        <span class="field-label chart-mode-view-control">View</span>
+                        <div class="segmented segmented--view chart-mode-view-control">
+                          <button type="button" id="toolbar-tab-uk" class="active">
+                            <span class="view-button-main">United Kingdom</span>
+                            <span class="view-button-sub">Constituencies</span>
+                          </button>
+                          <button type="button" id="toolbar-tab-cr">
+                            <span class="view-button-main">Countries &amp; Regions</span>
+                            <span class="view-button-sub">Local Authorities</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="toolbar-region-section chart-mode-view-control" id="toolbar-region-section">
+                        <div class="toolbar-divider"></div>
+                        <div class="popover-wrap" id="toolbar-popover-wrap">
+                            <button type="button" class="popover-trigger" id="toolbar-region-trigger" aria-haspopup="true" aria-expanded="false">
+                              <span id="toolbar-region-label">London</span>
+                              <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                                <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                              </svg>
+                            </button>
+                            <div class="popover-menu" id="toolbar-region-menu" hidden>
+                              <div class="popover-group-head">Countries</div>
+                              <div class="popover-item" data-region="Northern Ireland">Northern Ireland</div>
+                              <div class="popover-item" data-region="Scotland">Scotland</div>
+                              <div class="popover-item" data-region="Wales">Wales</div>
+                              <div class="popover-divider"></div>
+                              <div class="popover-group-head">English Regions</div>
+                              <div class="popover-item" data-region="East Midlands">East Midlands</div>
+                              <div class="popover-item" data-region="East of England">East of England</div>
+                              <div class="popover-item" data-region="London">London</div>
+                              <div class="popover-item" data-region="North East">North East</div>
+                              <div class="popover-item" data-region="North West">North West</div>
+                              <div class="popover-item" data-region="South East">South East</div>
+                              <div class="popover-item" data-region="South West">South West</div>
+                              <div class="popover-item" data-region="West Midlands">West Midlands</div>
+                              <div class="popover-item" data-region="Yorkshire and The Humber">Yorkshire &amp; Humber</div>
+                            </div>
+                        </div>
+                      </div>
+
+                      <div class="toolbar-divider chart-mode-view-divider"></div>
+                      <div class="toolbar-control-group pollutant-control-group">
+                        <span class="field-label">Pollutant</span>
+                        <div class="pill-group">
+                          <div class="pollutant-selector" id="pollutant-selector" role="radiogroup" aria-label="Pollutant">
+                            <button type="button" class="pill" data-pollutant="pm25" role="radio" aria-checked="true" tabindex="0">PM2.5</button>
+                            <button type="button" class="pill" data-pollutant="pm10" role="radio" aria-checked="false" tabindex="-1">PM10</button>
+                            <button type="button" class="pill" data-pollutant="no2" role="radio" aria-checked="false" tabindex="-1">NO₂</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="toolbar-divider" aria-hidden="true"></div>
+                      <div class="toolbar-control-group window-stepper" id="window-stepper" data-window-stepper>
+                        <span class="field-label window-stepper-label">Window</span>
+                        <div class="window-stepper-control" role="group" aria-label="Averaging window">
+                          <button type="button" class="window-stepper-arrow window-stepper-arrow--left" data-window-step="prev" aria-label="Use shorter window">‹</button>
+                          <div class="window-stepper-value-box" aria-live="polite" aria-atomic="true">
+                            <span class="window-stepper-value" data-window-value>6 Hours</span>
+                          </div>
+                          <button type="button" class="window-stepper-arrow window-stepper-arrow--right" data-window-step="next" aria-label="Use longer window">›</button>
+                        </div>
+                      </div>
+                      <div class="toolbar-divider chart-range-toolbar" aria-hidden="true"></div>
+                      <label class="toolbar-control-group chart-range-toolbar" for="hex-chart-window-toolbar">
+                        <span class="field-label">Chart range</span>
+                        <select id="hex-chart-window-toolbar" aria-label="Chart range">
+                          <option value="12h">Last 12 hours</option>
+                          <option value="24h" selected>Last 24 hours</option>
+                          <option value="7d">Last 7 days</option>
+                          <option value="31d">Last 31 days</option>
+                          <option value="90d">Last 90 days</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="toolbar-control-row toolbar-control-row--two" data-toolbar-control-row="two"></div>
+                    <div class="toolbar-control-row toolbar-control-row--three" data-toolbar-control-row="three"></div>
+                    <div class="toolbar-search-row" data-toolbar-search-row></div>
+                    <div class="toolbar-right">
+                      <div class="toolbar-status-actions">
+                        <div class="toolbar-status-slot" id="toolbar-status-slot" aria-live="polite"></div>
+                        <div class="toolbar-refresh-slot" id="toolbar-refresh-slot"></div>
+                      </div>
+                      <div class="toolbar-networks-slot" data-toolbar-networks-slot></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tab-slot" data-tab-slot style="display:none">
+                  <div class="tab-bar" role="tablist" aria-label="Map views">
+                    <button type="button" class="tab-button" id="tab-uk" role="tab" aria-selected="true" aria-controls="tab-panel-uk">United Kingdom</button>
+                    <button type="button" class="tab-button" id="tab-cr" role="tab" aria-selected="false" aria-controls="tab-panel-cr">Countries &amp; Regions</button>
+                  </div>
+                </div>
+                <!-- ── Summary strip inside map card (layout test) ── -->
+                <section class="map-summary-strip map-summary-grid" aria-label="Selected air quality summary">
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Total Active Sensors</div>
+                    <div class="map-summary-value" id="top-total-sensors">—</div>
+                    <div class="map-summary-subtext" id="top-total-sensors-subtext">from selected networks</div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Coverage</div>
+                    <div class="map-summary-value" id="top-coverage-percent">—</div>
+                    <div class="map-summary-subtext" id="top-coverage-detail">—</div>
+                    <div
+                      class="map-summary-coverage-bar"
+                      id="top-coverage-bar"
+                      role="progressbar"
+                      aria-label="Coverage percentage"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow="0"
+                    >
+                      <span class="map-summary-coverage-fill" id="top-coverage-fill"></span>
+                    </div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label" id="top-highest-label">Highest PM2.5</div>
+                    <div class="map-summary-value map-summary-value-with-icon">
+                      <span class="map-summary-dot" id="top-highest-hex" aria-hidden="true"></span>
+                      <span id="top-highest-value">—</span>
+                    </div>
+                    <div class="map-summary-subtext" id="top-highest-sensor">—</div>
+                    <div class="map-summary-subtext" id="top-highest-network">—</div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Updates</div>
+                    <div class="map-summary-update-line">Latest: <span id="top-latest-update">—</span></div>
+                    <div class="map-summary-update-line">Oldest: <span id="top-oldest-update">—</span></div>
+                  </article>
+                </section>
+                <div class="map-canvas map-canvas-wrap">
+                  <div class="map-search map-floating-search" data-map-search data-map-kind="uk">
+                    <span class="map-search-icon" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    </span>
+                    <input
+                      id="uk-map-search-input"
+                      class="map-search-input"
+                      type="search"
+                      autocomplete="off"
+                      spellcheck="false"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="uk-map-search-results"
+                      placeholder="Search postcodes, constituencies, sensors…"
+                    />
+                    <button type="button" class="map-search-clear" aria-label="Clear search" hidden>&times;</button>
+                    <div class="map-search-results" id="uk-map-search-results" role="listbox" hidden></div>
+                  </div>
+                  <div class="map-topbar">
+                    <!-- Live + Refresh live in the toolbar via JS; this container holds them when UK tab is inactive -->
+                    <span
+                      class="status-indicator status-pill"
+                      id="status-pill-uk"
+                      data-state="loading"
+                      data-status-pill
+                    >
+                      <span class="pulse-dot" aria-hidden="true"></span>
+                      <span class="hint" id="status">Loading...</span>
+                    </span>
+                    <button class="btn-refresh" id="refresh" data-refresh-button>Refresh</button>
+                    <div class="networks-pill-anchor" id="uk-networks-pill-anchor">
+                      <button
+                        type="button"
+                        class="networks-pill"
+                        id="uk-networks-pill"
+                        data-networks-pill
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="networks-panel-floating"
+                      >
+                        <span class="networks-pill-text">Networks: All</span>
+                        <svg class="networks-pill-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+<!--
+				  -->
+                  <section class="hex-chart-mode-panel" id="uk-hex-chart-mode" aria-label="Selected constituency sensors chart" hidden>
+                    <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="uk" aria-label="Chart controls">
+                      <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
+                      </div>
+                      <div class="mobile-chart-networks-panel-mount" data-mobile-chart-networks-panel></div>
+                      <div class="mobile-chart-controls-row mobile-chart-controls-row--secondary">
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--pollutant" data-mobile-chart-pollutant></div>
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--range" data-mobile-chart-range></div>
+                      </div>
+                    </div>
+                    <div class="hex-chart-selected-sensors" id="uk-hex-chart-reading" aria-label="Selected chart sensors"></div>
+                    <div class="hex-chart-wrap" id="uk-hex-chart-wrap">
+                      <div class="hex-chart-message" id="uk-hex-chart-message" aria-live="polite"></div>
+                      <svg class="hex-chart-svg" id="uk-hex-chart-svg" role="img" aria-label="Selected sensor chart"></svg>
+                      <div class="hex-chart-loading" id="uk-hex-chart-loading">Loading chart data…</div>
+                      <div class="chart-tooltip" id="uk-hex-chart-tooltip"></div>
+                    </div>
+                  </section>
+                <div class="map-svg-viewport">
+                  <svg id="hex-map" role="img" aria-label="Hex cartogram of PM2.5 by constituency"></svg>
+                </div>
+                <div
+                  class="map-pollutant-unavailable"
+                  data-pollutant-unavailable-overlay
+                  data-map-kind="uk"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                  hidden
+                >
+                  <p class="map-pollutant-unavailable-message">
+                    <span data-pollutant-unavailable-lead></span>
+                    <span data-pollutant-unavailable-names hidden></span>
+                    <span data-pollutant-unavailable-action></span>
+                  </p>
+                </div>
+                <div class="map-settings-panel" id="map-settings-panel" role="dialog" aria-label="Sensor data settings">
+                  <div class="map-settings-header">
+                    <span class="map-settings-title">Sensor Data</span>
+                    <button type="button" class="map-settings-close" id="map-settings-close" aria-label="Close colour scale">
+                      <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div class="map-settings-section">
+                    <span class="map-settings-label">Averaging Method</span>
+                    <div class="map-settings-options metric-group" role="radiogroup" aria-label="Averaging method" data-active="mean">
+                      <span class="metric-toggle" aria-hidden="true"></span>
+                      <label class="colour-scale-option" data-value="mean">
+                        <input type="radio" name="metricSelect" value="mean" checked />
+                        <span class="colour-scale-text">Average (mean)</span>
+                      </label>
+                      <label class="colour-scale-option" data-value="median">
+                        <input type="radio" name="metricSelect" value="median" />
+                        <span class="colour-scale-text">Typical (median)</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="map-settings-section">
+                    <span class="map-settings-label">Colour Scale</span>
+                    <div class="map-settings-options colour-scale-group" role="radiogroup" aria-label="Colour scale options" data-active="power">
+                      <span class="colour-scale-toggle" aria-hidden="true"></span>
+                      <label class="colour-scale-option" data-value="power">
+                        <input type="radio" name="colourScale" value="power" />
+                        <span class="colour-scale-text">Power-eased</span>
+                      </label>
+                      <label class="colour-scale-option" data-value="linear">
+                        <input type="radio" name="colourScale" value="linear" />
+                        <span class="colour-scale-text">Linear</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="map-settings map-floating-tools" aria-label="Map settings" aria-controls="map-settings-panel" aria-expanded="false">
+                  <img src="/images/settings-cog.svg" alt="" aria-hidden="true" />
+                </button>
+                <div class="map-zoom-controls" data-map-zoom-controls data-map-svg-id="hex-map">
+                  <button type="button" data-zoom-action="in" aria-label="Zoom in">
+                    <svg class="zoom-icon" viewBox="0 0 64 64" aria-hidden="true">
+                      <circle class="zoom-ring" cx="30" cy="24" r="15"></circle>
+                      <line class="zoom-handle" x1="20" y1="36" x2="10" y2="49"></line>
+                      <line class="zoom-mark" x1="23" y1="24" x2="37" y2="24"></line>
+                      <line class="zoom-mark" x1="30" y1="17" x2="30" y2="31"></line>
+                    </svg>
+                  </button>
+                  <button type="button" data-zoom-action="reset" aria-label="Reset zoom">Reset</button>
+                  <button type="button" data-zoom-action="out" aria-label="Zoom out">
+                    <svg class="zoom-icon" viewBox="0 0 64 64" aria-hidden="true">
+                      <circle class="zoom-ring" cx="30" cy="24" r="15"></circle>
+                      <line class="zoom-handle" x1="20" y1="36" x2="10" y2="49"></line>
+                      <line class="zoom-mark" x1="23" y1="24" x2="37" y2="24"></line>
+                    </svg>
+                  </button>
+                </div>
+                <!-- ── Floating legend pill (layout test) ── -->
+                <div class="map-legend-region">
+                  <div class="legend map-legend legend-pill">
+                    <div class="legend-title-line">
+                      <span id="legend-pollutant">PM2.5 (µg/m³)</span>
+                      <span id="legend-label"></span>
+                    </div>
+                  <div
+                    id="legend-scale"
+                    class="legend-scale"
+                    title="Power scale (exp 0.8 with a slight top boost): pulls low values toward mid-range; values above 50 are shown as 50+."
+                    aria-label="Power scale (exp 0.8 with a slight top boost): pulls low values toward mid-range; values above 50 are shown as 50+."
+                  >
+                    <span class="legend-value" id="legend-min">-</span>
+                    <div class="legend-bar-wrap" aria-hidden="true">
+                      <span class="legend-bar"></span>
+                      <span class="legend-tick" data-value="10"></span>
+                      <span class="legend-tick" data-value="20"></span>
+                      <span class="legend-tick" data-value="30"></span>
+                      <span class="legend-tick" data-value="40"></span>
+                      <span class="legend-tick-label" data-value="10">10</span>
+                      <span class="legend-tick-label" data-value="20">20</span>
+                      <span class="legend-tick-label" data-value="30">30</span>
+                      <span class="legend-tick-label" data-value="40">40</span>
+                    </div>
+                    <span class="legend-value" id="legend-max">-</span>
+                  </div>
+                  </div>
+                </div>
+          <!-- inline sensor panel -->
+          <div class="map-inline-sensor-panel" id="map-inline-sensor-panel" aria-live="polite">
+            <div class="sensor-panel-header">
+              <div class="sensor-panel-header-text">
+                <div class="sensor-window-label" id="sensor-panel-window-label">Select a hex</div>
+                <div class="sensor-panel-title-line">
+                  <span class="sensor-panel-title-launch" data-chart-launch-available="false">
+                    <button type="button" class="sensor-title-icon-button" aria-label="Open sensor chart" title="Open sensor chart" disabled>
+                      <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <div class="sensor-panel-title" id="sensor-panel-title" data-hex-truncation data-hex-truncation-focusable="true"></div>
+                  </span>
+                  <svg id="sensor-panel-hex-icon" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M26 0L52 15V45L26 60L0 45V15L26 0Z" fill="currentColor"/>
+                  </svg>
+                  <div class="sensor-panel-reading" id="sensor-panel-reading"></div>
+                </div>
+                <div class="sensor-network-label" id="sensor-panel-network-label"></div>
+              </div>
+              <div class="sensor-panel-count" id="sensor-panel-count"></div>
+              <div class="mobile-sensor-sort" hidden>
+                <label for="sensor-mobile-sort">Sort</label>
+                <select id="sensor-mobile-sort" aria-label="Sort sensors">
+                  <option value="pm25:desc">PM2.5 highest</option>
+                  <option value="pm25:asc">PM2.5 lowest</option>
+                  <option value="updated:desc">Newest observed</option>
+                  <option value="updated:asc">Oldest observed</option>
+                  <option value="sensor:asc">Sensor A–Z</option>
+                  <option value="sensor:desc">Sensor Z–A</option>
+                  <option value="network:asc">Network A–Z</option>
+                  <option value="network:desc">Network Z–A</option>
+                </select>
+              </div>
+              <div class="sensor-panel-header-actions">
+                <button type="button" class="sensor-panel-back" id="sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map, keep area selected" title="Back to Hex Map, keep area selected">
+                  <img class="sensor-panel-back-map-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="" aria-hidden="true" />
+                  <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
+                </button>
+                <button type="button" class="sensor-panel-close" id="sensor-panel-close" aria-label="Close sensor panel">
+                  <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div class="map-inline-sensor-panel-body" id="sensor-panel-body">
+              <div class="details-empty" id="details-empty">Select a constituency to see sensors.</div>
+              <div class="mobile-sensor-list-toolbar" data-mobile-sensor-list-toolbar hidden>
+                <div class="mobile-sensor-list-toolbar-select" data-mobile-sensor-select-mount></div>
+                <div class="mobile-sensor-list-toolbar-sort" data-mobile-sensor-sort-mount></div>
+              </div>
+              <div class="sensor-table-wrap" id="sensor-table-wrap" hidden>
+                <table class="sensor-table">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="sensor-chart-select-col" aria-label="Chart selection actions">
+                        <div class="chart-selector-header-actions" role="group" aria-label="Chart sensor selection actions">
+                          <button type="button" class="hex-chart-selector" data-chart-header-action="select-fill" aria-label="Select up to four sensors" title="Select up to four sensors" aria-pressed="true"></button>
+                          <span class="chart-selector-header-divider" aria-hidden="true">/</span>
+                          <button type="button" class="hex-chart-selector" data-chart-header-action="keep-top" aria-label="Keep only the top sensor" title="Keep only the top sensor" aria-pressed="false"></button>
+                        </div>
+                      </th>
+                      <th scope="col" class="sensor-chart-symbol-col" aria-label="Symbol"></th>
+                      <th scope="col" class="sensor-col-sensor" data-sort-key="sensor" aria-sort="none">
+                        <div class="sensor-sort-header-stack">
+                          <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
+                            <span class="sort-label">Sensor</span>
+                            <span class="sort-icon" aria-hidden="true"></span>
+                          </button>
+                          <button type="button" class="sort-header sort-header--network sort-header--narrow" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                            <span class="sort-label">Network</span>
+                            <span class="sort-icon" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </th>
+                      <th scope="col" class="sensor-col-network" data-sort-key="network" aria-sort="none">
+                        <button type="button" class="sort-header sort-header--wide" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Network</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-value" data-sort-key="pm25" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="pm25" data-sort-type="number" title="Sort high→low">
+                          <span class="sort-label" id="sensor-value-label">PM2.5</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-updated" data-sort-key="updated" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="updated" data-sort-type="date" title="Sort newest→oldest">
+                          <span class="sort-label">Observed</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="sensor-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+              </div>
+              <div class="mobile-map-controls-row" data-mobile-map-controls-row data-map-kind="uk">
+                <div class="mobile-map-controls-row--primary">
+                  <div class="mobile-map-controls mobile-map-controls--left" data-mobile-map-controls-left></div>
+                  <div class="mobile-map-controls mobile-map-controls--right" data-mobile-map-controls-right></div>
+                </div>
+                <div class="mobile-map-networks-panel-mount" data-mobile-map-networks-panel></div>
+                <div class="mobile-map-controls-row--secondary">
+                  <div class="mobile-map-controls mobile-map-controls--pollutant" data-mobile-map-controls-pollutant></div>
+                </div>
+                <div class="mobile-map-controls-row--tertiary">
+                  <div class="mobile-map-controls mobile-map-controls--region" data-mobile-map-controls-region></div>
+                </div>
+                <div class="mobile-map-search-mount" data-mobile-map-search></div>
+                <div class="mobile-map-controls-row--utility">
+                  <div class="mobile-map-controls mobile-map-controls--centre" data-mobile-map-controls-centre></div>
+                  <div class="mobile-map-status-row" data-mobile-map-status-row aria-live="polite"></div>
+                </div>
+              </div>
+          <aside class="map-networks-dock" data-networks-dock hidden aria-hidden="true"></aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card details-card" id="sensor-details" hidden>
+        <div class="card-header">
+          <h2 class="card-title" id="details-title">Constituency sensors</h2>
+          <span class="details-meta" id="details-meta">Click a hex to view sensors.</span>
+        </div>
+        <div class="network-summary" id="network-summary" hidden>
+          <div class="network-card">
+            <div class="network-card-header">
+              <h3 class="network-card-title">GOV.UK AURN</h3>
+              <div class="network-card-header-actions">
+                <span class="network-card-badge">Incl. UK AIR SOS</span>
+                <a
+                  class="network-card-logo-link network-card-logo-box network-card-logo-box--light network-card-logo-box--text"
+                  href="https://uk-air.defra.gov.uk/interactive-map?network=aurn"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open GOV.UK AURN website (external link)"
+                >GOV.UK AURN<img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" /></a>
+              </div>
+            </div>
+            <div class="network-card-grid">
+              <div>
+                <div class="network-card-label">Sensors</div>
+                <div class="network-card-value" id="network-aurn-sensors">-</div>
+              </div>
+              <div class="coverage-item">
+                <div class="coverage-title">
+                  Coverage
+                  <span
+                    class="coverage-help"
+                    role="img"
+                    aria-label="Coverage help"
+                    title="Constituency counted if ≥1 active sensor"
+                  >?</span>
+                </div>
+                <div class="coverage-value" id="network-aurn-coverage-value">0% (0 / 650)</div>
+                <div
+                  class="coverage-bar"
+                  id="network-aurn-coverage-bar"
+                  role="img"
+                  aria-label="Coverage 0% (0 / 650) constituencies"
+                >
+                  <span class="coverage-bar-fill" id="network-aurn-coverage-fill"></span>
+                </div>
+                <div class="coverage-label">UK Parliamentary Constituencies</div>
+              </div>
+              <div>
+                <div class="network-card-label">Average</div>
+                <div class="network-card-value" id="network-aurn-average">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Typical</div>
+                <div class="network-card-value" id="network-aurn-median">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Highest</div>
+                <div class="network-card-value" id="network-aurn-highest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Lowest</div>
+                <div class="network-card-value" id="network-aurn-lowest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Latest update</div>
+                <div class="network-card-value" id="network-aurn-latest">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="network-card">
+            <div class="network-card-header">
+              <h3 class="network-card-title">OpenAQ</h3>
+              <a
+                class="network-card-logo-link network-card-logo-box network-card-logo-box--light"
+                href="https://explore.openaq.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open OpenAQ website (external link)"
+              >
+                <img class="network-card-logo" src="/sidebar-images/openaq_logo.svg" alt="OpenAQ logo" />
+                <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+              </a>
+            </div>
+            <div class="network-card-grid">
+              <div>
+                <div class="network-card-label">Sensors</div>
+                <div class="network-card-value" id="network-openaq-sensors">-</div>
+              </div>
+              <div class="coverage-item">
+                <div class="coverage-title">
+                  Coverage
+                  <span
+                    class="coverage-help"
+                    role="img"
+                    aria-label="Coverage help"
+                    title="Constituency counted if ≥1 active sensor"
+                  >?</span>
+                </div>
+                <div class="coverage-value" id="network-openaq-coverage-value">0% (0 / 650)</div>
+                <div
+                  class="coverage-bar"
+                  id="network-openaq-coverage-bar"
+                  role="img"
+                  aria-label="Coverage 0% (0 / 650) constituencies"
+                >
+                  <span class="coverage-bar-fill" id="network-openaq-coverage-fill"></span>
+                </div>
+                <div class="coverage-label">UK Parliamentary Constituencies</div>
+              </div>
+              <div>
+                <div class="network-card-label">Average</div>
+                <div class="network-card-value" id="network-openaq-average">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Typical</div>
+                <div class="network-card-value" id="network-openaq-median">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Highest</div>
+                <div class="network-card-value" id="network-openaq-highest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Lowest</div>
+                <div class="network-card-value" id="network-openaq-lowest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Latest update</div>
+                <div class="network-card-value" id="network-openaq-latest">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="network-card">
+            <div class="network-card-header">
+              <h3 class="network-card-title">Breathe London</h3>
+              <a
+                class="network-card-logo-link network-card-logo-box network-card-logo-box--light"
+                href="https://www.breathelondon.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open Breathe London website (external link)"
+              >
+                <img class="network-card-logo network-card-logo--breathe" src="/sidebar-images/breathelondon_logo_v2.svg" alt="Breathe London logo" />
+                <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+              </a>
+            </div>
+            <div class="network-card-grid">
+              <div>
+                <div class="network-card-label">Sensors</div>
+                <div class="network-card-value" id="network-breathe-sensors">-</div>
+              </div>
+              <div class="coverage-item">
+                <div class="coverage-title">
+                  Coverage
+                  <span
+                    class="coverage-help"
+                    role="img"
+                    aria-label="Coverage help"
+                    title="Constituency counted if ≥1 active sensor"
+                  >?</span>
+                </div>
+                <div class="coverage-value" id="network-breathe-coverage-value">0% (0 / 650)</div>
+                <div
+                  class="coverage-bar"
+                  id="network-breathe-coverage-bar"
+                  role="img"
+                  aria-label="Coverage 0% (0 / 650) constituencies"
+                >
+                  <span class="coverage-bar-fill" id="network-breathe-coverage-fill"></span>
+                </div>
+                <div class="coverage-label">UK Parliamentary Constituencies</div>
+              </div>
+              <div>
+                <div class="network-card-label">Average</div>
+                <div class="network-card-value" id="network-breathe-average">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Typical</div>
+                <div class="network-card-value" id="network-breathe-median">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Highest</div>
+                <div class="network-card-value" id="network-breathe-highest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Lowest</div>
+                <div class="network-card-value" id="network-breathe-lowest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Latest update</div>
+                <div class="network-card-value" id="network-breathe-latest">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="network-card">
+            <div class="network-card-header">
+              <h3 class="network-card-title">London Air LAQN</h3>
+            </div>
+            <div class="network-card-grid">
+              <div>
+                <div class="network-card-label">Sensors</div>
+                <div class="network-card-value" id="network-laqn-sensors">-</div>
+              </div>
+              <div class="coverage-item">
+                <div class="coverage-title">
+                  Coverage
+                  <span
+                    class="coverage-help"
+                    role="img"
+                    aria-label="Coverage help"
+                    title="Constituency counted if ≥1 active sensor"
+                  >?</span>
+                </div>
+                <div class="coverage-value" id="network-laqn-coverage-value">0% (0 / 650)</div>
+                <div
+                  class="coverage-bar"
+                  id="network-laqn-coverage-bar"
+                  role="img"
+                  aria-label="Coverage 0% (0 / 650) constituencies"
+                >
+                  <span class="coverage-bar-fill" id="network-laqn-coverage-fill"></span>
+                </div>
+                <div class="coverage-label">UK Parliamentary Constituencies</div>
+              </div>
+              <div>
+                <div class="network-card-label">Average</div>
+                <div class="network-card-value" id="network-laqn-average">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Typical</div>
+                <div class="network-card-value" id="network-laqn-median">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Highest</div>
+                <div class="network-card-value" id="network-laqn-highest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Lowest</div>
+                <div class="network-card-value" id="network-laqn-lowest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Latest update</div>
+                <div class="network-card-value" id="network-laqn-latest">-</div>
+              </div>
+            </div>
+          </div>
+          <div class="network-card">
+            <div class="network-card-header">
+              <h3 class="network-card-title">Sensor.Community</h3>
+              <a
+                class="network-card-logo-link network-card-logo-box network-card-logo-box--dark"
+                href="https://sensor.community/en/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Open Sensor.Community website (external link)"
+              >
+                <img class="network-card-logo" src="/sidebar-images/scomm_logo_text.svg" alt="Sensor.Community logo" />
+                <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+              </a>
+            </div>
+            <div class="network-card-grid">
+              <div>
+                <div class="network-card-label">Sensors</div>
+                <div class="network-card-value" id="network-sc-sensors">-</div>
+              </div>
+              <div class="coverage-item">
+                <div class="coverage-title">
+                  Coverage
+                  <span
+                    class="coverage-help"
+                    role="img"
+                    aria-label="Coverage help"
+                    title="Constituency counted if ≥1 active sensor"
+                  >?</span>
+                </div>
+                <div class="coverage-value" id="network-sc-coverage-value">0% (0 / 650)</div>
+                <div
+                  class="coverage-bar"
+                  id="network-sc-coverage-bar"
+                  role="img"
+                  aria-label="Coverage 0% (0 / 650) constituencies"
+                >
+                  <span class="coverage-bar-fill" id="network-sc-coverage-fill"></span>
+                </div>
+                <div class="coverage-label">UK Parliamentary Constituencies</div>
+              </div>
+              <div>
+                <div class="network-card-label">Average</div>
+                <div class="network-card-value" id="network-sc-average">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Typical</div>
+                <div class="network-card-value" id="network-sc-median">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Highest</div>
+                <div class="network-card-value" id="network-sc-highest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Lowest</div>
+                <div class="network-card-value" id="network-sc-lowest">-</div>
+              </div>
+              <div>
+                <div class="network-card-label">Latest update</div>
+                <div class="network-card-value" id="network-sc-latest">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      </div>
+
+      <div class="tab-panel" id="tab-panel-cr" role="tabpanel" aria-labelledby="tab-cr" hidden>
+        <!-- ── CR top summary boxes moved inside map card (layout test) ── -->
+        <!-- Hidden anchors for legacy cr-summary-* IDs (JS still updates these) -->
+        <span id="cr-summary-overall-title" hidden></span>
+        <span id="cr-summary-stations" hidden></span>
+        <span id="cr-summary-highest-label" hidden></span>
+        <span id="cr-summary-lowest-label" hidden></span>
+        <span id="cr-summary-highest-value" hidden></span>
+        <span id="cr-summary-highest-datetime" hidden></span>
+        <span id="cr-summary-highest-connector" hidden></span>
+        <span id="cr-summary-highest-name" hidden></span>
+        <span id="cr-summary-lowest-value" hidden></span>
+        <span id="cr-summary-lowest-datetime" hidden></span>
+        <span id="cr-summary-lowest-connector" hidden></span>
+        <span id="cr-summary-lowest-name" hidden></span>
+        <section class="card">
+          <div class="hint" id="cr-endpoint-hint" hidden></div>
+          <div class="error" id="cr-error" hidden></div>
+          <div class="map-layout">
+            <div class="map-panel">
+              <div class="map-wrap map-dashboard-card map-main-grid is-loading is-initial">
+                <div class="map-title-strip">
+                  <h2 class="card-title map-dashboard-title" id="cr-map-title">Latest PM2.5 by local authority</h2>
+                </div>
+                <div id="cr-toolbar-slot" class="map-controls-row"></div>
+                <div class="tab-slot" data-tab-slot style="display:none"></div>
+                <!-- ── CR Summary strip inside map card (layout test) ── -->
+                <section class="map-summary-strip map-summary-grid" aria-label="Selected air quality summary for countries and regions">
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Total Active Sensors</div>
+                    <div class="map-summary-value" id="cr-top-total-sensors">—</div>
+                    <div class="map-summary-subtext" id="cr-top-total-sensors-subtext">from selected networks</div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Coverage</div>
+                    <div class="map-summary-value" id="cr-top-coverage-percent">—</div>
+                    <div class="map-summary-subtext" id="cr-top-coverage-detail">—</div>
+                    <div
+                      class="map-summary-coverage-bar"
+                      id="cr-top-coverage-bar"
+                      role="progressbar"
+                      aria-label="Coverage percentage"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow="0"
+                    >
+                      <span class="map-summary-coverage-fill" id="cr-top-coverage-fill"></span>
+                    </div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label" id="cr-top-highest-label">Highest PM2.5</div>
+                    <div class="map-summary-value map-summary-value-with-icon">
+                      <span class="map-summary-dot" id="cr-top-highest-hex" aria-hidden="true"></span>
+                      <span id="cr-top-highest-value">—</span>
+                    </div>
+                    <div class="map-summary-subtext" id="cr-top-highest-sensor">—</div>
+                    <div class="map-summary-subtext" id="cr-top-highest-network">—</div>
+                  </article>
+                  <article class="map-summary-card">
+                    <div class="map-summary-label">Updates</div>
+                    <div class="map-summary-update-line">Latest: <span id="cr-top-latest-update">—</span></div>
+                    <div class="map-summary-update-line">Oldest: <span id="cr-top-oldest-update">—</span></div>
+                  </article>
+                </section>
+                <div class="map-canvas map-canvas-wrap">
+                  <div class="map-search map-floating-search" data-map-search data-map-kind="cr">
+                    <span class="map-search-icon" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 13 13" fill="none"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4"/><path d="M9 9l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    </span>
+                    <input
+                      id="cr-map-search-input"
+                      class="map-search-input"
+                      type="search"
+                      autocomplete="off"
+                      spellcheck="false"
+                      role="combobox"
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="cr-map-search-results"
+                      placeholder="Search postcodes, local authorities, sensors…"
+                    />
+                    <button type="button" class="map-search-clear" aria-label="Clear search" hidden>&times;</button>
+                    <div class="map-search-results" id="cr-map-search-results" role="listbox" hidden></div>
+                  </div>
+                  <div class="map-topbar">
+                    <!-- Live + Refresh live in the toolbar via JS; this container holds them when CR tab is inactive -->
+                    <span
+                      class="status-indicator status-pill"
+                      id="status-pill-cr"
+                      data-state="loading"
+                      data-status-pill
+                    >
+                      <span class="pulse-dot" aria-hidden="true"></span>
+                      <span class="hint" id="cr-status">Loading...</span>
+                    </span>
+                    <button class="btn-refresh" id="cr-refresh" data-refresh-button>Refresh</button>
+                    <div class="networks-pill-anchor" id="cr-networks-pill-anchor">
+                      <button
+                        type="button"
+                        class="networks-pill"
+                        id="cr-networks-pill"
+                        data-networks-pill
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="networks-panel-floating"
+                      >
+                        <span class="networks-pill-text">Networks: All</span>
+                        <svg class="networks-pill-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+				  <!--
+					  -->
+                  <section class="hex-chart-mode-panel" id="cr-hex-chart-mode" aria-label="Selected local authority sensors chart" hidden>
+                    <div class="mobile-chart-controls" data-mobile-chart-controls data-map-kind="cr" aria-label="Chart controls">
+                      <div class="mobile-chart-controls-row mobile-chart-controls-row--primary">
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--network" data-mobile-chart-network></div>
+                      </div>
+                      <div class="mobile-chart-networks-panel-mount" data-mobile-chart-networks-panel></div>
+                      <div class="mobile-chart-controls-row mobile-chart-controls-row--secondary">
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--pollutant" data-mobile-chart-pollutant></div>
+                        <div class="mobile-chart-control-mount mobile-chart-control-mount--range" data-mobile-chart-range></div>
+                      </div>
+                    </div>
+                    <div class="hex-chart-selected-sensors" id="cr-hex-chart-reading" aria-label="Selected chart sensors"></div>
+                    <div class="hex-chart-wrap" id="cr-hex-chart-wrap">
+                      <div class="hex-chart-message" id="cr-hex-chart-message" aria-live="polite"></div>
+                      <svg class="hex-chart-svg" id="cr-hex-chart-svg" role="img" aria-label="Selected sensor chart"></svg>
+                      <div class="hex-chart-loading" id="cr-hex-chart-loading">Loading chart data…</div>
+                      <div class="chart-tooltip" id="cr-hex-chart-tooltip"></div>
+                    </div>
+                  </section>
+                  <div class="map-svg-viewport">
+                    <svg id="cr-hex-map" role="img" aria-label="Hex cartogram of PM2.5 by local authority" data-region="London"></svg>
+                  </div>
+                  <div
+                    class="map-pollutant-unavailable"
+                    data-pollutant-unavailable-overlay
+                    data-map-kind="cr"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                    hidden
+                  >
+                    <p class="map-pollutant-unavailable-message">
+                      <span data-pollutant-unavailable-lead></span>
+                      <span data-pollutant-unavailable-names hidden></span>
+                      <span data-pollutant-unavailable-action></span>
+                    </p>
+                  </div>
+                  <div class="map-settings-panel" id="cr-map-settings-panel" role="dialog" aria-label="Sensor data settings">
+                    <div class="map-settings-header">
+                      <span class="map-settings-title">Sensor Data</span>
+                      <button type="button" class="map-settings-close" id="cr-map-settings-close" aria-label="Close colour scale">
+                        <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div class="map-settings-section">
+                      <span class="map-settings-label">Averaging Method</span>
+                      <div class="map-settings-options metric-group" role="radiogroup" aria-label="Averaging method" data-active="mean">
+                        <span class="metric-toggle" aria-hidden="true"></span>
+                        <label class="colour-scale-option" data-value="mean">
+                          <input type="radio" name="cr-metricSelect" value="mean" checked />
+                          <span class="colour-scale-text">Average (mean)</span>
+                        </label>
+                        <label class="colour-scale-option" data-value="median">
+                          <input type="radio" name="cr-metricSelect" value="median" />
+                          <span class="colour-scale-text">Typical (median)</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="map-settings-section">
+                      <span class="map-settings-label">Colour Scale</span>
+                      <div class="map-settings-options colour-scale-group" role="radiogroup" aria-label="Colour scale options" data-active="power">
+                        <span class="colour-scale-toggle" aria-hidden="true"></span>
+                        <label class="colour-scale-option" data-value="power">
+                          <input type="radio" name="cr-colourScale" value="power" />
+                          <span class="colour-scale-text">Power-eased</span>
+                        </label>
+                        <label class="colour-scale-option" data-value="linear">
+                          <input type="radio" name="cr-colourScale" value="linear" />
+                          <span class="colour-scale-text">Linear</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <button type="button" class="map-settings map-floating-tools" aria-label="Map settings" aria-controls="cr-map-settings-panel" aria-expanded="false">
+                    <img src="/images/settings-cog.svg" alt="" aria-hidden="true" />
+                  </button>
+                  <div class="map-zoom-controls" data-map-zoom-controls data-map-svg-id="cr-hex-map">
+                    <button type="button" data-zoom-action="in" aria-label="Zoom in">
+                      <svg class="zoom-icon" viewBox="0 0 64 64" aria-hidden="true">
+                        <circle class="zoom-ring" cx="30" cy="24" r="15"></circle>
+                        <line class="zoom-handle" x1="20" y1="36" x2="10" y2="49"></line>
+                        <line class="zoom-mark" x1="23" y1="24" x2="37" y2="24"></line>
+                        <line class="zoom-mark" x1="30" y1="17" x2="30" y2="31"></line>
+                      </svg>
+                    </button>
+                    <button type="button" data-zoom-action="reset" aria-label="Reset zoom">Reset</button>
+                  <button type="button" data-zoom-action="out" aria-label="Zoom out">
+                      <svg class="zoom-icon" viewBox="0 0 64 64" aria-hidden="true">
+                        <circle class="zoom-ring" cx="30" cy="24" r="15"></circle>
+                        <line class="zoom-handle" x1="20" y1="36" x2="10" y2="49"></line>
+                        <line class="zoom-mark" x1="23" y1="24" x2="37" y2="24"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- ── Floating legend pill (layout test) ── -->
+                  <div class="map-legend-region">
+                    <div class="legend map-legend legend-pill">
+                      <div class="legend-title-line">
+                        <span id="cr-legend-pollutant">PM2.5 (µg/m³)</span>
+                        <span id="cr-legend-label"></span>
+                      </div>
+                    <div
+                      id="cr-legend-scale"
+                      class="legend-scale"
+                      title="Power scale (exp 0.8 with a slight top boost): pulls low values toward mid-range; values above 50 are shown as 50+."
+                      aria-label="Power scale (exp 0.8 with a slight top boost): pulls low values toward mid-range; values above 50 are shown as 50+."
+                    >
+                      <span class="legend-value" id="cr-legend-min">-</span>
+                      <div class="legend-bar-wrap" aria-hidden="true">
+                        <span class="legend-bar"></span>
+                        <span class="legend-tick" data-value="10"></span>
+                        <span class="legend-tick" data-value="20"></span>
+                        <span class="legend-tick" data-value="30"></span>
+                        <span class="legend-tick" data-value="40"></span>
+                        <span class="legend-tick-label" data-value="10">10</span>
+                        <span class="legend-tick-label" data-value="20">20</span>
+                        <span class="legend-tick-label" data-value="30">30</span>
+                        <span class="legend-tick-label" data-value="40">40</span>
+                      </div>
+                      <span class="legend-value" id="cr-legend-max">-</span>
+                    </div>
+                    </div>
+                  </div>
+          <!-- inline sensor panel -->
+          <div class="map-inline-sensor-panel" id="cr-map-inline-sensor-panel" aria-live="polite">
+            <div class="sensor-panel-header">
+              <div class="sensor-panel-header-text">
+                <div class="sensor-window-label" id="cr-sensor-panel-window-label">Select a hex</div>
+                <div class="sensor-panel-title-line">
+                  <span class="sensor-panel-title-launch" data-chart-launch-available="false">
+                    <button type="button" class="sensor-title-icon-button" aria-label="Open sensor chart" title="Open sensor chart" disabled>
+                      <img src="/images/UK-AQ-Sensor-Buttons-chart.svg" alt="" aria-hidden="true" />
+                    </button>
+                    <div class="sensor-panel-title" id="cr-sensor-panel-title" data-hex-truncation data-hex-truncation-focusable="true"></div>
+                  </span>
+                  <svg id="cr-sensor-panel-hex-icon" viewBox="0 0 52 60" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M26 0L52 15V45L26 60L0 45V15L26 0Z" fill="currentColor"/>
+                  </svg>
+                  <div class="sensor-panel-reading" id="cr-sensor-panel-reading"></div>
+                </div>
+                <div class="sensor-network-label" id="cr-sensor-panel-network-label"></div>
+              </div>
+              <div class="sensor-panel-count" id="cr-sensor-panel-count"></div>
+              <div class="mobile-sensor-sort" hidden>
+                <label for="cr-sensor-mobile-sort">Sort</label>
+                <select id="cr-sensor-mobile-sort" aria-label="Sort sensors">
+                  <option value="pm25:desc">PM2.5 highest</option>
+                  <option value="pm25:asc">PM2.5 lowest</option>
+                  <option value="updated:desc">Newest observed</option>
+                  <option value="updated:asc">Oldest observed</option>
+                  <option value="sensor:asc">Sensor A–Z</option>
+                  <option value="sensor:desc">Sensor Z–A</option>
+                  <option value="network:asc">Network A–Z</option>
+                  <option value="network:desc">Network Z–A</option>
+                </select>
+              </div>
+              <div class="sensor-panel-header-actions">
+                <button type="button" class="sensor-panel-back" id="cr-sensor-panel-back-to-map" data-chart-back-to-map aria-label="Back to Hex Map, keep area selected" title="Back to Hex Map, keep area selected">
+                  <img class="sensor-panel-back-map-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="" aria-hidden="true" />
+                  <img class="sensor-panel-back-arrow" src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true" />
+                </button>
+                <button type="button" class="sensor-panel-close" id="cr-sensor-panel-close" aria-label="Close sensor panel">
+                  <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+            <div class="map-inline-sensor-panel-body" id="cr-sensor-panel-body">
+              <div class="details-empty" id="cr-details-empty">Select a local authority to see sensors.</div>
+              <div class="mobile-sensor-list-toolbar" data-mobile-sensor-list-toolbar hidden>
+                <div class="mobile-sensor-list-toolbar-select" data-mobile-sensor-select-mount></div>
+                <div class="mobile-sensor-list-toolbar-sort" data-mobile-sensor-sort-mount></div>
+              </div>
+              <div class="sensor-table-wrap" id="cr-sensor-table-wrap" hidden>
+                <table class="sensor-table">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="sensor-chart-select-col" aria-label="Chart selection actions">
+                        <div class="chart-selector-header-actions" role="group" aria-label="Chart sensor selection actions">
+                          <button type="button" class="hex-chart-selector" data-chart-header-action="select-fill" aria-label="Select up to four sensors" title="Select up to four sensors" aria-pressed="true"></button>
+                          <span class="chart-selector-header-divider" aria-hidden="true">/</span>
+                          <button type="button" class="hex-chart-selector" data-chart-header-action="keep-top" aria-label="Keep only the top sensor" title="Keep only the top sensor" aria-pressed="false"></button>
+                        </div>
+                      </th>
+                      <th scope="col" class="sensor-chart-symbol-col" aria-label="Symbol"></th>
+                      <th scope="col" class="sensor-col-sensor" data-sort-key="sensor" aria-sort="none">
+                        <div class="sensor-sort-header-stack">
+                          <button type="button" class="sort-header" data-sort-key="sensor" data-sort-type="alpha" title="Sort A→Z">
+                            <span class="sort-label">Sensor</span>
+                            <span class="sort-icon" aria-hidden="true"></span>
+                          </button>
+                          <button type="button" class="sort-header sort-header--network sort-header--narrow" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                            <span class="sort-label">Network</span>
+                            <span class="sort-icon" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </th>
+                      <th scope="col" class="sensor-col-network" data-sort-key="network" aria-sort="none">
+                        <button type="button" class="sort-header sort-header--wide" data-sort-key="network" data-sort-type="alpha" title="Sort A→Z">
+                          <span class="sort-label">Network</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-value" data-sort-key="pm25" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="pm25" data-sort-type="number" title="Sort high→low">
+                          <span class="sort-label" id="cr-sensor-value-label">PM2.5</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                      <th scope="col" class="sensor-col-updated" data-sort-key="updated" aria-sort="none">
+                        <button type="button" class="sort-header" data-sort-key="updated" data-sort-type="date" title="Sort newest→oldest">
+                          <span class="sort-label">Observed</span>
+                          <span class="sort-icon" aria-hidden="true"></span>
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="cr-sensor-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+                </div>
+                <div class="mobile-map-controls-row" data-mobile-map-controls-row data-map-kind="cr">
+                  <div class="mobile-map-controls-row--primary">
+                    <div class="mobile-map-controls mobile-map-controls--left" data-mobile-map-controls-left></div>
+                    <div class="mobile-map-controls mobile-map-controls--right" data-mobile-map-controls-right></div>
+                  </div>
+                  <div class="mobile-map-networks-panel-mount" data-mobile-map-networks-panel></div>
+                  <div class="mobile-map-controls-row--secondary">
+                    <div class="mobile-map-controls mobile-map-controls--pollutant" data-mobile-map-controls-pollutant></div>
+                  </div>
+                  <div class="mobile-map-controls-row--tertiary">
+                    <div class="mobile-map-controls mobile-map-controls--region" data-mobile-map-controls-region></div>
+                  </div>
+                  <div class="mobile-map-search-mount" data-mobile-map-search></div>
+                  <div class="mobile-map-controls-row--utility">
+                    <div class="mobile-map-controls mobile-map-controls--centre" data-mobile-map-controls-centre></div>
+                    <div class="mobile-map-status-row" data-mobile-map-status-row aria-live="polite"></div>
+                  </div>
+                </div>
+          <aside class="map-networks-dock" data-networks-dock hidden aria-hidden="true"></aside>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card details-card" id="cr-sensor-details" hidden>
+          <div class="card-header">
+            <h2 class="card-title" id="cr-details-title">Local authority sensors</h2>
+            <span class="details-meta" id="cr-details-meta">Click a hex to view sensors.</span>
+          </div>
+          <div class="network-summary" id="cr-network-summary" hidden>
+            <div class="network-card">
+              <div class="network-card-header">
+                <h3 class="network-card-title">GOV.UK AURN</h3>
+                <div class="network-card-header-actions">
+                  <span class="network-card-badge">Incl. UK AIR SOS</span>
+                  <a
+                    class="network-card-logo-link network-card-logo-box network-card-logo-box--light network-card-logo-box--text"
+                    href="https://uk-air.defra.gov.uk/interactive-map?network=aurn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open GOV.UK AURN website (external link)"
+                  >GOV.UK AURN<img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" /></a>
+                </div>
+              </div>
+              <div class="network-card-grid">
+                <div>
+                  <div class="network-card-label">Sensors</div>
+                  <div class="network-card-value" id="cr-network-aurn-sensors">-</div>
+                </div>
+                <div class="coverage-item">
+                  <div class="coverage-title">
+                    Coverage
+                    <span
+                      class="coverage-help"
+                      role="img"
+                      aria-label="Coverage help"
+                      title="Local authority counted if ≥1 active sensor"
+                    >?</span>
+                  </div>
+                  <div class="coverage-value" id="cr-network-aurn-coverage-value">0% (0 / 0)</div>
+                  <div
+                    class="coverage-bar"
+                    id="cr-network-aurn-coverage-bar"
+                    role="img"
+                    aria-label="Coverage 0% (0 / 0) local authorities"
+                  >
+                    <span class="coverage-bar-fill" id="cr-network-aurn-coverage-fill"></span>
+                  </div>
+                  <div class="coverage-label">Local Authorities</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Average</div>
+                  <div class="network-card-value" id="cr-network-aurn-average">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Typical</div>
+                  <div class="network-card-value" id="cr-network-aurn-median">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Highest</div>
+                  <div class="network-card-value" id="cr-network-aurn-highest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Lowest</div>
+                  <div class="network-card-value" id="cr-network-aurn-lowest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Latest update</div>
+                  <div class="network-card-value" id="cr-network-aurn-latest">-</div>
+                </div>
+              </div>
+            </div>
+            <div class="network-card">
+              <div class="network-card-header">
+                <h3 class="network-card-title">OpenAQ</h3>
+                <a
+                  class="network-card-logo-link network-card-logo-box network-card-logo-box--light"
+                  href="https://explore.openaq.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open OpenAQ website (external link)"
+                >
+                  <img class="network-card-logo" src="/sidebar-images/openaq_logo.svg" alt="OpenAQ logo" />
+                  <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+                </a>
+              </div>
+              <div class="network-card-grid">
+                <div>
+                  <div class="network-card-label">Sensors</div>
+                  <div class="network-card-value" id="cr-network-openaq-sensors">-</div>
+                </div>
+                <div class="coverage-item">
+                  <div class="coverage-title">
+                    Coverage
+                    <span
+                      class="coverage-help"
+                      role="img"
+                      aria-label="Coverage help"
+                      title="Local authority counted if ≥1 active sensor"
+                    >?</span>
+                  </div>
+                  <div class="coverage-value" id="cr-network-openaq-coverage-value">0% (0 / 0)</div>
+                  <div
+                    class="coverage-bar"
+                    id="cr-network-openaq-coverage-bar"
+                    role="img"
+                    aria-label="Coverage 0% (0 / 0) local authorities"
+                  >
+                    <span class="coverage-bar-fill" id="cr-network-openaq-coverage-fill"></span>
+                  </div>
+                  <div class="coverage-label">Local Authorities</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Average</div>
+                  <div class="network-card-value" id="cr-network-openaq-average">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Typical</div>
+                  <div class="network-card-value" id="cr-network-openaq-median">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Highest</div>
+                  <div class="network-card-value" id="cr-network-openaq-highest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Lowest</div>
+                  <div class="network-card-value" id="cr-network-openaq-lowest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Latest update</div>
+                  <div class="network-card-value" id="cr-network-openaq-latest">-</div>
+                </div>
+              </div>
+            </div>
+            <div class="network-card">
+              <div class="network-card-header">
+                <h3 class="network-card-title">Breathe London</h3>
+                <a
+                  class="network-card-logo-link network-card-logo-box network-card-logo-box--light"
+                  href="https://www.breathelondon.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open Breathe London website (external link)"
+                >
+                  <img class="network-card-logo network-card-logo--breathe" src="/sidebar-images/breathelondon_logo_v2.svg" alt="Breathe London logo" />
+                  <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+                </a>
+              </div>
+              <div class="network-card-grid">
+                <div>
+                  <div class="network-card-label">Sensors</div>
+                  <div class="network-card-value" id="cr-network-breathe-sensors">-</div>
+                </div>
+                <div class="coverage-item">
+                  <div class="coverage-title">
+                    Coverage
+                    <span
+                      class="coverage-help"
+                      role="img"
+                      aria-label="Coverage help"
+                      title="Local authority counted if ≥1 active sensor"
+                    >?</span>
+                  </div>
+                  <div class="coverage-value" id="cr-network-breathe-coverage-value">0% (0 / 0)</div>
+                  <div
+                    class="coverage-bar"
+                    id="cr-network-breathe-coverage-bar"
+                    role="img"
+                    aria-label="Coverage 0% (0 / 0) local authorities"
+                  >
+                    <span class="coverage-bar-fill" id="cr-network-breathe-coverage-fill"></span>
+                  </div>
+                  <div class="coverage-label">Local Authorities</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Average</div>
+                  <div class="network-card-value" id="cr-network-breathe-average">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Typical</div>
+                  <div class="network-card-value" id="cr-network-breathe-median">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Highest</div>
+                  <div class="network-card-value" id="cr-network-breathe-highest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Lowest</div>
+                  <div class="network-card-value" id="cr-network-breathe-lowest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Latest update</div>
+                  <div class="network-card-value" id="cr-network-breathe-latest">-</div>
+                </div>
+              </div>
+            </div>
+            <div class="network-card">
+              <div class="network-card-header">
+                <h3 class="network-card-title">London Air LAQN</h3>
+              </div>
+              <div class="network-card-grid">
+                <div>
+                  <div class="network-card-label">Sensors</div>
+                  <div class="network-card-value" id="cr-network-laqn-sensors">-</div>
+                </div>
+                <div class="coverage-item">
+                  <div class="coverage-title">
+                    Coverage
+                    <span
+                      class="coverage-help"
+                      role="img"
+                      aria-label="Coverage help"
+                      title="Local authority counted if ≥1 active sensor"
+                    >?</span>
+                  </div>
+                  <div class="coverage-value" id="cr-network-laqn-coverage-value">0% (0 / 0)</div>
+                  <div
+                    class="coverage-bar"
+                    id="cr-network-laqn-coverage-bar"
+                    role="img"
+                    aria-label="Coverage 0% (0 / 0) local authorities"
+                  >
+                    <span class="coverage-bar-fill" id="cr-network-laqn-coverage-fill"></span>
+                  </div>
+                  <div class="coverage-label">Local Authorities</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Average</div>
+                  <div class="network-card-value" id="cr-network-laqn-average">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Typical</div>
+                  <div class="network-card-value" id="cr-network-laqn-median">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Highest</div>
+                  <div class="network-card-value" id="cr-network-laqn-highest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Lowest</div>
+                  <div class="network-card-value" id="cr-network-laqn-lowest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Latest update</div>
+                  <div class="network-card-value" id="cr-network-laqn-latest">-</div>
+                </div>
+              </div>
+            </div>
+            <div class="network-card">
+              <div class="network-card-header">
+                <h3 class="network-card-title">Sensor.Community</h3>
+                <a
+                  class="network-card-logo-link network-card-logo-box network-card-logo-box--dark"
+                  href="https://sensor.community/en/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Open Sensor.Community website (external link)"
+                >
+                  <img class="network-card-logo" src="/sidebar-images/scomm_logo_text.svg" alt="Sensor.Community logo" />
+                  <img class="network-card-link-icon" src="/images/Link Icon.svg" alt="" aria-hidden="true" />
+                </a>
+              </div>
+              <div class="network-card-grid">
+                <div>
+                  <div class="network-card-label">Sensors</div>
+                  <div class="network-card-value" id="cr-network-sc-sensors">-</div>
+                </div>
+                <div class="coverage-item">
+                  <div class="coverage-title">
+                    Coverage
+                    <span
+                      class="coverage-help"
+                      role="img"
+                      aria-label="Coverage help"
+                      title="Local authority counted if ≥1 active sensor"
+                    >?</span>
+                  </div>
+                  <div class="coverage-value" id="cr-network-sc-coverage-value">0% (0 / 0)</div>
+                  <div
+                    class="coverage-bar"
+                    id="cr-network-sc-coverage-bar"
+                    role="img"
+                    aria-label="Coverage 0% (0 / 0) local authorities"
+                  >
+                    <span class="coverage-bar-fill" id="cr-network-sc-coverage-fill"></span>
+                  </div>
+                  <div class="coverage-label">Local Authorities</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Average</div>
+                  <div class="network-card-value" id="cr-network-sc-average">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Typical</div>
+                  <div class="network-card-value" id="cr-network-sc-median">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Highest</div>
+                  <div class="network-card-value" id="cr-network-sc-highest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Lowest</div>
+                  <div class="network-card-value" id="cr-network-sc-lowest">-</div>
+                </div>
+                <div>
+                  <div class="network-card-label">Latest update</div>
+                  <div class="network-card-value" id="cr-network-sc-latest">-</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="tooltip" id="tooltip"></div>
+    <div class="tooltip" id="cr-tooltip"></div>
+
+    <!-- Shared networks panel — floating popover when unpinned, docked sidebar when pinned -->
+    <div
+      class="networks-panel-floating is-floating"
+      id="networks-panel-floating"
+      role="dialog"
+      aria-label="Networks"
+      aria-modal="false"
+      hidden
+    >
+      <div class="network-dropdown-header networks-panel-header">
+        <span class="networks-panel-title">NETWORKS</span>
+        <span class="networks-panel-spacer" aria-hidden="true"></span>
+        <span class="network-dropdown-count" id="network-dropdown-count">0 / 0</span>
+        <button
+          type="button"
+          class="networks-panel-pin"
+          id="networks-panel-pin"
+          aria-pressed="false"
+          title="Pin networks panel"
+          aria-label="Pin networks panel"
+        >
+          <img
+            class="networks-panel-pin-icon"
+            id="networks-panel-pin-icon"
+            src="/images/UK-AQ_pin100_off.svg"
+            alt=""
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          class="networks-panel-close"
+          id="networks-panel-close"
+          aria-label="Close networks"
+          title="Close networks"
+        >
+          <img src="/images/Red-Square-Button-White-Cross-200x200.svg" alt="" aria-hidden="true" />
+        </button>
+      </div>
+      <div class="network-dropdown-actions" role="group" aria-label="Network selection actions">
+        <button type="button" class="network-dropdown-action" id="network-select-all" aria-label="Select all networks" title="Select all networks">
+          <span class="network-dropdown-action-icon network-dropdown-action-icon--select-all" aria-hidden="true"></span>
+        </button>
+        <span class="network-dropdown-actions-divider" aria-hidden="true">/</span>
+        <button type="button" class="network-dropdown-action" id="network-deselect-all" aria-label="Clear all networks" title="Clear all networks">
+          <span class="network-dropdown-action-icon network-dropdown-action-icon--clear-all" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="network-dropdown-list network-list" id="network-list">
+        <span class="network-empty">Loading networks...</span>
+      </div>
+      <div class="networks-panel-footer">
+        <!-- Maxi-panel expand control disabled for now; re-enable when the panel UI is ready. -->
+        <span class="networks-panel-footer-note">Counts are active sensors in the current window.</span>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous"></script>
+    <script src="/chart-core.js"></script>
+    <script src="/shared/auth/uk-aq-cache-auth.js"></script>
+    <script>
+      const PROJECT_REF_PLACEHOLDER = "zztjgmdiftqtdcrlfpvc";
+      const ANON_KEY_PLACEHOLDER = "sb_publishable_Cru7ACLoK8kKQdID5jPaDw_3RHvQNxO";
+      const TURNSTILE_SITE_KEY_PLACEHOLDER = "0x4AAAAAADvk69amXC9V2nNx";
+    </script>
+    <script type="module" src="/hex_map/hex-map-bootstrap.js"></script>
+    <script src="/beta-notice.js"></script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { createNetworkNotices } from "./hex-map-network-notices.js";
 import networkCatalog from "../shared/data/network-catalog-module.js";
 import networkDomain from "../shared/domain/networks-module.js";
 import pollutantDomain from "../shared/domain/pollutants-module.js";
@@ -16,6 +17,7 @@ function initHexMapNetworkController(root) {
   const selectAllButton = document.getElementById("network-select-all");
   const keepOneButton = document.getElementById("network-deselect-all");
   const dropdownMenu = document.getElementById("networks-panel-floating");
+  const networkNotices = list && dropdownMenu ? createNetworkNotices(list, dropdownMenu) : null;
   const dropdownCount = document.getElementById("network-dropdown-count");
   const panelPin = document.getElementById("networks-panel-pin");
   const panelPinIcon = document.getElementById("networks-panel-pin-icon");
@@ -391,6 +393,7 @@ function initHexMapNetworkController(root) {
     if (!options.force && key === renderedKey) return;
     renderedKey = key;
     list.replaceChildren();
+    networkNotices?.syncRows();
     if (!presentation?.definitions?.length) {
       const empty = document.createElement("span");
       empty.className = "network-empty";
@@ -412,11 +415,13 @@ function initHexMapNetworkController(root) {
       const coveragePercent = presentation.coverageTotal > 0
         ? Math.round((coverageCount / presentation.coverageTotal) * 100)
         : 0;
-      const label = document.createElement("label");
+      const label = document.createElement("div");
+      label.dataset.networkCode = code;
       label.className = "checkbox network-option";
       label.classList.toggle("is-pollutant-unavailable", isUnsupported);
       const input = document.createElement("input");
       input.type = "checkbox";
+      input.id = `hex-network-${code}`;
       input.dataset.network = code;
       input.checked = selectedCodes === null || selectedCodes.has(code);
       input.disabled = isUnsupported;
@@ -429,7 +434,8 @@ function initHexMapNetworkController(root) {
       leftGroup.className = "network-option-left";
       const nameWrap = document.createElement("span");
       nameWrap.className = "network-name-wrap";
-      const name = document.createElement("span");
+      const name = document.createElement("label");
+      name.htmlFor = input.id;
       name.className = "network-name";
       name.textContent = definition.label;
       nameWrap.appendChild(name);
@@ -476,9 +482,14 @@ function initHexMapNetworkController(root) {
       }
       label.append(mainRow, shareBar, coverageText);
       appendLogo(label, definition);
+      // Preserve row-wide checkbox activation without nesting links/buttons in a label.
+      label.addEventListener("click", (event) => {
+        if (!event.target.closest("button, a, input, label") && !input.disabled) input.click();
+      });
       fragment.appendChild(label);
     });
     list.appendChild(fragment);
+    networkNotices?.syncRows();
     syncSelectionUi();
   }
 
