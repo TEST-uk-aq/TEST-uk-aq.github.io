@@ -263,7 +263,9 @@
     }
   }
 
-  .home-page .home-main > section {
+  /* The site-notice section owns its padding and border; apply these generic
+     mobile section dividers only to normal homepage content sections. */
+  .home-page .home-main > section:not(.ukaq-site-notice) {
     box-sizing: border-box;
     margin: 0;
     padding: 20px 0;
