@@ -76,6 +76,7 @@
   align-items: center;
   width: auto;
   padding: 8px 12px;
+  border-radius: 8px;
   background: rgba(180, 48, 48, 0.82);
   color: #fff;
   box-shadow: 0 2px 8px rgba(16, 24, 34, 0.12);
