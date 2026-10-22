@@ -3,13 +3,13 @@
 [site_notice]
 enabled = true
 message = """
-TEST NOTICE: This is a test of the UK AQ. site-wide warning system. [More information](https://www.gov.uk/)
+GOV.UK AURN and Welsh AQN are experiencing a data service outage, and their air quality readings are not currently being updated.
 """
 
 [network_notices.gov_uk_aurn]
 enabled = true
 message = """
-Network AQ data feed not responding
+This network is experiencing a data service outage, and its air quality readings are not currently being updated.
 """
 
 [network_notices.openaq]
@@ -18,8 +18,8 @@ enabled = false
 [network_notices.breathelondon]
 enabled = false
 
-[network_notices.ni]
+[network_notices.waqn]
 enabled = true
 message = """
-Network AQ data feed not responding
+This network is experiencing a data service outage, and its air quality readings are not currently being updated.
 """
