@@ -62,15 +62,22 @@
   overscroll-behavior: contain;
 }
 
-/* Keep the existing row geometry, with independent labels and warning controls. */
+/* Keep compact network labels readable alongside independent warning controls. */
 .hex-map-page .network-name-wrap {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 3px;
   min-width: 0;
 }
 .hex-map-page label.network-name { cursor: inherit; }
 .hex-map-page .network-option-left { flex: 1; }
+
+/* Reclaim unused space in the compact selector before truncating long names.
+   Keep the warning button size, checkbox and right-aligned count intact. */
+.hex-map-page .networks-panel-floating:not(.is-maxi) .network-option { padding-inline: 6px; }
+.hex-map-page .networks-panel-floating:not(.is-maxi) .network-option-main { gap: 4px; }
+.hex-map-page .networks-panel-floating:not(.is-maxi) .network-option-left { gap: 4px; }
+.hex-map-page .networks-panel-floating:not(.is-maxi) .network-count { padding-left: 4px; }
 
 @media (max-width: 767px) {
   .home-page .home-main > .ukaq-site-notice { margin-bottom: 12px; }
