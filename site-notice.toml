@@ -1,11 +1,18 @@
 # Editorial configuration; publish complete documents through the notice workflow.
 # Disabled initially: set reviewed wording before enabling any notice.
 [site_notice]
-enabled = false
-message = ""
+enabled = true
+message = """
+TEST NOTICE: This is a test of the UK AQ
+site-wide warning system.
+"""
 
 [network_notices.gov_uk_aurn]
-enabled = false
+enabled = true
+message = """
+TEST: AURN network warning.
+[More information](https://www.gov.uk/)
+"""
 
 [network_notices.openaq]
 enabled = false
