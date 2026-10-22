@@ -1,0 +1,14 @@
+# Editorial configuration; publish complete documents through the notice workflow.
+# Disabled initially: set reviewed wording before enabling any notice.
+[site_notice]
+enabled = false
+message = ""
+
+[network_notices.gov_uk_aurn]
+enabled = false
+
+[network_notices.openaq]
+enabled = false
+
+[network_notices.breathelondon]
+enabled = false

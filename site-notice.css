@@ -1,0 +1,80 @@
+.ukaq-site-notice[hidden],
+.site-notice-tooltip[hidden] {
+  display: none !important;
+}
+
+.ukaq-site-notice,
+.site-notice-tooltip {
+  box-sizing: border-box;
+  background: #D29922;
+  color: #000000;
+  font: 600 14px/1.5 "Inter", system-ui, sans-serif;
+  overflow-wrap: anywhere;
+  text-align: left;
+  text-shadow: none;
+}
+
+.ukaq-site-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 28px;
+  margin: 0 0 16px;
+}
+
+.home-main > .ukaq-site-notice { margin: 0; }
+.site-notice-message { min-width: 0; }
+.site-notice-message p { margin: 0; white-space: pre-line; }
+.site-notice-message p + p { margin-top: 0.65em; }
+.ukaq-site-notice > svg { flex: 0 0 22px; width: 22px; height: 22px; color: #000000; }
+.site-notice-message a,
+.site-notice-message a:visited { color: #113B68; text-decoration: underline; text-underline-offset: 2px; }
+.site-notice-message a:focus-visible,
+.network-notice-trigger:focus-visible { outline: 3px solid #113B68; outline-offset: 3px; border-radius: 3px; }
+
+.network-notice-trigger {
+  appearance: none;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  color: #966C16;
+  background: rgba(150,108,22,0.15);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.network-notice-trigger svg { width: 20px; height: 20px; }
+.site-notice-tooltip {
+  position: fixed;
+  z-index: 10000;
+  width: 360px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Keep the existing row geometry, with independent labels and warning controls. */
+.hex-map-page .network-name-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.hex-map-page label.network-name { cursor: inherit; }
+.hex-map-page .network-option-left { flex: 1; }
+
+@media (max-width: 767px) {
+  .home-page .home-main > .ukaq-site-notice { margin-bottom: 12px; }
+  .hex-map-page main > .ukaq-site-notice { order: 2; }
+  .network-notice-trigger { width: 44px; height: 44px; }
+  .ukaq-site-notice { padding: 11px 14px; }
+}

@@ -1,0 +1,426 @@
+<!doctype html>
+<!-- SENSORS index.html  -->
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://static.cloudflareinsights.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: blob:; frame-src https://challenges.cloudflare.com;" />
+  <title>UK AQ Station Chart</title>
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preload" as="image" href="/images/UK-AQ-sensors.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Space+Grotesk:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/station-chart/station-chart.css">
+  <style>
+    :root {
+      --surface: #ffffff;
+      --surface-2: #fbfaf7;
+      --surface-3: #f6f5f2;
+      --ink: #101822;
+      --ink-1: #1b2a38;
+      --ink-2: #3a4a5a;
+      --ink-3: #6b7a88;
+      --line: #e4e6ea;
+      --line-soft: #eef0f3;
+      --accent: #3c78ac;
+      --accent-deep: #285a84;
+      --accent-soft: rgba(60, 120, 172, 0.08);
+      --accent-glow: rgba(60, 120, 172, 0.28);
+      --sun: #f4b942;
+      --ink-soft: var(--ink-2);
+      --clay: var(--line-soft);
+      --card: var(--surface);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+      color: var(--ink-1);
+      background: var(--surface-2);
+      min-height: 100vh;
+    }
+
+    main {
+      position: relative;
+      padding: 34px 28px 64px;
+      display: grid;
+      gap: 20px;
+    }
+
+    header {
+      display: grid;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 26px;
+    }
+
+    .logo {
+      height: 54px;
+      width: auto;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .page-title {
+      height: 42px;
+      width: auto;
+      flex-shrink: 0;
+      margin-top: 0;
+    }
+
+    .title {
+      font-family: "Fraunces", serif;
+      font-size: clamp(2rem, 2.6vw, 3.25rem);
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 1.05rem;
+      max-width: 640px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .badge {
+      background: var(--clay);
+      color: var(--ink);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      box-shadow: 0 1px 4px rgba(16, 24, 34, 0.06);
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+      animation: floatIn 0.6s ease-out;
+    }
+
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-family: "Fraunces", serif;
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    .filters label {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .filters select,
+    .filters input[type="search"] {
+      background: #fff;
+      border: 1px solid rgba(20, 34, 37, 0.15);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+
+    button {
+      border: none;
+      background: var(--accent);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px var(--accent-glow);
+    }
+
+    button:focus-visible {
+      outline: 2px solid rgba(60, 120, 172, 0.45);
+      outline-offset: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(20, 34, 37, 0.08);
+    }
+
+    th {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-soft);
+    }
+
+    tbody tr {
+      transition: background 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background: var(--accent-soft);
+    }
+
+    .value {
+      font-weight: 600;
+    }
+
+    .stale {
+      color: #a65f2d;
+    }
+
+    .error {
+      color: #8b1e3f;
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: var(--ink-soft);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex: 0 0 12px;
+      background-color: #35b56a;
+      box-shadow: 0 0 0 0 rgba(53, 181, 106, 0.45);
+      display: none;
+    }
+
+    .status-indicator[data-state="live"] .pulse-dot {
+      display: inline-block;
+      animation: pulse-animation 1.5s ease-out infinite;
+    }
+
+    @keyframes pulse-animation {
+      0% {
+        box-shadow: 0 0 0 0 rgba(53, 181, 106, 0.7);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(53, 181, 106, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(53, 181, 106, 0);
+      }
+    }
+
+    .chart-wrap {
+      position: relative;
+      background: #fbf7ef;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid rgba(20, 34, 37, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #line-chart {
+      width: 100%;
+      height: 360px;
+      display: block;
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 28px 18px 48px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      th,
+      td {
+        padding: 10px 6px;
+      }
+
+      #line-chart {
+        height: 300px;
+      }
+
+    }
+  </style>
+  <link rel="stylesheet" href="/beta-notice.css">
+</head>
+
+<body class="sensors-page">
+  <div id="uk-aq-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+  <main>
+    <header>
+      <div class="header-brand">
+        <img src="/images/UK-AQ-sensors.svg" alt="Sensors" class="page-title" />
+      </div>
+      <p class="subtitle">
+        Search by station name (for example Bristol or Surbiton) and view latest readings with trend charts.
+      </p>
+      <div class="meta">
+        <span id="region-badge">Search: Bristol</span>
+        <span id="row-count">Loading…</span>
+        <span id="last-updated">Waiting for data</span>
+      </div>
+    </header>
+
+    <div class="ukaq-beta-notice-mount" data-ukaq-beta-notice-mount></div>
+
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">Latest values</h2>
+        <div class="actions">
+          <span class="hint" id="status">Fetching from Edge Function…</span>
+          <button id="refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="hint" id="endpoint-hint"></div>
+      <div class="filters">
+        <label for="station-search">Station search</label>
+        <input id="station-search" type="search" placeholder="Bristol / Surbiton / station name" />
+        <button id="search-submit">Search</button>
+        <label for="pollutant-filter">Pollutant</label>
+        <select id="pollutant-filter">
+          <option value="">All pollutants</option>
+        </select>
+      </div>
+      <div class="error" id="error"></div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Station</th>
+              <th>Network</th>
+              <th>Pollutant</th>
+              <th>Value</th>
+              <th>Unit</th>
+              <th>Observed</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title">Station trend</h2>
+        <div class="actions">
+          <span class="status-indicator" data-state="idle">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="hint" id="chart-status" aria-live="polite">Waiting for series...</span>
+          </span>
+          <button id="chart-refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="filters">
+        <label for="station-select">Station</label>
+        <select id="station-select"></select>
+
+        <label for="window-select">Window</label>
+        <select id="window-select">
+          <option value="12h">Last 12 hours</option>
+          <option value="24h" selected>Last 24 hours</option>
+          <option value="7d">Last 7 days</option>
+          <option value="31d">Last 31 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
+      </div>
+      <div class="hint" id="chart-hint">Line chart of raw observations for the selected station.</div>
+      <div class="error" id="chart-error"></div>
+      <div class="chart-wrap station-chart-wrap">
+        <svg id="line-chart" class="station-chart-svg" role="img" aria-label="Trend for the selected station"></svg>
+        <div class="chart-tooltip" id="chart-tooltip"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous"></script>
+  <script src="/chart-core.js"></script>
+  <script src="/shared/auth/uk-aq-cache-auth.js"></script>
+  <script type="module" src="/sensors/sensors-bootstrap.js"></script>
+  <script src="/beta-notice.js"></script>
+</body>
+
+</html>
