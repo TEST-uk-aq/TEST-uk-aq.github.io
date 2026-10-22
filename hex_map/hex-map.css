@@ -101,6 +101,15 @@
         margin-bottom: 0;
       }
 
+      /* Visible notice: 6px bottom margin + 6px main grid gap = 12px. */
+      .hex-map-page main > .ukaq-site-notice {
+        margin-bottom: 6px;
+      }
+
+      .hex-map-page main > .ukaq-site-notice:not([hidden]) ~ .tab-panel .map-dashboard-card {
+        margin-top: 0;
+      }
+
       .logo {
         height: 54px;
         width: auto;
