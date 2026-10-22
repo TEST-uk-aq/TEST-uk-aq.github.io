@@ -3,8 +3,7 @@
 [site_notice]
 enabled = true
 message = """
-TEST NOTICE: This is a test of the UK AQ
-site-wide warning system.
+TEST NOTICE: This is a test of the UK AQ. site-wide warning system. [More information](https://www.gov.uk/)
 """
 
 [network_notices.gov_uk_aurn]
