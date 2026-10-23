@@ -125,3 +125,8 @@ jobs:
       - id: deployment
         name: Deploy GitHub Pages
         uses: actions/deploy-pages@v5
+        # Temporary workaround for GitHub actions/deploy-pages issue #434.
+        # Suppress only the action's bundled punycode DEP0040 warning.
+        # Remove once GitHub releases a corrected bundled action.
+        env:
+          NODE_OPTIONS: --disable-warning=DEP0040
