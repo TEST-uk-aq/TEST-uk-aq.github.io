@@ -66,6 +66,46 @@
     return /^\d+$/.test(text) && Number(text) > 0 ? Number(text) : null;
   }
 
+  // UI identity only. History requests and caches continue to use source IDs.
+  function logicalSiteKey(entry) {
+    const matchId = positiveInteger(entry?.match_id ?? entry?.row?.match_id);
+    if (matchId !== null) return `match:${matchId}`;
+    const connectorId = positiveInteger(entry?.connector_id ?? entry?.connectorId ?? entry?.row?.connector_id);
+    const stationId = normalizeStationIdentity(entry?.station_id ?? entry?.stationId ?? entry?.row?.station_id);
+    return connectorId && stationId ? `source:${connectorId}:${stationId}` : null;
+  }
+
+  function sourceNetworkKey(entry) {
+    const networkId = positiveInteger(entry?.network_id ?? entry?.row?.network_id);
+    if (networkId !== null) return `id:${networkId}`;
+    const code = String(entry?.network_code ?? entry?.row?.network_code ?? "").trim().toLowerCase();
+    return code ? `code:${code}` : null;
+  }
+
+  // Candidates must already be pollutant/network eligible and in the caller's
+  // established source order. This helper neither ranks nor combines histories.
+  function resolveSiteEntries(selectedEntries, candidates, options = {}) {
+    const result = [];
+    const seen = new Set();
+    (Array.isArray(selectedEntries) ? selectedEntries : []).forEach(function (selected) {
+      const key = logicalSiteKey(selected);
+      if (!key || seen.has(key)) return;
+      const network = sourceNetworkKey(selected);
+      const entry = (Array.isArray(candidates) ? candidates : []).find(function (candidate) {
+        if (logicalSiteKey(candidate) !== key) return false;
+        if (options.sameNetwork !== true) return true;
+        // Sensors has no network picker or cross-network replacement policy.
+        return network !== null ? sourceNetworkKey(candidate) === network
+          : positiveInteger(candidate?.connector_id) === positiveInteger(selected?.connector_id)
+            && normalizeStationIdentity(candidate?.station_id) === normalizeStationIdentity(selected?.station_id);
+      });
+      if (!entry) return;
+      seen.add(key);
+      result.push(entry);
+    });
+    return result;
+  }
+
   function normalizePollutant(value) {
     return pollutants.normalize(value);
   }
@@ -258,6 +298,8 @@
     normalizeAqiPoint,
     normalizeStationIdentity,
     positiveInteger,
+    logicalSiteKey,
+    resolveSiteEntries,
     normalizePollutant,
     hasPositiveTimeseriesIdentity,
     resolveAuthoritativeIdentity,

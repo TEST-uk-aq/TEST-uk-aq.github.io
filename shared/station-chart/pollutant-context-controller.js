@@ -49,11 +49,27 @@
       byStationId.set(stationId, entry);
       entries.push(entry);
     });
-    const selectedStationIds = uniqueStationIds(config.selectedStationIds)
-      .filter(function (stationId) { return byStationId.has(stationId); });
-    const selectedEntries = selectedStationIds.map(function (stationId) { return byStationId.get(stationId); });
-    const requestedPrimaryId = domain.normalizeStationIdentity(config.primaryStationId);
-    const requestedAqiSourceId = domain.normalizeStationIdentity(config.aqiSourceStationId);
+    const previousEntries = Array.isArray(config.selectedEntries) ? config.selectedEntries : null;
+    const selectedEntries = previousEntries
+      ? domain.resolveSiteEntries(previousEntries, entries)
+      : uniqueStationIds(config.selectedStationIds)
+        .filter(function (stationId) { return byStationId.has(stationId); })
+        .map(function (stationId) { return byStationId.get(stationId); });
+    const selectedStationIds = selectedEntries.map(function (entry) {
+      return domain.normalizeStationIdentity(entry.stationId ?? entry.station_id);
+    });
+    function replacementId(value) {
+      const id = domain.normalizeStationIdentity(value);
+      if (!previousEntries) return id;
+      const previous = previousEntries.find(function (entry) {
+        return domain.normalizeStationIdentity(entry.stationId ?? entry.station_id) === id;
+      });
+      const key = domain.logicalSiteKey(previous);
+      const replacement = key && selectedEntries.find(function (entry) { return domain.logicalSiteKey(entry) === key; });
+      return replacement ? domain.normalizeStationIdentity(replacement.stationId ?? replacement.station_id) : null;
+    }
+    const requestedPrimaryId = replacementId(config.primaryStationId);
+    const requestedAqiSourceId = replacementId(config.aqiSourceStationId);
     const primaryStationId = selectedStationIds.includes(requestedPrimaryId)
       ? requestedPrimaryId
       : selectedStationIds[0] || null;
