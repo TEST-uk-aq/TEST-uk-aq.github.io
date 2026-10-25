@@ -1,6 +1,8 @@
 // Sensors page-owned search, table, filtering, and station-selection UI.
 import pollutantDomain from "../shared/domain/pollutants-module.js";
 import adapterModule from "./sensor-station-chart-adapter-module.js";
+import chartDomain from "../shared/station-chart/station-chart-domain-module.js";
+import { loadSensorSiteMetadata } from "./sensor-site-metadata.js";
 
 let sensorsPage = null;
 
@@ -36,6 +38,10 @@ function initSensorsPage(root) {
     };
     let currentStationLike = normalizeStationLike(params.get("station_like") || params.get("q")) || "Bristol";
     let cachedRows = [];
+    let sourceRows = [];
+    let selectionAnchor = null;
+    let dataGeneration = 0;
+    let dataAbortController = null;
     let selectedSeriesId = null;
     let seriesLookup = new Map();
     const etagBySearch = new Map();
@@ -166,6 +172,7 @@ function initSensorsPage(root) {
     function entryFromRow(row) {
       const connectorId = row?.connector_id ?? row?.connector?.id ?? row?.timeseries?.connector_id ?? null;
       return adapterModule.normalizeEntry({
+        ...row,
         timeseries_id: row?.id,
         connector_id: connectorId,
         station_id: row?.station_id,
@@ -177,13 +184,15 @@ function initSensorsPage(root) {
       });
     }
 
-    function buildSeriesOptions() {
+    function buildSeriesOptions({ fallback = false } = {}) {
       const unique = new Map();
       filteredRows().forEach((row) => {
         const entry = entryFromRow(row);
-        if (!entry || unique.has(String(entry.timeseries_id))) return;
+        if (!entry) return;
+        const key = `${entry.connector_id}:${entry.timeseries_id}`;
+        if (unique.has(key)) return;
         const pollutantLabel = getPollutantLabel(row);
-        unique.set(String(entry.timeseries_id), Object.freeze({
+        unique.set(key, Object.freeze({
           entry,
           label: `${formatStationLabel(row)} — ${pollutantLabel}`,
         }));
@@ -197,8 +206,15 @@ function initSensorsPage(root) {
         refs.stationSelect.appendChild(option);
       });
       seriesLookup = new Map(options);
-      if (!seriesLookup.has(String(selectedSeriesId || ""))) selectedSeriesId = options[0]?.[0] || null;
-      if (selectedSeriesId) refs.stationSelect.value = selectedSeriesId;
+      if (!seriesLookup.has(String(selectedSeriesId || ""))) {
+        const candidates = options.map(([, value]) => value.entry);
+        const replacement = chartDomain.resolveSiteEntries([selectionAnchor], candidates, { sameNetwork: true })[0];
+        selectedSeriesId = replacement ? `${replacement.connector_id}:${replacement.timeseries_id}`
+          : fallback ? options[0]?.[0] || null : null;
+      }
+      refs.stationSelect.value = selectedSeriesId || "";
+      if (!selectedSeriesId) refs.stationSelect.selectedIndex = -1;
+      if (selectedEntry()) selectionAnchor = selectedEntry();
     }
 
     function selectedEntry() {
@@ -210,14 +226,9 @@ function initSensorsPage(root) {
     }
 
     async function applyPollutantSelection() {
-      const previous = selectedSeriesId;
       renderRows();
       buildSeriesOptions();
-      if (!selectedSeriesId) {
-        await syncChartSelection();
-        return;
-      }
-      if (selectedSeriesId !== previous) await syncChartSelection();
+      await syncChartSelection();
     }
 
     function buildEndpoint() {
@@ -228,6 +239,10 @@ function initSensorsPage(root) {
     }
 
     async function loadData() {
+      const generation = ++dataGeneration;
+      dataAbortController?.abort();
+      dataAbortController = new AbortController();
+      const signal = dataAbortController.signal;
       refs.status.textContent = "Loading…";
       refs.error.textContent = "";
       try {
@@ -235,25 +250,34 @@ function initSensorsPage(root) {
         const headers = {};
         const etag = etagBySearch.get(searchKey);
         if (etag) headers["If-None-Match"] = etag;
-        const response = await fetchApi(buildEndpoint(), { headers });
-        if (response.status === 304) {
-          await chartAdapter.refresh();
-          refs.lastUpdated.textContent = `Unchanged ${new Date().toLocaleTimeString()}`;
-          refs.status.textContent = "Live";
-          return;
+        const response = await fetchApi(buildEndpoint(), { headers, signal });
+        const responseEtag = response.status === 304 ? null : response.headers.get("etag");
+        let nextSourceRows = sourceRows;
+        if (response.status !== 304) {
+          if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+          const payload = await response.json();
+          nextSourceRows = Array.isArray(payload?.data) ? payload.data : [];
         }
-        if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-        const responseEtag = response.headers.get("etag");
+        if (generation !== dataGeneration) return;
+        const metadata = await loadSensorSiteMetadata(nextSourceRows, { baseUrl, fetchApi, signal });
+        if (generation !== dataGeneration) return;
+        sourceRows = nextSourceRows;
         if (responseEtag) etagBySearch.set(searchKey, responseEtag);
-        const payload = await response.json();
-        cachedRows = Array.isArray(payload?.data) ? payload.data : [];
+        cachedRows = metadata.rows;
+        const previousEntry = selectedEntry();
         updatePollutantOptions();
         renderRows();
-        buildSeriesOptions();
-        await syncChartSelection();
-        refs.lastUpdated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        buildSeriesOptions({ fallback: !selectionAnchor });
+        const nextEntry = selectedEntry();
+        if (response.status === 304 && previousEntry?.connector_id === nextEntry?.connector_id
+          && previousEntry?.timeseries_id === nextEntry?.timeseries_id && nextEntry) await chartAdapter.refresh();
+        else await syncChartSelection();
+        if (generation !== dataGeneration) return;
+        if (metadata.unavailable) refs.error.textContent = "Some pollutant options may be unavailable. Try Refresh.";
+        refs.lastUpdated.textContent = `${response.status === 304 ? "Unchanged" : "Updated"} ${new Date().toLocaleTimeString()}`;
         refs.status.textContent = "Live";
       } catch (error) {
+        if (generation !== dataGeneration || signal.aborted) return;
         cachedRows = [];
         selectedSeriesId = null;
         seriesLookup = new Map();
@@ -274,6 +298,11 @@ function initSensorsPage(root) {
         return;
       }
       currentStationLike = next;
+      selectionAnchor = null;
+      selectedSeriesId = null;
+      sourceRows = [];
+      // A previous search's ETag is not a retained response body for this search.
+      etagBySearch.clear();
       refs.regionBadge.textContent = `Search: ${currentStationLike}`;
       const nextParams = new URLSearchParams(root.location.search);
       nextParams.set("station_like", currentStationLike);
@@ -299,6 +328,7 @@ function initSensorsPage(root) {
       refs.pollutantSelect.addEventListener("change", applyPollutantSelection);
       refs.stationSelect.addEventListener("change", () => {
         selectedSeriesId = refs.stationSelect.value || null;
+        selectionAnchor = selectedEntry();
         void syncChartSelection();
       });
       await chartAdapter.mount();

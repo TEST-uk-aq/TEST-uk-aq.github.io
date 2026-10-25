@@ -498,6 +498,7 @@
       const selectedStationIds = Array.from(state.selectedIds);
       return {
         selectedStationIds,
+        selectedEntries: selectedEntries(),
         primaryStationId: selectedStationIds[0] || null,
         aqiSourceStationId: state.aqiSourceId,
       };
@@ -848,17 +849,17 @@
       ) {
         return state.pollutantAdapter?.sync(normalizedContext, options.dataStatus) === true;
       }
-      state.visibleEntries = visibleEntries;
-      const visibleIds = new Set(state.visibleEntries.map((entry) => entry.station_id));
-      state.selectedIds.forEach((id) => {
-        const visible = state.visibleEntries.find((entry) => entry.station_id === id);
-        if (visible) state.retainedEntries.set(id, visible);
-        else if (domain.normalizePollutant(state.retainedEntries.get(id)?.pollutant) !== domain.normalizePollutant(context.pollutant)) state.retainedEntries.delete(id);
+      // A refreshed/network-filtered representative can also change source ID
+      // without changing the physical site. Reuse the pollutant owner's resolver.
+      const selection = root.UkAqPollutantContextController.reconcileSelection({
+        ...selectionContext(),
+        pollutant,
+        entries: visibleEntries,
       });
-      const nextIds = Array.from(state.selectedIds).filter((id) => visibleIds.has(id));
-      if (!nextIds.length && state.visibleEntries[0]) nextIds.push(state.visibleEntries[0].station_id);
-      state.selectedIds = new Set(nextIds);
-      if (!state.selectedIds.has(state.aqiSourceId)) state.aqiSourceId = nextIds[0] || null;
+      state.visibleEntries = visibleEntries;
+      state.selectedIds = new Set(selection.selectedStationIds);
+      state.retainedEntries = new Map(selection.selectedEntries.map((entry) => [entry.station_id, entry]));
+      state.aqiSourceId = selection.aqiSourceStationId;
       void commitSelection({ reload: options.updateChart !== false });
       return true;
     }
