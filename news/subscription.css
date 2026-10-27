@@ -1,8 +1,10 @@
 .news-subscription { margin: 1rem 0 1.5rem; }
 .news-email-entry { display: flex; align-items: flex-start; }
-.news-intro-details { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; }
+.news-intro-details { display: flex; align-items: flex-end; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; }
 .news-intro-details > p { flex: 1 1 360px; min-width: 0; margin: 0; }
 .news-intro-details .news-email-entry { margin: 0 0 0 auto; justify-content: flex-end; }
+/* One measured gap below the News email button, whether inline or wrapped. */
+body[data-page-slug="news"] .news-feed { margin-top: 16px; }
 .news-intro-details .news-email-cta { width: auto; max-width: 100%; flex: 0 0 auto; gap: .55rem; padding: .4rem .95rem; }
 .news-intro-details .news-email-cta img { display: block; width: auto; height: 18px; flex: 0 0 auto; object-fit: contain; }
 .news-email-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .7rem 1.15rem; border: 1px solid #285b88; border-radius: .4rem; background: #3c78ac; color: #fff; font: inherit; font-weight: 700; text-decoration: none; }

@@ -8,7 +8,8 @@
     const emailEntry = document.querySelector(".news-intro-details .news-email-entry");
     const logo = document.getElementById("ukaq-home-logo");
     const main = document.querySelector(".news-main");
-    if (!blurb || !emailEntry || !logo || !main) return;
+    const intro = document.querySelector(".news-intro");
+    if (!blurb || !emailEntry || !logo || !main || !intro) return;
 
     const clearance = 8;
     let pendingFrame = null;
@@ -16,6 +17,7 @@
       pendingFrame = null;
       blurb.style.maxWidth = "";
       emailEntry.style.transform = "";
+      intro.style.paddingBottom = "";
       const logoBox = logo.getBoundingClientRect();
       if (!logoBox.width || !logoBox.height) return;
 
@@ -40,8 +42,11 @@
         && buttonBox.left < logoBox.right + clearance;
       if (overlapsHorizontally && buttonBox.bottom > logoBox.top - clearance
           && buttonBox.top < logoBox.bottom + clearance) {
-        emailEntry.style.transform =
-          `translateY(${Math.ceil(logoBox.bottom + clearance - buttonBox.top)}px)`;
+        const offset = Math.ceil(logoBox.bottom + clearance - buttonBox.top);
+        emailEntry.style.transform = `translateY(${offset}px)`;
+        // Reserve the same displacement in normal flow, keeping the gap to
+        // the news controls constant even when the button clears the logo.
+        intro.style.paddingBottom = `${offset}px`;
       }
     };
     const schedule = () => {
