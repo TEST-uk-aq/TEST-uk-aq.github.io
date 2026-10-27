@@ -2,6 +2,8 @@
 .news-email-entry { display: flex; align-items: flex-start; }
 .news-email-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .7rem 1.15rem; border: 1px solid #285b88; border-radius: .4rem; background: #3c78ac; color: #fff; font: inherit; font-weight: 700; text-decoration: none; }
 .news-email-cta:hover { background: #285b88; }
+.news-email-return-button { gap: .6rem; }
+.news-email-return-button img { display: block; width: 20px; height: 20px; flex: 0 0 auto; object-fit: contain; filter: brightness(0) invert(1); }
 .news-email-page .news-subscription { margin-top: 1.75rem; }
 .news-email-page .news-main { width: min(100%, 1200px); }
 .news-email-title { margin: 0; }
