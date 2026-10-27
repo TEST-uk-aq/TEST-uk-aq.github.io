@@ -1,6 +1,65 @@
 (() => {
   "use strict";
 
+  // Keep the News introduction clear of the shared logo using actual layout geometry.
+  // This is content-driven: no viewport breakpoint or fixed wrapping threshold.
+  function setUpNewsIntroLayout() {
+    const blurb = document.querySelector(".news-intro-details > p");
+    const emailEntry = document.querySelector(".news-intro-details .news-email-entry");
+    const logo = document.getElementById("ukaq-home-logo");
+    const main = document.querySelector(".news-main");
+    if (!blurb || !emailEntry || !logo || !main) return;
+
+    const clearance = 8;
+    let pendingFrame = null;
+    const update = () => {
+      pendingFrame = null;
+      blurb.style.maxWidth = "";
+      emailEntry.style.transform = "";
+      const logoBox = logo.getBoundingClientRect();
+      if (!logoBox.width || !logoBox.height) return;
+
+      // Measure painted text lines, not the full flexible paragraph box.
+      const range = document.createRange();
+      range.selectNodeContents(blurb);
+      const textOverlapsLogo = Array.from(range.getClientRects()).some(rect => (
+        rect.right > logoBox.left - clearance
+        && rect.left < logoBox.right + clearance
+        && rect.bottom > logoBox.top - clearance
+        && rect.top < logoBox.bottom + clearance
+      ));
+      if (textOverlapsLogo) {
+        const blurbBox = blurb.getBoundingClientRect();
+        blurb.style.maxWidth = `${Math.max(0, Math.floor(logoBox.left - blurbBox.left - clearance))}px`;
+      }
+
+      // Move the button only when its rendered box would touch the logo.
+      // On a wrapped row there is no permanent downward offset or extra gap.
+      const buttonBox = emailEntry.getBoundingClientRect();
+      const overlapsHorizontally = buttonBox.right > logoBox.left - clearance
+        && buttonBox.left < logoBox.right + clearance;
+      if (overlapsHorizontally && buttonBox.bottom > logoBox.top - clearance
+          && buttonBox.top < logoBox.bottom + clearance) {
+        emailEntry.style.transform =
+          `translateY(${Math.ceil(logoBox.bottom + clearance - buttonBox.top)}px)`;
+      }
+    };
+    const schedule = () => {
+      if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
+      pendingFrame = requestAnimationFrame(update);
+    };
+    if ("ResizeObserver" in window) {
+      const observer = new ResizeObserver(schedule);
+      observer.observe(main);
+      observer.observe(logo);
+    }
+    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("ukaq:sidebar-ready", schedule);
+    document.fonts?.ready?.then(schedule);
+    schedule();
+  }
+  setUpNewsIntroLayout();
+
   const endpoint = "/api/media/articles";
   const viewPreferenceKey = "uk_aq_news_view_v1";
   const sessionStateKey = "uk_aq_news_session_v1";
