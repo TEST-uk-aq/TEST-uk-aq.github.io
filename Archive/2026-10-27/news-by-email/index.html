@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="index, follow">
+  <meta name="description" content="Subscribe to UK AQ air quality news emails. Choose immediate updates or a daily email.">
+  <title>News by Email | UK AQ</title>
+  <link rel="canonical" href="https://test-uk-aq.ukaq.co.uk/news-by-email/">
+  <meta property="og:title" content="News by Email | UK AQ">
+  <meta property="og:description" content="Get the latest air quality news delivered directly to your inbox.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="UK AQ">
+  <meta property="og:url" content="https://test-uk-aq.ukaq.co.uk/news-by-email/">
+  <meta property="og:image" content="https://test-uk-aq.ukaq.co.uk/images/UK-AQ-social-share.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="UK AQ - UK air quality data and news">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="News by Email | UK AQ">
+  <meta name="twitter:description" content="Get the latest air quality news delivered directly to your inbox.">
+  <meta name="twitter:image" content="https://test-uk-aq.ukaq.co.uk/images/UK-AQ-social-share.png">
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="/site-ui.css">
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <link rel="stylesheet" href="/news/news.css">
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <link rel="stylesheet" href="/news/subscription.css">
+  <script src="/news/subscription-config.js" defer></script>
+  <script src="/news/subscription.js" defer></script>
+</head>
+<body class="news-page news-email-page" data-page-slug="news-by-email">
+  <div id="uk-aq-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+
+  <main class="news-main" id="mainContent">
+    <header class="news-intro news-email-intro">
+      <h1 class="news-email-title">
+        <picture class="news-title-picture">
+          <img class="news-title-image" src="/images/UK-AQ-NEWS-BY-EMAIL-1line.svg" alt="News by Email">
+        </picture>
+      </h1>
+      <p>Get the latest air quality news delivered directly to your inbox.</p>
+    </header>
+
+    <section class="news-subscription" id="news-email-panel" aria-labelledby="news-email-heading">
+      <div class="news-email-content">
+        <h2 id="news-email-heading">Subscribe</h2>
+        <p id="news-email-status" role="status" aria-live="polite"></p>
+
+        <form id="news-email-form">
+          <div id="news-email-address-field">
+            <label for="news-email-address">Email address</label>
+            <input id="news-email-address" name="email" type="email" autocomplete="email" maxlength="254" required>
+          </div>
+
+          <fieldset>
+            <legend>Delivery frequency</legend>
+            <label for="news-email-immediate">
+              <input id="news-email-immediate" type="radio" name="delivery_mode" value="immediate" checked aria-describedby="news-email-immediate-help">
+              Immediate
+            </label>
+            <p id="news-email-immediate-help">Receive an email when a new article is approved for AQ in the News.</p>
+            <label for="news-email-daily">
+              <input id="news-email-daily" type="radio" name="delivery_mode" value="daily" aria-describedby="news-email-daily-help">
+              Daily
+            </label>
+            <p id="news-email-daily-help">Receive one email each day with articles approved since your previous daily update. Choose your preferred UK time.</p>
+          </fieldset>
+
+          <div id="news-email-time-field" hidden>
+            <label for="news-email-time">Daily delivery time (UK time)</label>
+            <select id="news-email-time" name="daily_time_local" disabled></select>
+            <p>UK time adjusts automatically for BST and GMT.</p>
+          </div>
+
+          <div id="news-email-consent">
+            <p>By subscribing, you ask UK AQ to store your email address and delivery preference and send AQ in the News emails. Confirm your address before delivery starts. You can unsubscribe at any time using the link in each email. No account is required.</p>
+          </div>
+
+          <div id="news-email-turnstile" aria-label="Subscription verification"></div>
+          <button id="news-email-submit" type="submit" disabled>Subscribe</button>
+        </form>
+
+        <button id="news-email-unsubscribe" type="button" hidden>Unsubscribe</button>
+        <p><a href="/news/" id="news-email-return">Back to AQ in the News</a></p>
+        <noscript><p>Email subscriptions require JavaScript to load the secure form.</p></noscript>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

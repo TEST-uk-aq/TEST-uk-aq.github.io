@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Inject the public Media email origin into the Pages staging tree before hashing.
+// Inject the public Media email configuration into Pages staging before hashing.
 
 import fs from "node:fs/promises";
 import path from "node:path";
 
 const PLACEHOLDER = '"__UK_AQ_MEDIA_EMAIL_PUBLIC_URL__"';
+const TURNSTILE_PLACEHOLDER = '"__UK_AQ_TURNSTILE_SITE_KEY__"';
 const CONFIG_PATH = "news/subscription-config.js";
 
 async function main() {
@@ -16,6 +17,10 @@ async function main() {
   const value = process.env.UK_AQ_MEDIA_EMAIL_PUBLIC_URL;
   if (!value || !value.trim()) {
     throw new Error("Missing repository variable UK_AQ_MEDIA_EMAIL_PUBLIC_URL.");
+  }
+  const siteKey = (process.env.UK_AQ_TURNSTILE_SITE_KEY || '').trim();
+  if (!siteKey || siteKey === '__UK_AQ_TURNSTILE_SITE_KEY__') {
+    throw new Error('Missing UK_AQ_TURNSTILE_SITE_KEY for Media email configuration.');
   }
 
   const invalidOriginMessage = "UK_AQ_MEDIA_EMAIL_PUBLIC_URL must be a valid HTTPS origin without credentials, a path other than /, query or fragment.";
@@ -49,10 +54,16 @@ async function main() {
   if (source.split(PLACEHOLDER).length !== 2) {
     throw new Error(`Expected exactly one Media email URL placeholder in staged ${CONFIG_PATH}.`);
   }
+  if (source.split(TURNSTILE_PLACEHOLDER).length !== 2) {
+    throw new Error(`Expected exactly one Turnstile site key placeholder in staged ${CONFIG_PATH}.`);
+  }
   // Replace the entire JS string literal; the callback avoids replacement-pattern
   // expansion. origin removes the optional trailing slash used by API callers.
-  await fs.writeFile(configPath, source.replace(PLACEHOLDER, () => JSON.stringify(url.origin)), "utf8");
-  console.log(`Injected UK_AQ_MEDIA_EMAIL_PUBLIC_URL into staged ${CONFIG_PATH}.`);
+  const updated = source
+    .replace(PLACEHOLDER, () => JSON.stringify(url.origin))
+    .replace(TURNSTILE_PLACEHOLDER, () => JSON.stringify(siteKey));
+  await fs.writeFile(configPath, updated, "utf8");
+  console.log(`Injected public Media email configuration into staged ${CONFIG_PATH}.`);
 }
 
 main().catch((error) => {

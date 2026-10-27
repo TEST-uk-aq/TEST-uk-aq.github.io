@@ -42,7 +42,7 @@
 
   <main class="news-main" id="mainContent">
     <header class="news-intro news-email-intro">
-      <h1 class="news-email-title">
+      <h1 class="news-email-title" id="news-email-title">
         <picture class="news-title-picture">
           <img class="news-title-image" src="/images/UK-AQ-NEWS-BY-EMAIL-1line.svg" alt="News by Email">
         </picture>
@@ -50,48 +50,59 @@
       <p>Get the latest air quality news delivered directly to your inbox.</p>
     </header>
 
-    <section class="news-subscription" id="news-email-panel" aria-labelledby="news-email-heading">
+    <section class="news-subscription" id="news-email-panel" aria-labelledby="news-email-title">
       <div class="news-email-content">
-        <h2 id="news-email-heading">Subscribe</h2>
-        <p id="news-email-status" role="status" aria-live="polite"></p>
+        <h2 id="news-email-heading" hidden></h2>
+        <p id="news-email-status" role="status" aria-live="polite" hidden></p>
 
         <form id="news-email-form">
-          <div id="news-email-address-field">
-            <label for="news-email-address">Email address</label>
-            <input id="news-email-address" name="email" type="email" autocomplete="email" maxlength="254" required>
+          <div class="news-email-column news-email-preferences">
+            <div id="news-email-address-field">
+              <label for="news-email-address">Email address</label>
+              <input id="news-email-address" name="email" type="email" autocomplete="email" maxlength="254" required>
+            </div>
+
+            <fieldset>
+              <legend>Delivery frequency</legend>
+              <label for="news-email-immediate">
+                <input id="news-email-immediate" type="radio" name="delivery_mode" value="immediate" checked aria-describedby="news-email-immediate-help">
+                Immediate
+              </label>
+              <p id="news-email-immediate-help">Receive an email when a new article is approved for AQ in the News.</p>
+              <label for="news-email-daily">
+                <input id="news-email-daily" type="radio" name="delivery_mode" value="daily" aria-describedby="news-email-daily-help" aria-controls="news-email-time-field">
+                Daily
+              </label>
+              <p id="news-email-daily-help">Receive one email each day with articles approved since your previous daily update. Choose your preferred UK time.</p>
+            </fieldset>
+
+            <div id="news-email-time-field" hidden>
+              <label for="news-email-time">Daily delivery time (UK time)</label>
+              <select id="news-email-time" name="daily_time_local" disabled></select>
+              <p>UK time adjusts automatically for BST and GMT.</p>
+            </div>
           </div>
 
-          <fieldset>
-            <legend>Delivery frequency</legend>
-            <label for="news-email-immediate">
-              <input id="news-email-immediate" type="radio" name="delivery_mode" value="immediate" checked aria-describedby="news-email-immediate-help">
-              Immediate
-            </label>
-            <p id="news-email-immediate-help">Receive an email when a new article is approved for AQ in the News.</p>
-            <label for="news-email-daily">
-              <input id="news-email-daily" type="radio" name="delivery_mode" value="daily" aria-describedby="news-email-daily-help">
-              Daily
-            </label>
-            <p id="news-email-daily-help">Receive one email each day with articles approved since your previous daily update. Choose your preferred UK time.</p>
-          </fieldset>
+          <div class="news-email-column news-email-actions">
+            <div id="news-email-consent">
+              <p>By subscribing, you ask UK AQ to store your email address and delivery preference and send AQ in the News emails. Confirm your address before delivery starts. You can unsubscribe at any time using the link in each email. No account is required.</p>
+            </div>
 
-          <div id="news-email-time-field" hidden>
-            <label for="news-email-time">Daily delivery time (UK time)</label>
-            <select id="news-email-time" name="daily_time_local" disabled></select>
-            <p>UK time adjusts automatically for BST and GMT.</p>
+            <div id="news-email-verification">
+              <p id="news-email-verification-status" role="status" aria-live="polite"></p>
+              <div id="news-email-turnstile" aria-label="Subscription verification"></div>
+              <button id="news-email-verification-retry" type="button" hidden>Retry verification</button>
+            </div>
+            <div class="news-email-buttons">
+              <button id="news-email-submit" type="submit" disabled>Subscribe</button>
+              <a class="news-email-cancel" href="/news/">Cancel</a>
+            </div>
           </div>
-
-          <div id="news-email-consent">
-            <p>By subscribing, you ask UK AQ to store your email address and delivery preference and send AQ in the News emails. Confirm your address before delivery starts. You can unsubscribe at any time using the link in each email. No account is required.</p>
-          </div>
-
-          <div id="news-email-turnstile" aria-label="Subscription verification"></div>
-          <button id="news-email-submit" type="submit" disabled>Subscribe</button>
         </form>
 
         <button id="news-email-unsubscribe" type="button" hidden>Unsubscribe</button>
-        <p><a href="/news/" id="news-email-return">Back to AQ in the News</a></p>
-        <noscript><p>Email subscriptions require JavaScript to load the secure form.</p></noscript>
+        <p id="news-email-result-actions" hidden><a href="/news/" id="news-email-return">Back to AQ in the News</a></p>
+        <noscript><p>Email subscriptions require JavaScript to load the secure form. <a href="/news/">Back to AQ in the News</a></p></noscript>
       </div>
     </section>
   </main>
