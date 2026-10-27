@@ -186,8 +186,8 @@
       widget = window.turnstile.render('#news-email-turnstile', {
         sitekey: config.turnstileSiteKey,
         action: config.turnstileAction,
-        // Compact also fits when a narrow phone leaves less than 300px here.
-        size: 'compact',
+        // Prefer the shorter 300 × 65px widget; compact fits slots under 300px.
+        size: widgetContainer.clientWidth >= 300 ? 'normal' : 'compact',
         appearance: 'interaction-only',
         'refresh-expired': 'manual',
         'refresh-timeout': 'manual',
