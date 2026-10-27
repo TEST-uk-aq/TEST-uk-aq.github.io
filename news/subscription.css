@@ -1,12 +1,18 @@
 .news-subscription { margin: 1rem 0 1.5rem; }
 .news-email-entry { display: flex; align-items: flex-start; }
+.news-intro-details { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: .65rem 1rem; }
+.news-intro-details > p { flex: 1 1 360px; min-width: 0; margin: 0; }
+.news-intro-details .news-email-entry { margin: 0 0 0 auto; justify-content: flex-end; }
+.news-intro-details .news-email-cta { width: auto; max-width: 100%; flex: 0 0 auto; gap: .55rem; padding: .4rem .95rem; }
+.news-intro-details .news-email-cta img { display: block; width: auto; height: 28px; flex: 0 0 auto; object-fit: contain; }
 .news-email-cta { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .7rem 1.15rem; border: 1px solid #285b88; border-radius: .4rem; background: #3c78ac; color: #fff; font: inherit; font-weight: 700; text-decoration: none; }
 .news-email-cta:hover { background: #285b88; }
 .news-email-return-button { gap: .6rem; flex-direction: row-reverse; max-width: 100%; }
-#news-email-result-actions { display: flex; justify-content: flex-end; }
+#news-email-result-actions { display: flex; justify-content: flex-end; margin: 0; }
+.news-email-content:has(#news-email-result-actions:not([hidden])) #news-email-status { margin-bottom: .35rem; }
 .news-email-return-button img { display: block; width: 20px; height: 20px; flex: 0 0 auto; object-fit: contain; filter: brightness(0) invert(1); }
 .news-email-page .news-subscription { margin-top: 1.75rem; }
-.news-email-page .news-main { width: min(100%, 1200px); }
+.news-email-page .news-main { width: min(100%, 1080px); }
 .news-email-title { margin: 0; }
 .news-subscription summary { cursor: pointer; padding: .8rem 1rem; border: 1px solid #bbcbd7; border-radius: .6rem; font-weight: 600; color: #153c57; min-height: 44px; box-sizing: border-box; }
 .news-email-content { padding: 1.5rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; container-type: inline-size; }
