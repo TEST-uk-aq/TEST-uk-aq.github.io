@@ -35,6 +35,7 @@
 .news-email-content .news-email-cancel { color: #285b88; background: transparent; text-decoration: none; }
 .news-email-cancel:hover { background: #e6eef5; }
 #news-email-consent p { margin: 0; }
+#news-email-consent .news-email-no-wrap { white-space: nowrap; }
 #news-email-status { margin: 0 0 1.25rem; }
 #news-email-verification { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
 #news-email-verification-status { margin: 0 0 .5rem; color: #526273; align-self: stretch; text-align: right; }
