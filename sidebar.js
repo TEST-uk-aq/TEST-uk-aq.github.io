@@ -455,6 +455,11 @@
     return document.body.dataset.pageSlug === 'naei-data';
   }
 
+  function isNewsContentPage() {
+    return document.body.dataset.pageSlug === 'news'
+      || document.body.dataset.pageSlug === 'news-by-email';
+  }
+
   function getState() {
     return document.body.getAttribute('data-sidebar-state');
   }
@@ -949,6 +954,9 @@
   }
 
   function buildSiteFooter() {
+    if (isNewsContentPage()) {
+      return `<p class="ukaq-site-footer-meta">&copy; 2026 UK AQ${versionSuffix()}</p>`;
+    }
     const oglUrl = 'https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/';
     if (isNaeiDataPage()) {
       return `
@@ -1034,7 +1042,9 @@
     const footer = document.createElement('footer');
     footer.id = 'ukaq-site-footer';
     footer.hidden = true;
-    footer.setAttribute('aria-label', 'UK AQ site information and data licences');
+    footer.setAttribute('aria-label', isNewsContentPage()
+      ? 'UK AQ site information'
+      : 'UK AQ site information and data licences');
     footer.innerHTML = buildSiteFooter();
 
     if (isSensorMapPage()) {
@@ -1172,7 +1182,7 @@
     siteVersionReady = loadSiteVersion();
     const footerStylesReady = await ensureSiteFooterStyles();
     const footer = mountSiteFooter();
-    if (isNaeiDataPage()) {
+    if (isNaeiDataPage() || isNewsContentPage()) {
       finaliseFooterAttributionLayout();
     } else {
       await filterFooterAttributions();
