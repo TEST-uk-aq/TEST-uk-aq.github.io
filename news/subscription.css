@@ -6,11 +6,14 @@
 .news-email-page .news-main { width: min(100%, 1200px); }
 .news-email-title { margin: 0; }
 .news-subscription summary { cursor: pointer; padding: .8rem 1rem; border: 1px solid #bbcbd7; border-radius: .6rem; font-weight: 600; color: #153c57; min-height: 44px; box-sizing: border-box; }
-.news-email-content { padding: 1.5rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; }
+.news-email-content { padding: 1.5rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; container-type: inline-size; }
 .news-email-content h2 { margin-top: 0; font-size: 1.2rem; }
 .news-email-content form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 2rem; min-width: 0; }
 .news-email-column { display: grid; align-content: start; gap: 1rem; min-width: 0; }
-.news-email-actions { padding-top: .5rem; }
+.news-email-actions { padding-top: 0; }
+@container (min-width: 46rem) {
+  .news-email-actions { padding-top: 44px; }
+}
 .news-email-content fieldset { margin: 0; min-width: 0; border: 1px solid #bbcbd7; border-radius: .4rem; }
 .news-email-content label { display: flex; gap: .5rem; align-items: center; min-height: 44px; font-weight: 600; }
 .news-email-content p { font-size: .95rem; line-height: 1.55; }
@@ -18,7 +21,7 @@
 .news-email-content button, .news-email-cancel { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .7rem 1rem; font: inherit; font-weight: 700; cursor: pointer; border: 1px solid #285b88; background: #3c78ac; color: white; border-radius: .4rem; }
 .news-email-content button:hover:not(:disabled) { background: #285b88; }
 .news-email-content button:disabled { opacity: .6; cursor: default; }
-.news-email-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.news-email-buttons { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .75rem; }
 #news-email-submit { width: 160px; max-width: 100%; }
 .news-email-content .news-email-cancel { color: #285b88; background: transparent; text-decoration: none; }
 .news-email-cancel:hover { background: #e6eef5; }
@@ -36,6 +39,5 @@
   .news-subscription { max-width: 100%; }
   .news-email-content { padding: .75rem; }
   .news-email-content form { gap: 1.25rem; }
-  .news-email-actions { padding-top: 0; }
   .news-email-cta { width: 100%; }
 }
