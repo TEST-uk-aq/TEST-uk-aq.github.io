@@ -196,7 +196,7 @@
           challenge = value;
           widgetContainer.hidden = true;
           verificationRetry.hidden = true;
-          verificationMessage('Ready to submit.');
+          verificationMessage('');
           updateSubmit();
         },
         'expired-callback': () => {
