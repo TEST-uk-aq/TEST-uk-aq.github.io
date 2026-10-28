@@ -355,7 +355,8 @@
     window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
 
     form.hidden = true;
-    resultActions.hidden = surface === 'unsubscribe';
+    // Manage loads a form, not a result. Hide the return action until an error needs it.
+    resultActions.hidden = surface !== 'confirm';
     heading.hidden = false;
     if (surface === 'manage') {
       heading.textContent = 'Email preferences';
@@ -366,6 +367,7 @@
     }
 
     if (!/^[a-f0-9]{64}$/.test(secureToken)) {
+      resultActions.hidden = surface === 'unsubscribe';
       announce('This link has expired or is no longer valid. Please return to AQ in the News to request a new subscription confirmation.', true);
     } else if (surface === 'unsubscribe') {
       showUnsubscribeConfirmation();
@@ -392,7 +394,10 @@
             announce('Current preference: ' + describePreference(result));
           }
         })
-        .catch(error => announce(error.message, true));
+        .catch(error => {
+          if (surface === 'manage') resultActions.hidden = false;
+          announce(error.message, true);
+        });
     }
   } else {
     void loadWidget();
