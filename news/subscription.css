@@ -16,7 +16,9 @@ body[data-page-slug="news"] .news-feed { margin-top: 16px; }
 .news-email-page .news-subscription { margin-top: 1.75rem; }
 /* Let navigation use the News shell; retain the former 1080px shell's inner width. */
 .news-email-page .news-email-intro,
-.news-email-page .news-subscription { max-width: 1024px; margin-inline: auto; }
+.news-email-page .news-subscription { width: 100%; max-width: 1024px; margin-inline: auto; }
+/* The shared navigation supplies the minimum gap in the column layout. */
+.news-email-page .news-subscription { margin-bottom: 0; }
 .news-email-title { margin: 0; }
 .news-subscription summary { cursor: pointer; padding: .8rem 1rem; border: 1px solid #bbcbd7; border-radius: .6rem; font-weight: 600; color: #153c57; min-height: 44px; box-sizing: border-box; }
 .news-email-content { padding: 1.5rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; container-type: inline-size; }

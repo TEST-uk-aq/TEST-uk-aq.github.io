@@ -1,7 +1,44 @@
+/* Only card-bearing pages grow their main area. Keep existing horizontal
+ * geometry and section gaps, with spare height reserved above the final nav.
+ * The maps retain their separate footer arrangements. */
+body:not(.hex-map-page):not(.ukaq-site-footer-after-viewport) > main:has(.ukaq-bottom-nav-grid) {
+  --ukaq-bottom-nav-footer-gap: 16px;
+  --home-main-footer-gap: var(--ukaq-bottom-nav-footer-gap);
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 0;
+  padding-bottom: var(--ukaq-bottom-nav-footer-gap);
+}
+
+/* Resources and Contact nest their navigation inside this content frame. */
+body > main:has(.ukaq-bottom-nav-grid) > .resources-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
+
+body > main:has(.ukaq-bottom-nav-grid) > *,
+body > main > .resources-frame:has(> .ukaq-bottom-nav) > * {
+  flex-shrink: 0;
+}
+
 .ukaq-bottom-nav {
-  margin-top: 2.25rem;
+  --ukaq-bottom-nav-content-gap: 2.25rem;
+  margin-top: var(--ukaq-bottom-nav-content-gap);
   container-name: ukaq-bottom-nav;
   container-type: inline-size;
+}
+
+/* Padding preserves the content-to-nav minimum when the auto margin is zero. */
+body > main:has(.ukaq-bottom-nav-grid) .ukaq-bottom-nav {
+  margin-top: auto;
+  padding-top: var(--ukaq-bottom-nav-content-gap);
+}
+
+/* The homepage keeps its existing section gap, mobile inset and breakpoints. */
+body > main.home-main > .home-section:has(> .ukaq-bottom-nav-grid) {
+  margin-top: auto;
 }
 
 .ukaq-bottom-nav-grid {
