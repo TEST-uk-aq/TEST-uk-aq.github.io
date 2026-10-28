@@ -30,6 +30,13 @@ body:has(> #ukaq-site-footer):not(.ukaq-site-footer-after-viewport) > #ukaq-site
   flex: 0 0 auto;
 }
 
+/* Card pages consume spare viewport height in main, above their navigation.
+ * Its shared bottom padding owns the entire card-to-footer gap. */
+body:has(> #ukaq-site-footer):has(main .ukaq-bottom-nav-grid):not(.hex-map-page):not(.ukaq-site-footer-after-viewport)
+  > #ukaq-site-footer {
+  margin-top: 0;
+}
+
 /* The cardless mobile Hex Map footer follows the map content directly instead
  * of absorbing spare viewport height above the footer. */
 @media (max-width: 767px) {
