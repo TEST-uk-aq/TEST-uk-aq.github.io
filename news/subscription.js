@@ -21,13 +21,17 @@
   const email = document.getElementById('news-email-address');
   const time = document.getElementById('news-email-time');
   const submit = document.getElementById('news-email-submit');
+  const manageUnsubscribe = document.getElementById('news-email-manage-unsubscribe');
   const unsubscribe = document.getElementById('news-email-unsubscribe');
+  const unsubscribeActions = document.getElementById('news-email-unsubscribe-actions');
+  const keepSubscription = document.getElementById('news-email-keep-subscription');
   const resultActions = document.getElementById('news-email-result-actions');
   const verificationStatus = document.getElementById('news-email-verification-status');
   const verificationRetry = document.getElementById('news-email-verification-retry');
   const widgetContainer = document.getElementById('news-email-turnstile');
   let secureToken = '';
   let surface = 'subscribe';
+  let unsubscribeFromManage = false;
   let widget;
   let challenge = '';
   let loadingWidget = false;
@@ -40,7 +44,8 @@
   };
   const showResult = (message, error = false) => {
     form.hidden = true;
-    resultActions.hidden = false;
+    unsubscribeActions.hidden = true;
+    resultActions.hidden = surface === 'unsubscribe';
     announce(message, error);
   };
   // Widget progress must never overwrite an API error or subscription result.
@@ -51,6 +56,7 @@
   };
   const updateSubmit = () => {
     submit.disabled = submitting || (surface === 'subscribe' && !challenge);
+    manageUnsubscribe.disabled = submitting;
   };
   const mode = () => form.elements.delivery_mode.value;
   const panelIsOpen = () => !(panel instanceof HTMLDetailsElement) || panel.open;
@@ -271,25 +277,66 @@
         if (widget !== undefined && !form.hidden) resetVerification();
         updateSubmit();
       } else {
-        submit.textContent = 'Save preferences';
-        submit.disabled = false;
+        submit.textContent = 'Save';
+        updateSubmit();
       }
     }
   });
 
+  function showUnsubscribeConfirmation(fromManage = false) {
+    if (submitting) return;
+    unsubscribeFromManage = fromManage;
+    surface = 'unsubscribe';
+    form.hidden = true;
+    resultActions.hidden = true;
+    heading.hidden = false;
+    heading.textContent = 'Unsubscribe from News Emails';
+    unsubscribeActions.hidden = false;
+    announce('Are you sure you want to unsubscribe from AQ in the News emails?');
+    heading.focus();
+  }
+
+  manageUnsubscribe.addEventListener('click', () => {
+    if (surface === 'manage') showUnsubscribeConfirmation(true);
+  });
+
+  keepSubscription.addEventListener('click', () => {
+    if (submitting) return;
+    unsubscribeActions.hidden = true;
+    if (unsubscribeFromManage) {
+      // Reveal the same form: do not reload or overwrite unsaved selections.
+      surface = 'manage';
+      heading.textContent = 'Email preferences';
+      form.hidden = false;
+      announce('Your subscription has not been changed. Your unsaved preferences are still shown.');
+      manageUnsubscribe.focus();
+    } else {
+      // An unsubscribe token does not imply permission to manage preferences.
+      secureToken = '';
+      showResult('Your subscription has not been changed.');
+      status.focus();
+    }
+  });
+
   unsubscribe.addEventListener('click', async () => {
+    if (surface !== 'unsubscribe' || submitting || !secureToken) return;
+    submitting = true;
     unsubscribe.disabled = true;
+    keepSubscription.disabled = true;
     unsubscribe.textContent = 'Unsubscribing…';
     announce('Unsubscribing…');
     try {
       await api('/unsubscribe', { token: secureToken });
       secureToken = '';
-      unsubscribe.hidden = true;
       showResult('You have unsubscribed from AQ in the News emails.');
+      status.focus();
     } catch (error) {
       announce(error.message, true);
+    } finally {
+      submitting = false;
       unsubscribe.textContent = 'Unsubscribe';
       unsubscribe.disabled = false;
+      keepSubscription.disabled = false;
     }
   });
 
@@ -308,7 +355,7 @@
     window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
 
     form.hidden = true;
-    resultActions.hidden = false;
+    resultActions.hidden = surface === 'unsubscribe';
     heading.hidden = false;
     if (surface === 'manage') {
       heading.textContent = 'Email preferences';
@@ -321,8 +368,7 @@
     if (!/^[a-f0-9]{64}$/.test(secureToken)) {
       announce('This link has expired or is no longer valid. Please return to AQ in the News to request a new subscription confirmation.', true);
     } else if (surface === 'unsubscribe') {
-      announce('Select Unsubscribe to stop AQ in the News emails.');
-      unsubscribe.hidden = false;
+      showUnsubscribeConfirmation();
     } else {
       announce(surface === 'manage' ? 'Loading your current preferences…' : 'Loading subscription verification…');
       void api(surface === 'confirm' ? '/confirm' : '/manage', { token: secureToken })
@@ -339,9 +385,10 @@
             for (const id of ['news-email-address-field', 'news-email-consent', 'news-email-verification']) {
               document.getElementById(id).hidden = true;
             }
-            submit.textContent = 'Save preferences';
+            submit.textContent = 'Save';
+            submit.classList.add('news-email-save');
             submit.disabled = false;
-            unsubscribe.hidden = false;
+            manageUnsubscribe.hidden = false;
             announce('Current preference: ' + describePreference(result));
           }
         })
