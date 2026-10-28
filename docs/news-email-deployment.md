@@ -1,79 +1,121 @@
-# News by Email deployment configuration
+# News by Email deployment and promotion
 
-Source markup is environment independent. The existing Pages staging injector
-now requires these repository variables before content hashing:
+Source application files remain environment independent. The existing Media
+email staging injector derives the website's HTTPS origin from the staged
+`CNAME`, and still injects the existing public API and Turnstile settings before
+content hashing. No new repository variable is required.
 
-| Variable | TEST | LIVE BETA | Public LIVE |
+## Existing deployment inputs
+
+| Input | TEST | LIVE BETA | Public LIVE |
 | --- | --- | --- | --- |
-| `UK_AQ_SITE_ORIGIN` | TEST website HTTPS origin | LIVE BETA website HTTPS origin | Canonical public LIVE website HTTPS origin |
-| `UK_AQ_MEDIA_EMAIL_PUBLIC_URL` | TEST email Worker origin | Same LIVE email Worker as public LIVE | LIVE email Worker origin |
-| `UK_AQ_NEWS_EMAIL_INDEXABLE` | `false` for private acceptance | `false` before launch | `false` for unadvertised prelaunch; `true` only when indexing is intended |
+| Staged `CNAME` | TEST website hostname | Beta website hostname | Public website hostname |
+| `UK_AQ_MEDIA_EMAIL_PUBLIC_URL` repository variable | TEST email Worker origin | Same LIVE email Worker as public LIVE | LIVE email Worker origin |
+| `UK_AQ_TURNSTILE_SITE_KEY` existing Actions secret/public browser value | TEST site key | Site key allowed for beta hostname | Site key allowed for public hostname |
 
-`UK_AQ_TURNSTILE_SITE_KEY` remains the existing public browser site key, injected
-from the existing Actions secret. Its server-side counterpart and allowed
-hostnames must match the selected Worker environment. LIVE BETA and public LIVE
-must both use the LIVE subscription backend; they must not fall back to TEST.
-No new browser or server secret is introduced.
+CNAME must be a real file containing exactly one valid hostname (surrounding
+whitespace is ignored). Missing, empty, multiple-hostname, URL, path, wildcard,
+port, malformed DNS labels and non-canonical URL host spellings fail the build.
+The injector constructs `https://<hostname>` without changing CNAME and uses it
+for all four metadata destinations: canonical page, Open Graph page, Open Graph
+image and Twitter image. It changes only staged `news/subscription-config.js`
+and `news-by-email/index.html`, validating required files and placeholders before
+writing. No TEST, beta or public origin is a fallback. Existing API-origin
+validation and staging-file safety checks remain.
 
-Site/API origins must be canonical HTTPS origins, optionally followed by one
-slash; credentials, other paths, query, fragment, wildcard, unsafe normalised URL
-forms and missing values fail the build. The indexing setting must be exactly
-`true` or `false`; there is no implicit default. The injector updates only staged
-`news/subscription-config.js` and `news-by-email/index.html`. It validates required
-files and placeholder counts before writing. Canonical URL, Open Graph URL and
-Open Graph/Twitter images use the site's configured origin. Indexing disabled
-produces `noindex, nofollow`; enabled produces `index, follow`.
+No robots directive is required on the ordinary subscription page; normal
+indexing applies, including public prelaunch indexing. LIVE BETA remains
+protected by its existing Cloudflare Access configuration. The unchanged
+browser controller still inserts/sets `noindex, nofollow` for private
+confirmation, Manage and Unsubscribe flows and removes the token fragment from
+browser history. Tokens are not inserted into metadata or server-side URLs.
 
-This setting controls crawler metadata, not access control or navigation.
-TEST's existing News and Contact entry links remain unchanged. For public
-prelaunch promotion, publish the subscription page and shared assets without
-copying TEST entry-link markup into public News, Contact or navigation. LIVE BETA
-can keep those existing entries. Preserve the respective CNAME and deployment
-configuration. Do not create hostname-dependent logic or environment-specific
-application files. Any further navigation visibility work must use deployment
-configuration and preserve the shared form/controller code.
+## Rollout and navigation boundaries
 
-## Complete promotion scope
+TEST's form, News entry button, Contact link, News sidebar/footer behaviour,
+legacy-fragment handling and Turnstile interface are unchanged.
 
-Promote this PR's `news-by-email/index.html`,
-`scripts/uk_aq_inject_media_email_config.mjs`, `.github/workflows/pages.yml` and
-this handover. A destination that has not received the current standalone page
-also needs the matching unchanged `news/subscription.js`,
-`news/subscription-config.js`, `news/subscription.css` and their current shared
-page dependencies. These include `news/news.css`, `site-ui.css`, `bottom-nav.css`,
-`mobile.css`, `sidebar.js` and its shared dependencies, favicon/share artwork,
-`images/UK-AQ-NEWS-BY-EMAIL-1line.svg`,
-`images/UK-AQ-NEWS-BY-EMAIL-2lines.svg`, and `images/UK-AQ-back-arrow.svg`.
-The controller keeps old `/news/#confirm|manage|unsubscribe` links compatible;
-retain its loading on `/news/` where legacy links may arrive, without copying the
-News page's subscription entry markup into an unadvertised public launch.
-No LIVE repository was inspected, so verify those dependencies in the later
-authorised promotion review; existing TEST source alone does not prove LIVE parity.
+LIVE BETA will use the one LIVE email Worker and subscriber database, retain
+visible News by Email entry links and use its own CNAME. The planned v0.7
+promotion includes `contact.html`, `VERSION`, `sidebar.js` and the four already
+agreed chart/Hex Map improvements. Those are approved release-scope decisions,
+not additional changes in this task. The existing promotion script's intentional
+removal of unready sidebar entries is acceptable and is not changed here.
 
-Do not promote TEST Archive contents, generated `.pages-site` files, CNAME,
-environment configuration or credentials. Apply the same source code to both
-LIVE sites and select their origins/indexing/entry visibility through deployment
-configuration. This PR makes no navigation or form redesign.
+Public LIVE initially needs the subscription page and necessary shared
+dependencies without the new News/Contact entry links. It must be accessible to
+canonical email links and can be indexed normally. Public entry/navigation
+links follow in the approved release. Do not create environment-specific
+application implementations. CNAME, existing deployment settings and the
+approved promotion transformation may differ; source controller/application
+code remains shared.
 
-## Deployment and rollback
+## Complete-file promotion dependencies
 
-No deployment is authorised or performed by this change. Before any later merge,
-set the required TEST variables: merging to main triggers Pages deployment.
-After separately authorised TEST deployment, inspect all four metadata URLs,
-robots content, unchanged form/navigation and real confirmation/manage/unsubscribe
-fragments. Real subscription/SMTP/Queue validation requires explicit permission
-to enable TEST delivery and exercise those services. The matching Media Worker
-must accept the TEST origin and generate canonical TEST website links.
+Promote these complete changed files:
 
-Restore a known-good Pages artifact and its matching configuration for rollback;
-do not alter subscriber data. Retain both fragment routes because previously
-issued links remain in mailboxes. Today's pre-existing Archive snapshots are
-retained without overwriting; the PR's base commit records the immediate
-pre-change source for exact rollback. Archive code is reference only.
+- `news-by-email/index.html`
+- `scripts/uk_aq_inject_media_email_config.mjs`
+- `.github/workflows/pages.yml`
+- This handover.
 
-Update authoritative `website_deployment/contract.md` with required site/indexing
-injection before hashing and fail-closed configuration; update
-`website_ui/news-email-subscription-ui-contract.md` with the standalone route,
-unadvertised public prelaunch page and configurable indexing/entry visibility.
-The Media contract needs the companion PR's origin/link changes. System docs
-were read only, and browser/SMTP/Queue acceptance remains pending deployment.
+A destination without the current standalone page also needs the matching
+unchanged `news/subscription-config.js`, `news/subscription.js`,
+`news/subscription.css`, `news/news.css`, `site-ui.css`, `bottom-nav.css`,
+`mobile.css`, `sidebar.js` and its shared dependencies. Retain controller
+loading on `news/index.html` for legacy email fragments, without introducing
+the public News subscription-entry markup ahead of its release.
+
+Required page assets include `images/favicon.ico`,
+`images/UK-AQ-social-share.png`, `images/UK-AQ-NEWS-BY-EMAIL-1line.svg`,
+`images/UK-AQ-NEWS-BY-EMAIL-2lines.svg` and `images/UK-AQ-back-arrow.svg`.
+Beta entry-link promotion additionally includes the matching `news/index.html`,
+`contact.html`, `VERSION`, `sidebar.js` and entry artwork
+`images/uk-aq-contact-white.png`, plus the agreed chart/Hex Map release files.
+Preserve the existing release manifest/promotion script for those improvements;
+this task does not change them. The canonical chart selection handover at
+`plans/2026-10-25_canonical_chart_selection_handover.md` lists that change's
+complete files and shared dependencies where applicable.
+
+The existing Pages workflow's other generators/injectors/hash helpers remain
+dependencies of promoting that complete workflow. No LIVE repository was read,
+so later authorised promotion must compare its current baseline to the TEST
+dependency set. Do not copy TEST CNAME, credentials, Archive contents or generated
+`.pages-site` artifacts into LIVE source.
+
+## Structural checks, deployment and rollback
+
+Local checks cover script/workflow parsing, CNAME-derived metadata, invalid or
+missing CNAME/API settings, unchanged page body and private-flow controller.
+Real browser, Turnstile, subscription, Queue and SMTP acceptance remains pending
+a separately authorised TEST deployment. No functional/browser suite is added.
+
+Before any later authorised merge/deployment, verify the staged TEST CNAME,
+existing email API origin/site key, Worker canonical website and hostname list
+all refer to TEST. A syntactically valid wrong CNAME or API origin cannot be
+identified as the wrong environment by generic source code; manual release
+review is necessary. Merging to main triggers Pages, so a review-ready PR is
+not approval to merge.
+
+After deployment approval, verify all four metadata URLs and normal indexing,
+then separately authorise real private-flow/subscription validation. Deploy the
+matching Media Worker with sending disabled; activation and real delivery need
+their own explicit TEST authorisation. Neither website has a separate subscriber
+database, and beta subscriptions must not require registration again at public
+launch.
+
+Rollback restores matching known-good Pages artifacts, Worker/optional sender
+and environment configuration without altering subscriber records or issued
+token semantics. Keep direct and legacy fragment routes. Today's exact
+pre-change snapshots are reference only; older archives remain unchanged.
+
+## Authoritative system-doc handover
+
+Update `website_deployment/contract.md` with CNAME-derived site metadata and the
+existing API/site-key injection before hashing, validation failure behaviour and
+unchanged CNAME/environment ownership. Update
+`website_ui/news-email-subscription-ui-contract.md` with the standalone/direct
+route, normally indexable public prelaunch page, private-flow noindex behaviour,
+beta/public entry-link staging and unchanged form/navigation behaviour.
+Media's handover covers shared hostname authority, canonical links and manual
+environment review. Authoritative system docs were read only.

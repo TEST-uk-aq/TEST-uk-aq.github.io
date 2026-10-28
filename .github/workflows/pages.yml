@@ -90,8 +90,6 @@ jobs:
           UK_AQ_SITE_NOTICE_URL: ${{ vars.UK_AQ_SITE_NOTICE_URL }}
           UK_AQ_BLOG_FEED_URL: ${{ vars.UK_AQ_BLOG_FEED_URL || '' }}
           UK_AQ_MEDIA_EMAIL_PUBLIC_URL: ${{ vars.UK_AQ_MEDIA_EMAIL_PUBLIC_URL }}
-          UK_AQ_SITE_ORIGIN: ${{ vars.UK_AQ_SITE_ORIGIN }}
-          UK_AQ_NEWS_EMAIL_INDEXABLE: ${{ vars.UK_AQ_NEWS_EMAIL_INDEXABLE }}
           UK_AQ_TURNSTILE_SITE_KEY: ${{ secrets.UK_AQ_TURNSTILE_SITE_KEY }}
         run: |
           set -euo pipefail

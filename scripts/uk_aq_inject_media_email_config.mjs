@@ -8,8 +8,18 @@ const PLACEHOLDER = '"__UK_AQ_MEDIA_EMAIL_PUBLIC_URL__"';
 const TURNSTILE_PLACEHOLDER = '"__UK_AQ_TURNSTILE_SITE_KEY__"';
 const CONFIG_PATH = "news/subscription-config.js";
 const PAGE_PATH = "news-by-email/index.html";
-const SITE_PLACEHOLDER = '__UK_AQ_SITE_ORIGIN__';
-const ROBOTS_PLACEHOLDER = '__UK_AQ_NEWS_EMAIL_ROBOTS__';
+const SITE_PLACEHOLDER = '__UK_AQ_CNAME_ORIGIN__';
+
+function cnameOrigin(value) {
+  const hostname = value.trim().toLowerCase();
+  const invalid = 'CNAME must contain exactly one valid hostname without URL syntax, paths, ports or wildcards.';
+  if (!hostname || hostname.length > 253 || !hostname.split('.').every(label =>
+    /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))) throw new Error(invalid);
+  let url;
+  try { url = new URL(`https://${hostname}`); } catch { throw new Error(invalid); }
+  if (url.hostname !== hostname) throw new Error(invalid);
+  return url.origin;
+}
 
 function httpsOrigin(value, name) {
   const invalid = `${name} must be a canonical HTTPS origin without credentials, path, query or fragment.`;
@@ -34,11 +44,6 @@ async function main() {
   }
 
   const apiOrigin = httpsOrigin(process.env.UK_AQ_MEDIA_EMAIL_PUBLIC_URL, 'UK_AQ_MEDIA_EMAIL_PUBLIC_URL');
-  const siteOrigin = httpsOrigin(process.env.UK_AQ_SITE_ORIGIN, 'UK_AQ_SITE_ORIGIN');
-  const indexable = process.env.UK_AQ_NEWS_EMAIL_INDEXABLE;
-  if (indexable !== 'true' && indexable !== 'false') {
-    throw new Error('UK_AQ_NEWS_EMAIL_INDEXABLE must be explicitly true or false.');
-  }
   const siteKey = (process.env.UK_AQ_TURNSTILE_SITE_KEY || '').trim();
   if (!siteKey || siteKey === '__UK_AQ_TURNSTILE_SITE_KEY__') {
     throw new Error('Missing UK_AQ_TURNSTILE_SITE_KEY for Media email configuration.');
@@ -49,6 +54,12 @@ async function main() {
   if (path.basename(targetRoot) !== ".pages-site" || !rootStat.isDirectory() || rootStat.isSymbolicLink()) {
     throw new Error("Unsafe target: staging target must be a real directory named .pages-site.");
   }
+  const cnamePath = path.join(targetRoot, 'CNAME');
+  const cnameStat = await fs.lstat(cnamePath);
+  if (!cnameStat.isFile() || cnameStat.isSymbolicLink()) {
+    throw new Error('Staged CNAME must be a real file.');
+  }
+  const siteOrigin = cnameOrigin(await fs.readFile(cnamePath, 'utf8'));
   const configPath = path.join(targetRoot, CONFIG_PATH);
   const configStat = await fs.lstat(configPath);
   if (!configStat.isFile() || configStat.isSymbolicLink()) {
@@ -67,8 +78,8 @@ async function main() {
     throw new Error(`Staged ${PAGE_PATH} must be a real file.`);
   }
   const page = await fs.readFile(pagePath, 'utf8');
-  if (page.split(SITE_PLACEHOLDER).length !== 5 || page.split(ROBOTS_PLACEHOLDER).length !== 2) {
-    throw new Error(`Expected four site origin placeholders and one robots placeholder in staged ${PAGE_PATH}.`);
+  if (page.split(SITE_PLACEHOLDER).length !== 5) {
+    throw new Error(`Expected four CNAME origin placeholders in staged ${PAGE_PATH}.`);
   }
   // Replace the entire JS string literal; the callback avoids replacement-pattern
   // expansion. origin removes the optional trailing slash used by API callers.
@@ -76,9 +87,7 @@ async function main() {
     .replace(PLACEHOLDER, () => JSON.stringify(apiOrigin))
     .replace(TURNSTILE_PLACEHOLDER, () => JSON.stringify(siteKey));
   await fs.writeFile(configPath, updated, "utf8");
-  await fs.writeFile(pagePath, page
-    .replaceAll(SITE_PLACEHOLDER, () => siteOrigin)
-    .replace(ROBOTS_PLACEHOLDER, () => indexable === 'true' ? 'index, follow' : 'noindex, nofollow'), 'utf8');
+  await fs.writeFile(pagePath, page.replaceAll(SITE_PLACEHOLDER, () => siteOrigin), 'utf8');
   console.log(`Injected public Media email configuration into staged ${CONFIG_PATH}.`);
 }
 
