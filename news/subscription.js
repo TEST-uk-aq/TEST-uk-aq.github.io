@@ -377,6 +377,8 @@
           if (surface === 'confirm') {
             secureToken = '';
             announce('Your AQ in the News email subscription is active. ' + describePreference(result));
+            // Reveal the News link only after confirmation has succeeded.
+            resultActions.hidden = false;
           } else {
             setPreferences(result);
             form.hidden = false;
