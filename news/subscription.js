@@ -45,7 +45,7 @@
   const showResult = (message, error = false) => {
     form.hidden = true;
     unsubscribeActions.hidden = true;
-    resultActions.hidden = surface === 'unsubscribe';
+    resultActions.hidden = surface !== 'subscribe';
     announce(message, error);
   };
   // Widget progress must never overwrite an API error or subscription result.
@@ -355,8 +355,8 @@
     window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
 
     form.hidden = true;
-    // Manage loads a form, not a result. Hide the return action until an error needs it.
-    resultActions.hidden = surface !== 'confirm';
+    // Email link surfaces use the shared News navigation rather than a return button.
+    resultActions.hidden = true;
     heading.hidden = false;
     if (surface === 'manage') {
       heading.textContent = 'Email preferences';
@@ -367,7 +367,6 @@
     }
 
     if (!/^[a-f0-9]{64}$/.test(secureToken)) {
-      resultActions.hidden = surface === 'unsubscribe';
       announce('This link has expired or is no longer valid. Please return to AQ in the News to request a new subscription confirmation.', true);
     } else if (surface === 'unsubscribe') {
       showUnsubscribeConfirmation();
@@ -394,10 +393,7 @@
             announce('Current preference: ' + describePreference(result));
           }
         })
-        .catch(error => {
-          if (surface === 'manage') resultActions.hidden = false;
-          announce(error.message, true);
-        });
+        .catch(error => announce(error.message, true));
     }
   } else {
     void loadWidget();
