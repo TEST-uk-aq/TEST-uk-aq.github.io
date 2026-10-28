@@ -51,8 +51,8 @@
 
     <section class="news-subscription" id="news-email-panel" aria-labelledby="news-email-title">
       <div class="news-email-content">
-        <h2 id="news-email-heading" hidden></h2>
-        <p id="news-email-status" role="status" aria-live="polite" hidden></p>
+        <h2 id="news-email-heading" tabindex="-1" hidden></h2>
+        <p id="news-email-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
 
         <form id="news-email-form">
           <div class="news-email-column news-email-preferences">
@@ -93,15 +93,60 @@
               <button id="news-email-verification-retry" type="button" hidden>Retry verification</button>
             </div>
             <div class="news-email-buttons">
-              <a class="news-email-cancel" href="/news/">Cancel</a>
+              <button id="news-email-manage-unsubscribe" class="news-email-secondary" type="button" hidden>Unsubscribe</button>
               <button id="news-email-submit" type="submit" disabled>Subscribe</button>
             </div>
           </div>
         </form>
 
-        <button id="news-email-unsubscribe" type="button" hidden>Unsubscribe</button>
+        <div class="news-email-buttons" id="news-email-unsubscribe-actions" hidden>
+          <button id="news-email-keep-subscription" class="news-email-secondary" type="button">Keep subscription</button>
+          <button id="news-email-unsubscribe" type="button">Unsubscribe</button>
+        </div>
         <p id="news-email-result-actions" hidden><a href="/news/" id="news-email-return" class="news-email-cta news-email-return-button"><img src="/images/UK-AQ-back-arrow.svg" alt="" aria-hidden="true">Back to AQ in the News</a></p>
         <noscript><p>Email subscriptions require JavaScript to load the secure form. <a href="/news/">Back to AQ in the News</a></p></noscript>
+      </div>
+    </section>
+
+    <section class="ukaq-bottom-nav" aria-label="Explore UK AQ">
+      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
+        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">
+            Compare latest pollutant readings by UK constituencies, countries, and local authorities.
+          </p>
+        </a>
+        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+            </span>
+            <span class="ukaq-bottom-nav-title-switch">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+            </span>
+          </div>
+          <p class="ukaq-bottom-nav-description">
+            View sensor locations and readings on an interactive UK map.
+          </p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-NEWS-1line.svg" alt="AQ in the News">
+          </div>
+          <p class="ukaq-bottom-nav-description">
+            Air quality news from the UK and around the world, covering air pollution and its effects on health.
+          </p>
+        </a>
       </div>
     </section>
   </main>
