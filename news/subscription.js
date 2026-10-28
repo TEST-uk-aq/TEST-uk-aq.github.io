@@ -265,7 +265,7 @@
           turnstile_token: challenge,
           consent_text_version: config.consentTextVersion,
         });
-        showResult("If this address can be subscribed, please check the inbox for a confirmation email. If you don't see it, please check your Junk or Spam folder.");
+        showResult("If this address can be subscribed, please check the inbox for a confirmation email.\nIf you don't see it, please check your Junk or Spam folder.");
       }
     } catch (error) {
       announce(error.message, true);
