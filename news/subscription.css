@@ -14,7 +14,9 @@ body[data-page-slug="news"] .news-feed { margin-top: 16px; }
 .news-email-content:has(#news-email-result-actions:not([hidden])) #news-email-status { margin-bottom: .35rem; }
 .news-email-return-button img { display: block; width: 20px; height: 20px; flex: 0 0 auto; object-fit: contain; filter: brightness(0) invert(1); }
 .news-email-page .news-subscription { margin-top: 1.75rem; }
-.news-email-page .news-main { width: min(100%, 1080px); }
+/* Let navigation use the News shell; retain the former 1080px shell's inner width. */
+.news-email-page .news-email-intro,
+.news-email-page .news-subscription { max-width: 1024px; margin-inline: auto; }
 .news-email-title { margin: 0; }
 .news-subscription summary { cursor: pointer; padding: .8rem 1rem; border: 1px solid #bbcbd7; border-radius: .6rem; font-weight: 600; color: #153c57; min-height: 44px; box-sizing: border-box; }
 .news-email-content { padding: 1.5rem; background: #f5f8fa; border-radius: .6rem; overflow-wrap: anywhere; container-type: inline-size; }
