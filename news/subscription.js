@@ -37,16 +37,23 @@
   let loadingWidget = false;
   let submitting = false;
 
-  const announce = (message, error = false) => {
-    status.textContent = message;
+  const announce = (message, error = false, followUp = '') => {
+    if (followUp) {
+      const followUpSpan = document.createElement('span');
+      followUpSpan.className = 'news-email-follow-up';
+      followUpSpan.textContent = followUp;
+      status.replaceChildren(document.createTextNode(message + ' '), followUpSpan);
+    } else {
+      status.textContent = message;
+    }
     status.dataset.error = String(error);
     status.hidden = !message;
   };
-  const showResult = (message, error = false) => {
+  const showResult = (message, error = false, followUp = '') => {
     form.hidden = true;
     unsubscribeActions.hidden = true;
     resultActions.hidden = surface !== 'subscribe';
-    announce(message, error);
+    announce(message, error, followUp);
   };
   // Widget progress must never overwrite an API error or subscription result.
   const verificationMessage = (message, error = false) => {
@@ -265,7 +272,11 @@
           turnstile_token: challenge,
           consent_text_version: config.consentTextVersion,
         });
-        showResult("If this address can be subscribed, please check the inbox for a confirmation email.\nIf you don't see it, please check your Junk or Spam folder.");
+        showResult(
+          'If this address can be subscribed, please check the inbox for a confirmation email.',
+          false,
+          "If you don't see it, please check your Junk or Spam folder."
+        );
       }
     } catch (error) {
       announce(error.message, true);
