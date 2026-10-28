@@ -109,7 +109,7 @@ body[data-page-slug="news"] .news-feed { margin-top: 16px; }
 .news-email-content .news-email-secondary:hover:not(:disabled) { background: #e6eef5; }
 #news-email-consent p { margin: 0; }
 #news-email-consent .news-email-no-wrap { white-space: nowrap; }
-#news-email-status { margin: 0 0 1.25rem; }
+#news-email-status { margin: 0 0 1.25rem; white-space: pre-line; }
 #news-email-verification { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
 #news-email-verification-status { margin: 0 0 .5rem; color: #526273; align-self: stretch; text-align: right; }
 .news-subscription :focus-visible { outline: 3px solid #1378b5; outline-offset: 3px; }
