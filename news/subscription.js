@@ -52,7 +52,7 @@
   const showResult = (message, error = false, followUp = '') => {
     form.hidden = true;
     unsubscribeActions.hidden = true;
-    resultActions.hidden = surface !== 'subscribe';
+    resultActions.hidden = surface !== 'subscribe' && surface !== 'unsubscribe';
     announce(message, error, followUp);
   };
   // Widget progress must never overwrite an API error or subscription result.
@@ -304,7 +304,8 @@
     heading.textContent = 'Unsubscribe from News Emails';
     unsubscribeActions.hidden = false;
     announce('Are you sure you want to unsubscribe from AQ in the News emails?');
-    heading.focus();
+    // Move focus for the in-page Manage transition, not initial email-link loading.
+    if (fromManage) heading.focus({ preventScroll: true });
   }
 
   manageUnsubscribe.addEventListener('click', () => {
@@ -366,7 +367,7 @@
     window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
 
     form.hidden = true;
-    // Email link surfaces use the shared News navigation rather than a return button.
+    // Keep the News return button hidden until a completed result.
     resultActions.hidden = true;
     heading.hidden = false;
     if (surface === 'manage') {
