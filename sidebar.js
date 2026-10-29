@@ -1185,6 +1185,14 @@
 
     siteVersionReady = loadSiteVersion();
     const footerStylesReady = await ensureSiteFooterStyles();
+
+    // Wait for page content to be parsed before appending the footer after it.
+    if (document.readyState === 'loading') {
+      await new Promise((resolve) => {
+        document.addEventListener('DOMContentLoaded', resolve, { once: true });
+      });
+    }
+
     const footer = mountSiteFooter();
     if (isNaeiDataPage() || isInformationOnlyFooterPage()) {
       finaliseFooterAttributionLayout();
