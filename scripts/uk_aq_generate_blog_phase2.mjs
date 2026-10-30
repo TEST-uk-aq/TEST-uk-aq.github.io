@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { detectSupportedImage } from "./uk_aq_social_image_metadata.mjs";
 
 const nodeProcess = globalThis.process;
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
@@ -24,7 +25,6 @@ const LIMITS = Object.freeze({
   authorLength: 160,
   slugLength: 120,
   urlLength: 2_048,
-  imageDimension: 12_000,
 });
 
 async function main() {
@@ -314,59 +314,6 @@ async function readBoundedResponse(response, maximumBytes, label) {
   return bytes;
 }
 
-function detectSupportedImage(input) {
-  const bytes = Buffer.from(input);
-  let image;
-  if (
-    bytes.length >= 24
-    && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
-    && bytes.toString("ascii", 12, 16) === "IHDR"
-  ) {
-    image = { extension: "png", width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
-  } else if (bytes.length >= 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
-    image = readJpegDimensions(bytes);
-  } else {
-    throw new Error("downloaded bytes are not a supported PNG or JPEG image");
-  }
-
-  if (
-    !Number.isInteger(image.width)
-    || !Number.isInteger(image.height)
-    || image.width < 1
-    || image.height < 1
-    || image.width > LIMITS.imageDimension
-    || image.height > LIMITS.imageDimension
-  ) {
-    throw new Error("image dimensions are invalid or exceed the safety limit");
-  }
-  return image;
-}
-
-function readJpegDimensions(bytes) {
-  let offset = 2;
-  while (offset + 4 <= bytes.length) {
-    while (offset < bytes.length && bytes[offset] !== 0xff) offset += 1;
-    while (offset < bytes.length && bytes[offset] === 0xff) offset += 1;
-    if (offset >= bytes.length) break;
-    const marker = bytes[offset];
-    offset += 1;
-    if (marker === 0xd9 || marker === 0xda) break;
-    if (offset + 2 > bytes.length) break;
-    const segmentLength = bytes.readUInt16BE(offset);
-    if (segmentLength < 2 || offset + segmentLength > bytes.length) break;
-    if ([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf].includes(marker)) {
-      if (segmentLength < 7) break;
-      return {
-        extension: "jpg",
-        height: bytes.readUInt16BE(offset + 3),
-        width: bytes.readUInt16BE(offset + 5),
-      };
-    }
-    offset += segmentLength;
-  }
-  throw new Error("JPEG dimensions could not be validated");
-}
-
 function renderBlogCard(post) {
   const sharePath = `/blog/${post.slug}/`;
   const title = escapeHtml(post.title);
@@ -393,6 +340,11 @@ async function writeSharePage(targetRoot, siteOrigin, post) {
   const sharePath = `/blog/${post.slug}/`;
   const shareUrl = new URL(sharePath, siteOrigin).href;
   const imageUrl = new URL(post.image_path, siteOrigin).href;
+  // Only an actual article image overrides automatic route-image discovery.
+  // Keep the existing Blog card fallback; the finaliser owns share-image fallback.
+  const imageOverride = post.image_path !== FALLBACK_IMAGE_PATH
+    ? `<meta name="uk-aq-og-image" content="${escapeHtml(post.image_path)}">`
+    : "";
   const destinationJson = JSON.stringify(post.canonical_url).replace(/</g, "\\u003c");
   const html = `<!DOCTYPE html>
 <html lang="en-GB">
@@ -401,6 +353,7 @@ async function writeSharePage(targetRoot, siteOrigin, post) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,follow">
   <meta name="description" content="${escapeHtml(post.description)}">
+  ${imageOverride}
   <meta property="og:type" content="article">
   <meta property="og:title" content="${escapeHtml(post.title)}">
   <meta property="og:description" content="${escapeHtml(post.description)}">
