@@ -59,15 +59,44 @@ jobs:
             url.pathname = `${url.pathname.slice(0, -"/feed".length)}/refresh`;
             process.stdout.write(url.href);
           ')"
-          curl --fail-with-body --silent --show-error \
+          # Show only bounded, JSON-escaped diagnostic fields from the Worker.
+          # Never print the full response, URL or authentication header.
+          show_refresh_diagnostics() {
+            if jq -e 'type == "object"' /tmp/uk_aq_blog_refresh.json >/dev/null 2>&1; then
+              jq -c '{
+                worker_error: (if (.error | type) == "string" then .error[:300] else null end),
+                worker_message: (if (.message | type) == "string" then .message[:300] else null end)
+              }' /tmp/uk_aq_blog_refresh.json
+            else
+              echo "Blog refresh response is missing or not a JSON object (body omitted)."
+            fi
+          }
+          if http_status="$(curl --fail-with-body --silent --show-error \
             --connect-timeout 15 \
             --max-time 120 \
             --request POST \
             --header "x-uk-aq-worker-http-secret: ${UK_AQ_BLOG_WORKER_HTTP_SECRET}" \
             --output /tmp/uk_aq_blog_refresh.json \
-            "${refresh_url}"
-          jq -e '.ok == true and (.post_count | type == "number") and .post_count > 0' \
-            /tmp/uk_aq_blog_refresh.json >/dev/null
+            --write-out '%{http_code}' \
+            "${refresh_url}")"; then
+            :
+          else
+            curl_exit=$?
+            echo "::error::UK AQ Blog refresh request failed (HTTP ${http_status:-unknown}, curl exit ${curl_exit})."
+            show_refresh_diagnostics
+            exit "$curl_exit"
+          fi
+          if [ "$http_status" != "200" ]; then
+            echo "::error::UK AQ Blog refresh returned unexpected HTTP ${http_status}."
+            show_refresh_diagnostics
+            exit 1
+          fi
+          if ! jq -e '.ok == true and (.post_count | type == "number") and .post_count > 0' \
+            /tmp/uk_aq_blog_refresh.json >/dev/null; then
+            echo "::error::UK AQ Blog refresh response did not contain a valid success payload."
+            show_refresh_diagnostics
+            exit 1
+          fi
           echo "UK AQ Blog feed refresh succeeded."
 
       - name: Verify AQI history base secret
