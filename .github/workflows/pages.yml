@@ -97,6 +97,11 @@ jobs:
             show_refresh_diagnostics
             exit 1
           fi
+          # Surface fixed, content-free diagnostics from the authenticated refresh.
+          jq -c '{
+            source_last_build_date: (if (.source_last_build_date | type) == "string" then .source_last_build_date else null end),
+            newest_post_description_chars: (if (.newest_post_description_chars | type) == "number" then .newest_post_description_chars else null end)
+          }' /tmp/uk_aq_blog_refresh.json
           echo "UK AQ Blog feed refresh succeeded."
 
       - name: Verify AQI history base secret
