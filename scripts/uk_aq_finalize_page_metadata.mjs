@@ -9,6 +9,7 @@ const DEFAULT_IMAGE_PATH = "/images/UK-AQ-OG-Images-homepage.png";
 const DEFAULT_IMAGE_ALT = "UK AQ live and historical air quality data from multiple air quality networks across the UK.";
 const EXCLUDED_PATHS = new Set([
   "compressed-chart-history-test/index.html",
+  "historical-json-chart-test/index.html",
   "wood-burning/shun-bc-october-2025-animation-prep.html",
 ]);
 

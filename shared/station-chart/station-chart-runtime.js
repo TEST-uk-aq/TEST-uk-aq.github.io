@@ -7,6 +7,7 @@ import pollutantContext from "./pollutant-context-controller-module.js";
 import historyLoader from "./station-history-loader-module.js";
 import calculatedClient from "./station-history-client-module.js";
 import compatibilityClient from "./station-history-compatibility-client-module.js";
+import historicalJsonClient from "./historical-json-client.js";
 import renderer from "./station-chart-renderer-module.js";
 import controller from "./station-chart-controller-module.js";
 
@@ -20,6 +21,7 @@ const stationChartRuntime = Object.freeze({
   historyLoader,
   calculatedClient,
   compatibilityClient,
+  historicalJsonClient,
   renderer,
   controller,
 });
@@ -34,6 +36,7 @@ export {
   historyLoader,
   calculatedClient,
   compatibilityClient,
+  historicalJsonClient,
   renderer,
   controller,
 };

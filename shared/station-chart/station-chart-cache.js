@@ -23,7 +23,8 @@
   function normalizeObservationPoint(row) {
     const date = domain.toDate(row?.observed_at || row?.observed_at_utc);
     const value = Number(row?.value ?? row?.value_ugm3 ?? row?.observed_value);
-    return date && Number.isFinite(value) && value >= 0 ? { date, value } : null;
+    return date && Number.isFinite(value) && value >= 0
+      ? { date, value, ...(typeof row?.chart_observation_id === "string" ? { observation_id: row.chart_observation_id } : {}) } : null;
   }
 
   function aqiEquivalent(left, right) {
@@ -76,11 +77,11 @@
     const byTimestamp = new Map();
     (Array.isArray(existingPoints) ? existingPoints : []).forEach(function (point) {
       const date = domain.toDate(point?.date);
-      if (date) byTimestamp.set(date.getTime(), point);
+      if (date) byTimestamp.set(point?.observation_id ? `${date.getTime()}|${point.observation_id}` : date.getTime(), point);
     });
     (Array.isArray(incomingPoints) ? incomingPoints : []).forEach(function (point) {
       const date = domain.toDate(point?.date);
-      if (date) byTimestamp.set(date.getTime(), point);
+      if (date) byTimestamp.set(point?.observation_id ? `${date.getTime()}|${point.observation_id}` : date.getTime(), point);
     });
     return Array.from(byTimestamp.values()).sort(function (left, right) {
       return left.date.getTime() - right.date.getTime();
@@ -550,8 +551,37 @@
     return keys.length;
   }
 
+  // Versioned immutable transport storage belongs to the shared chart cache too.
+  // Only completed values are retained: one request's AbortSignal never owns another's work.
+  function createHistoricalJsonCache(maxBytes = 64 * 1024 * 1024, maxEntries = 48) {
+    const values = new Map();
+    let bytes = 0;
+    return Object.freeze({
+      get(key) {
+        const entry = values.get(key);
+        if (!entry) return null;
+        values.delete(key); values.set(key, entry);
+        return entry.value;
+      },
+      set(key, value, byteSize = 0) {
+        const size = Math.max(0, Number(byteSize) || 0);
+        if (size > maxBytes) return;
+        if (values.has(key)) { bytes -= values.get(key).size; values.delete(key); }
+        values.set(key, { value, size }); bytes += size;
+        while (values.size > maxEntries || bytes > maxBytes) {
+          const oldest = values.keys().next().value;
+          bytes -= values.get(oldest).size; values.delete(oldest);
+        }
+      },
+      clear() { values.clear(); bytes = 0; },
+    });
+  }
+  const historicalJsonCache = createHistoricalJsonCache();
+
   return {
     CACHE_CONTRACT_VERSION,
+    createHistoricalJsonCache,
+    historicalJsonCache,
     normalizeObservationPoint,
     mergeAqiWithoutReplacement,
     replaceAuthoritativeAqiHead,

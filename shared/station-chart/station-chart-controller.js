@@ -220,11 +220,12 @@
     const clients = {
       calculated: options.calculatedClient,
       compatibility: options.compatibilityClient,
+      provider: options.dataClient || null,
     };
     if (!renderer || !clients.calculated || !clients.compatibility) {
       throw new Error("station_chart_controller_configuration_missing");
     }
-    [clients.calculated, clients.compatibility].forEach(function (client) {
+    Object.values(clients).filter(Boolean).forEach(function (client) {
       if (!client?.loadCurrent || !client?.loadOlder || !client?.prefetchAqi) {
         throw new Error("station_chart_client_interface_invalid");
       }
@@ -246,7 +247,9 @@
     let sourceAbortController = null;
     let destroyed = false;
     let mounted = false;
-    let clientKind = options.useCompatibility === true ? "compatibility" : "calculated";
+    let clientKind = options.dataClient ? "provider" : options.useCompatibility === true ? "compatibility" : "calculated";
+    let selectionTimer = null;
+    let providerContext = null;
     let renderRevision = 0;
     let loading = false;
     let chartPollutant = null;
@@ -256,7 +259,9 @@
     }
 
     function recordKey(entry) {
-      return domain.buildStationHistoryCacheKey(entry, options.cacheContract || cache.CACHE_CONTRACT_VERSION);
+      const providerIdentity = client().cacheIdentity?.(entry, range, providerContext);
+      const contract = options.cacheContract || cache.CACHE_CONTRACT_VERSION;
+      return domain.buildStationHistoryCacheKey(entry, providerIdentity ? `${contract}|${client().kind}|${providerIdentity}` : contract);
     }
 
     function recordFor(entry) {
@@ -317,6 +322,7 @@
         pollutant: entry.pollutant,
         start_utc: requestedRange.startIso,
         end_utc: requestedRange.endIso,
+        ...(providerContext ? { data_client_context: providerContext } : {}),
         include_observations: parts.observations === true,
         include_aqi: parts.aqi === true,
         window: options.getWindowLabel?.() || null,
@@ -592,8 +598,26 @@
       return work;
     }
 
+    function scheduleSelectionCheck() {
+      clearTimeout(selectionTimer);
+      if (destroyed || !client().selectionExpiresAt || (typeof document !== "undefined" && document.hidden)) return;
+      const deadline = client().selectionExpiresAt(providerContext);
+      if (!Number.isFinite(deadline)) return;
+      const remaining = deadline - performance.now();
+      // An unsuccessful recheck remains visibly unavailable and retries on a bounded delay.
+      selectionTimer = setTimeout(function () { void load("publication-check"); }, remaining > 0 ? remaining : 60000);
+    }
+    function selectionVisibilityChanged() {
+      if (document.hidden) { clearTimeout(selectionTimer); return; }
+      if (!client().selectionExpiresAt) return;
+      if (performance.now() >= client().selectionExpiresAt(providerContext)) void load("publication-check");
+      else scheduleSelectionCheck();
+    }
+    if (options.dataClient && typeof document !== "undefined") document.addEventListener("visibilitychange", selectionVisibilityChanged);
+
     async function load(reason, loadOptions = {}) {
       if (destroyed || !mounted || !range) return null;
+      clearTimeout(selectionTimer);
       activeAbortController?.abort();
       backgroundAbortControllers.forEach(function (controller) { controller.abort(); });
       backgroundAbortControllers.clear();
@@ -645,9 +669,11 @@
         aqi_source_id: source?.station_id || null,
       });
       renderer.clearProgress?.();
-      loading = true;
-      renderer.setLoading?.(true, { reason, generation });
-      if (loadOptions.preserveMessage !== true) options.onMessage?.("");
+      if (reason !== "publication-check") {
+        loading = true;
+        renderer.setLoading?.(true, { reason, generation });
+        if (loadOptions.preserveMessage !== true) options.onMessage?.("");
+      }
       if (!isCurrent()) {
         contextGuard?.signal?.removeEventListener?.("abort", abortForContext);
         if (activeAbortController === abortController) activeAbortController = null;
@@ -688,6 +714,16 @@
         });
       }
       try {
+        if (client().prepareLoad) {
+          const prepared = await client().prepareLoad(selection, range, { reason, signal: abortController.signal });
+          if (!isCurrent()) return null;
+          providerContext = prepared?.context || null;
+          if (reason === "publication-check" && prepared?.changed === false) return currentState({ reason, selection_unchanged: true });
+          if (reason === "publication-check") {
+            loading = true;
+            renderer.setLoading?.(true, { reason, generation });
+          }
+        }
         if (["window-change", "refresh"].includes(reason)) {
           renderer.animateDomains?.(currentState({ reason, generation, loading: true }));
         }
@@ -777,6 +813,7 @@
           loading = false;
           renderer.clearProgress?.();
           if (contextGuardCurrent(contextGuard)) renderer.setLoading?.(false, { reason, generation });
+          scheduleSelectionCheck();
         }
       }
     }
@@ -961,6 +998,8 @@
     }
 
     function destroy() {
+      clearTimeout(selectionTimer);
+      if (options.dataClient && typeof document !== "undefined") document.removeEventListener("visibilitychange", selectionVisibilityChanged);
       if (destroyed) return;
       destroyed = true;
       mounted = false;
