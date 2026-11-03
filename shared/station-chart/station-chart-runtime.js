@@ -8,6 +8,7 @@ import historyLoader from "./station-history-loader-module.js";
 import calculatedClient from "./station-history-client-module.js";
 import compatibilityClient from "./station-history-compatibility-client-module.js";
 import historicalJsonClient from "./historical-json-client.js";
+import hybridHistoryClient from "./hybrid-history-client.js";
 import renderer from "./station-chart-renderer-module.js";
 import controller from "./station-chart-controller-module.js";
 
@@ -22,6 +23,7 @@ const stationChartRuntime = Object.freeze({
   calculatedClient,
   compatibilityClient,
   historicalJsonClient,
+  hybridHistoryClient,
   renderer,
   controller,
 });
@@ -37,6 +39,7 @@ export {
   calculatedClient,
   compatibilityClient,
   historicalJsonClient,
+  hybridHistoryClient,
   renderer,
   controller,
 };
