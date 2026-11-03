@@ -8,6 +8,8 @@
     "7d":  12 * 60 * 60 * 1000,       // every 12 h → ~14 symbols
     "31d": 3 * 24 * 60 * 60 * 1000,   // every 3 d  → ~10 symbols
     "90d": 7 * 24 * 60 * 60 * 1000,   // every 7 d  → ~13 symbols
+    "30d": 3 * 24 * 60 * 60 * 1000,   // comparison: September, same monthly symbol density
+    "61d": 7 * 24 * 60 * 60 * 1000,   // comparison: August–September, same two-month density
   };
 
   var SYMBOL_GLYPHS = ["■", "▲", "◆", "★"];

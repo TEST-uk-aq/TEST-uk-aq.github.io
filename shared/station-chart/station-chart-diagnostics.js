@@ -88,20 +88,57 @@
   }
 
   function createMeasuredFetch(fetchApi, record) {
+    let requestId = 0;
     return async function (url, init) {
-      const began = performance.now();
-      const response = await fetchApi(url, init);
+      const began = performance.now(), targetUrl = new URL(url), query = targetUrl.searchParams;
+      const calculated = /\/(station-series|timeseries)$/.test(targetUrl.pathname);
+      // Retain only public request identity/ranges, never auth query values or headers.
+      const request = { request_id: ++requestId, route: targetUrl.pathname,
+        request_kind: calculated ? (query.has("stable_head_start_utc") ? "older_history" : "initial_stable_head") : "monthly_json",
+        ...Object.fromEntries(["connector_id", "timeseries_id", "pollutant", "start_utc", "end_utc",
+          "stable_head_start_utc", "include_observations", "include_aqi", "month", "pub_id"]
+          .filter(key => query.has(key)).map(key => [key, query.get(key)])) };
+      record({ type: "request_started", ...request });
+      let response;
+      try { response = await fetchApi(url, init); }
+      catch (error) {
+        record({ type: "request_failed", ...request, status: null, phase: "headers",
+          outcome: error?.name === "AbortError" ? "aborted" : "network_error",
+          settlement_ms: performance.now() - began, error: error?.message || String(error) });
+        throw error;
+      }
       const headersAt = performance.now();
-      record({ type: "response", route: new URL(url).pathname, headers_ms: headersAt - began, status: response.status,
+      record({ type: "response", ...request, headers_ms: headersAt - began, status: response.status,
+        chunk_start_utc: response.headers.get("X-UK-AQ-Chunk-Start"), chunk_end_utc: response.headers.get("X-UK-AQ-Chunk-End"),
         cache: response.headers.get("X-UK-AQ-Cache") || response.headers.get("CF-Cache-Status"),
         content_length: response.headers.get("Content-Length"), server_timing: response.headers.get("Server-Timing") });
       return new Proxy(response, { get(target, property) {
-        if (property === "json") return async function () {
-          const text = await target.text(), receivedAt = performance.now(), value = JSON.parse(text);
-          record({ type: "body", route: new URL(url).pathname, transfer_ms: receivedAt - headersAt,
-            parse_ms: performance.now() - receivedAt, decoded_bytes: new TextEncoder().encode(text).length,
-            resource_timing: resourceTimingFor(url) });
-          return value;
+        if (property === "json" || property === "text") return async function () {
+          try {
+            const text = await target.text(), receivedAt = performance.now();
+            const value = property === "json" ? JSON.parse(text) : text;
+            const parseMs = performance.now() - receivedAt;
+            record({ type: "body", ...request, status: target.status, transfer_ms: receivedAt - headersAt,
+              parse_ms: parseMs, decoded_bytes: new TextEncoder().encode(text).length,
+              resource_timing: resourceTimingFor(url) });
+            if (calculated && property === "json") {
+              const metadata = section => Object.fromEntries(Object.entries(section || {})
+                .filter(([key]) => !["rows", "points", "data"].includes(key)));
+              record({ type: "calculated_source", ...request, status: target.status,
+                identity: value?.identity || value?.request, chunk: value?.chunk, source: value?.source,
+                response_complete: value?.response_complete, partial_reasons: value?.partial_reasons,
+                observation_complete: value?.observations?.response_complete, aqi_complete: value?.aqi?.response_complete,
+                observations: metadata(value?.observations), aqi: metadata(value?.aqi) });
+            }
+            record({ type: target.ok ? "request_settled" : "request_failed", ...request, status: target.status,
+              outcome: target.ok ? "received" : "http_error", settlement_ms: performance.now() - began });
+            return value;
+          } catch (error) {
+            record({ type: "request_failed", ...request, status: target.status, phase: "body",
+              outcome: error?.name === "AbortError" ? "aborted" : "body_or_parse_error",
+              settlement_ms: performance.now() - began, error: error?.message || String(error) });
+            throw error;
+          }
         };
         const value = Reflect.get(target, property, target);
         return typeof value === "function" ? value.bind(target) : value;
