@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>TEST historical JSON chart comparison</title>
+  <link rel="stylesheet" href="./viewer.css">
+</head>
+<body>
+  <h1>TEST historical JSON chart comparison</h1>
+  <p>AURN PM10 · physical timeseries 43 · station 1581 · August 2026. Protected historical comparison using the shared website chart.</p>
+  <div class="controls">
+    <label>Source <select id="source"><option value="calculated">Normal calculated history</option><option value="json">Precomputed historical JSON</option></select></label>
+    <label>UTC interval <select id="range"><option value="day">12 August, 00:00–13 August, 00:00 (24 hours)</option><option value="month">1 August, 00:00–1 September, 00:00 (full month)</option></select></label>
+    <button id="load" type="button">Load / repeat</button>
+    <button id="refresh" type="button" disabled>Refresh</button>
+    <button id="download" type="button">Download diagnostics</button>
+  </div>
+  <p id="status" role="status">Choose a source and load the chart.</p>
+  <div class="station-chart-wrap" id="chart-wrap"><svg id="chart" role="img" aria-label="PM10 concentration and AQI history"></svg><div id="chart-tooltip"></div></div>
+  <h2>Performance and source diagnostics</h2>
+  <p>Worker CPU and exceededCpu must be collected separately from Cloudflare telemetry. Browser timings measure elapsed time.</p>
+  <pre id="diagnostics" aria-live="off"></pre>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" crossorigin="anonymous"></script>
+  <script src="/chart-core.js"></script>
+  <script src="/shared/auth/uk-aq-cache-auth.js"></script>
+  <script type="module" src="./viewer.js"></script>
+</body>
+</html>

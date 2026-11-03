@@ -99,21 +99,43 @@ export function createHistoricalJsonClient(options = {}) {
   async function responseFor(url, signal, priority = 0) {
     abort(signal); const began = performance.now();
     const execute = () => fetchApi(url.href, { credentials: 'include', signal, cache: url.pathname.endsWith('/manifest') ? 'no-store' : 'default', headers: { Accept: 'application/json' } });
-    const response = scheduler?.schedule ? await scheduler.schedule(priority, execute, signal) : await execute();
+    let response;
+    try { response = scheduler?.schedule ? await scheduler.schedule(priority, execute, signal) : await execute(); }
+    catch (error) {
+      emit('history_request_failed', { route: url.pathname, request_ms: performance.now()-began,
+        error: error.message, aborted: signal?.aborted === true }); throw error;
+    }
     emit('history_response', { route: url.pathname, status: response.status, headers_ms: performance.now()-began,
       cache: response.headers.get('X-UK-AQ-History-Cache'), pub_id: response.headers.get('X-UK-AQ-History-PubID'),
       source_id: response.headers.get('X-UK-AQ-History-Source'), compressed_bytes: Number(response.headers.get('X-UK-AQ-History-Compressed-Bytes')) || null,
       r2_reads: response.headers.get('X-UK-AQ-History-R2-Reads'), server_timing: response.headers.get('Server-Timing') });
     if (!response.ok) {
       const payload = await response.json().catch(() => null), error = new Error(payload?.error?.code || `history_http_${response.status}`);
-      error.ukAqHttpStatus = response.status; throw error;
+      error.ukAqHttpStatus = response.status;
+      error.ukAqContractCode = payload?.error?.code || null;
+      // Only the authenticated selector's structured absence can choose a hybrid source.
+      error.ukAqUnpublishedMonth = !response.redirected && /application\/json/i.test(response.headers.get('Content-Type') || '')
+        && (Number(response.headers.get('Age')) || 0) === 0
+        && url.pathname.endsWith('/manifest') && response.status === 404
+        && error.ukAqContractCode === 'history_month_unavailable';
+      abort(signal); throw error;
     }
     return response;
   }
   async function manifestFor(request, month, signal, force) {
     const key = `${base}|selection|${identityKey(request)}|${month}`, cached = storage.get(key);
-    if (!force && cached && performance.now() < cached.expiresAt) { emit('history_selection_cache_hit', { month, pub_id: cached.value.pub_id }); return cached; }
-    const began = performance.now(), response = await responseFor(urlFor('manifest',request,month), signal);
+    if (!force && cached && performance.now() < cached.expiresAt && (!cached.unavailable || options.unpublishedMonthFallback === true)) {
+      emit('history_selection_cache_hit', { month, pub_id: cached.value?.pub_id, unavailable: cached.unavailable }); return cached;
+    }
+    const began = performance.now(); let response;
+    try { response = await responseFor(urlFor('manifest',request,month), signal); }
+    catch (error) {
+      if (options.unpublishedMonthFallback !== true || error.ukAqUnpublishedMonth !== true) throw error;
+      abort(signal);
+      const entry = { unavailable: error.ukAqContractCode, expiresAt: began + FRESHNESS_MS };
+      check(performance.now() < entry.expiresAt, 'history_selection_expired');
+      storage.set(key, entry, 256); return entry;
+    }
     check((Number(response.headers.get('Age')) || 0) === 0, 'history_selector_age_invalid');
     const value = validateManifest(await response.json(), request, month); abort(signal);
     const entry = { value, expiresAt: began + FRESHNESS_MS };
@@ -129,8 +151,13 @@ export function createHistoricalJsonClient(options = {}) {
       const key = `${identityKey(entry)}|${month}`;
       try {
         const selected = await manifestFor(entry, month, signal, reason === 'refresh' || reason === 'publication-check');
-        next.set(key, { manifest: selected.value }); expiry = Math.min(expiry, selected.expiresAt);
+        next.set(key, Object.freeze(selected.unavailable ? { unavailable: selected.unavailable } : { manifest: selected.value })); expiry = Math.min(expiry, selected.expiresAt);
       } catch (error) {
+        if (options.unpublishedMonthFallback === true) {
+          emit('history_fallback_rejected', { month, identity: physical(entry), status: error.ukAqHttpStatus,
+            code: error.ukAqContractCode, error: error.message });
+          throw error;
+        }
         if (error.ukAqHttpStatus !== 404) throw error;
         next.set(key, { unavailable: error.message }); expiry = Math.min(expiry, performance.now() + FRESHNESS_MS);
         emit('history_month_unavailable', { month, identity: physical(entry), error: error.message });
@@ -249,6 +276,7 @@ export function createHistoricalJsonClient(options = {}) {
       available_endpoint_count: aqiRows.filter(row => row[`${index}_calculation_status`] === 'ok').length,
       unavailable_endpoint_count: aqiRows.filter(row => row[`${index}_calculation_status`] !== 'ok').length });
     const payload = { schema_version: 2, identity: physical(request), request, publications,
+      terminal_dependencies: terminalProofs,
       observations: { enabled: parts.observations, rows: observationRows, response_complete: observationComplete,
         has_gap: missing.length > 0, gap_ranges: gapRanges, partial_reasons: [...missing.map(m => `missing_month:${m}`), ...obsErrors],
         ...(obsErrors.length ? { error: obsErrors[0] } : {}) },
@@ -266,6 +294,17 @@ export function createHistoricalJsonClient(options = {}) {
     return result;
   }
   return Object.freeze({ kind: 'historical-json', prepareLoad,
+    // Narrow composition boundary: callers cannot change the pinned selection map.
+    selectionFor(entry, month, context) {
+      check(context?.owner === contextOwner, 'history_selection_context_invalid');
+      return context.selections.get(`${identityKey(entry)}|${month}`);
+    },
+    selectionCacheIdentity(entry, month, context) {
+      check(context?.owner === contextOwner, 'history_selection_context_invalid');
+      const selected = context.selections.get(`${identityKey(entry)}|${month}`);
+      return selected?.manifest ? versionKey(selected.manifest) : `${identityKey(entry)}|${month}|unavailable`;
+    },
+    loadRange: load,
     cacheIdentity(entry, _range, context) { return [...(context?.owner === contextOwner ? context.selections : selections).entries()].filter(([key]) => key.startsWith(`${identityKey(entry)}|`))
       .map(([key,s]) => s.manifest ? versionKey(s.manifest) : `${key}|unavailable`).join(';') || 'unselected'; },
     selectionExpiresAt(context) { return context?.owner === contextOwner ? context.expiresAt : expiresAt; },
@@ -282,3 +321,4 @@ export function createHistoricalJsonClient(options = {}) {
   });
 }
 export default { createHistoricalJsonClient };
+export { monthsFor as historyMonthsFor, bounds as historyMonthBounds, ALGORITHM as HISTORY_JSON_ALGORITHM };
