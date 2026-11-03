@@ -303,6 +303,14 @@
           uncovered_interval_count: uncovered.length,
           failed_interval_count: failed,
           partial_interval_count: partial,
+          // Bounded diagnostics only; coverage planning and settlement are unchanged.
+          uncovered_intervals: uncovered.slice(0, 16).map(function (interval) {
+            const bounds = cache.intervalBounds(interval);
+            return { start_utc: new Date(bounds.startMs).toISOString(), end_utc: new Date(bounds.endMs).toISOString() };
+          }),
+          partial_intervals: relevantStates.filter(function (interval) { return interval.state === "partial"; }).slice(0, 16).map(function (interval) {
+            return { start_utc: new Date(interval.startMs).toISOString(), end_utc: new Date(interval.endMs).toISOString() };
+          }),
         });
       });
       return Object.freeze({
