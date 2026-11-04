@@ -14,11 +14,15 @@
     <label>Source <select id="source"><option value="calculated">Normal calculated history</option><option value="json">Precomputed historical JSON</option><option value="hybrid">Hybrid JSON-first with calculated fallback</option></select></label>
     <label>UTC interval <select id="range"><option value="day">12 August, 00:00–13 August, 00:00 (24 hours)</option><option value="month">1 August, 00:00–1 September, 00:00 (31 days)</option><option value="adjacent">1 September, 00:00–1 October, 00:00 (30 days)</option><option value="mixed">1 August, 00:00–1 October, 00:00 (61 days)</option></select></label>
     <label>Calculated older chunks <select id="older-chunk-days" aria-describedby="chunk-note"><option value="3" selected>3 days (default)</option><option value="7">7 days (baseline)</option></select></label>
+    <label>Station-history Worker version <select id="worker-version" aria-describedby="version-note"><option value="normal" selected>Normal TEST (default)</option><option value="stage3">Stage 3</option><option value="stage4">Stage 4</option></select></label>
+    <label>Version comparison operator token <input id="version-operator-token" type="password" autocomplete="off" spellcheck="false" minlength="32" maxlength="512" disabled aria-describedby="version-note"></label>
     <button id="load" type="button">Load / repeat</button>
     <button id="refresh" type="button" disabled>Refresh</button>
     <button id="download" type="button">Download diagnostics</button>
   </div>
   <p id="chunk-note">Applies to calculated history and hybrid calculated fallback. Monthly JSON selection and the Worker-configured initial head (normally seven days) are unchanged.</p>
+  <p id="version-note">Worker version selection applies only to Normal calculated history. It is disabled for JSON and hybrid sources; those sources use normal routing. The operator token stays in this page's memory and is never included in diagnostics.</p>
+  <p id="version-verification" role="status">Requested version: Normal TEST. Executed version: unverified. This comparison is not valid until Cloudflare invocation analytics confirms scriptVersion for every measured request.</p>
   <p id="status" role="status">Choose a source and load the chart.</p>
   <div class="station-chart-wrap" id="chart-wrap"><svg id="chart" role="img" aria-label="PM10 concentration and AQI history"></svg><div id="chart-tooltip"></div></div>
   <h2>Performance and source diagnostics</h2>

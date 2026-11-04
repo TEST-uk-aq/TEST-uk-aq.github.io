@@ -93,7 +93,7 @@
       const began = performance.now(), targetUrl = new URL(url), query = targetUrl.searchParams;
       const calculated = /\/(station-series|timeseries)$/.test(targetUrl.pathname);
       // Retain only public request identity/ranges, never auth query values or headers.
-      const request = { request_id: ++requestId, route: targetUrl.pathname,
+      const request = { request_id: ++requestId, route: targetUrl.pathname, started_at_utc: new Date().toISOString(),
         request_kind: calculated ? (query.has("stable_head_start_utc") ? "older_history" : "initial_stable_head") : "monthly_json",
         ...Object.fromEntries(["connector_id", "timeseries_id", "pollutant", "start_utc", "end_utc",
           "stable_head_start_utc", "include_observations", "include_aqi", "month", "pub_id"]
@@ -103,12 +103,16 @@
       try { response = await fetchApi(url, init); }
       catch (error) {
         record({ type: "request_failed", ...request, status: null, phase: "headers",
+          settled_at_utc: new Date().toISOString(),
           outcome: error?.name === "AbortError" ? "aborted" : "network_error",
           settlement_ms: performance.now() - began, error: error?.message || String(error) });
         throw error;
       }
       const headersAt = performance.now();
       record({ type: "response", ...request, headers_ms: headersAt - began, status: response.status,
+        requested_version: response.headers.get("X-UK-AQ-Station-History-Requested-Version"),
+        requested_version_id: response.headers.get("X-UK-AQ-Station-History-Requested-Version-ID"),
+        version_verification: response.headers.get("X-UK-AQ-Station-History-Version-Verification"),
         chunk_start_utc: response.headers.get("X-UK-AQ-Chunk-Start"), chunk_end_utc: response.headers.get("X-UK-AQ-Chunk-End"),
         cache: response.headers.get("X-UK-AQ-Cache") || response.headers.get("CF-Cache-Status"),
         content_length: response.headers.get("Content-Length"), server_timing: response.headers.get("Server-Timing") });
@@ -131,10 +135,12 @@
                 observations: metadata(value?.observations), aqi: metadata(value?.aqi) });
             }
             record({ type: target.ok ? "request_settled" : "request_failed", ...request, status: target.status,
+              settled_at_utc: new Date().toISOString(),
               outcome: target.ok ? "received" : "http_error", settlement_ms: performance.now() - began });
             return value;
           } catch (error) {
             record({ type: "request_failed", ...request, status: target.status, phase: "body",
+              settled_at_utc: new Date().toISOString(),
               outcome: error?.name === "AbortError" ? "aborted" : "body_or_parse_error",
               settlement_ms: performance.now() - began, error: error?.message || String(error) });
             throw error;
