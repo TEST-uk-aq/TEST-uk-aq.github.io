@@ -24,6 +24,7 @@ const SCRIPT_DIR = path.dirname(scriptEntryPath);
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "..");
 const ENV_PATH = path.join(REPO_ROOT, ".env");
 const SHARED_AUTH_TARGET = "shared/auth/uk-aq-cache-auth.js";
+const VERSION_COMPARISON_TARGET = "historical-json-chart-test/index.html";
 const DEFAULT_TARGETS = [
   { path: "hex_map/index.html", required: true },
   { path: "index.html", required: true },
@@ -36,6 +37,7 @@ const sharedTurnstilePattern = /const SHARED_TURNSTILE_SITE_KEY_PLACEHOLDER = "(
 const aqiHistoryPattern = /const AQI_HISTORY_BASE_PLACEHOLDER = "([^"]*)";/g;
 const websiteDebugLogPattern = /const WEBSITE_DEBUG_LOG_ENABLED_PLACEHOLDER = "([^"]*)";/g;
 const aqiMutableHoursPattern = /const AQI_MUTABLE_HOURS_PLACEHOLDER = "([^"]*)";/g;
+const versionComparisonApiPattern = /<meta name="uk-aq-version-comparison-api-base" content="[^"]*">/g;
 
 async function main() {
   const envText = await readFileIfExists(ENV_PATH);
@@ -156,6 +158,29 @@ async function main() {
     console.log(`Injected Turnstile site key into ${SHARED_AUTH_TARGET}`);
   } else {
     console.log(`${SHARED_AUTH_TARGET} already uses the configured Turnstile site key.`);
+  }
+
+  const comparisonPath = path.join(REPO_ROOT, VERSION_COMPARISON_TARGET);
+  const comparisonHtml = await readFileIfExists(comparisonPath);
+  if (comparisonHtml !== null) {
+    let trustedApiBase = "";
+    if (nodeProcess.env.UK_AQ_ENV_NAME === "TEST") {
+      // Reuse the repository's deployment CNAME authority, also used by the
+      // staged metadata finaliser. Query parameters never supply this value.
+      const hostname = (await fs.readFile(path.join(REPO_ROOT, "CNAME"), "utf8")).trim().toLowerCase();
+      if (!hostname || hostname.length > 253
+          || !hostname.split(".").every(label => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))) {
+        throw new Error("Version comparison requires a valid deployment CNAME hostname.");
+      }
+      const origin = new URL(`https://${hostname}`);
+      if (origin.hostname !== hostname) throw new Error("Invalid version comparison deployment CNAME.");
+      trustedApiBase = `${origin.origin}/api/aq`;
+    }
+    const updated = replacePlaceholder(comparisonHtml, versionComparisonApiPattern,
+      `<meta name="uk-aq-version-comparison-api-base" content="${trustedApiBase}">`,
+      "version comparison trusted API configuration", comparisonPath);
+    if (updated !== comparisonHtml) await fs.writeFile(comparisonPath, updated);
+    console.log("Injected version comparison API policy (enabled only for TEST).");
   }
 }
 

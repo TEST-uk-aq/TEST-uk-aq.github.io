@@ -95,18 +95,17 @@ async function load(refresh = false) {
   latestRun = session;
   session.measuredFetch = runtime.diagnostics.createMeasuredFetch(async (url, init) => {
     if (!session.active || session !== latestRun || init?.signal?.aborted) throw new DOMException('Chart request cancelled', 'AbortError');
+    let fetchApi = window.ukAqFetchCacheApi;
     if (requestedVersion !== 'normal') {
-      const target = new URL(url), api = new URL(base, window.location.href);
-      if (target.origin !== api.origin || ![`${api.pathname}/station-series`, `${api.pathname}/timeseries`].includes(target.pathname)) {
-        throw new Error('Worker version selection is restricted to calculated-history requests.');
-      }
+      fetchApi = window.ukAqSharedAuth.fetchVersionComparisonApi;
+      if (typeof fetchApi !== 'function') throw new Error('Trusted TEST version comparison API is unavailable.');
       const headers = new Headers(init?.headers);
       headers.set('X-UK-AQ-Station-History-Version-Selection', requestedVersion);
       headers.set('X-UK-AQ-Station-History-Version-Operator-Token', operatorToken);
       headers.delete('If-None-Match'); headers.delete('If-Modified-Since');
       init = { ...init, headers, cache: 'no-store', redirect: 'error' };
     }
-    const response = await window.ukAqFetchCacheApi(url, init);
+    const response = await fetchApi(url, init);
     if (!session.active || session !== latestRun || init?.signal?.aborted) {
       await response.body?.cancel(); throw new DOMException('Chart request cancelled', 'AbortError');
     }
