@@ -26,6 +26,9 @@
   const cacheOrigin = new URL(cacheBaseUrl, window.location.href).origin;
   const cacheSessionUrl = String(params.get("cache_session_url") || "").trim()
     || `${cacheOrigin}/api/aq/session/start`;
+  // Captured from deployment-injected HTML, never from query parameters.
+  // Empty/invalid config affects only the opt-in version comparison method.
+  const versionComparisonApiBase = String(document.querySelector('meta[name="uk-aq-version-comparison-api-base"]')?.content || "");
   const hintKey = `uk_aq_cache_session_hint_v1:${cacheOrigin || "default"}:shared`;
   const skewMs = 10000;
   let sessionUntil = 0;
@@ -341,6 +344,38 @@
     return response;
   }
 
+  async function fetchVersionComparisonApi(input, init = {}) {
+    let target;
+    try {
+      const trusted = new URL(versionComparisonApiBase);
+      const inputUrl = input instanceof Request ? input.url : String(input);
+      target = new URL(inputUrl, window.location.href);
+      const method = String(init.method || (input instanceof Request ? input.method : "GET")).toUpperCase();
+      if (trusted.protocol !== "https:" || trusted.username || trusted.password || trusted.port
+          || versionComparisonApiBase !== `${trusted.origin}/api/aq`
+          || new URL(cacheBaseUrl, window.location.href).href !== trusted.href
+          || new URL(cacheSessionUrl, window.location.href).href !== `${trusted.origin}/api/aq/session/start`
+          || target.origin !== trusted.origin || target.username || target.password || target.hash
+          || !["/api/aq/station-series", "/api/aq/timeseries"].includes(target.pathname)
+          || method !== "GET") {
+        throw new Error("untrusted_destination");
+      }
+    } catch (_error) {
+      // Do not echo configured URLs, query overrides or request headers.
+      throw new Error("Trusted TEST version comparison API configuration or API/session destination is unavailable or does not match.");
+    }
+    try {
+      // Validate before session initialisation and every token-bearing dispatch.
+      // Existing retries retain this exact URL and redirect policy. Session
+      // initialisation constructs its own headers without the operator token.
+      return await fetchCacheApi(target.href, { ...init, redirect: "error" });
+    } catch (error) {
+      if (error?.name === "AbortError") throw new DOMException("Chart request cancelled", "AbortError");
+      // A transport error must not expose request credentials or trusted URLs.
+      throw new Error("Version comparison authentication or transport failed.");
+    }
+  }
+
   window.addEventListener("storage", (event) => {
     if (event.key === hintKey) sessionUntil = Math.max(sessionUntil, readHint());
   });
@@ -357,6 +392,7 @@
     getTurnstileToken,
     getCacheAuthToken,
     fetchCacheApi,
+    fetchVersionComparisonApi,
   };
   window.ukAqFetchCacheApi = fetchCacheApi;
 })();

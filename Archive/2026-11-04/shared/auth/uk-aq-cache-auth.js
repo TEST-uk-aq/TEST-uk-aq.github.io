@@ -1,0 +1,362 @@
+// Shared authentication for protected /api/aq requests.
+// Users may land directly on any page, so callers must not depend on another
+// page (such as Hex Map) having already created the cache session.
+(() => {
+  "use strict";
+
+  const SHARED_TURNSTILE_SITE_KEY_PLACEHOLDER = "0x4AAAAAADvk69amXC9V2nNx";
+  const SESSION_FREE_PUBLIC_READ_PATHS = new Set([
+    "/api/aq/networks",
+    "/api/aq/latest-snapshot",
+    "/api/aq/pcon-hex",
+    "/api/aq/la-hex",
+  ]);
+
+  if (window.ukAqSharedAuth?.fetchCacheApi) {
+    window.ukAqFetchCacheApi = window.ukAqSharedAuth.fetchCacheApi;
+    return;
+  }
+
+  const nativeFetch = window.fetch.bind(window);
+  const params = new URLSearchParams(window.location.search);
+  const explicitBase = String(params.get("cache_base") || "").trim();
+  const cacheBaseUrl = explicitBase
+    ? explicitBase.replace(/\/+$/, "")
+    : `${window.location.origin.replace(/\/$/, "")}/api/aq`;
+  const cacheOrigin = new URL(cacheBaseUrl, window.location.href).origin;
+  const cacheSessionUrl = String(params.get("cache_session_url") || "").trim()
+    || `${cacheOrigin}/api/aq/session/start`;
+  const hintKey = `uk_aq_cache_session_hint_v1:${cacheOrigin || "default"}:shared`;
+  const skewMs = 10000;
+  let sessionUntil = 0;
+  let sessionInflight = null;
+  let scriptInflight = null;
+  let tokenInflight = null;
+  let widgetId = null;
+  let resolveToken = null;
+  let rejectToken = null;
+  let tokenTimeoutId = null;
+
+  function debug(event, details = {}) {
+    if (params.get("turnstile_debug") === "1") {
+      console.debug(`[UK AQ Turnstile] ${event}`, details);
+    }
+  }
+
+  function configuredSiteKey() {
+    const queryKey = String(params.get("turnstile_site_key") || "").trim();
+    if (queryKey) return queryKey;
+
+    const sharedKey = String(SHARED_TURNSTILE_SITE_KEY_PLACEHOLDER || "").trim();
+    if (sharedKey && !sharedKey.includes("__UK_AQ_TURNSTILE_SITE_KEY__")) {
+      return sharedKey;
+    }
+
+    try {
+      if (typeof TURNSTILE_SITE_KEY_PLACEHOLDER === "string"
+          && !TURNSTILE_SITE_KEY_PLACEHOLDER.includes("__UK_AQ_TURNSTILE_SITE_KEY__")) {
+        return TURNSTILE_SITE_KEY_PLACEHOLDER.trim();
+      }
+    } catch (_error) {
+      // A page may provide the value as a window property instead.
+    }
+    return String(window.TURNSTILE_SITE_KEY_PLACEHOLDER || "").trim();
+  }
+
+  function readHint() {
+    try {
+      const value = Number(localStorage.getItem(hintKey));
+      return Number.isFinite(value) ? value : 0;
+    } catch (_error) {
+      return 0;
+    }
+  }
+
+  function writeHint(value) {
+    try {
+      if (value > 0) localStorage.setItem(hintKey, String(Math.floor(value)));
+      else localStorage.removeItem(hintKey);
+    } catch (_error) {
+      // Storage may be unavailable; the cookie session still works.
+    }
+  }
+
+  function hasFreshSession() {
+    sessionUntil = Math.max(sessionUntil, readHint());
+    return Date.now() < sessionUntil - skewMs;
+  }
+
+  function clearCacheAuthToken(clearHint = true) {
+    sessionUntil = 0;
+    if (clearHint) writeHint(0);
+  }
+
+  function ensureTurnstileContainer() {
+    let container = document.getElementById("uk-aq-turnstile-widget-shared");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "uk-aq-turnstile-widget-shared";
+      document.body.appendChild(container);
+    }
+    Object.assign(container.style, {
+      position: "fixed", right: "16px", bottom: "16px", width: "300px",
+      minHeight: "65px", zIndex: "2147483647", background: "transparent",
+      display: "none", pointerEvents: "none",
+    });
+    return container;
+  }
+
+  function hideTurnstileContainer() {
+    const container = document.getElementById("uk-aq-turnstile-widget-shared");
+    if (container) {
+      container.style.display = "none";
+      container.style.pointerEvents = "none";
+    }
+  }
+
+  function showTurnstileContainer() {
+    const container = ensureTurnstileContainer();
+    container.style.display = "";
+    container.style.pointerEvents = "";
+    return container;
+  }
+
+  function clearTurnstilePendingState() {
+    if (tokenTimeoutId !== null) {
+      clearTimeout(tokenTimeoutId);
+      tokenTimeoutId = null;
+    }
+    resolveToken = null;
+    rejectToken = null;
+  }
+
+  function resetTurnstileWidget(reason) {
+    if (widgetId === null) return;
+    const turnstileApi = window.turnstile;
+    if (!turnstileApi || typeof turnstileApi.reset !== "function") return;
+    try {
+      turnstileApi.reset(widgetId);
+      debug("turnstile-widget-reset", { reason });
+    } catch (error) {
+      debug("turnstile-widget-reset-failed", {
+        reason,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  function isTurnstileTimeoutError(error) {
+    const message = error instanceof Error ? error.message : String(error || "");
+    return message === "Turnstile token timed out."
+      || message === "Turnstile challenge timed out.";
+  }
+
+  async function ensureTurnstileScript() {
+    if (window.turnstile?.render) return;
+    if (!scriptInflight) {
+      scriptInflight = new Promise((resolve, reject) => {
+        const existing = document.getElementById("uk-aq-turnstile-script");
+        if (existing) {
+          existing.addEventListener("load", resolve, { once: true });
+          existing.addEventListener("error", reject, { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.id = "uk-aq-turnstile-script";
+        script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("Failed to load Turnstile script."));
+        document.head.appendChild(script);
+      });
+    }
+    await scriptInflight;
+  }
+
+  async function ensureTurnstileWidget() {
+    const siteKey = configuredSiteKey();
+    if (!siteKey) throw new Error("Missing Turnstile site key.");
+    await ensureTurnstileScript();
+    if (widgetId !== null) return widgetId;
+    const turnstileApi = window.turnstile;
+    if (!turnstileApi || typeof turnstileApi.render !== "function") {
+      throw new Error("Turnstile SDK unavailable.");
+    }
+    widgetId = turnstileApi.render(ensureTurnstileContainer(), {
+      sitekey: siteKey,
+      appearance: "interaction-only",
+      execution: "execute",
+      theme: "auto",
+      "before-interactive-callback": showTurnstileContainer,
+      callback: (token) => {
+        const resolve = resolveToken;
+        clearTurnstilePendingState();
+        debug("turnstile-token-received");
+        hideTurnstileContainer();
+        if (resolve) resolve(token);
+      },
+      "error-callback": (code) => {
+        const reject = rejectToken;
+        clearTurnstilePendingState();
+        debug("turnstile-error", { code: code || "unknown" });
+        if (reject) reject(new Error(`Turnstile failed: ${code || "unknown error"}`));
+      },
+      "expired-callback": () => {
+        const reject = rejectToken;
+        clearTurnstilePendingState();
+        debug("turnstile-token-expired");
+        if (reject) reject(new Error("Turnstile token expired."));
+      },
+      "timeout-callback": () => {
+        const reject = rejectToken;
+        clearTurnstilePendingState();
+        debug("turnstile-challenge-timed-out");
+        if (reject) reject(new Error("Turnstile challenge timed out."));
+      },
+    });
+    debug("turnstile-widget-rendered", { widgetId: widgetId !== null });
+    return widgetId;
+  }
+
+  async function executeTurnstileOnce() {
+    const id = await ensureTurnstileWidget();
+    const turnstileApi = window.turnstile;
+    if (!turnstileApi || typeof turnstileApi.execute !== "function") {
+      throw new Error("Turnstile execute unavailable.");
+    }
+    const promise = new Promise((resolve, reject) => {
+      resolveToken = resolve;
+      rejectToken = reject;
+      tokenTimeoutId = setTimeout(() => {
+        const timeoutReject = rejectToken;
+        clearTurnstilePendingState();
+        if (timeoutReject) timeoutReject(new Error("Turnstile token timed out."));
+      }, 30000);
+    });
+    try {
+      debug("turnstile-execute-started");
+      turnstileApi.execute(id);
+    } catch (error) {
+      clearTurnstilePendingState();
+      throw error;
+    }
+    return promise;
+  }
+
+  async function getTurnstileToken() {
+    if (!tokenInflight) {
+      tokenInflight = (async () => {
+        for (let attempt = 1; attempt <= 2; attempt += 1) {
+          try {
+            return await executeTurnstileOnce();
+          } catch (error) {
+            clearTurnstilePendingState();
+            const retryableTimeout = attempt === 1 && isTurnstileTimeoutError(error);
+            resetTurnstileWidget(retryableTimeout ? "timeout-retry" : "failed-attempt");
+            hideTurnstileContainer();
+            if (retryableTimeout) {
+              debug("turnstile-timeout-retry");
+              await new Promise((resolve) => setTimeout(resolve, 0));
+              continue;
+            }
+            throw error;
+          }
+        }
+        throw new Error("Turnstile token unavailable.");
+      })().finally(() => { tokenInflight = null; });
+    }
+    return tokenInflight;
+  }
+
+  async function getCacheAuthToken(forceRefresh = false) {
+    if (!forceRefresh && hasFreshSession()) return "session";
+    if (!sessionInflight) {
+      sessionInflight = (async () => {
+        const token = await getTurnstileToken();
+        const response = await nativeFetch(cacheSessionUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "X-UK-AQ-Session-Init": "1",
+            "CF-Turnstile-Token": token,
+          },
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error(`Session start failed: ${response.status}`);
+        const payload = await response.json().catch(() => ({}));
+        const seconds = Number(payload?.session_expires_in);
+        const validSeconds = Number.isFinite(seconds) && seconds > 0
+          ? seconds
+          : 300;
+        sessionUntil = Date.now() + Math.max(30000, validSeconds * 1000);
+        writeHint(sessionUntil);
+        debug("session-started");
+        return "session";
+      })().finally(() => { sessionInflight = null; });
+    }
+    return sessionInflight;
+  }
+
+  function isSessionFreePublicRead(input, init = {}) {
+    const method = String(
+      init?.method || (input instanceof Request ? input.method : "GET"),
+    ).trim().toUpperCase();
+    if (method !== "GET" && method !== "HEAD") return false;
+
+    let target;
+    try {
+      const inputUrl = input instanceof Request
+        ? input.url
+        : input instanceof URL
+        ? input.href
+        : String(input);
+      target = new URL(inputUrl, window.location.href);
+    } catch (_error) {
+      return false;
+    }
+
+    const pathname = target.pathname.replace(/\/+$/, "") || "/";
+    return target.origin === cacheOrigin
+      && SESSION_FREE_PUBLIC_READ_PATHS.has(pathname);
+  }
+
+  async function fetchCacheApi(input, init = {}, retryOnAuthFailure = true) {
+    if (isSessionFreePublicRead(input, init)) {
+      return nativeFetch(input, { ...init, credentials: "include" });
+    }
+
+    if (retryOnAuthFailure && !hasFreshSession()) await getCacheAuthToken(false);
+    let response = await nativeFetch(input, { ...init, credentials: "include" });
+    if (response.status === 401 && retryOnAuthFailure) {
+      clearCacheAuthToken(false);
+      await getCacheAuthToken(false);
+      response = await nativeFetch(input, { ...init, credentials: "include" });
+      if (response.status === 401) {
+        clearCacheAuthToken();
+        await getCacheAuthToken(true);
+        response = await nativeFetch(input, { ...init, credentials: "include" });
+      }
+    }
+    return response;
+  }
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === hintKey) sessionUntil = Math.max(sessionUntil, readHint());
+  });
+
+  window.ukAqSharedAuth = {
+    cacheBaseUrl,
+    cacheSessionUrl,
+    clearCacheAuthToken,
+    ensureTurnstileContainer,
+    ensureTurnstileScript,
+    ensureTurnstileWidget,
+    hideTurnstileContainer,
+    showTurnstileContainer,
+    getTurnstileToken,
+    getCacheAuthToken,
+    fetchCacheApi,
+  };
+  window.ukAqFetchCacheApi = fetchCacheApi;
+})();

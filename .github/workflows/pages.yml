@@ -112,6 +112,7 @@ jobs:
       - name: Inject Supabase config
         run: node scripts/uk_aq_inject_project_ref.mjs
         env:
+          UK_AQ_ENV_NAME: ${{ vars.UK_AQ_ENV_NAME || '' }}
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SB_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.SB_PUBLISHABLE_DEFAULT_KEY }}
           UK_AQ_TURNSTILE_SITE_KEY: ${{ secrets.UK_AQ_TURNSTILE_SITE_KEY }}
