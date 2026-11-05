@@ -307,6 +307,13 @@ export function createHybridHistoryClient(options = {}) {
     const state = await contextFor(request, signal), month = historyMonthsFor(request).at(-1);
     const start = historyMonthBounds(month).start_utc;
     const interval = { start_utc: request.start_utc > start ? request.start_utc : start, end_utc: request.end_utc };
+    // Bound the HTTP request before Worker calculation, only after the existing
+    // manifest decision selected fallback. Worker-owned PM context is independent
+    // of this visible interval; the cursor below restores the full browser range.
+    if (!json.selectionFor(request, month, state.json).manifest) {
+      interval.start_utc = new Date(Math.max(Date.parse(interval.start_utc),
+        Date.parse(interval.end_utc) - 24 * HOUR)).toISOString();
+    }
     const result = await read(request, { ...parts, priority: rawParts?.priority }, signal, state, interval, month, 'current');
     const combined = combine([result], request, parts, 'current'), heads = {};
     for (const kind of ['observations','aqi']) {

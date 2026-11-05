@@ -63,7 +63,8 @@ function makeController(context) {
   return runtime.controller.createStationChartController({ renderer, calculatedClient: normal, compatibilityClient: normal, dataClient: hybrid || json,
     maxSelection: 1, diagnostics, backgroundAqiPrefetch: false,
     getWindowLabel: () => config.range_label,
-    // Keep JSON-only presentation partitioning as before; publication/object selection stays monthly.
+    // Hybrid fallback uses one-day work items under the existing controller.
+    // Keep JSON-only presentation partitioning and monthly publication selection.
     olderChunkMs: config.controller_older_chunk_ms,
     cacheContract: `historical-json-comparison:${config.source}:${config.controller_older_chunk_ms}:${config.requested_version}`,
     onMessage: (text, options) => { if (context.session === latestRun && context.session.active) message(text, options); },
@@ -81,7 +82,7 @@ async function load(refresh = false) {
   const generation = ++run;
   if (!refresh || !chart) { chart?.destroy(); chart = null; owner = null; }
   if (latestRun) latestRun.active = false;
-  const selectedRange = ranges[range.value], selectedDays = Number(chunkDays.value);
+  const selectedRange = ranges[range.value], selectedDays = source.value === 'hybrid' ? 1 : Number(chunkDays.value);
   const config = Object.freeze({ source: source.value, range_key: range.value, range_label: selectedRange.label,
     requested_version: requestedVersion,
     range: { start_utc: selectedRange.start_utc, end_utc: selectedRange.end_utc },
@@ -132,7 +133,7 @@ function changed() {
   record({ type: 'comparison_invalidated', reason: 'selection_changed' }, latestRun);
   run++; if (latestRun) latestRun.active = false;
   chart?.destroy(); chart = null; owner = null;
-  chunkDays.disabled = source.value === 'json';
+  chunkDays.disabled = source.value !== 'calculated';
   workerVersion.disabled = source.value !== 'calculated';
   if (workerVersion.disabled) workerVersion.value = 'normal';
   operatorTokenInput.disabled = workerVersion.disabled || workerVersion.value === 'normal';
