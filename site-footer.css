@@ -127,10 +127,6 @@ body #ukaq-site-footer {
   max-width: 100%;
 }
 
-#ukaq-site-footer .ukaq-site-footer-logo--breathe {
-  max-height: 29px;
-}
-
 #ukaq-site-footer .ukaq-site-footer-logo--openaq {
   max-height: 38px;
 }
@@ -225,7 +221,8 @@ body #ukaq-site-footer {
   min-height: 0;
 }
 
-#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-gov-pill {
+#ukaq-site-footer .ukaq-site-footer-official-row .ukaq-site-footer-gov-pill,
+#ukaq-site-footer .ukaq-site-footer-source[data-network-code="breathelondon"] .ukaq-site-footer-gov-pill {
   flex: 0 0 110px;
   box-sizing: border-box;
   width: 110px;
