@@ -1008,9 +1008,7 @@
 
         <section class="ukaq-site-footer-source" data-network-code="breathelondon" aria-label="Breathe London attribution">
           <div class="ukaq-site-footer-mark">
-            <a href="${sourceByCode.get('breathelondon').href}" aria-label="${sourceByCode.get('breathelondon').name}">
-              <img class="ukaq-site-footer-logo ukaq-site-footer-logo--breathe" src="${location.origin}/sidebar-images/breathelondon_logo_v2.svg" alt="Breathe London">
-            </a>
+            <a class="ukaq-site-footer-gov-pill" href="${sourceByCode.get('breathelondon').href}" aria-label="${sourceByCode.get('breathelondon').name}">${sourceByCode.get('breathelondon').name}</a>
           </div>
           <p class="ukaq-site-footer-copy">Contains <a href="https://www.breathelondon.org/">Breathe London</a> data licensed under the <a href="${oglUrl}">Open Government License v3.0</a></p>
           <p class="ukaq-site-footer-copy">Powered by <a href="https://www.breathelondon-communities.org/">Breathe London Communities</a></p>
