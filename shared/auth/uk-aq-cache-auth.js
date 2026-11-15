@@ -10,6 +10,7 @@
     "/api/aq/latest-snapshot",
     "/api/aq/pcon-hex",
     "/api/aq/la-hex",
+    "/api/aq/bc-uv/diurnal",
   ]);
 
   if (window.ukAqSharedAuth?.fetchCacheApi) {
