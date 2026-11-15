@@ -97,10 +97,29 @@ function selectedPeriod(season) {
   return { months, heading: `${season} · ${label}${full ? "" : " (partial period)"}`, complete: full };
 }
 
-function mountMap() {
+function initializeMap() {
   const svg = document.querySelector("#monitoring-map-svg");
   svg.replaceChildren(element("image", { href: "./uk-monitoring-map.svg", x: 0, y: 0, width: 360, height: 520,
-    preserveAspectRatio: "xMidYMid meet" }));
+    preserveAspectRatio: "xMidYMid meet" }), element("g", { class: "wb-map-stations" }));
+  const shell = document.querySelector("#monitoring-map-shell");
+  const toggle = document.querySelector("#map-toggle");
+  const setExpanded = (expanded) => {
+    shell.classList.toggle("is-expanded", expanded);
+    toggle.setAttribute("aria-expanded", String(expanded));
+    toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
+  };
+  toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
+  shell.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setExpanded(false);
+    (toggle.offsetParent ? toggle : document.querySelector("#property-select")).focus();
+  });
+}
+
+function renderMapStations() {
+  const markers = document.querySelector("#monitoring-map-svg .wb-map-stations");
+  markers.replaceChildren();
+  if (!data) return;
   const project = (lat, lon) => ({
     x: MAP_PROJECTION.offsetX + (lon - MAP_PROJECTION.minimumLongitude) * MAP_PROJECTION.cosineStandardLatitude * MAP_PROJECTION.scale,
     y: MAP_PROJECTION.offsetY + (MAP_PROJECTION.maximumLatitude - lat) * MAP_PROJECTION.scale,
@@ -116,30 +135,17 @@ function mountMap() {
       const high = 500 - (column.length - index - 1) * gap;
       const labelY = Math.max(low, Math.min(high, item.y));
       const labelX = side === "left" ? 8 : 352;
-      svg.append(element("line", { class: "wb-map-leader", x1: item.x, y1: item.y, x2: labelX, y2: labelY }));
+      markers.append(element("line", { class: "wb-map-leader", x1: item.x, y1: item.y, x2: labelX, y2: labelY }));
       const label = element("text", { class: "wb-map-label", x: labelX, y: labelY + 3,
         "text-anchor": side === "left" ? "start" : "end" });
       label.textContent = item.station.name;
-      svg.append(label);
+      markers.append(label);
     });
   }
   stations.forEach(({ station, x, y }) => {
     const dot = element("circle", { class: "wb-map-dot", cx: x, cy: y, r: 5, tabindex: 0,
       "aria-label": `${station.name} monitoring location` });
-    const title = element("title"); title.textContent = station.name; dot.append(title); svg.append(dot);
-  });
-  const shell = document.querySelector("#monitoring-map-shell");
-  const toggle = document.querySelector("#map-toggle");
-  const setExpanded = (expanded) => {
-    shell.classList.toggle("is-expanded", expanded);
-    toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
-  };
-  toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
-  shell.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") return;
-    setExpanded(false);
-    (toggle.offsetParent ? toggle : document.querySelector("#property-select")).focus();
+    const title = element("title"); title.textContent = station.name; dot.append(title); markers.append(dot);
   });
 }
 
@@ -288,7 +294,7 @@ async function load() {
   document.querySelector("#summary-sensors").textContent = "—";
   document.querySelector("#source-day").textContent = "";
   document.querySelector("#sensor-charts").replaceChildren();
-  document.querySelector("#monitoring-map-svg").replaceChildren();
+  renderMapStations();
   document.querySelectorAll("[data-pagination]").forEach((nav) => { nav.replaceChildren(); nav.hidden = true; });
   status("Loading Black Carbon monitoring data…");
   try {
@@ -302,12 +308,12 @@ async function load() {
     document.querySelector("#summary-sensors").textContent = String(data.sensors.length);
     document.querySelector("#source-day").textContent = `Source observations through ${data.source_through_day} (GMT).`;
     if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
-    page = 0; mountMap(); render(); status("");
+    page = 0; renderMapStations(); render(); status("");
   } catch (_error) {
-    data = null; status("Black Carbon profiles could not be loaded. Please try again.", true);
+    data = null; renderMapStations(); status("Black Carbon profiles could not be loaded. Please try again.", true);
   }
 }
 
 document.querySelector("#property-select").addEventListener("change", (event) => { property = event.target.value; page = 0; if (data) render(); });
 const media = matchMedia("(max-width: 767px)"); media.addEventListener?.("change", placeSummary);
-placeSummary(); load();
+placeSummary(); initializeMap(); load();
