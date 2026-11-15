@@ -543,8 +543,12 @@ body {
     padding: 16px 12px 48px;
   }
 
+  .who-intro h1 {
+    margin-bottom: var(--ukaq-mobile-title-gap);
+  }
+
   .who-intro p {
-    margin-top: 10px;
+    margin-top: 0;
   }
 
   .who-context {

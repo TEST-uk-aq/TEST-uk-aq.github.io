@@ -40,11 +40,15 @@
 }
 
 @media (max-width: 767px) {
+  :root {
+    --ukaq-mobile-title-gap: 12px;
+  }
+
   .ukaq-page-title-heading {
     min-height: 44px;
     padding: 0 60px 0 52px;
-    /* Shared baseline for artwork-backed titles; more specific page spacing wins. */
-    margin-bottom: 12px;
+    /* Shared mobile gap between the page title and following content. */
+    margin-bottom: var(--ukaq-mobile-title-gap);
   }
 
   .ukaq-page-title-image {

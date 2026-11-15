@@ -551,6 +551,12 @@
     box-sizing: border-box;
     align-items: flex-start;
     gap: 0;
+    margin-bottom: var(--ukaq-mobile-title-gap, 12px);
+  }
+
+  /* Resources previously added another 16px above its first section. */
+  body[data-page-slug="resources"] .title-row + .resources-table-section {
+    margin-top: 0;
   }
 
   @media (min-width: 621px) {

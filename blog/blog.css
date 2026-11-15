@@ -234,7 +234,7 @@ body.blog-page {
   }
 
   .blog-intro p {
-    margin-top: 12px;
+    margin-top: 0;
     line-height: 1.55;
   }
 

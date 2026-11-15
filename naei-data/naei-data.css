@@ -538,8 +538,12 @@ body.naei-data-page {
     max-width: 100%;
   }
 
+  .naei-intro .ukaq-page-title-heading {
+    margin-bottom: var(--ukaq-mobile-title-gap);
+  }
+
   .naei-intro > p {
-    margin-top: 10px;
+    margin-top: 0;
     font-size: 0.94rem;
   }
 
