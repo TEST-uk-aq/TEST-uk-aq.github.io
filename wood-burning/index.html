@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="A draft UK AQ guide to wood burning and illustrative Black Carbon monitoring profiles.">
+  <meta name="description" content="A UK AQ guide to wood burning and Black Carbon monitoring profiles.">
   <title>Wood Burning and Air Pollution | UK Air Quality</title>
   <link rel="icon" href="/images/favicon.ico" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/bottom-nav.css">
   <link rel="stylesheet" href="wood-burning.css">
   <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <script src="/shared/auth/uk-aq-cache-auth.js"></script>
   <script type="module" src="wood-burning.js"></script>
 </head>
 <body class="wood-burning-page" data-page-slug="wood-burning">
@@ -52,33 +53,33 @@
     </section>
 
     <div id="summary-high-anchor"></div>
-    <section class="wb-summary" id="wb-summary" aria-label="Illustrative Black Carbon monitoring summary">
-      <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Illustrative fixture</p></article>
-      <article><span id="summary-reporting">—</span><h2>Reporting on latest day</h2><p>Illustrative fixture</p></article>
-      <article><span>—</span><h2>Locations covered</h2><p>Definition pending</p></article>
+    <section class="wb-summary" id="wb-summary" aria-label="Black Carbon monitoring summary">
+      <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Eligible public monitoring stations</p></article>
+      <article><span id="summary-reporting">Unavailable</span><h2>Reporting on latest day</h2><p>Station reporting flags are not available yet</p></article>
+      <article><span>Unavailable</span><h2>Locations covered</h2><p>Canonical location grouping is pending</p></article>
     </section>
 
     <section class="wb-charts" aria-labelledby="charts-title">
       <div class="wb-chart-intro-band">
         <div class="wb-chart-intro-copy">
-          <p class="wb-demo-notice"><strong>Draft preview</strong> — monitoring locations and chart values are illustrative.</p>
           <div class="wb-section-heading">
-            <div><p class="wb-kicker">Illustrative diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
+            <div><p class="wb-kicker">Diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
             <label class="wb-property-label" for="property-select">Property
               <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
             </label>
           </div>
           <p class="wb-chart-explanation">Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
-          <p class="wb-monitoring-note">Map dots show example monitoring locations only—not concentration, AQI, risk or conditions across a wider area. <span class="wb-source-day">Illustrative source-through day: <time datetime="2026-03-31">31 March 2026</time>.</span></p>
+          <p class="wb-monitoring-note">Map dots show monitoring locations only, not concentration, AQI, risk or conditions across a wider area. <span id="source-day" class="wb-source-day"></span></p>
         </div>
         <div class="wb-map-shell" id="monitoring-map-shell">
           <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
           <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
-            <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Illustrative monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland"></svg>
-            <figcaption id="map-caption">Illustrative locations · labels appear when expanded</figcaption>
+            <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Black Carbon monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland"></svg>
+            <figcaption id="map-caption">Monitoring locations · labels appear when expanded</figcaption>
           </figure>
         </div>
       </div>
+      <div id="data-status" class="wb-data-status" role="status" aria-live="polite">Loading Black Carbon monitoring data…</div>
       <div class="wb-pagination" data-pagination></div>
       <div id="sensor-charts" class="wb-sensor-charts"></div>
       <div class="wb-pagination" data-pagination></div>
