@@ -520,14 +520,7 @@ body.naei-data-page {
 
 @media (max-width: 767px) {
   .naei-main {
-    padding: 72px 12px 12px;
-  }
-
-  .naei-intro .ukaq-page-title-heading {
-    padding-left: 48px;
-    padding-right: 128px;
-    min-height: 44px;
-    align-items: center;
+    padding: 16px 12px 12px;
   }
 
   .naei-intro .ukaq-page-title-picture {
