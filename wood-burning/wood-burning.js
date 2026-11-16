@@ -82,6 +82,22 @@ function validateProduct(value) {
       });
     }
   });
+  const hasReporting = Object.hasOwn(value, "latest_bc_reporting");
+  const hasLocations = Object.hasOwn(value, "monitoring_location_count");
+  if (hasReporting !== hasLocations) fail();
+  if (hasReporting) {
+    const locations = new Set(value.sensors.map((station) => JSON.stringify([station.latitude, station.longitude])));
+    if (!Number.isSafeInteger(value.monitoring_location_count) || value.monitoring_location_count !== locations.size) fail();
+    const reporting = value.latest_bc_reporting;
+    if (!reporting || !Array.isArray(reporting.station_ids) ||
+        reporting.station_ids.some((id, index) => !Number.isSafeInteger(id) || !ids.has(id)
+          || (index > 0 && id <= reporting.station_ids[index - 1])
+          || value.sensors.find((station) => station.station_id === id)?.timeseries_ids.bc == null)) fail();
+    if (reporting.source_day === null) {
+      if (reporting.station_ids.length) fail();
+    } else if (!validDay(reporting.source_day) || reporting.source_day > value.source_through_day ||
+        !reporting.station_ids.length) fail();
+  }
   return value;
 }
 
@@ -558,6 +574,9 @@ function status(message, retry = false) {
 async function load() {
   data = null;
   document.querySelector("#summary-sensors").textContent = "—";
+  document.querySelector("#summary-reporting").textContent = "Unavailable";
+  document.querySelector("#summary-reporting-note").textContent = "Awaiting verified latest-day BC reporting data";
+  document.querySelector("#summary-locations").textContent = "Unavailable";
   document.querySelector("#source-day").textContent = "";
   document.querySelector("#sensor-charts").replaceChildren();
   renderMapStations();
@@ -572,6 +591,14 @@ async function load() {
     data = validateProduct(await response.json());
     data.sensors.sort((a, b) => a.name.localeCompare(b.name, "en-GB") || a.station_id - b.station_id);
     document.querySelector("#summary-sensors").textContent = String(data.sensors.length);
+    if (Object.hasOwn(data, "latest_bc_reporting")) {
+      const reporting = data.latest_bc_reporting;
+      document.querySelector("#summary-reporting").textContent = String(reporting.station_ids.length);
+      document.querySelector("#summary-reporting-note").textContent = reporting.source_day
+        ? `Stations with accepted BC data on ${reporting.source_day.slice(8)}/${reporting.source_day.slice(5, 7)}/${reporting.source_day.slice(0, 4)} (GMT)`
+        : "No accepted BC observations in available history";
+      document.querySelector("#summary-locations").textContent = String(data.monitoring_location_count);
+    }
     document.querySelector("#source-day").textContent = `Source observations through ${data.source_through_day} (GMT).`;
     if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
     page = 0; renderMapStations(); render(); status("");
