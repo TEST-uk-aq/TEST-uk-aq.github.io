@@ -103,12 +103,25 @@ function initializeMap() {
     preserveAspectRatio: "xMidYMid meet" }), element("g", { class: "wb-map-stations" }));
   const shell = document.querySelector("#monitoring-map-shell");
   const toggle = document.querySelector("#map-toggle");
+  const mobile = matchMedia("(max-width: 767px)");
+  const updateView = () => {
+    const expanded = mobile.matches ? shell.classList.contains("is-expanded")
+      : shell.matches(":hover") || shell.contains(document.activeElement);
+    shell.classList.toggle("is-map-open", expanded);
+    svg.setAttribute("viewBox", expanded && !mobile.matches ? "-180 0 720 520" : "0 0 360 520");
+  };
   const setExpanded = (expanded) => {
     shell.classList.toggle("is-expanded", expanded);
     toggle.setAttribute("aria-expanded", String(expanded));
     toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
+    updateView();
   };
   toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
+  shell.addEventListener("pointerenter", updateView);
+  shell.addEventListener("pointerleave", updateView);
+  shell.addEventListener("focusin", updateView);
+  shell.addEventListener("focusout", () => requestAnimationFrame(updateView));
+  mobile.addEventListener?.("change", updateView);
   shell.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     setExpanded(false);
@@ -116,36 +129,102 @@ function initializeMap() {
   });
 }
 
+function navigateToStation(stationId) {
+  if (!data) return;
+  const index = data.sensors.findIndex((station) => station.station_id === stationId);
+  if (index < 0) return;
+  const destinationPage = Math.floor(index / PAGE_SIZE);
+  if (page !== destinationPage) { page = destinationPage; render(); }
+  const group = [...document.querySelectorAll("#sensor-charts .wb-sensor-group")]
+    .find((node) => Number(node.dataset.stationId) === stationId);
+  if (!group) return;
+  const shell = document.querySelector("#monitoring-map-shell");
+  if (matchMedia("(max-width: 767px)").matches) {
+    shell.classList.remove("is-expanded", "is-map-open");
+    const toggle = document.querySelector("#map-toggle");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.textContent = "Expand monitoring map";
+  }
+  group.classList.add("is-map-destination");
+  group.focus({ preventScroll: true });
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  group.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  setTimeout(() => group.classList.remove("is-map-destination"), reducedMotion ? 900 : 1800);
+}
+
+function stationAction(node, station) {
+  node.setAttribute("role", "button");
+  node.setAttribute("tabindex", "0");
+  node.setAttribute("aria-label", `View charts for ${station.name}`);
+  node.addEventListener("click", () => navigateToStation(station.station_id));
+  node.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    navigateToStation(station.station_id);
+  });
+  return node;
+}
+
 function renderMapStations() {
   const markers = document.querySelector("#monitoring-map-svg .wb-map-stations");
   markers.replaceChildren();
+  const list = document.querySelector("#map-station-list");
+  list.replaceChildren();
   if (!data) return;
+  const listHeading = document.createElement("strong");
+  listHeading.className = "wb-map-station-list-heading";
+  listHeading.textContent = "Stations · select to view charts";
+  list.append(listHeading);
   const project = (lat, lon) => ({
     x: MAP_PROJECTION.offsetX + (lon - MAP_PROJECTION.minimumLongitude) * MAP_PROJECTION.cosineStandardLatitude * MAP_PROJECTION.scale,
     y: MAP_PROJECTION.offsetY + (MAP_PROJECTION.maximumLatitude - lat) * MAP_PROJECTION.scale,
   });
   const stations = data.sensors.map((station) => ({ station, ...project(station.latitude, station.longitude) }));
-  // Deterministic two-column label placement; the geographic dots stay at exact projected coordinates.
-  for (const side of ["left", "right"]) {
-    const column = stations.filter((item) => (item.x > 180 ? "right" : "left") === side)
-      .sort((a, b) => a.y - b.y || a.station.station_id - b.station.station_id);
-    const gap = Math.min(16, 490 / Math.max(column.length, 1));
-    column.forEach((item, index) => {
-      const low = 18 + index * gap;
-      const high = 500 - (column.length - index - 1) * gap;
-      const labelY = Math.max(low, Math.min(high, item.y));
-      const labelX = side === "left" ? 8 : 352;
-      markers.append(element("line", { class: "wb-map-leader", x1: item.x, y1: item.y, x2: labelX, y2: labelY }));
-      const label = element("text", { class: "wb-map-label", x: labelX, y: labelY + 3,
-        "text-anchor": side === "left" ? "start" : "end" });
-      label.textContent = item.station.name;
-      markers.append(label);
-    });
-  }
+  // Measure rendered text and reserve its complete box before placing another label.
+  const occupied = [];
+  stations.slice().sort((a, b) => a.y - b.y || a.station.station_id - b.station.station_id).forEach((item) => {
+    const text = element("text", { class: "wb-map-label", x: 0, y: 0 });
+    text.textContent = item.station.name;
+    markers.append(text);
+    const bounds = text.getBBox();
+    text.remove();
+    const preferred = item.x > 180 ? "right" : "left";
+    let placed = false;
+    for (const side of [preferred, preferred === "left" ? "right" : "left"]) {
+      const x = side === "left" ? -172 : 370;
+      if (bounds.width > 164) continue;
+      const candidates = Array.from({ length: 245 }, (_, index) => 16 + index * 2)
+        .sort((a, b) => Math.abs(a - item.y) - Math.abs(b - item.y) || a - b);
+      for (const baseline of candidates) {
+        const box = { x: x + bounds.x, y: baseline + bounds.y, width: bounds.width, height: bounds.height };
+        if (box.y < 8 || box.y + box.height > 512) continue;
+        if (occupied.some((other) => box.x < other.x + other.width + 4 && box.x + box.width + 4 > other.x
+            && box.y < other.y + other.height + 4 && box.y + box.height + 4 > other.y)) continue;
+        occupied.push(box);
+        const action = stationAction(element("g", { class: "wb-map-label-action" }), item.station);
+        action.append(element("line", { class: "wb-map-leader", x1: item.x, y1: item.y,
+          x2: side === "left" ? Math.min(-8, box.x + box.width) : Math.max(368, box.x), y2: baseline - 4 }));
+        text.setAttribute("x", x);
+        text.setAttribute("y", baseline);
+        action.append(text);
+        markers.append(action);
+        placed = true;
+        break;
+      }
+      if (placed) break;
+    }
+  });
   stations.forEach(({ station, x, y }) => {
-    const dot = element("circle", { class: "wb-map-dot", cx: x, cy: y, r: 5, tabindex: 0,
-      "aria-label": `${station.name} monitoring location` });
+    const dot = stationAction(element("g", { class: "wb-map-marker" }), station);
+    dot.append(element("circle", { class: "wb-map-hit", cx: x, cy: y, r: 13 }),
+      element("circle", { class: "wb-map-dot", cx: x, cy: y, r: 5 }));
     const title = element("title"); title.textContent = station.name; dot.append(title); markers.append(dot);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = station.name;
+    button.setAttribute("aria-label", `View charts for ${station.name}`);
+    button.addEventListener("click", () => navigateToStation(station.station_id));
+    list.append(button);
   });
 }
 
@@ -249,6 +328,8 @@ function render() {
   const summer = selectedPeriod("Summer"), winter = selectedPeriod("Winter");
   data.sensors.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).forEach((station) => {
     const group = document.createElement("article"); group.className = "wb-sensor-group";
+    group.dataset.stationId = String(station.station_id);
+    group.tabIndex = -1;
     const header = document.createElement("header"), name = document.createElement("h3"), meta = document.createElement("span");
     name.textContent = station.name; meta.className = "wb-sensor-meta"; meta.textContent = `Station ${station.station_ref} · source through ${data.source_through_day}`;
     header.append(name, meta); group.append(header);
@@ -309,6 +390,7 @@ async function load() {
     document.querySelector("#source-day").textContent = `Source observations through ${data.source_through_day} (GMT).`;
     if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
     page = 0; renderMapStations(); render(); status("");
+    document.fonts?.ready.then(() => { if (data) renderMapStations(); });
   } catch (_error) {
     data = null; renderMapStations(); status("Black Carbon profiles could not be loaded. Please try again.", true);
   }
