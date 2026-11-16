@@ -8,6 +8,9 @@ const MAP_PROJECTION = Object.freeze({ minimumLongitude: -8.7, maximumLatitude: 
 let data = null;
 let page = 0;
 let property = "bc";
+const MAP_MAX_ZOOM = 8;
+const mapView = { zoom: 1, panX: 0, panY: 0, width: 360, height: 520, stations: [], markers: [],
+  pointers: new Map(), dragged: false, interacting: false, choiceTrigger: null };
 
 const element = (name, attrs = {}) => {
   const node = document.createElementNS(SVG_NS, name);
@@ -99,16 +102,20 @@ function selectedPeriod(season) {
 
 function initializeMap() {
   const svg = document.querySelector("#monitoring-map-svg");
-  svg.replaceChildren(element("image", { href: "./uk-monitoring-map.svg", x: 0, y: 0, width: 360, height: 520,
-    preserveAspectRatio: "xMidYMid meet" }), element("g", { class: "wb-map-stations" }));
+  svg.replaceChildren(element("g", { class: "wb-map-geography" }),
+    element("g", { class: "wb-map-labels" }), element("g", { class: "wb-map-stations" }));
+  svg.querySelector(".wb-map-geography").append(element("image", { href: "./uk-monitoring-map.svg",
+    x: 0, y: 0, width: 360, height: 520 }));
   const shell = document.querySelector("#monitoring-map-shell");
   const toggle = document.querySelector("#map-toggle");
   const mobile = matchMedia("(max-width: 767px)");
   const updateView = () => {
     const expanded = mobile.matches ? shell.classList.contains("is-expanded")
-      : shell.matches(":hover") || shell.contains(document.activeElement);
+      : mapView.interacting || shell.matches(":hover") || shell.contains(document.activeElement);
     shell.classList.toggle("is-map-open", expanded);
-    svg.setAttribute("viewBox", expanded && !mobile.matches ? "-180 0 720 520" : "0 0 360 520");
+    document.querySelector(".wb-map-controls").hidden = !expanded;
+    if (!expanded) closeMapChoices();
+    requestAnimationFrame(layoutMap);
   };
   const setExpanded = (expanded) => {
     shell.classList.toggle("is-expanded", expanded);
@@ -124,9 +131,126 @@ function initializeMap() {
   mobile.addEventListener?.("change", updateView);
   shell.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    if (!document.querySelector("#map-choices").hidden) { closeMapChoices(); event.stopPropagation(); return; }
     setExpanded(false);
     (toggle.offsetParent ? toggle : document.querySelector("#property-select")).focus();
   });
+  document.querySelector("#map-zoom-in").addEventListener("click", () => zoomMap(mapView.zoom * 1.6));
+  document.querySelector("#map-zoom-out").addEventListener("click", () => zoomMap(mapView.zoom / 1.6));
+  document.querySelector("#map-reset").addEventListener("click", () => {
+    mapView.zoom = 1; mapView.panX = mapView.panY = 0; closeMapChoices(); layoutMap();
+  });
+  new ResizeObserver(() => layoutMap()).observe(document.querySelector(".wb-map-viewport"));
+  document.fonts?.ready.then(layoutMap);
+  svg.addEventListener("wheel", (event) => {
+    if (!shell.classList.contains("is-map-open") || !(event.ctrlKey || event.metaKey || event.shiftKey)) return;
+    event.preventDefault();
+    zoomMap(mapView.zoom * Math.exp(-event.deltaY * (event.ctrlKey ? .015 : .002)), mapPoint(event));
+  }, { passive: false });
+  svg.addEventListener("pointerdown", (event) => {
+    if (!shell.classList.contains("is-map-open") || event.button !== 0) return;
+    closeMapChoices();
+    if (!mapView.pointers.size) {
+      mapView.dragged = false;
+      mapView.startX = event.clientX; mapView.startY = event.clientY;
+    }
+    mapView.interacting = true;
+    mapView.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    event.target.setPointerCapture(event.pointerId);
+    if (mapView.pointers.size === 2) {
+      mapView.pinch = pinchState();
+      for (const pointerId of mapView.pointers.keys()) svg.setPointerCapture(pointerId);
+    }
+  });
+  svg.addEventListener("pointermove", (event) => {
+    const previous = mapView.pointers.get(event.pointerId);
+    if (!previous) return;
+    mapView.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (mapView.pointers.size === 2) {
+      const pinch = pinchState();
+      if (mapView.pinch) {
+        const rect = svg.getBoundingClientRect();
+        zoomMap(mapView.pinch.zoom * pinch.distance / mapView.pinch.distance,
+          { x: (pinch.x - rect.left) * mapView.width / rect.width,
+            y: (pinch.y - rect.top) * mapView.height / rect.height }, mapView.pinch);
+      }
+      mapView.dragged = true;
+      return;
+    }
+    const rect = svg.getBoundingClientRect();
+    const dx = event.clientX - previous.x, dy = event.clientY - previous.y;
+    if (mapView.dragged || Math.hypot(event.clientX - mapView.startX, event.clientY - mapView.startY) > 6) {
+      if (!mapView.dragged) svg.setPointerCapture(event.pointerId);
+      mapView.dragged = true;
+      mapView.panX += dx * mapView.width / rect.width;
+      mapView.panY += dy * mapView.height / rect.height;
+      layoutMap();
+    }
+  });
+  const endPointer = (event) => {
+    mapView.pointers.delete(event.pointerId);
+    mapView.pinch = mapView.pointers.size === 2 ? pinchState() : null;
+    if (!mapView.pointers.size) {
+      mapView.interacting = false;
+      requestAnimationFrame(updateView);
+    }
+  };
+  svg.addEventListener("pointerup", endPointer);
+  svg.addEventListener("pointercancel", endPointer);
+  svg.addEventListener("click", (event) => { if (mapView.dragged && event.detail) event.stopPropagation(); }, true);
+  updateView();
+}
+
+function mapPoint(event) {
+  const rect = document.querySelector("#monitoring-map-svg").getBoundingClientRect();
+  return { x: (event.clientX - rect.left) * mapView.width / rect.width,
+    y: (event.clientY - rect.top) * mapView.height / rect.height };
+}
+
+function pinchState() {
+  const [a, b] = [...mapView.pointers.values()];
+  const rect = document.querySelector("#monitoring-map-svg").getBoundingClientRect();
+  const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+  return { x, y, anchorX: (x - rect.left) * mapView.width / rect.width,
+    anchorY: (y - rect.top) * mapView.height / rect.height,
+    distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), zoom: mapView.zoom,
+    panX: mapView.panX, panY: mapView.panY };
+}
+
+function zoomMap(value, anchor = { x: mapView.width / 2, y: 260 }, pinch = null) {
+  const zoom = Math.max(1, Math.min(MAP_MAX_ZOOM, value));
+  const oldZoom = pinch?.zoom ?? mapView.zoom;
+  const oldPanX = pinch?.panX ?? mapView.panX, oldPanY = pinch?.panY ?? mapView.panY;
+  mapView.panX = anchor.x - mapView.width / 2 - ((pinch?.anchorX ?? anchor.x) - mapView.width / 2 - oldPanX) * zoom / oldZoom;
+  mapView.panY = anchor.y - 260 - ((pinch?.anchorY ?? anchor.y) - 260 - oldPanY) * zoom / oldZoom;
+  mapView.zoom = zoom;
+  closeMapChoices(); layoutMap();
+}
+
+function closeMapChoices() {
+  const choices = document.querySelector("#map-choices");
+  if (choices.hidden) return;
+  choices.hidden = true; choices.replaceChildren();
+  mapView.choiceTrigger?.focus(); mapView.choiceTrigger = null;
+}
+
+function showMapChoices(stations, marker) {
+  const choices = document.querySelector("#map-choices");
+  choices.replaceChildren();
+  const heading = document.createElement("strong"); heading.textContent = "Choose monitoring station"; choices.append(heading);
+  stations.forEach(({ station }) => {
+    const button = document.createElement("button"); button.type = "button";
+    button.textContent = station.name; button.setAttribute("aria-label", `View charts for ${station.name}`);
+    button.addEventListener("click", () => { choices.hidden = true; mapView.choiceTrigger = null; navigateToStation(station.station_id); });
+    choices.append(button);
+  });
+  const viewport = document.querySelector(".wb-map-viewport");
+  const rect = viewport.getBoundingClientRect();
+  const svgRect = document.querySelector("#monitoring-map-svg").getBoundingClientRect();
+  choices.style.left = `${Math.max(8, Math.min(rect.width - 220, marker.x * svgRect.width / mapView.width + svgRect.left - rect.left))}px`;
+  choices.style.top = `${Math.max(8, Math.min(rect.height - 100, marker.y * svgRect.height / mapView.height + svgRect.top - rect.top))}px`;
+  choices.hidden = false; mapView.choiceTrigger = marker.node;
+  choices.querySelector("button").focus();
 }
 
 function navigateToStation(stationId) {
@@ -156,7 +280,7 @@ function stationAction(node, station) {
   node.setAttribute("role", "button");
   node.setAttribute("tabindex", "0");
   node.setAttribute("aria-label", `View charts for ${station.name}`);
-  node.addEventListener("click", () => navigateToStation(station.station_id));
+  node.addEventListener("click", () => { if (!mapView.dragged) navigateToStation(station.station_id); });
   node.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
@@ -167,65 +291,126 @@ function stationAction(node, station) {
 
 function renderMapStations() {
   const markers = document.querySelector("#monitoring-map-svg .wb-map-stations");
-  markers.replaceChildren();
-  const list = document.querySelector("#map-station-list");
-  list.replaceChildren();
-  if (!data) return;
-  const listHeading = document.createElement("strong");
-  listHeading.className = "wb-map-station-list-heading";
-  listHeading.textContent = "Stations · select to view charts";
-  list.append(listHeading);
+  markers.replaceChildren(); mapView.markers = []; mapView.stations = [];
+  if (!data) { layoutMap(); return; }
   const project = (lat, lon) => ({
     x: MAP_PROJECTION.offsetX + (lon - MAP_PROJECTION.minimumLongitude) * MAP_PROJECTION.cosineStandardLatitude * MAP_PROJECTION.scale,
     y: MAP_PROJECTION.offsetY + (MAP_PROJECTION.maximumLatitude - lat) * MAP_PROJECTION.scale,
   });
-  const stations = data.sensors.map((station) => ({ station, ...project(station.latitude, station.longitude) }));
-  // Measure rendered text and reserve its complete box before placing another label.
-  const occupied = [];
-  stations.slice().sort((a, b) => a.y - b.y || a.station.station_id - b.station.station_id).forEach((item) => {
-    const text = element("text", { class: "wb-map-label", x: 0, y: 0 });
-    text.textContent = item.station.name;
-    markers.append(text);
-    const bounds = text.getBBox();
-    text.remove();
-    const preferred = item.x > 180 ? "right" : "left";
-    let placed = false;
-    for (const side of [preferred, preferred === "left" ? "right" : "left"]) {
-      const x = side === "left" ? -172 : 370;
-      if (bounds.width > 164) continue;
-      const candidates = Array.from({ length: 245 }, (_, index) => 16 + index * 2)
-        .sort((a, b) => Math.abs(a - item.y) - Math.abs(b - item.y) || a - b);
-      for (const baseline of candidates) {
-        const box = { x: x + bounds.x, y: baseline + bounds.y, width: bounds.width, height: bounds.height };
-        if (box.y < 8 || box.y + box.height > 512) continue;
-        if (occupied.some((other) => box.x < other.x + other.width + 4 && box.x + box.width + 4 > other.x
-            && box.y < other.y + other.height + 4 && box.y + box.height + 4 > other.y)) continue;
-        occupied.push(box);
-        const action = stationAction(element("g", { class: "wb-map-label-action" }), item.station);
-        action.append(element("line", { class: "wb-map-leader", x1: item.x, y1: item.y,
-          x2: side === "left" ? Math.min(-8, box.x + box.width) : Math.max(368, box.x), y2: baseline - 4 }));
-        text.setAttribute("x", x);
-        text.setAttribute("y", baseline);
-        action.append(text);
-        markers.append(action);
-        placed = true;
-        break;
-      }
-      if (placed) break;
+  mapView.stations = data.sensors.map((station) => ({ station, ...project(station.latitude, station.longitude) }));
+  // Markers that cannot separate to a touch target at maximum zoom get a local choice.
+  const groups = [];
+  for (const item of mapView.stations) {
+    const group = groups.find((members) => members.some((other) =>
+      Math.hypot(item.x - other.x, item.y - other.y) * MAP_MAX_ZOOM < 22));
+    if (group) group.push(item); else groups.push([item]);
+  }
+  groups.forEach((members) => {
+    const marker = { members, x: 0, y: 0 };
+    const name = members.map(({ station }) => station.name).join(", ");
+    const node = element("g", { class: "wb-map-marker", role: "button", tabindex: 0,
+      "aria-label": members.length === 1 ? `View charts for ${name}` : `Choose among ${members.length} stations: ${name}` });
+    marker.node = node;
+    const activate = (keyboard = false) => {
+      if (mapView.dragged && !keyboard) return;
+      if (members.length === 1) navigateToStation(members[0].station.station_id);
+      else showMapChoices(members, marker);
+    };
+    node.addEventListener("click", () => activate());
+    node.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault(); activate(true);
+    });
+    node.addEventListener("pointerenter", () => showMapTooltip(name, marker));
+    node.addEventListener("pointerleave", hideMapTooltip);
+    node.addEventListener("focus", () => showMapTooltip(name, marker));
+    node.addEventListener("blur", hideMapTooltip);
+    node.append(element("circle", { class: "wb-map-hit", r: 12 }),
+      element("circle", { class: "wb-map-dot", r: members.length > 1 ? 7 : 5 }));
+    if (members.length > 1) {
+      const count = element("text", { class: "wb-map-count", y: 3, "text-anchor": "middle", "aria-hidden": "true" });
+      count.textContent = String(members.length); node.append(count);
     }
+    markers.append(node); mapView.markers.push(marker);
   });
-  stations.forEach(({ station, x, y }) => {
-    const dot = stationAction(element("g", { class: "wb-map-marker" }), station);
-    dot.append(element("circle", { class: "wb-map-hit", cx: x, cy: y, r: 13 }),
-      element("circle", { class: "wb-map-dot", cx: x, cy: y, r: 5 }));
-    const title = element("title"); title.textContent = station.name; dot.append(title); markers.append(dot);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = station.name;
-    button.setAttribute("aria-label", `View charts for ${station.name}`);
-    button.addEventListener("click", () => navigateToStation(station.station_id));
-    list.append(button);
+  layoutMap();
+}
+
+function showMapTooltip(name, marker) {
+  if (!document.querySelector("#monitoring-map-shell").classList.contains("is-map-open")) return;
+  const tooltip = document.querySelector("#map-tooltip");
+  tooltip.textContent = name; tooltip.hidden = false;
+  const viewport = document.querySelector(".wb-map-viewport").getBoundingClientRect();
+  const svg = document.querySelector("#monitoring-map-svg").getBoundingClientRect();
+  const x = marker.x * svg.width / mapView.width + svg.left - viewport.left;
+  const y = marker.y * svg.height / mapView.height + svg.top - viewport.top;
+  tooltip.style.left = `${Math.max(8, Math.min(viewport.width - tooltip.offsetWidth - 8, x - tooltip.offsetWidth / 2))}px`;
+  tooltip.style.top = `${Math.max(8, y - tooltip.offsetHeight - 12)}px`;
+}
+
+function hideMapTooltip() { document.querySelector("#map-tooltip").hidden = true; }
+
+function boxesOverlap(a, b, gap = 4) {
+  return a.x < b.x + b.width + gap && a.x + a.width + gap > b.x
+    && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y;
+}
+
+function layoutMap() {
+  const svg = document.querySelector("#monitoring-map-svg");
+  const rect = svg.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  mapView.width = 520 * rect.width / rect.height;
+  svg.setAttribute("viewBox", `0 0 ${mapView.width} 520`);
+  const z = mapView.zoom;
+  const maxX = Math.min((z - 1) * (180 + mapView.width / 2 - 60), 180 * z + mapView.width / 2 - 120);
+  const maxY = Math.min((z - 1) * 460, 260 * z + 140);
+  mapView.panX = Math.max(-maxX, Math.min(maxX, mapView.panX));
+  mapView.panY = Math.max(-maxY, Math.min(maxY, mapView.panY));
+  const screen = (x, y) => ({ x: mapView.width / 2 + (x - 180) * z + mapView.panX,
+    y: 260 + (y - 260) * z + mapView.panY });
+  svg.querySelector(".wb-map-geography").setAttribute("transform",
+    `translate(${mapView.width / 2 - 180 * z + mapView.panX} ${260 - 260 * z + mapView.panY}) scale(${z})`);
+  mapView.markers.forEach((marker) => {
+    const center = marker.members.reduce((sum, item) => ({ x: sum.x + item.x, y: sum.y + item.y }), { x: 0, y: 0 });
+    const point = screen(center.x / marker.members.length, center.y / marker.members.length);
+    marker.x = point.x; marker.y = point.y;
+    marker.node.setAttribute("transform", `translate(${point.x} ${point.y})`);
+    marker.node.style.visibility = point.x < -12 || point.x > mapView.width + 12 || point.y < -12 || point.y > 532 ? "hidden" : "visible";
   });
+  const labels = svg.querySelector(".wb-map-labels"); labels.replaceChildren();
+  const open = document.querySelector("#monitoring-map-shell").classList.contains("is-map-open");
+  if (!open) { hideMapTooltip(); return; }
+  const occupied = [];
+  const points = mapView.stations.map((item) => ({ ...item, ...screen(item.x, item.y) }));
+  const markerBoxes = mapView.markers.map((marker) => ({ x: marker.x - 7, y: marker.y - 7, width: 14, height: 14 }));
+  const controls = document.querySelector(".wb-map-controls").getBoundingClientRect();
+  markerBoxes.push({ x: (controls.left - rect.left) * mapView.width / rect.width,
+    y: (controls.top - rect.top) * 520 / rect.height,
+    width: controls.width * mapView.width / rect.width,
+    height: controls.height * 520 / rect.height });
+  points.sort((a, b) => a.station.station_id - b.station.station_id);
+  for (const item of points) {
+    if (item.x < 12 || item.x > mapView.width - 12 || item.y < 12 || item.y > 508) continue;
+    const text = element("text", { class: "wb-map-label", x: 0, y: 0 }); text.textContent = item.station.name;
+    labels.append(text);
+    const bounds = text.getBBox(); text.remove();
+    const placements = [
+      { x: item.x + 11, y: item.y + 4 }, { x: item.x - bounds.width - 11, y: item.y + 4 },
+      { x: item.x - bounds.width / 2, y: item.y - 13 },
+      { x: item.x - bounds.width / 2, y: item.y + 19 },
+    ];
+    for (const position of placements) {
+      const box = { x: position.x + bounds.x, y: position.y + bounds.y,
+        width: bounds.width, height: bounds.height };
+      if (box.x < 6 || box.y < 6 || box.x + box.width > mapView.width - 6 || box.y + box.height > 514
+          || occupied.some((other) => boxesOverlap(box, other))
+          || markerBoxes.some((other) => boxesOverlap(box, other, 2))) continue;
+      const action = stationAction(element("g", { class: "wb-map-label-action" }), item.station);
+      text.setAttribute("x", position.x); text.setAttribute("y", position.y);
+      action.append(text); labels.append(action); occupied.push(box);
+      break;
+    }
+  }
 }
 
 function niceScale(months) {
