@@ -23,6 +23,7 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
   let captionsEnabled = true;
   let nativeFullscreen = false;
   let captionsAvailable = true;
+  let nativeCaptionsElement = null;
   let touchVideoTap = false;
   let scrubbing = false;
   let hideControlsTimer = null;
@@ -108,12 +109,38 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
     captionPanel.hidden = !captionPanel.textContent;
   };
 
+  const syncNativeCaptions = () => {
+    // The metadata track supplies the inline cues but can NEVER be painted.
+    // A separate subtitles track exists only in browser-owned native fullscreen.
+    if (!nativeFullscreen || !captionsEnabled || !captionsAvailable) {
+      if (nativeCaptionsElement) {
+        nativeCaptionsElement.track.mode = "disabled";
+        nativeCaptionsElement.remove();
+        nativeCaptionsElement = null;
+      }
+      return;
+    }
+    if (nativeCaptionsElement) return;
+    const element = document.createElement("track");
+    element.kind = "subtitles";
+    element.srclang = "en";
+    element.label = "English subtitles";
+    element.src = captionsElement.getAttribute("src");
+    element.default = true;
+    nativeCaptionsElement = element;
+    video.append(element);
+    const enableNativeCues = () => {
+      if (nativeFullscreen && captionsEnabled && captionsAvailable &&
+          nativeCaptionsElement === element) element.track.mode = "showing";
+    };
+    element.addEventListener("load", enableNativeCues);
+    enableNativeCues();
+  };
+
   const syncCaptions = () => {
-    // Keep native cues hidden on the custom player, but loaded and time-synced.
-    // iOS/native fullscreen owns its own caption rendering.
-    track.mode = nativeFullscreen
-      ? (captionsEnabled && captionsAvailable ? "showing" : "disabled")
-      : "hidden";
+    // Metadata cues are active but never natively drawn in inline playback.
+    track.mode = "hidden";
+    syncNativeCaptions();
     captionsButton.setAttribute("aria-pressed", String(captionsEnabled && captionsAvailable));
     captionsButton.setAttribute("aria-label", captionsEnabled && captionsAvailable ? "Turn subtitles off" : "Turn subtitles on");
     captionsButton.setAttribute("title", captionsEnabled && captionsAvailable ? "Subtitles on" : "Subtitles off");
@@ -250,6 +277,19 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
     syncCaptions();
   });
 
+  const enterNativeFullscreen = () => {
+    // Hide the custom panel before handing the picture to iOS native video UI.
+    nativeFullscreen = true;
+    syncCaptions();
+    try {
+      video.webkitEnterFullscreen();
+    } catch (error) {
+      nativeFullscreen = false;
+      syncCaptions();
+      throw error;
+    }
+  };
+
   fullscreenButton.addEventListener("click", async () => {
     if (document.fullscreenElement === frame) {
       try { await document.exitFullscreen(); } catch (_error) { setStatus("Could not exit full screen."); }
@@ -263,13 +303,13 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
       if (typeof frame.requestFullscreen === "function") {
         await frame.requestFullscreen();
       } else if (typeof video.webkitEnterFullscreen === "function") {
-        video.webkitEnterFullscreen();
+        enterNativeFullscreen();
       } else {
         setStatus("Full screen is not supported by this browser.");
       }
     } catch (_error) {
       if (typeof video.webkitEnterFullscreen === "function") {
-        try { video.webkitEnterFullscreen(); }
+        try { enterNativeFullscreen(); }
         catch (_fallbackError) { setStatus("Full screen could not be opened."); }
       } else {
         setStatus("Full screen could not be opened.");
