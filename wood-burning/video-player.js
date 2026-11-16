@@ -14,13 +14,43 @@ const captionsElement = document.querySelector("#wood-video-captions");
 const captionPanel = document.querySelector("#wood-video-subtitles");
 const status = document.querySelector("#wood-video-status");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const noHover = matchMedia("(hover: none)");
+const controls = frame?.querySelector(".wb-video-controls");
 
-if (frame && video && playButton && soundButton && volumeSlider && progress &&
+if (frame && video && controls && playButton && soundButton && volumeSlider && progress &&
     timeLabel && captionsButton && fullscreenButton && captionsElement && captionPanel && status) {
   const track = captionsElement.track;
   let captionsEnabled = true;
   let nativeFullscreen = false;
   let captionsAvailable = true;
+  let touchVideoTap = false;
+  let scrubbing = false;
+  let hideControlsTimer = null;
+  const CONTROLS_IDLE_MS = 4500;
+
+  const cancelControlsTimer = () => {
+    if (hideControlsTimer !== null) clearTimeout(hideControlsTimer);
+    hideControlsTimer = null;
+  };
+  const hideControls = () => {
+    cancelControlsTimer();
+    frame.classList.remove("is-controls-visible");
+  };
+  const scheduleControlsHide = () => {
+    cancelControlsTimer();
+    hideControlsTimer = setTimeout(() => {
+      hideControlsTimer = null;
+      if (scrubbing) {
+        scheduleControlsHide();
+        return;
+      }
+      frame.classList.remove("is-controls-visible");
+    }, CONTROLS_IDLE_MS);
+  };
+  const showControls = () => {
+    frame.classList.add("is-controls-visible");
+    scheduleControlsHide();
+  };
 
   const setStatus = (message) => {
     status.textContent = message;
@@ -147,7 +177,50 @@ if (frame && video && playButton && soundButton && volumeSlider && progress &&
   });
 
   playButton.addEventListener("click", togglePlayback);
-  video.addEventListener("click", togglePlayback);
+
+  // On a touchscreen, tapping the picture toggles the overlay, not playback.
+  // Touch users can then operate the conventional Play/Pause button.
+  video.addEventListener("pointerdown", (event) => {
+    touchVideoTap = event.pointerType === "touch" || event.pointerType === "pen";
+  });
+  video.addEventListener("click", () => {
+    if (touchVideoTap || noHover.matches) {
+      touchVideoTap = false;
+      if (frame.classList.contains("is-controls-visible")) hideControls();
+      else showControls();
+    } else {
+      togglePlayback();
+    }
+  });
+  // Keep controls available after a touch, including volume and seek changes.
+  controls.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch" || event.pointerType === "pen" || noHover.matches) {
+      showControls();
+    }
+  });
+  controls.addEventListener("input", () => {
+    if (noHover.matches || frame.classList.contains("is-controls-visible")) showControls();
+  });
+  controls.addEventListener("click", () => {
+    if (noHover.matches || frame.classList.contains("is-controls-visible")) showControls();
+  });
+  progress.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch" || event.pointerType === "pen" || noHover.matches) {
+      scrubbing = true;
+      showControls();
+    }
+  });
+  for (const eventName of ["pointerup", "pointercancel"]) {
+    document.addEventListener(eventName, () => {
+      if (!scrubbing) return;
+      scrubbing = false;
+      scheduleControlsHide();
+    });
+  }
+  document.addEventListener("pointerdown", (event) => {
+    if ((event.pointerType === "touch" || event.pointerType === "pen") &&
+        !frame.contains(event.target)) hideControls();
+  });
 
   soundButton.addEventListener("click", () => {
     if (video.muted || video.volume === 0) {
