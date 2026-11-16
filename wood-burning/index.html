@@ -54,9 +54,6 @@
         <div class="wb-chart-intro-copy">
           <div class="wb-section-heading">
             <div><p class="wb-kicker">Diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
-            <label class="wb-property-label" for="property-select">Property
-              <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
-            </label>
           </div>
           <p class="wb-chart-explanation">Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
           <p class="wb-monitoring-note">Map dots show monitoring locations only, not concentration, AQI, risk or conditions across a wider area. <span id="source-day" class="wb-source-day"></span></p>
@@ -92,7 +89,12 @@
         </div>
       </div>
       <div id="data-status" class="wb-data-status" role="status" aria-live="polite">Loading Black Carbon monitoring data…</div>
-      <div class="wb-pagination" data-pagination></div>
+      <div class="wb-chart-control-row">
+        <label class="wb-property-label" for="property-select">Chart Data
+          <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
+        </label>
+        <div class="wb-pagination" data-pagination></div>
+      </div>
       <div id="sensor-charts" class="wb-sensor-charts"></div>
       <div class="wb-pagination" data-pagination></div>
     </section>
