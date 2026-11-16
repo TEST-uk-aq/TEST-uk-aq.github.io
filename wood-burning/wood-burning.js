@@ -455,7 +455,7 @@ function renderChart(station, period, scale) {
   svg.append(element("line", { class: "wb-axis-line", x1: margin.left, x2: margin.left, y1: margin.top, y2: height - margin.bottom }));
   svg.append(element("line", { class: "wb-axis-line", x1: margin.left, x2: width - margin.right, y1: height - margin.bottom, y2: height - margin.bottom }));
   [1, 6, 12, 18, 24].forEach((hour) => { const tick = element("text", { class: "wb-axis-label", x: x(hour), y: height - 18, "text-anchor": "middle" }); tick.textContent = `${String(hour).padStart(2, "0")}:00`; svg.append(tick); });
-  const titleX = 18, titleY = (margin.top + height - margin.bottom) / 2;
+  const titleX = 25, titleY = (margin.top + height - margin.bottom) / 2;
   const unit = element("text", { class: "wb-axis-title wb-axis-title--y", x: titleX, y: titleY,
     "text-anchor": "middle", transform: `rotate(-90 ${titleX} ${titleY})` });
   unit.textContent = `${PROPERTY_LABELS[property]} µg/m³`; svg.append(unit);
@@ -502,10 +502,17 @@ function renderChart(station, period, scale) {
     let tooltip = card.querySelector(".wb-tooltip"); if (!tooltip) { tooltip = document.createElement("div"); tooltip.className = "wb-tooltip"; card.append(tooltip); }
     const best = candidates[0];
     tooltip.replaceChildren();
-    const title = document.createElement("strong"); title.textContent = best.month.month; tooltip.append(title, document.createElement("br"),
+    const title = document.createElement("strong");
+    title.textContent = `${MONTH_NAMES[Number(best.month.month.slice(5)) - 1]} ${best.month.month.slice(0, 4)}`;
+    tooltip.append(title, document.createElement("br"),
       `${String(hour).padStart(2, "0")}:00 GMT · ${best.point.mean_ugm3.toFixed(2)} µg/m³ · ${best.point.observation_count} observations`);
-    tooltip.style.left = `${Math.max(12, Math.min(88, (event.clientX - rect.left) / rect.width * 100))}%`;
-    tooltip.style.top = `${(event.clientY - rect.top) / rect.height * 100}%`;
+    const cardRect = card.getBoundingClientRect();
+    const chartLeft = rect.left - cardRect.left, chartTop = rect.top - cardRect.top;
+    const left = Math.min(event.clientX - cardRect.left + 12, chartLeft + rect.width - tooltip.offsetWidth - 8);
+    const above = event.clientY - cardRect.top - tooltip.offsetHeight - 12;
+    const top = above >= chartTop + 8 ? above : event.clientY - cardRect.top + 12;
+    tooltip.style.left = `${Math.max(chartLeft + 8, left)}px`;
+    tooltip.style.top = `${Math.max(chartTop + 8, Math.min(chartTop + rect.height - tooltip.offsetHeight - 8, top))}px`;
   });
   svg.addEventListener("pointerleave", () => card.querySelector(".wb-tooltip")?.remove());
   return card;
