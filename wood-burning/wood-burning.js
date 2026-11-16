@@ -562,7 +562,7 @@ function status(message, retry = false) {
 async function load() {
   data = null;
   document.querySelector("#map-caption").textContent = "Loading Black Carbon monitoring stations…";
-  document.querySelector("#source-day").textContent = "";
+
   document.querySelector("#sensor-charts").replaceChildren();
   renderMapStations();
   document.querySelectorAll("[data-pagination]").forEach((nav) => { nav.replaceChildren(); nav.hidden = true; });
@@ -582,7 +582,7 @@ async function load() {
     const sensorCount = data.sensors.length;
     document.querySelector("#map-caption").textContent =
       `${sensorCount} Black Carbon monitoring ${sensorCount === 1 ? "station" : "stations"}`;
-    document.querySelector("#source-day").textContent = `Source observations through ${data.source_through_day} (GMT).`;
+
     if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
     page = 0; renderMapStations(); render(); status("");
     document.fonts?.ready.then(() => { if (data) renderMapStations(); });
