@@ -49,13 +49,6 @@
       </section>
     </section>
 
-    <div id="summary-high-anchor"></div>
-    <section class="wb-summary" id="wb-summary" aria-label="Black Carbon monitoring summary">
-      <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Eligible public monitoring stations</p></article>
-      <article><span id="summary-reporting">Unavailable</span><h2>Reporting on latest day</h2><p id="summary-reporting-note">Awaiting verified latest-day BC reporting data</p></article>
-      <article><span id="summary-locations">Unavailable</span><h2>Locations covered</h2><p>Distinct mapped monitoring locations</p></article>
-    </section>
-
     <section class="wb-charts" aria-labelledby="charts-title">
       <div class="wb-chart-intro-band">
         <div class="wb-chart-intro-copy">
@@ -94,7 +87,7 @@
                 </button>
               </div>
             </div>
-            <figcaption id="map-caption">Monitoring locations</figcaption>
+            <figcaption id="map-caption" aria-live="polite">Loading Black Carbon monitoring stations…</figcaption>
           </figure>
         </div>
       </div>
@@ -120,7 +113,6 @@
       </section>
     </div>
 
-    <div id="summary-low-anchor"></div>
     <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">
       <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
         <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
