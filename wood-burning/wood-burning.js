@@ -483,14 +483,14 @@ function renderChart(station, period, scale) {
     button.textContent = label;
     button.style.setProperty("--series-colour", COLOURS[(Number(month.month.slice(5)) - (period.heading.startsWith("Summer") ? 4 : 10) + 12) % 12]);
     button.setAttribute("aria-pressed", "false");
-    button.setAttribute("aria-label", `${label} ${month.month.slice(0, 4)}${month.complete ? "" : ", incomplete observations"}`);
+    button.setAttribute("aria-label", `${label} ${month.month.slice(0, 4)}`);
     button.addEventListener("click", () => { selected = selected === month.month ? null : month.month; emphasise(selected); });
     button.addEventListener("mouseenter", () => emphasise(month.month, true)); button.addEventListener("mouseleave", () => emphasise(selected, true));
     button.addEventListener("focus", () => emphasise(month.month, true)); button.addEventListener("blur", () => emphasise(selected, true)); legend.append(button);
   });
   card.append(legend);
   const coverage = document.createElement("p"); coverage.className = "wb-completeness";
-  coverage.textContent = months.length ? months.map((month) => `${MONTH_NAMES[Number(month.month.slice(5)) - 1]}: ${month.observed_source_days}/${month.expected_source_days} days${month.complete ? "" : " (incomplete)"}`).join(" · ") : "No months available for this season.";
+  coverage.textContent = months.length ? months.map((month) => `${MONTH_NAMES[Number(month.month.slice(5)) - 1]}: ${month.observed_source_days}/${month.expected_source_days} days`).join(" · ") : "No months available for this season.";
   card.append(coverage);
   svg.addEventListener("pointermove", (event) => {
     const rect = svg.getBoundingClientRect(); const svgX = (event.clientX - rect.left) * width / rect.width;
