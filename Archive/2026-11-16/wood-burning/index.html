@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="A UK AQ guide to wood burning and Black Carbon monitoring profiles.">
+  <title>Wood Burning and Air Pollution | UK Air Quality</title>
+  <link rel="icon" href="/images/favicon.ico" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/site-ui.css">
+  <link rel="stylesheet" href="/bottom-nav.css">
+  <link rel="stylesheet" href="wood-burning.css">
+  <link rel="stylesheet" href="/mobile.css" media="(max-width: 767px)">
+  <script src="/shared/auth/uk-aq-cache-auth.js"></script>
+  <script type="module" src="wood-burning.js"></script>
+</head>
+<body class="wood-burning-page" data-page-slug="wood-burning">
+  <div id="uk-aq-sidebar-mount"></div>
+  <script src="/sidebar.js"></script>
+  <main class="wood-main" id="mainContent">
+    <h1 class="ukaq-page-title-heading">
+      <span class="ukaq-page-title-text">Wood Burning</span>
+      <picture class="ukaq-page-title-picture"><img class="ukaq-page-title-image" src="/images/UK-AQ-wood-burning-1line.svg" alt="" aria-hidden="true"></picture>
+    </h1>
+
+    <section class="wb-opening" aria-labelledby="opening-title">
+      <div class="wb-opening-copy">	
+        <h2 id="opening-title">How Black Carbon and UV help identify wood&#8209;smoke patterns</h2>
+        <p>Black Carbon measured at 880 nm responds to black-carbon-containing emissions from traffic and other combustion sources.</p>
+        <p>The 370 nm channel is more sensitive to additional UV-absorbing material associated with sources such as biomass and wood smoke.</p>
+        <p>Comparing the channels, including the UV-minus-BC difference shown here as UVPM, can reveal patterns more consistent with wood and other biomass burning. This is useful source evidence, not proof that an individual concentration came from domestic wood burning.</p>
+      </div>
+
+      <section class="wb-video" aria-labelledby="video-title">
+        <h2 class="visually-hidden" id="video-title">Wood burning explainer</h2>
+        <div class="wb-video-frame">
+          <video id="wood-video" muted loop playsinline preload="none" poster="wood-burning-poster.svg" aria-describedby="video-placeholder">
+            <!-- Production: add HEVC, then H.264 sources and a separate WebVTT track here. -->
+          </video>
+          <p id="video-placeholder" class="wb-video-placeholder"><strong>Explanatory video coming soon</strong><span>Draft static preview</span></p>
+          <div class="wb-video-controls" aria-label="Video controls">
+            <button type="button" disabled aria-label="Sound control unavailable until video is added">Sound off</button>
+            <button type="button" disabled aria-label="Captions control unavailable until captions are added">CC on</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <div id="summary-high-anchor"></div>
+    <section class="wb-summary" id="wb-summary" aria-label="Black Carbon monitoring summary">
+      <article><span id="summary-sensors">—</span><h2>Black Carbon sensors</h2><p>Eligible public monitoring stations</p></article>
+      <article><span id="summary-reporting">Unavailable</span><h2>Reporting on latest day</h2><p>Station reporting flags are not available yet</p></article>
+      <article><span>Unavailable</span><h2>Locations covered</h2><p>Canonical location grouping is pending</p></article>
+    </section>
+
+    <section class="wb-charts" aria-labelledby="charts-title">
+      <div class="wb-chart-intro-band">
+        <div class="wb-chart-intro-copy">
+          <div class="wb-section-heading">
+            <div><p class="wb-kicker">Diurnal profiles</p><h2 id="charts-title">Summer and Winter comparison</h2></div>
+            <label class="wb-property-label" for="property-select">Property
+              <select id="property-select"><option value="bc">Black Carbon</option><option value="uv370">UV 370 nm</option><option value="uvpm">UVPM</option></select>
+            </label>
+          </div>
+          <p class="wb-chart-explanation">Each line is a monthly mean by GMT hour ending. Chart pairs share one vertical scale; missing points remain gaps. Completeness can differ by month, and these patterns do not establish a domestic wood-burning source.</p>
+          <p class="wb-monitoring-note">Map dots show monitoring locations only, not concentration, AQI, risk or conditions across a wider area. <span id="source-day" class="wb-source-day"></span></p>
+        </div>
+        <div class="wb-map-shell" id="monitoring-map-shell">
+          <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
+          <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
+            <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="img" aria-label="Black Carbon monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland"></svg>
+            <figcaption id="map-caption">Monitoring locations</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div id="data-status" class="wb-data-status" role="status" aria-live="polite">Loading Black Carbon monitoring data…</div>
+      <div class="wb-pagination" data-pagination></div>
+      <div id="sensor-charts" class="wb-sensor-charts"></div>
+      <div class="wb-pagination" data-pagination></div>
+    </section>
+
+    <div class="wb-reading">
+      <section><h2>What is Black Carbon?</h2><p>Black Carbon is a component of particulate pollution produced by incomplete combustion. It comes from several sources, including road traffic, wood burning and other fuel combustion.</p></section>
+      <section><h2>Monitoring and limitations</h2><p>The Black Carbon monitoring network covers relatively few locations. Readings are influenced by local pollution sources, weather and atmospheric conditions.</p><p>Monthly averages can also hide short-term pollution peaks. A monitoring station represents its immediate surroundings, not an entire town or region.</p></section>
+      <section><h2>What does the evidence show?</h2>
+        <p>Research at five UK monitoring sites found that wood-burning-related particulate pollution was greatest during winter evenings, particularly at weekends in urban areas. <a href="https://doi.org/10.1016/j.envpol.2022.120105" target="_blank" rel="noopener noreferrer">2022 UK study</a></p>
+        <p>A 2026 London study identified short-term outdoor PM<sub>2.5</sub> peaks of up to 50 µg/m³ near residential chimneys associated with domestic solid-fuel burning. <a href="https://doi.org/10.1016/j.atmosenv.2026.122153" target="_blank" rel="noopener noreferrer">2026 London study</a></p>
+        <p>Defra estimates that households burning wood indoors contributed 12% of the UK's primary PM<sub>2.5</sub> emissions in 2024. <a href="https://www.gov.uk/government/statistics/emissions-of-air-pollutants/emissions-of-air-pollutants-in-the-uk-particulate-matter-pm10-and-pm25" target="_blank" rel="noopener noreferrer">Defra emissions statistics</a></p>
+      </section>
+      <section><h2>Wood burning and air pollution</h2>
+        <p>Wood burning releases health-harming particulate pollution, including <a href="https://www.gov.uk/government/publications/health-matters-air-pollution/health-matters-air-pollution" target="_blank" rel="noopener noreferrer">ultrafine particles (PM<sub>0.1</sub>), fine particles (PM<sub>2.5</sub>) and larger particles (PM<sub>10</sub>)</a>.</p>
+        <p>It also emits harmful gases including <a href="https://www.gov.uk/government/publications/carbon-monoxide-properties-incident-management-and-toxicology/carbon-monoxide-general-information" target="_blank" rel="noopener noreferrer">carbon monoxide</a>, <a href="https://www.gov.uk/government/statistics/emissions-of-air-pollutants/emissions-of-air-pollutants-in-the-uk-nitrogen-oxides-nox" target="_blank" rel="noopener noreferrer">nitrogen oxides</a>, <a href="https://www.gov.uk/government/publications/benzene-general-information-incident-management-and-toxicology/benzene-general-information" target="_blank" rel="noopener noreferrer">benzene</a>, <a href="https://www.gov.uk/government/publications/formaldehyde-properties-incident-management-and-toxicology/formaldehyde-toxicological-overview" target="_blank" rel="noopener noreferrer">formaldehyde</a> and <a href="https://wwwn.cdc.gov/TSP/ToxFAQs/ToxFAQsDetails.aspx?faqid=555&amp;toxid=102" target="_blank" rel="noopener noreferrer">acrolein</a>, alongside <a href="https://www.gov.uk/government/publications/benzoapyrene-properties-incident-management-and-toxicology/benzoapyrene-or-pahs-general-information" target="_blank" rel="noopener noreferrer">polycyclic aromatic hydrocarbons (PAHs)</a>.</p>
+        <p>This pollution spreads beyond the chimney. Some of it also enters neighbouring homes, exposing people who do not burn wood themselves. <a href="https://energyanalysis.lbl.gov/publications/infiltration-of-black-carbon-particle" target="_blank" rel="noopener noreferrer">Research on wood-smoke infiltration</a>.</p>
+        <p>Exposure to particles and harmful gases in wood-smoke pollution is linked to <strong>heart and lung disease, stroke and lung cancer</strong>. <a href="https://www.who.int/news/item/25-06-2024-what-are-health-consequences-of-air-pollution-on-populations" target="_blank" rel="noopener noreferrer">WHO health evidence</a>.</p>
+      </section>
+    </div>
+
+    <div id="summary-low-anchor"></div>
+    <nav class="ukaq-bottom-nav" aria-label="Explore UK AQ">
+      <div class="ukaq-bottom-nav-grid ukaq-bottom-nav-grid--three">
+        <a class="ukaq-bottom-nav-card" href="/hex_map/" aria-label="Hex Map: Compare latest pollutant readings by UK constituencies, countries, and local authorities.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-hex-map-sidebar.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-hex-map.svg" alt="Hex Map">
+          </div>
+          <p class="ukaq-bottom-nav-description">Compare latest pollutant readings by UK constituencies, countries, and local authorities.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/sensor_map/" aria-label="Sensor Map: View sensor locations and readings on an interactive UK map.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-location-pin.svg" alt="">
+            </span>
+            <span class="ukaq-bottom-nav-title-switch">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--two-line" src="/images/UK-AQ-sensor-map-2lines.svg" alt="Sensor Map">
+              <img class="ukaq-bottom-nav-title ukaq-bottom-nav-title--one-line" src="/images/UK-AQ-sensor-map-1line.svg" alt="Sensor Map">
+            </span>
+          </div>
+          <p class="ukaq-bottom-nav-description">View sensor locations and readings on an interactive UK map.</p>
+        </a>
+
+        <a class="ukaq-bottom-nav-card" href="/news/" aria-label="AQ in the News: Air quality news from the UK and around the world, covering air pollution and its effects on health.">
+          <div class="ukaq-bottom-nav-header">
+            <span class="ukaq-bottom-nav-icon-box">
+              <img class="ukaq-bottom-nav-icon" src="/sidebar-images/uk-aq-news-sidebar-button.svg" alt="">
+            </span>
+            <img class="ukaq-bottom-nav-title" src="/images/UK-AQ-NEWS-1line.svg" alt="AQ in the News">
+          </div>
+          <p class="ukaq-bottom-nav-description">Air quality news from the UK and around the world, covering air pollution and its effects on health.</p>
+        </a>
+      </div>
+    </nav>
+  </main>
+</body>
+</html>

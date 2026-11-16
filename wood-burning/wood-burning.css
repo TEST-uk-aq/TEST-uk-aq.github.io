@@ -9,3 +9,27 @@
 @media(max-width:360px){.wb-legend{gap:1px}.wb-legend button{padding:2px;font-size:.64rem}.wb-chart-svg{margin-left:-2px}.wb-video-placeholder span{display:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}.wb-video video{display:none}}
 .wb-data-status{margin:18px 0;padding:16px;border-left:4px solid var(--wb-accent);border-radius:5px;background:#fff;color:#344654}.wb-data-status[hidden],.wb-pagination[hidden]{display:none}.wb-data-status button{margin-left:12px;min-height:44px;padding:0 16px;border:1px solid var(--wb-selected-border);border-radius:9px;background:#fff;color:#285a84;font-weight:700}.wb-completeness{margin:7px 0 0;color:var(--wb-muted);font-size:.72rem;line-height:1.45}.wb-summary span{font-size:clamp(1.1rem,2vw,2rem)}
+
+/* The expanded view reserves a gutter on either side of the unchanged UK projection. */
+.wb-map-shell.is-map-open .wb-map{width:min(760px,82vw);height:min(740px,88vh)}
+.wb-map-label-action{display:none;cursor:pointer}
+.wb-map-shell.is-map-open .wb-map-label-action{display:block}
+.wb-map-shell.is-map-open .wb-map-label,.wb-map-shell.is-map-open .wb-map-leader{opacity:1}
+.wb-map-label{font-size:12px}
+.wb-map-leader{pointer-events:none;stroke:#8da0ad;stroke-width:.8}
+.wb-map-marker{cursor:pointer}
+.wb-map-hit{fill:transparent;stroke:none}
+.wb-map-marker:focus-visible .wb-map-dot,.wb-map-marker:hover .wb-map-dot{stroke:#173f60;stroke-width:3}
+.wb-map-label-action:focus-visible .wb-map-label,.wb-map-label-action:hover .wb-map-label{fill:#175b91;text-decoration:underline}
+.wb-map-station-list{display:none;flex:0 0 auto;max-height:128px;overflow:auto;overscroll-behavior:contain;border-top:1px solid #d9dfe3;padding:8px 2px}
+.wb-map-shell.is-map-open .wb-map-station-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
+.wb-map-station-list-heading{grid-column:1/-1;font-size:.74rem;color:#344654}
+.wb-map-station-list button{min-height:44px;text-align:left;padding:6px 9px;border:1px solid #d9e1e7;border-radius:7px;background:#f8fbfd;color:#285a84;font:600 .76rem Inter,sans-serif;cursor:pointer}
+.wb-map-station-list button:hover,.wb-map-station-list button:focus-visible{background:var(--wb-selected-bg);border-color:var(--wb-selected-border)}
+.wb-sensor-group:focus{outline:none}
+.wb-sensor-group.is-map-destination{border-color:#3C78AC;box-shadow:0 0 0 3px rgba(60,120,172,.24),0 5px 18px rgba(19,39,55,.055)}
+@media(max-width:767px){
+  .wb-map-shell.is-map-open .wb-map{width:100%;height:min(560px,80vh)}
+  .wb-map-shell .wb-map-label-action{display:none}
+  .wb-map-shell.is-map-open .wb-map-station-list{grid-template-columns:1fr;max-height:180px}
+}
