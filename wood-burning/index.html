@@ -37,17 +37,40 @@
 
       <section class="wb-video" aria-labelledby="video-title">
         <h2 class="visually-hidden" id="video-title">Wood burning explainer</h2>
-        <div class="wb-video-frame">
+        <div class="wb-video-frame" id="wood-video-frame">
           <video id="wood-video" muted loop playsinline preload="metadata" poster="wood-burning-poster.svg" aria-label="Explainer video about Black Carbon and hourly pollution patterns">
             <source src="https://media.ukaq.co.uk/wood-burning/UKAQ-BlackCarbon-TL6-Final-v4.mp4" type="video/mp4">
             <track id="wood-video-captions" kind="subtitles" src="TL6-Final-v3.vtt" srclang="en" label="English subtitles" default>
             Your browser does not support HTML video.
           </video>
-        </div>
-        <div class="wb-video-controls" role="group" aria-label="Video playback controls">
-          <button id="wood-video-play" type="button" aria-label="Play video" aria-pressed="false">Play</button>
-          <button id="wood-video-sound" type="button" aria-pressed="false">Sound off</button>
-          <button id="wood-video-cc" type="button" aria-pressed="true">CC on</button>
+          <div id="wood-video-subtitles" class="wb-video-subtitles" aria-live="off" hidden></div>
+          <div class="wb-video-controls" role="group" aria-label="Video playback controls">
+            <input id="wood-video-progress" class="wb-video-progress" type="range" min="0" max="1000" step="1" value="0" aria-label="Video position" disabled>
+            <div class="wb-video-control-line">
+              <button id="wood-video-play" class="wb-video-icon-button" type="button" aria-label="Play video" title="Play" aria-pressed="false" data-state="paused" aria-controls="wood-video">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path class="wb-icon-play" d="M8 5v14l11-7z" fill="currentColor" stroke="none"></path>
+                  <path class="wb-icon-pause" d="M6.5 5h4v14h-4zm7 0h4v14h-4z" fill="currentColor" stroke="none"></path>
+                </svg>
+              </button>
+              <button id="wood-video-sound" class="wb-video-icon-button" type="button" aria-label="Unmute video" title="Unmute" aria-pressed="false" data-muted="true" aria-controls="wood-video">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M11 5 6 9H3v6h3l5 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
+                  <path class="wb-icon-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+                  <path class="wb-icon-muted" d="m15 9 6 6m0-6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <input id="wood-video-volume" class="wb-video-volume" type="range" min="0" max="100" step="1" value="70" aria-label="Volume" aria-valuetext="70 per cent">
+              <span id="wood-video-time" class="wb-video-time" aria-hidden="true">0:00 / 0:00</span>
+              <span class="wb-video-control-spacer"></span>
+              <button id="wood-video-cc" class="wb-video-icon-button wb-video-cc" type="button" aria-label="Turn subtitles off" title="Subtitles on" aria-pressed="true" aria-controls="wood-video">CC</button>
+              <button id="wood-video-fullscreen" class="wb-video-icon-button" type="button" aria-label="Enter full screen" title="Full screen" aria-pressed="false" aria-controls="wood-video-frame">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M9 3H3v6m0-6 7 7m5 11h6v-6m0 6-7-7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
         <p id="wood-video-status" class="wb-video-status" role="status" aria-live="polite" hidden></p>
       </section>

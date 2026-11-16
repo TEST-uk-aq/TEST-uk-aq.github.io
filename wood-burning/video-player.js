@@ -1,95 +1,226 @@
-// Video controls are deliberately independent of Black Carbon data/chart loading.
-// The versioned MP4 is a shared public editorial asset for TEST and LIVE.
+// Custom player UI for the shared public UK AQ Black Carbon video.
+// The local WebVTT remains the canonical timing/content source. We display its
+// cue text in one consistent overlay rather than browser-specific cue fragments.
+const frame = document.querySelector("#wood-video-frame");
 const video = document.querySelector("#wood-video");
 const playButton = document.querySelector("#wood-video-play");
 const soundButton = document.querySelector("#wood-video-sound");
+const volumeSlider = document.querySelector("#wood-video-volume");
+const progress = document.querySelector("#wood-video-progress");
+const timeLabel = document.querySelector("#wood-video-time");
 const captionsButton = document.querySelector("#wood-video-cc");
+const fullscreenButton = document.querySelector("#wood-video-fullscreen");
 const captionsElement = document.querySelector("#wood-video-captions");
+const captionPanel = document.querySelector("#wood-video-subtitles");
 const status = document.querySelector("#wood-video-status");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
-if (video && playButton && soundButton && captionsButton && captionsElement && status) {
+if (frame && video && playButton && soundButton && volumeSlider && progress &&
+    timeLabel && captionsButton && fullscreenButton && captionsElement && captionPanel && status) {
+  const track = captionsElement.track;
   let captionsEnabled = true;
+  let nativeFullscreen = false;
+  let captionsAvailable = true;
 
   const setStatus = (message) => {
     status.textContent = message;
     status.hidden = !message;
   };
-  const updatePlay = () => {
+
+  const timeText = (seconds) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    const value = Math.floor(seconds);
+    return Math.floor(value / 60) + ":" + String(value % 60).padStart(2, "0");
+  };
+
+  const syncPlayback = () => {
     const playing = !video.paused && !video.ended;
-    playButton.textContent = playing ? "Pause" : "Play";
+    playButton.dataset.state = playing ? "playing" : "paused";
     playButton.setAttribute("aria-label", playing ? "Pause video" : "Play video");
+    playButton.setAttribute("title", playing ? "Pause" : "Play");
     playButton.setAttribute("aria-pressed", String(playing));
   };
-  const updateSound = () => {
-    const audible = !video.muted;
-    soundButton.textContent = audible ? "Sound on" : "Sound off";
-    soundButton.setAttribute("aria-label", audible ? "Mute video" : "Unmute video");
-    soundButton.setAttribute("aria-pressed", String(audible));
-  };
-  const updateCaptions = () => {
-    const track = captionsElement.track || video.textTracks?.[0];
-    if (track) track.mode = captionsEnabled ? "showing" : "disabled";
-    captionsButton.textContent = captionsEnabled ? "CC on" : "CC off";
-    captionsButton.setAttribute("aria-label", captionsEnabled ? "Turn subtitles off" : "Turn subtitles on");
-    captionsButton.setAttribute("aria-pressed", String(captionsEnabled));
+
+  const syncVolume = () => {
+    const muted = video.muted || video.volume === 0;
+    soundButton.dataset.muted = String(muted);
+    soundButton.setAttribute("aria-label", muted ? "Unmute video" : "Mute video");
+    soundButton.setAttribute("title", muted ? "Unmute" : "Mute");
+    soundButton.setAttribute("aria-pressed", String(!muted));
+    volumeSlider.value = String(Math.round(video.volume * 100));
+    volumeSlider.setAttribute("aria-valuetext", Math.round(video.volume * 100) + " per cent" + (muted ? ", muted" : ""));
   };
 
-  video.muted = true;
-  updatePlay();
-  updateSound();
-  updateCaptions();
+  const syncTimeline = () => {
+    const duration = video.duration;
+    const available = Number.isFinite(duration) && duration > 0;
+    progress.disabled = !available;
+    const fraction = available ? Math.min(1, Math.max(0, video.currentTime / duration)) : 0;
+    progress.value = String(Math.round(fraction * 1000));
+    progress.style.setProperty("--wb-video-progress", (fraction * 100) + "%");
+    progress.setAttribute("aria-valuetext", timeText(video.currentTime) + " of " + timeText(available ? duration : 0));
+    timeLabel.textContent = timeText(video.currentTime) + " / " + timeText(available ? duration : 0);
+  };
 
-  video.addEventListener("play", () => {
-    setStatus("");
-    updatePlay();
-  });
-  video.addEventListener("pause", updatePlay);
-  video.addEventListener("ended", updatePlay);
-  video.addEventListener("volumechange", updateSound);
-  video.addEventListener("error", () => {
-    setStatus("The video could not be loaded. Please try again later.");
-    updatePlay();
-  });
-  captionsElement.addEventListener("load", updateCaptions);
-  captionsElement.addEventListener("error", () => {
-    captionsEnabled = false;
-    updateCaptions();
-    captionsButton.disabled = true;
-    captionsButton.setAttribute("aria-label", "Subtitles unavailable");
-    captionsButton.textContent = "CC unavailable";
-    setStatus("Subtitles could not be loaded.");
-  });
+  const renderCaptions = () => {
+    const cues = track.activeCues;
+    const cue = cues && cues.length ? cues[0] : null;
+    if (!captionsEnabled || !captionsAvailable || nativeFullscreen || !cue) {
+      captionPanel.hidden = true;
+      captionPanel.textContent = "";
+      return;
+    }
+    // A text-only conversion prevents source markup from becoming page HTML.
+    const text = typeof cue.getCueAsHTML === "function"
+      ? cue.getCueAsHTML().textContent
+      : String(cue.text || "").replace(/<[^>]*>/g, "");
+    captionPanel.textContent = String(text || "").trim();
+    captionPanel.hidden = !captionPanel.textContent;
+  };
 
-  playButton.addEventListener("click", async () => {
+  const syncCaptions = () => {
+    // Keep native cues hidden on the custom player, but loaded and time-synced.
+    // iOS/native fullscreen owns its own caption rendering.
+    track.mode = nativeFullscreen
+      ? (captionsEnabled && captionsAvailable ? "showing" : "disabled")
+      : "hidden";
+    captionsButton.setAttribute("aria-pressed", String(captionsEnabled && captionsAvailable));
+    captionsButton.setAttribute("aria-label", captionsEnabled && captionsAvailable ? "Turn subtitles off" : "Turn subtitles on");
+    captionsButton.setAttribute("title", captionsEnabled && captionsAvailable ? "Subtitles on" : "Subtitles off");
+    captionsButton.disabled = !captionsAvailable;
+    renderCaptions();
+  };
+
+  const syncFullscreen = () => {
+    const isFullscreen = document.fullscreenElement === frame || nativeFullscreen;
+    fullscreenButton.setAttribute("aria-label", isFullscreen ? "Exit full screen" : "Enter full screen");
+    fullscreenButton.setAttribute("title", isFullscreen ? "Exit full screen" : "Full screen");
+    fullscreenButton.setAttribute("aria-pressed", String(isFullscreen));
+  };
+
+  const togglePlayback = async () => {
     if (!video.paused) {
       video.pause();
       return;
     }
     try {
       await video.play();
+      setStatus("");
     } catch (_error) {
-      setStatus("This browser could not start the video. Please try again.");
-      updatePlay();
+      setStatus("The video could not start. Please try again.");
+      syncPlayback();
     }
+  };
+
+  video.muted = true;
+  video.volume = 0.7;
+  video.controls = false;
+  syncPlayback();
+  syncVolume();
+  syncTimeline();
+  syncCaptions();
+  syncFullscreen();
+
+  video.addEventListener("play", () => { setStatus(""); syncPlayback(); });
+  video.addEventListener("pause", syncPlayback);
+  video.addEventListener("ended", () => { syncPlayback(); syncTimeline(); });
+  video.addEventListener("loadedmetadata", syncTimeline);
+  video.addEventListener("durationchange", syncTimeline);
+  video.addEventListener("timeupdate", () => { syncTimeline(); renderCaptions(); });
+  video.addEventListener("seeked", () => { syncTimeline(); renderCaptions(); });
+  video.addEventListener("volumechange", syncVolume);
+  video.addEventListener("error", () => {
+    setStatus("The video could not be loaded. Please try again later.");
+    syncPlayback();
   });
-  soundButton.addEventListener("click", () => {
-    video.muted = !video.muted;
-    updateSound();
+  track.addEventListener("cuechange", renderCaptions);
+  captionsElement.addEventListener("load", () => {
+    captionsAvailable = true;
+    syncCaptions();
   });
-  captionsButton.addEventListener("click", () => {
-    if (captionsButton.disabled) return;
-    captionsEnabled = !captionsEnabled;
-    updateCaptions();
+  captionsElement.addEventListener("error", () => {
+    captionsAvailable = false;
+    syncCaptions();
+    captionsButton.setAttribute("aria-label", "Subtitles unavailable");
+    captionsButton.setAttribute("title", "Subtitles unavailable");
+    setStatus("Subtitles could not be loaded.");
   });
 
-  // Never auto-run a looping animation when reduced motion is requested.
-  // Explicit Play remains available with the video visible and poster intact.
+  playButton.addEventListener("click", togglePlayback);
+  video.addEventListener("click", togglePlayback);
+
+  soundButton.addEventListener("click", () => {
+    if (video.muted || video.volume === 0) {
+      if (video.volume === 0) video.volume = 0.7;
+      video.muted = false;
+    } else {
+      video.muted = true;
+    }
+    syncVolume();
+  });
+  volumeSlider.addEventListener("input", () => {
+    const value = Math.max(0, Math.min(100, Number(volumeSlider.value) || 0));
+    video.volume = value / 100;
+    video.muted = value === 0;
+    syncVolume();
+  });
+  progress.addEventListener("input", () => {
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    video.currentTime = Math.min(duration, Math.max(0, Number(progress.value) / 1000 * duration));
+    syncTimeline();
+    renderCaptions();
+  });
+  captionsButton.addEventListener("click", () => {
+    if (!captionsAvailable) return;
+    captionsEnabled = !captionsEnabled;
+    syncCaptions();
+  });
+
+  fullscreenButton.addEventListener("click", async () => {
+    if (document.fullscreenElement === frame) {
+      try { await document.exitFullscreen(); } catch (_error) { setStatus("Could not exit full screen."); }
+      return;
+    }
+    if (nativeFullscreen) {
+      if (typeof video.webkitExitFullscreen === "function") video.webkitExitFullscreen();
+      return;
+    }
+    try {
+      if (typeof frame.requestFullscreen === "function") {
+        await frame.requestFullscreen();
+      } else if (typeof video.webkitEnterFullscreen === "function") {
+        video.webkitEnterFullscreen();
+      } else {
+        setStatus("Full screen is not supported by this browser.");
+      }
+    } catch (_error) {
+      if (typeof video.webkitEnterFullscreen === "function") {
+        try { video.webkitEnterFullscreen(); }
+        catch (_fallbackError) { setStatus("Full screen could not be opened."); }
+      } else {
+        setStatus("Full screen could not be opened.");
+      }
+    }
+    syncFullscreen();
+  });
+
+  document.addEventListener("fullscreenchange", syncFullscreen);
+  video.addEventListener("webkitbeginfullscreen", () => {
+    nativeFullscreen = true;
+    syncCaptions();
+    syncFullscreen();
+  });
+  video.addEventListener("webkitendfullscreen", () => {
+    nativeFullscreen = false;
+    syncCaptions();
+    syncFullscreen();
+  });
+
+  // Never autoplay an endlessly looping animation when reduced motion is requested.
+  // Explicit Play still works, including after a runtime preference change.
   reducedMotion.addEventListener?.("change", (event) => {
     if (event.matches && !video.paused) video.pause();
   });
-  if (!reducedMotion.matches) {
-    // Muted playback is generally allowed; Play remains available if blocked.
-    video.play().catch(updatePlay);
-  }
+  if (!reducedMotion.matches) video.play().catch(syncPlayback);
 }
