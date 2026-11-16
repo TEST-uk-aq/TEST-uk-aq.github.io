@@ -71,8 +71,16 @@
         <div class="wb-map-shell" id="monitoring-map-shell">
           <button class="wb-map-toggle" id="map-toggle" type="button" aria-expanded="false" aria-controls="monitoring-map">Expand monitoring map</button>
           <figure class="wb-map" id="monitoring-map" tabindex="0" aria-labelledby="map-caption">
-            <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="group" aria-label="Black Carbon monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland"></svg>
-            <div class="wb-map-station-list" id="map-station-list" role="group" aria-label="Monitoring stations: select to view charts"></div>
+            <div class="wb-map-viewport">
+              <svg id="monitoring-map-svg" viewBox="0 0 360 520" role="group" tabindex="0" aria-label="Black Carbon monitoring locations on a geographic map of England, Scotland, Wales and Northern Ireland. Use the zoom controls to inspect stations; hold Control or Command while scrolling to zoom."></svg>
+              <div class="wb-map-tooltip" id="map-tooltip" hidden></div>
+              <div class="wb-map-choices" id="map-choices" role="group" aria-label="Overlapping monitoring stations" hidden></div>
+              <div class="wb-map-controls" role="group" aria-label="Map zoom controls" hidden>
+                <button id="map-zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+                <button id="map-zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+                <button id="map-reset" type="button" aria-label="Reset map view">Reset view</button>
+              </div>
+            </div>
             <figcaption id="map-caption">Monitoring locations</figcaption>
           </figure>
         </div>
