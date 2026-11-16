@@ -16,6 +16,8 @@
 .wb-map-shell.is-map-open .wb-map{width:min(760px,82vw);height:min(690px,88vh)}
 .wb-map-viewport{position:relative;flex:1 1 0;min-height:0;overflow:hidden;border-radius:10px}
 .wb-map-viewport svg{display:block;width:100%;height:100%;touch-action:auto;user-select:none}
+.wb-map:focus-visible{outline:2px solid rgba(60,120,172,.65);outline-offset:3px}
+.wb-map-viewport svg:focus:not(:focus-visible){outline:none}
 .wb-map-shell.is-map-open .wb-map-viewport svg{touch-action:none;cursor:grab}
 .wb-map-shell.is-map-open .wb-map-viewport svg:active{cursor:grabbing}
 .wb-map-label{opacity:1;font:600 12px Inter,sans-serif;fill:#243542;stroke:#fff;stroke-width:3px;paint-order:stroke;pointer-events:visiblePainted}
@@ -28,7 +30,17 @@
 .wb-map-label-action:focus-visible .wb-map-label,.wb-map-label-action:hover .wb-map-label{fill:#175b91;text-decoration:underline}
 .wb-map-marker:focus-visible,.wb-map-label-action:focus-visible{outline:none}
 .wb-map-marker:focus-visible .wb-map-hit,.wb-map-label-action:focus-visible .wb-map-label{stroke:#173f60;stroke-width:3}
-.wb-map-controls{position:absolute;top:8px;right:8px;z-index:3;display:flex;gap:4px;padding:4px;border:1px solid #d9e1e7;border-radius:10px;background:rgba(255,255,255,.95);box-shadow:0 3px 10px rgba(19,39,55,.12)}
+.wb-map-controls{position:absolute;top:8px;right:8px;z-index:3;display:grid;gap:0;width:40px;overflow:hidden;border:1px solid rgba(20,34,37,.18);border-radius:12px;background:rgba(255,255,255,.94);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.wb-map-controls:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(60,120,172,.22);border-color:rgba(60,120,172,.35)}
+.wb-map-controls button{appearance:none;position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:34px;padding:0;border:0;border-radius:0;background:rgba(255,255,255,.92);color:#101822;font:700 .84rem Inter,sans-serif;box-shadow:none;cursor:pointer;transition:background-color .15s ease}
+.wb-map-controls button+button{border-top:1px solid rgba(20,34,37,.16)}
+.wb-map-controls #map-zoom-in,.wb-map-controls #map-zoom-out{height:36px;min-height:36px}
+.wb-map-controls #map-reset{height:32px;min-height:32px;font-size:.6rem;letter-spacing:.02em}
+.wb-zoom-icon{display:block;width:28px;height:28px;transform:translateX(1px)}
+.wb-zoom-icon .wb-zoom-ring,.wb-zoom-icon .wb-zoom-handle,.wb-zoom-icon .wb-zoom-mark{fill:none;stroke:currentColor;stroke-width:4;stroke-linecap:round}
+.wb-map-controls button:hover{background:rgba(255,255,255,.98)}
+.wb-map-controls button:active{background:rgba(246,249,252,.96)}
+.wb-map-controls button:focus-visible{z-index:1;outline:2px solid rgba(60,120,172,.65);outline-offset:-3px}
 .wb-map-controls[hidden],.wb-map-tooltip[hidden],.wb-map-choices[hidden]{display:none}
 .wb-map-controls button{min-width:44px;min-height:44px;padding:0 8px;border:1px solid var(--wb-selected-border);border-radius:7px;background:#fff;color:#285a84;font:700 1.2rem Inter,sans-serif;cursor:pointer}
 .wb-map-controls #map-reset{font-size:.72rem;white-space:nowrap}
@@ -38,4 +50,4 @@
 .wb-map-choices strong{display:block;margin-bottom:6px;font-size:.76rem}
 .wb-map-choices button{display:block;width:100%;min-height:44px;padding:6px;text-align:left;border:1px solid #d9e1e7;border-radius:6px;background:#fff;color:#285a84;font:600 .76rem Inter,sans-serif;cursor:pointer}
 .wb-map-choices button+button{margin-top:4px}
-@media(max-width:767px){.wb-map-shell.is-map-open .wb-map{width:100%;height:min(560px,80vh)}.wb-map-controls{top:6px;right:6px;gap:2px;padding:2px}.wb-map-controls button{min-width:44px;padding:0 5px}}
+@media(max-width:767px){.wb-map-shell.is-map-open .wb-map{width:100%;height:min(560px,80vh)}.wb-map-controls{top:6px;right:6px;width:44px}.wb-map-controls #map-zoom-in,.wb-map-controls #map-zoom-out,.wb-map-controls #map-reset{height:44px;min-height:44px}}
