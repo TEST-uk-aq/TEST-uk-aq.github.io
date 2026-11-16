@@ -442,7 +442,7 @@ function linePath(points, x, y) {
 function renderChart(station, period, scale) {
   const card = document.createElement("section"); card.className = "wb-chart-card";
   const heading = document.createElement("h4"); heading.textContent = period.heading; card.append(heading);
-  const width = 520, height = 270, margin = { top: 12, right: 14, bottom: 39, left: 52 };
+  const width = 520, height = 270, margin = { top: 12, right: 14, bottom: 39, left: 68 };
   const x = (hour) => margin.left + ((hour - 1) / 23) * (width - margin.left - margin.right);
   const y = (value) => height - margin.bottom - ((value - scale.min) / (scale.max - scale.min)) * (height - margin.top - margin.bottom);
   const svg = element("svg", { class: "wb-chart-svg", viewBox: `0 0 ${width} ${height}`, role: "img",
@@ -455,7 +455,10 @@ function renderChart(station, period, scale) {
   svg.append(element("line", { class: "wb-axis-line", x1: margin.left, x2: margin.left, y1: margin.top, y2: height - margin.bottom }));
   svg.append(element("line", { class: "wb-axis-line", x1: margin.left, x2: width - margin.right, y1: height - margin.bottom, y2: height - margin.bottom }));
   [1, 6, 12, 18, 24].forEach((hour) => { const tick = element("text", { class: "wb-axis-label", x: x(hour), y: height - 18, "text-anchor": "middle" }); tick.textContent = `${String(hour).padStart(2, "0")}:00`; svg.append(tick); });
-  const unit = element("text", { class: "wb-axis-title", x: 12, y: 10 }); unit.textContent = `${PROPERTY_LABELS[property]} · µg/m³`; svg.append(unit);
+  const titleX = 18, titleY = (margin.top + height - margin.bottom) / 2;
+  const unit = element("text", { class: "wb-axis-title wb-axis-title--y", x: titleX, y: titleY,
+    "text-anchor": "middle", transform: `rotate(-90 ${titleX} ${titleY})` });
+  unit.textContent = `${PROPERTY_LABELS[property]} µg/m³`; svg.append(unit);
   const xTitle = element("text", { class: "wb-axis-title", x: (margin.left + width - margin.right) / 2, y: height - 3, "text-anchor": "middle" }); xTitle.textContent = "GMT hour ending"; svg.append(xTitle);
   const months = period.months.map((entry) => ({ ...station.profiles[property][entry.index], identity: entry }));
   months.forEach((month) => svg.append(element("path", { class: "wb-month-line", d: linePath(month.points, x, y),
