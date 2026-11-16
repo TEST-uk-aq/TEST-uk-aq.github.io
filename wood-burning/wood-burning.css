@@ -42,9 +42,7 @@
 .wb-map-controls button:active{background:rgba(246,249,252,.96)}
 .wb-map-controls button:focus-visible{z-index:1;outline:2px solid rgba(60,120,172,.65);outline-offset:-3px}
 .wb-map-controls[hidden],.wb-map-tooltip[hidden],.wb-map-choices[hidden]{display:none}
-.wb-map-controls button{min-width:44px;min-height:44px;padding:0 8px;border:1px solid var(--wb-selected-border);border-radius:7px;background:#fff;color:#285a84;font:700 1.2rem Inter,sans-serif;cursor:pointer}
-.wb-map-controls #map-reset{font-size:.72rem;white-space:nowrap}
-.wb-map-controls button:hover,.wb-map-controls button:focus-visible,.wb-map-choices button:focus-visible{outline:2px solid #285a84;outline-offset:1px;background:var(--wb-selected-bg)}
+.wb-map-choices button:focus-visible{outline:2px solid #285a84;outline-offset:1px;background:var(--wb-selected-bg)}
 .wb-map-tooltip{position:absolute;z-index:4;max-width:min(280px,85%);padding:5px 8px;border:1px solid #d6dde2;border-radius:7px;background:#fff;color:#243542;box-shadow:0 4px 12px rgba(16,24,34,.18);font:600 .75rem/1.35 Inter,sans-serif;pointer-events:none}
 .wb-map-choices{position:absolute;z-index:5;width:min(220px,90%);max-height:55%;overflow:auto;padding:8px;border:1px solid #cbd4db;border-radius:9px;background:#fff;box-shadow:0 7px 16px rgba(16,24,34,.18)}
 .wb-map-choices strong{display:block;margin-bottom:6px;font-size:.76rem}
