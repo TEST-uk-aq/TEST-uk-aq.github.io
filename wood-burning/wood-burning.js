@@ -157,7 +157,7 @@ function initializeMap() {
     }
     shell.classList.toggle("is-expanded", expanded);
     toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
+    toggle.textContent = expanded ? "Close Black Carbon sensor map" : "Open Black Carbon sensor map";
     updateView();
   };
   toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
@@ -306,7 +306,7 @@ function closeMapChoices() {
 function showMapChoices(stations, marker) {
   const choices = document.querySelector("#map-choices");
   choices.replaceChildren();
-  const heading = document.createElement("strong"); heading.textContent = "Choose monitoring station"; choices.append(heading);
+  const heading = document.createElement("strong"); heading.textContent = "Choose Black Carbon sensor"; choices.append(heading);
   stations.forEach(({ station }) => {
     const button = document.createElement("button"); button.type = "button";
     button.textContent = station.name; button.setAttribute("aria-label", `View charts for ${station.name}`);
@@ -336,7 +336,7 @@ function navigateToStation(stationId) {
     shell.classList.remove("is-expanded", "is-map-open");
     const toggle = document.querySelector("#map-toggle");
     toggle.setAttribute("aria-expanded", "false");
-    toggle.textContent = "Expand monitoring map";
+    toggle.textContent = "Open Black Carbon sensor map";
   }
   group.classList.add("is-map-destination");
   group.focus({ preventScroll: true });
@@ -634,7 +634,7 @@ function status(message, retry = false) {
 
 async function load() {
   data = null;
-  document.querySelector("#map-caption").textContent = "Loading Black Carbon monitoring stations…";
+  document.querySelector("#map-caption").textContent = "Loading Black Carbon sensors…";
 
   document.querySelector("#sensor-charts").replaceChildren();
   renderMapStations();
@@ -645,7 +645,7 @@ async function load() {
     if (!base) throw new Error("Cache API configuration is unavailable");
     const response = await window.ukAqFetchCacheApi(`${base}/bc-uv/diurnal`, { headers: { Accept: "application/json" } });
     if (response.status === 404) {
-      document.querySelector("#map-caption").textContent = "Black Carbon monitoring stations";
+      document.querySelector("#map-caption").textContent = "Black Carbon sensors";
       status("Black Carbon profiles are not available yet. Please try again later.", true);
       return;
     }
@@ -654,14 +654,14 @@ async function load() {
     data.sensors.sort((a, b) => a.name.localeCompare(b.name, "en-GB") || a.station_id - b.station_id);
     const sensorCount = data.sensors.length;
     document.querySelector("#map-caption").textContent =
-      `${sensorCount} Black Carbon monitoring ${sensorCount === 1 ? "station" : "stations"}`;
+      `${sensorCount} Black Carbon ${sensorCount === 1 ? "sensor" : "sensors"}`;
 
-    if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
+    if (!data.sensors.length) { status("No eligible Black Carbon sensors are available."); return; }
     page = 0; renderMapStations(); render(); status("");
     document.fonts?.ready.then(() => { if (data) renderMapStations(); });
   } catch (_error) {
     data = null;
-    document.querySelector("#map-caption").textContent = "Black Carbon monitoring stations";
+    document.querySelector("#map-caption").textContent = "Black Carbon sensors";
     renderMapStations(); status("Black Carbon profiles could not be loaded. Please try again.", true);
   }
 }
