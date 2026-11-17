@@ -154,13 +154,32 @@ function initializeMap() {
       hideMapTooltip();
       mapView.pointers.clear();
       mapView.interacting = false;
+      // Mobile WebKit can keep a tapped SVG/control in :focus or :hover.
+      // Always clear the open state explicitly before recalculating layout.
+      shell.classList.remove("is-map-open");
     }
     shell.classList.toggle("is-expanded", expanded);
     toggle.setAttribute("aria-expanded", String(expanded));
     toggle.textContent = expanded ? "Close Black Carbon sensor map" : "Open Black Carbon sensor map";
     updateView();
   };
-  toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
+  // Handle the touch release directly. On iOS a visually pressed button can
+  // occasionally miss its synthesised click after interaction with the SVG.
+  // Ignore the corresponding click, but preserve mouse and keyboard clicks.
+  let lastTouchToggleAt = -Infinity;
+  toggle.addEventListener("pointerup", (event) => {
+    if (!mobile.matches || !["touch", "pen"].includes(event.pointerType)) return;
+    if (event.cancelable) event.preventDefault();
+    lastTouchToggleAt = performance.now();
+    setExpanded(!shell.classList.contains("is-expanded"));
+  });
+  toggle.addEventListener("click", (event) => {
+    if (event.detail !== 0 && performance.now() - lastTouchToggleAt < 750) {
+      event.preventDefault();
+      return;
+    }
+    setExpanded(!shell.classList.contains("is-expanded"));
+  });
   shell.addEventListener("pointerenter", updateView);
   shell.addEventListener("pointerleave", updateView);
   shell.addEventListener("focusin", updateView);

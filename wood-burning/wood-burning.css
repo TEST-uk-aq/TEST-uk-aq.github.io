@@ -108,5 +108,9 @@
 .wood-burning-page .wb-property-label select{transition:border-color .15s ease,box-shadow .15s ease}
 .wood-burning-page .wb-property-label select:hover{border-color:rgba(60,120,172,.35);box-shadow:0 8px 18px rgba(60,120,172,.22)}
 .wood-burning-page .wb-property-label select:focus-visible{border-color:rgba(60,120,172,.35);outline:2px solid #285a84;outline-offset:2px;box-shadow:0 8px 18px rgba(60,120,172,.22)}
+@media(max-width:767px){
+  /* Keep the collapsed map compact even if iOS retains sticky :hover/:focus. */
+  .wb-map-shell:not(.is-expanded) .wb-map{width:100%;height:280px;filter:none;transform:none}
+}
 @container (max-width:470px){.wb-legend{grid-template-columns:repeat(3,minmax(0,1fr))}.wb-legend button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.wood-burning-page :is(.wb-legend button,.wb-pagination button,.wb-map-toggle,.wb-map-controls button,.wb-data-status button,.wb-map-choices button):hover:not(:disabled){transform:none}}
