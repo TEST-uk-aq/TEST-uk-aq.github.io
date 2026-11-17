@@ -8,9 +8,40 @@ const MAP_PROJECTION = Object.freeze({ minimumLongitude: -8.7, maximumLatitude: 
 let data = null;
 let page = 0;
 let property = "bc";
+// UK-AIR Black Carbon network site environment types, checked 17/11/2026.
+// Source: https://uk-air.defra.gov.uk/networks/find-sites?action=results&group_id=16&view=advanced
+// Exact UK-AIR station-reference lookup only: never infer a type from the name.
+const UK_AIR_ENVIRONMENT_TYPES = Object.freeze({
+  UKA00451: "Rural Background",
+  UKA00503: "Urban Background",
+  UKA00353: "Urban Background",
+  UKA00212: "Urban Background",
+  UKA00626: "Urban Traffic",
+  UKA00655: "Urban Background",
+  UKA01025: "Urban Background",
+  UKA01090: "Urban Traffic",
+  UKA00217: "Urban Background",
+  UKA00614: "Rural Background",
+  UKA01027: "Urban Background",
+  UKA00481: "Rural Background",
+  UKA00602: "Urban Traffic",
+  UKA00576: "Urban Background",
+  UKA00170: "Rural Background",
+  UKA00570: "Urban Background",
+  UKA00171: "Rural Background",
+  UKA00656: "Urban Background",
+  UKA00315: "Urban Traffic",
+  UKA00253: "Urban Background",
+  UKA00572: "Urban Background",
+  UKA00213: "Urban Background",
+  UKA01055: "Urban Background",
+  UKA00445: "Rural Background",
+  UKA00393: "Suburban Background",
+  UKA00362: "Rural Background",
+});
 const MAP_MAX_ZOOM = 8;
 const mapView = { zoom: 1, panX: 0, panY: 0, width: 360, height: 520, stations: [], markers: [],
-  pointers: new Map(), dragged: false, interacting: false, choiceTrigger: null };
+  pointers: new Map(), dragged: false, interacting: false, suppressNextClick: false, choiceTrigger: null };
 
 const element = (name, attrs = {}) => {
   const node = document.createElementNS(SVG_NS, name);
@@ -118,6 +149,12 @@ function initializeMap() {
     requestAnimationFrame(layoutMap);
   };
   const setExpanded = (expanded) => {
+    if (!expanded) {
+      closeMapChoices();
+      hideMapTooltip();
+      mapView.pointers.clear();
+      mapView.interacting = false;
+    }
     shell.classList.toggle("is-expanded", expanded);
     toggle.setAttribute("aria-expanded", String(expanded));
     toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
@@ -149,6 +186,7 @@ function initializeMap() {
   }, { passive: false });
   svg.addEventListener("pointerdown", (event) => {
     if (!shell.classList.contains("is-map-open") || event.button !== 0) return;
+    mapView.suppressNextClick = false;
     closeMapChoices();
     if (!mapView.pointers.size) {
       mapView.dragged = false;
@@ -188,6 +226,31 @@ function initializeMap() {
     }
   });
   const endPointer = (event) => {
+    // Touch pointer capture can retarget the synthetic click away from a tiny SVG
+    // marker. Resolve a stationary single-finger tap by screen-pixel distance.
+    const previous = mapView.pointers.get(event.pointerId);
+    const stationaryTap = event.type === "pointerup"
+      && (event.pointerType === "touch" || event.pointerType === "pen")
+      && mapView.pointers.size === 1 && !mapView.dragged && previous
+      && Math.hypot(event.clientX - mapView.startX, event.clientY - mapView.startY) <= 6;
+    if (stationaryTap) {
+      const rect = svg.getBoundingClientRect();
+      const hit = mapView.markers
+        .filter((marker) => marker.node.style.visibility !== "hidden")
+        .map((marker) => ({
+          marker,
+          distance: Math.hypot(
+            rect.left + marker.x * rect.width / mapView.width - event.clientX,
+            rect.top + marker.y * rect.height / 520 - event.clientY,
+          ),
+        }))
+        .filter(({ distance }) => distance <= 24)
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (hit) {
+        mapView.suppressNextClick = true;
+        hit.marker.activate();
+      }
+    }
     mapView.pointers.delete(event.pointerId);
     mapView.pinch = mapView.pointers.size === 2 ? pinchState() : null;
     if (!mapView.pointers.size) {
@@ -197,7 +260,13 @@ function initializeMap() {
   };
   svg.addEventListener("pointerup", endPointer);
   svg.addEventListener("pointercancel", endPointer);
-  svg.addEventListener("click", (event) => { if (mapView.dragged && event.detail) event.stopPropagation(); }, true);
+  svg.addEventListener("click", (event) => {
+    if ((mapView.dragged && event.detail) || mapView.suppressNextClick) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      mapView.suppressNextClick = false;
+    }
+  }, true);
   updateView();
 }
 
@@ -316,6 +385,7 @@ function renderMapStations() {
       if (members.length === 1) navigateToStation(members[0].station.station_id);
       else showMapChoices(members, marker);
     };
+    marker.activate = activate;
     node.addEventListener("click", () => activate());
     node.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -526,7 +596,10 @@ function render() {
     group.dataset.stationId = String(station.station_id);
     group.tabIndex = -1;
     const header = document.createElement("header"), name = document.createElement("h3"), meta = document.createElement("span");
-    name.textContent = station.name; meta.className = "wb-sensor-meta"; meta.textContent = `Station ${station.station_ref} · source through ${data.source_through_day}`;
+    name.textContent = station.name;
+    meta.className = "wb-sensor-meta";
+    const environmentType = UK_AIR_ENVIRONMENT_TYPES[station.station_ref];
+    meta.textContent = `${environmentType ? `${environmentType} · ` : ""}Station ${station.station_ref} · source through ${data.source_through_day}`;
     header.append(name, meta); group.append(header);
     const pair = document.createElement("div"); pair.className = "wb-chart-pair";
     const chosen = [...summer.months, ...winter.months].map((entry) => station.profiles[property][entry.index]);
