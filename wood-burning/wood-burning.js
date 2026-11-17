@@ -351,16 +351,29 @@ function navigateToStation(stationId) {
     .find((node) => Number(node.dataset.stationId) === stationId);
   if (!group) return;
   const shell = document.querySelector("#monitoring-map-shell");
-  if (matchMedia("(max-width: 767px)").matches) {
+  const mobile = matchMedia("(max-width: 767px)").matches;
+  if (mobile) {
     shell.classList.remove("is-expanded", "is-map-open");
     const toggle = document.querySelector("#map-toggle");
     toggle.setAttribute("aria-expanded", "false");
     toggle.textContent = "Open Black Carbon sensor map";
   }
   group.classList.add("is-map-destination");
-  group.focus({ preventScroll: true });
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  group.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  if (mobile) {
+    // The expanded mobile map changes page height for 280 ms on close.
+    // Scroll only after its transition settles, otherwise iOS can land
+    // halfway down this two-chart card rather than at its station heading.
+    setTimeout(() => requestAnimationFrame(() => {
+      if (!group.isConnected) return;
+      const top = window.scrollY + group.getBoundingClientRect().top - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+      group.focus({ preventScroll: true });
+    }), reducedMotion ? 0 : 330);
+  } else {
+    group.focus({ preventScroll: true });
+    group.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  }
   setTimeout(() => group.classList.remove("is-map-destination"), reducedMotion ? 900 : 1800);
 }
 
