@@ -8,9 +8,40 @@ const MAP_PROJECTION = Object.freeze({ minimumLongitude: -8.7, maximumLatitude: 
 let data = null;
 let page = 0;
 let property = "bc";
+// UK-AIR Black Carbon network site environment types, checked 17/11/2026.
+// Source: https://uk-air.defra.gov.uk/networks/find-sites?action=results&group_id=16&view=advanced
+// Exact UK-AIR station-reference lookup only: never infer a type from the name.
+const UK_AIR_ENVIRONMENT_TYPES = Object.freeze({
+  UKA00451: "Rural Background",
+  UKA00503: "Urban Background",
+  UKA00353: "Urban Background",
+  UKA00212: "Urban Background",
+  UKA00626: "Urban Traffic",
+  UKA00655: "Urban Background",
+  UKA01025: "Urban Background",
+  UKA01090: "Urban Traffic",
+  UKA00217: "Urban Background",
+  UKA00614: "Rural Background",
+  UKA01027: "Urban Background",
+  UKA00481: "Rural Background",
+  UKA00602: "Urban Traffic",
+  UKA00576: "Urban Background",
+  UKA00170: "Rural Background",
+  UKA00570: "Urban Background",
+  UKA00171: "Rural Background",
+  UKA00656: "Urban Background",
+  UKA00315: "Urban Traffic",
+  UKA00253: "Urban Background",
+  UKA00572: "Urban Background",
+  UKA00213: "Urban Background",
+  UKA01055: "Urban Background",
+  UKA00445: "Rural Background",
+  UKA00393: "Suburban Background",
+  UKA00362: "Rural Background",
+});
 const MAP_MAX_ZOOM = 8;
 const mapView = { zoom: 1, panX: 0, panY: 0, width: 360, height: 520, stations: [], markers: [],
-  pointers: new Map(), dragged: false, interacting: false, choiceTrigger: null };
+  pointers: new Map(), dragged: false, interacting: false, suppressNextClick: false, choiceTrigger: null };
 
 const element = (name, attrs = {}) => {
   const node = document.createElementNS(SVG_NS, name);
@@ -118,12 +149,37 @@ function initializeMap() {
     requestAnimationFrame(layoutMap);
   };
   const setExpanded = (expanded) => {
+    if (!expanded) {
+      closeMapChoices();
+      hideMapTooltip();
+      mapView.pointers.clear();
+      mapView.interacting = false;
+      // Mobile WebKit can keep a tapped SVG/control in :focus or :hover.
+      // Always clear the open state explicitly before recalculating layout.
+      shell.classList.remove("is-map-open");
+    }
     shell.classList.toggle("is-expanded", expanded);
     toggle.setAttribute("aria-expanded", String(expanded));
-    toggle.textContent = expanded ? "Close monitoring map" : "Expand monitoring map";
+    toggle.textContent = expanded ? "Close Black Carbon sensor map" : "Open Black Carbon sensor map";
     updateView();
   };
-  toggle.addEventListener("click", () => setExpanded(!shell.classList.contains("is-expanded")));
+  // Handle the touch release directly. On iOS a visually pressed button can
+  // occasionally miss its synthesised click after interaction with the SVG.
+  // Ignore the corresponding click, but preserve mouse and keyboard clicks.
+  let lastTouchToggleAt = -Infinity;
+  toggle.addEventListener("pointerup", (event) => {
+    if (!mobile.matches || !["touch", "pen"].includes(event.pointerType)) return;
+    if (event.cancelable) event.preventDefault();
+    lastTouchToggleAt = performance.now();
+    setExpanded(!shell.classList.contains("is-expanded"));
+  });
+  toggle.addEventListener("click", (event) => {
+    if (event.detail !== 0 && performance.now() - lastTouchToggleAt < 750) {
+      event.preventDefault();
+      return;
+    }
+    setExpanded(!shell.classList.contains("is-expanded"));
+  });
   shell.addEventListener("pointerenter", updateView);
   shell.addEventListener("pointerleave", updateView);
   shell.addEventListener("focusin", updateView);
@@ -149,6 +205,7 @@ function initializeMap() {
   }, { passive: false });
   svg.addEventListener("pointerdown", (event) => {
     if (!shell.classList.contains("is-map-open") || event.button !== 0) return;
+    mapView.suppressNextClick = false;
     closeMapChoices();
     if (!mapView.pointers.size) {
       mapView.dragged = false;
@@ -188,6 +245,31 @@ function initializeMap() {
     }
   });
   const endPointer = (event) => {
+    // Touch pointer capture can retarget the synthetic click away from a tiny SVG
+    // marker. Resolve a stationary single-finger tap by screen-pixel distance.
+    const previous = mapView.pointers.get(event.pointerId);
+    const stationaryTap = event.type === "pointerup"
+      && (event.pointerType === "touch" || event.pointerType === "pen")
+      && mapView.pointers.size === 1 && !mapView.dragged && previous
+      && Math.hypot(event.clientX - mapView.startX, event.clientY - mapView.startY) <= 6;
+    if (stationaryTap) {
+      const rect = svg.getBoundingClientRect();
+      const hit = mapView.markers
+        .filter((marker) => marker.node.style.visibility !== "hidden")
+        .map((marker) => ({
+          marker,
+          distance: Math.hypot(
+            rect.left + marker.x * rect.width / mapView.width - event.clientX,
+            rect.top + marker.y * rect.height / 520 - event.clientY,
+          ),
+        }))
+        .filter(({ distance }) => distance <= 24)
+        .sort((a, b) => a.distance - b.distance)[0];
+      if (hit) {
+        mapView.suppressNextClick = true;
+        hit.marker.activate();
+      }
+    }
     mapView.pointers.delete(event.pointerId);
     mapView.pinch = mapView.pointers.size === 2 ? pinchState() : null;
     if (!mapView.pointers.size) {
@@ -197,7 +279,13 @@ function initializeMap() {
   };
   svg.addEventListener("pointerup", endPointer);
   svg.addEventListener("pointercancel", endPointer);
-  svg.addEventListener("click", (event) => { if (mapView.dragged && event.detail) event.stopPropagation(); }, true);
+  svg.addEventListener("click", (event) => {
+    if ((mapView.dragged && event.detail) || mapView.suppressNextClick) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      mapView.suppressNextClick = false;
+    }
+  }, true);
   updateView();
 }
 
@@ -237,7 +325,7 @@ function closeMapChoices() {
 function showMapChoices(stations, marker) {
   const choices = document.querySelector("#map-choices");
   choices.replaceChildren();
-  const heading = document.createElement("strong"); heading.textContent = "Choose monitoring station"; choices.append(heading);
+  const heading = document.createElement("strong"); heading.textContent = "Choose Black Carbon sensor"; choices.append(heading);
   stations.forEach(({ station }) => {
     const button = document.createElement("button"); button.type = "button";
     button.textContent = station.name; button.setAttribute("aria-label", `View charts for ${station.name}`);
@@ -263,16 +351,29 @@ function navigateToStation(stationId) {
     .find((node) => Number(node.dataset.stationId) === stationId);
   if (!group) return;
   const shell = document.querySelector("#monitoring-map-shell");
-  if (matchMedia("(max-width: 767px)").matches) {
+  const mobile = matchMedia("(max-width: 767px)").matches;
+  if (mobile) {
     shell.classList.remove("is-expanded", "is-map-open");
     const toggle = document.querySelector("#map-toggle");
     toggle.setAttribute("aria-expanded", "false");
-    toggle.textContent = "Expand monitoring map";
+    toggle.textContent = "Open Black Carbon sensor map";
   }
   group.classList.add("is-map-destination");
-  group.focus({ preventScroll: true });
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  group.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  if (mobile) {
+    // The expanded mobile map changes page height for 280 ms on close.
+    // Scroll only after its transition settles, otherwise iOS can land
+    // halfway down this two-chart card rather than at its station heading.
+    setTimeout(() => requestAnimationFrame(() => {
+      if (!group.isConnected) return;
+      const top = window.scrollY + group.getBoundingClientRect().top - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+      group.focus({ preventScroll: true });
+    }), reducedMotion ? 0 : 330);
+  } else {
+    group.focus({ preventScroll: true });
+    group.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+  }
   setTimeout(() => group.classList.remove("is-map-destination"), reducedMotion ? 900 : 1800);
 }
 
@@ -316,6 +417,7 @@ function renderMapStations() {
       if (members.length === 1) navigateToStation(members[0].station.station_id);
       else showMapChoices(members, marker);
     };
+    marker.activate = activate;
     node.addEventListener("click", () => activate());
     node.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -526,7 +628,10 @@ function render() {
     group.dataset.stationId = String(station.station_id);
     group.tabIndex = -1;
     const header = document.createElement("header"), name = document.createElement("h3"), meta = document.createElement("span");
-    name.textContent = station.name; meta.className = "wb-sensor-meta"; meta.textContent = `Station ${station.station_ref} · source through ${data.source_through_day}`;
+    name.textContent = station.name;
+    meta.className = "wb-sensor-meta";
+    const environmentType = UK_AIR_ENVIRONMENT_TYPES[station.station_ref];
+    meta.textContent = `${environmentType ? `${environmentType} · ` : ""}Station ${station.station_ref} · source through ${data.source_through_day}`;
     header.append(name, meta); group.append(header);
     const pair = document.createElement("div"); pair.className = "wb-chart-pair";
     const chosen = [...summer.months, ...winter.months].map((entry) => station.profiles[property][entry.index]);
@@ -561,7 +666,7 @@ function status(message, retry = false) {
 
 async function load() {
   data = null;
-  document.querySelector("#map-caption").textContent = "Loading Black Carbon monitoring stations…";
+  document.querySelector("#map-caption").textContent = "Loading Black Carbon sensors…";
 
   document.querySelector("#sensor-charts").replaceChildren();
   renderMapStations();
@@ -572,7 +677,7 @@ async function load() {
     if (!base) throw new Error("Cache API configuration is unavailable");
     const response = await window.ukAqFetchCacheApi(`${base}/bc-uv/diurnal`, { headers: { Accept: "application/json" } });
     if (response.status === 404) {
-      document.querySelector("#map-caption").textContent = "Black Carbon monitoring stations";
+      document.querySelector("#map-caption").textContent = "Black Carbon sensors";
       status("Black Carbon profiles are not available yet. Please try again later.", true);
       return;
     }
@@ -581,14 +686,14 @@ async function load() {
     data.sensors.sort((a, b) => a.name.localeCompare(b.name, "en-GB") || a.station_id - b.station_id);
     const sensorCount = data.sensors.length;
     document.querySelector("#map-caption").textContent =
-      `${sensorCount} Black Carbon monitoring ${sensorCount === 1 ? "station" : "stations"}`;
+      `${sensorCount} Black Carbon ${sensorCount === 1 ? "sensor" : "sensors"}`;
 
-    if (!data.sensors.length) { status("No eligible Black Carbon monitoring stations are available."); return; }
+    if (!data.sensors.length) { status("No eligible Black Carbon sensors are available."); return; }
     page = 0; renderMapStations(); render(); status("");
     document.fonts?.ready.then(() => { if (data) renderMapStations(); });
   } catch (_error) {
     data = null;
-    document.querySelector("#map-caption").textContent = "Black Carbon monitoring stations";
+    document.querySelector("#map-caption").textContent = "Black Carbon sensors";
     renderMapStations(); status("Black Carbon profiles could not be loaded. Please try again.", true);
   }
 }

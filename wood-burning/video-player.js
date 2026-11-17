@@ -15,6 +15,8 @@ const captionPanel = document.querySelector("#wood-video-subtitles");
 const status = document.querySelector("#wood-video-status");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const noHover = matchMedia("(hover: none)");
+const preferNativeOnIPhone = /iPhone|iPod/i.test(navigator.userAgent)
+  && typeof video?.webkitEnterFullscreen === "function";
 const controls = frame?.querySelector(".wb-video-controls");
 
 if (frame && video && controls && playButton && soundButton && volumeSlider && progress &&
@@ -23,6 +25,7 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
   let captionsEnabled = true;
   let nativeFullscreen = false;
   let captionsAvailable = true;
+  let nativeCaptionsElement = null;
   let touchVideoTap = false;
   let scrubbing = false;
   let hideControlsTimer = null;
@@ -95,7 +98,8 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
   const renderCaptions = () => {
     const cues = track.activeCues;
     const cue = cues && cues.length ? cues[0] : null;
-    if (!captionsEnabled || !captionsAvailable || nativeFullscreen || !cue) {
+    if (!captionsEnabled || !captionsAvailable || nativeFullscreen ||
+        video.webkitDisplayingFullscreen === true || document.fullscreenElement === video || !cue) {
       captionPanel.hidden = true;
       captionPanel.textContent = "";
       return;
@@ -108,12 +112,40 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
     captionPanel.hidden = !captionPanel.textContent;
   };
 
+  const syncNativeCaptions = () => {
+    // The metadata track supplies the inline cues but can NEVER be painted.
+    // A separate subtitles track exists only in browser-owned native fullscreen.
+    if (!nativeFullscreen || !captionsEnabled || !captionsAvailable) {
+      if (nativeCaptionsElement) {
+        nativeCaptionsElement.track.mode = "disabled";
+        nativeCaptionsElement.remove();
+        nativeCaptionsElement = null;
+      }
+      return;
+    }
+    if (nativeCaptionsElement) return;
+    const element = document.createElement("track");
+    element.kind = "subtitles";
+    element.srclang = "en";
+    element.label = "English subtitles";
+    element.src = captionsElement.getAttribute("src");
+    element.default = true;
+    nativeCaptionsElement = element;
+    video.append(element);
+    const enableNativeCues = () => {
+      if (nativeFullscreen && captionsEnabled && captionsAvailable &&
+          nativeCaptionsElement === element) element.track.mode = "showing";
+    };
+    element.addEventListener("load", enableNativeCues);
+    enableNativeCues();
+  };
+
   const syncCaptions = () => {
-    // Keep native cues hidden on the custom player, but loaded and time-synced.
-    // iOS/native fullscreen owns its own caption rendering.
-    track.mode = nativeFullscreen
-      ? (captionsEnabled && captionsAvailable ? "showing" : "disabled")
-      : "hidden";
+    // Always suppress our custom box when the browser owns video fullscreen.
+    frame.classList.toggle("is-native-fullscreen", nativeFullscreen);
+    // Metadata cues are active but never natively drawn in inline playback.
+    track.mode = "hidden";
+    syncNativeCaptions();
     captionsButton.setAttribute("aria-pressed", String(captionsEnabled && captionsAvailable));
     captionsButton.setAttribute("aria-label", captionsEnabled && captionsAvailable ? "Turn subtitles off" : "Turn subtitles on");
     captionsButton.setAttribute("title", captionsEnabled && captionsAvailable ? "Subtitles on" : "Subtitles off");
@@ -250,6 +282,19 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
     syncCaptions();
   });
 
+  const enterNativeFullscreen = () => {
+    // Hide the custom panel before handing the picture to iOS native video UI.
+    nativeFullscreen = true;
+    syncCaptions();
+    try {
+      video.webkitEnterFullscreen();
+    } catch (error) {
+      nativeFullscreen = false;
+      syncCaptions();
+      throw error;
+    }
+  };
+
   fullscreenButton.addEventListener("click", async () => {
     if (document.fullscreenElement === frame) {
       try { await document.exitFullscreen(); } catch (_error) { setStatus("Could not exit full screen."); }
@@ -260,16 +305,18 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
       return;
     }
     try {
-      if (typeof frame.requestFullscreen === "function") {
+      if (preferNativeOnIPhone) {
+        enterNativeFullscreen();
+      } else if (typeof frame.requestFullscreen === "function") {
         await frame.requestFullscreen();
       } else if (typeof video.webkitEnterFullscreen === "function") {
-        video.webkitEnterFullscreen();
+        enterNativeFullscreen();
       } else {
         setStatus("Full screen is not supported by this browser.");
       }
     } catch (_error) {
       if (typeof video.webkitEnterFullscreen === "function") {
-        try { video.webkitEnterFullscreen(); }
+        try { enterNativeFullscreen(); }
         catch (_fallbackError) { setStatus("Full screen could not be opened."); }
       } else {
         setStatus("Full screen could not be opened.");
@@ -278,7 +325,13 @@ if (frame && video && controls && playButton && soundButton && volumeSlider && p
     syncFullscreen();
   });
 
-  document.addEventListener("fullscreenchange", syncFullscreen);
+  document.addEventListener("fullscreenchange", () => {
+    // Handle platforms that report fullscreen on the video rather than the frame.
+    if (document.fullscreenElement === video) nativeFullscreen = true;
+    else if (!document.fullscreenElement && video.webkitDisplayingFullscreen !== true) nativeFullscreen = false;
+    syncCaptions();
+    syncFullscreen();
+  });
   video.addEventListener("webkitbeginfullscreen", () => {
     nativeFullscreen = true;
     syncCaptions();
