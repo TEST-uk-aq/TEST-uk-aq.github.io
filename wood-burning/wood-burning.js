@@ -647,8 +647,21 @@ function render() {
     previous.disabled = page === 0; next.disabled = page === pages - 1;
     label.setAttribute("aria-live", "polite"); label.textContent = `Page ${page + 1} of ${pages}`;
     for (const [button, direction] of [[previous, -1], [next, 1]]) button.addEventListener("click", () => {
-      page += direction; render(); document.querySelector("#charts-title").scrollIntoView({
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      page += direction; render();
+      const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      if (matchMedia("(max-width: 767px)").matches) {
+        requestAnimationFrame(() => {
+          const firstGroup = document.querySelector("#sensor-charts .wb-sensor-group");
+          if (!firstGroup) return;
+          const header = document.querySelector("#uk-aq-header");
+          const headerOffset = header && ["fixed", "sticky"].includes(getComputedStyle(header).position)
+            ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+          const top = window.scrollY + firstGroup.getBoundingClientRect().top - headerOffset - 12;
+          window.scrollTo({ top: Math.max(0, top), behavior });
+        });
+      } else {
+        document.querySelector("#charts-title").scrollIntoView({ behavior });
+      }
     });
     nav.append(previous, label, next);
   });
