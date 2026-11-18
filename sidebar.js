@@ -560,6 +560,10 @@
       transition: transform var(--uk-aq-ease), width var(--uk-aq-ease);
       font-family: var(--uk-aq-font);
     }
+    @media (max-width: 767px) {
+      /* Follow mobile browser chrome while retaining the 100vh fallback above. */
+      #uk-aq-sidebar { height: 100dvh; }
+    }
 
     body[data-sidebar-state="collapsed"] #uk-aq-sidebar {
       transform: translateX(calc(-1 * var(--uk-aq-sidebar-w)));
@@ -1304,8 +1308,10 @@
         setState(pinnedOpenDesktop || isSidebarChromeHovered() ? EXPANDED : MINI);
         document.body.classList.remove('uk-aq-drawer-open');
       } else if (bp === 'mobile') {
-        setState(DRAWER);
-        document.body.classList.remove('uk-aq-drawer-open');
+        if (getState() !== DRAWER) {
+          setState(DRAWER);
+          document.body.classList.remove('uk-aq-drawer-open');
+        }
       } else if (getState() === MINI || getState() === DRAWER || getState() === COLLAPSED) {
         document.body.classList.remove('uk-aq-drawer-open');
         setState(pinnedOpenDesktop || isSidebarChromeHovered() ? EXPANDED : MINI);
